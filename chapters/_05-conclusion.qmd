@@ -1,0 +1,16 @@
+# Conclusion {#sec-conclusion}
+
+> **Placeholder section:** Add conclusions only after the research question has
+> been addressed by the documented analysis.
+
+## Answer to research question
+
+- TODO: Answer the research question based on the results.
+
+## Limitations
+
+- TODO: Describe methodological and practical limitations.
+
+## Outlook
+
+- TODO: Identify appropriate future work.

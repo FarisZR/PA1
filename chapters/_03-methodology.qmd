@@ -1,0 +1,40 @@
+# Methodology {#sec-methodology}
+
+> **Placeholder section:** Document the planned method without adding
+> experimental claims or results.
+
+## Benchmark/task selection
+
+- TODO: Define the benchmark and task-selection process.
+
+## Models and agent harnesses
+
+- TODO: List the models and agent harnesses used in the study.
+
+## Experimental setup
+
+- TODO: Describe the experimental setup and controlled variables.
+
+## Evaluation metrics
+
+- TODO: Define the evaluation metrics and how they will be calculated.
+
+## Reproducibility
+
+- TODO: Record versions, configuration, seeds, and execution instructions.
+
+## Setup demonstration {.unnumbered}
+
+This section is setup/demo content only. It is not research data, a finding, or a
+benchmark result. The placeholder image in @fig-setup-demo and the placeholder
+values in @tbl-setup-demo verify figure/table captions, numbering,
+cross-references, and the generated lists.
+
+![Setup demonstration figure — not a research result.](figures/demo-placeholder.svg){#fig-setup-demo}
+
+| Element | Purpose |
+|---|---|
+| Placeholder figure | Verify caption, numbering, and cross-reference |
+| Placeholder table | Verify caption, numbering, and cross-reference |
+
+: **Setup demonstration only — not research data or a result.** {#tbl-setup-demo}

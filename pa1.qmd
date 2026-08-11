@@ -1,0 +1,38 @@
+---
+title: "How do different agent harnesses affect the cost-efficiency and task-solving performance of coding models on software-engineering tasks?"
+author: "Fares Rahmani"
+abstract-title: "Abstract"
+abstract: |
+  TODO: Write the abstract after the study is complete.
+---
+
+<!--
+TODO: Add DHBW-specific front matter only when the required format is known.
+Keep the title page, declarations, and page-numbering customizations out of the
+initial writing workflow unless they are explicitly required.
+-->
+
+<!--
+Quarto 1.10 exposes `lof` and `lot` as Typst options, but its stock Typst
+ template does not emit the corresponding outlines. These native Typst outlines
+ keep the lists automatic (they are populated from the labeled floats below)
+ until Quarto provides direct emission for this backend.
+-->
+
+```{=typst}
+#pagebreak()
+#outline(target: figure.where(kind: "quarto-float-fig"), title: [List of Figures])
+#pagebreak()
+#outline(target: figure.where(kind: "quarto-float-tbl"), title: [List of Tables])
+#pagebreak()
+```
+
+{{< include chapters/_01-introduction.qmd >}}
+
+{{< include chapters/_02-current-state.qmd >}}
+
+{{< include chapters/_03-methodology.qmd >}}
+
+{{< include chapters/_04-results.qmd >}}
+
+{{< include chapters/_05-conclusion.qmd >}}

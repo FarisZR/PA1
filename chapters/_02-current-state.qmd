@@ -1,0 +1,16 @@
+# Current State in the Company {#sec-current-state}
+
+> **Placeholder section:** Add only verified company-specific information and
+> approved observations when available.
+
+## Current tooling
+
+- TODO: Describe the relevant current tooling.
+
+## Current model usage
+
+- TODO: Describe the current model usage.
+
+## Interviews / observations
+
+- TODO: Document the interviews or observations and their provenance.

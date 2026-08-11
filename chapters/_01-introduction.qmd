@@ -1,0 +1,20 @@
+# Introduction {#sec-introduction}
+
+> **Placeholder section:** Replace the bullets below with the paper's content.
+> No findings, company facts, or sources have been added yet.
+
+## Problem statement
+
+- TODO: State the problem to be investigated.
+
+## Research question
+
+- TODO: Formulate the research question.
+
+## Objective
+
+- TODO: State the objective of the Praxisarbeit.
+
+## Scope
+
+- TODO: Define the scope and boundaries of the work.

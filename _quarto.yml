@@ -1,0 +1,25 @@
+project:
+  type: default
+  output-dir: _output
+  # Render only the root paper document; chapter files are included by pa1.qmd.
+  render:
+    - pa1.qmd
+
+lang: en
+bibliography: references.bib
+csl: ieee.csl
+
+format:
+  typst:
+    papersize: a4
+    fontsize: 12pt
+    margin:
+      x: 2.5cm
+      y: 2.5cm
+    linestretch: 1.2
+    number-sections: true
+    toc: true
+    toc-depth: 3
+    lof: true
+    lot: true
+

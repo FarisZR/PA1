@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="180" viewBox="0 0 600 180" role="img" aria-labelledby="title desc">
+  <title id="title">Setup demonstration placeholder</title>
+  <desc id="desc">A neutral placeholder graphic used only to verify Quarto figure handling.</desc>
+  <rect width="600" height="180" fill="#f2f2f2" stroke="#666" stroke-width="3"/>
+  <text x="300" y="82" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#333">DEMO ONLY</text>
+  <text x="300" y="120" text-anchor="middle" font-family="sans-serif" font-size="18" fill="#555">Replace with a documented figure later</text>
+</svg>

@@ -1,0 +1,28 @@
+# Results and Analysis {#sec-results}
+
+> **Placeholder section:** Do not add results until the underlying data and
+> analysis are available and documented.
+
+## Task success
+
+- TODO: Report task-success results from the recorded data.
+
+## Cost
+
+- TODO: Report cost results from the recorded data.
+
+## Token usage
+
+- TODO: Report token-usage results from the recorded data.
+
+## Cache usage
+
+- TODO: Report cache-usage results from the recorded data.
+
+## Runtime
+
+- TODO: Report runtime results from the recorded data.
+
+## Comparative analysis
+
+- TODO: Compare the results using the defined methodology and metrics.

@@ -1,0 +1,35 @@
+# Quarto project and render artifacts
+.quarto/
+_output/
+_site/
+**/*_cache/
+**/*_files/
+**/*.quarto_ipynb
+
+# Generated output for the root paper (source files and research PDFs remain trackable)
+pa1.pdf
+pa1.html
+pa1_files/
+pa1.typ
+pa1.log
+pa1.aux
+pa1.out
+pa1.toc
+pa1.synctex.gz
+
+# VS Code and local editor/OS files
+.vscode/
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# Local environment and temporary files
+.env
+.env.*
+*.tmp
+*.temp
+*.bak
+
+/.quarto/
