@@ -40,8 +40,8 @@ https://deepswe.datacurve.ai/artifacts/v1.1/tasks.json
 https://deepswe.datacurve.ai/artifacts/v1.1/trials.json
 ```
 
-It writes the selected tasks, input SHA-256 hashes, selection audit data, and
-cost projection to:
+It writes the selected tasks, input SHA-256 hashes, selection audit data, the
+trajectory hashes used for cache-aware repricing, and the cost projection to:
 
 ```text
 data/deepswe_task_selection_v1.1.json
@@ -52,25 +52,39 @@ To reproduce the calculation from local copies instead of downloading them:
 ```bash
 python3 scripts/select_deepswe_tasks.py \
   --tasks-json /path/to/tasks.json \
-  --trials-json /path/to/trials.json
+  --trials-json /path/to/trials.json \
+  --release-json /path/to/release.json
 ```
 
 Use `--harnesses N` to change the projected number of harnesses. PA1 currently
-uses four.
+uses four. `--trajectory-cache-dir PATH` controls the local cache for immutable
+public trajectory JSON files used by the cache-aware cost calculation.
 
 ## Cost estimate
 
-The cost section is a **budget estimate**, not an experimental result. For each
-selected task it averages the public DeepSWE rollout cost of the exact target
-configuration, then projects one run per task and PA1 harness.
+The cost section is a **budget estimate**, not an experimental result. It does
+not trust DeepSWE's precomputed `cost_usd` values. Instead, the script reprices
+the raw token/cache usage of the four public rollouts for each selected task and
+exact target configuration, averages those four costs, and projects one run per
+task and PA1 harness.
 
-- Claude Opus 5: `medium`, using the public DeepSWE `cost_usd` field.
-- GPT-5.6 Luna: `max`, using the public cost with DeepSWE's v1.1 Luna `0.2`
-  display adjustment.
-- DeepSeek V4 Flash: `max`, recalculated from public token counts using the
-  Fireworks serverless prices configured in the script.
-- Kimi K3: `max`, using the public DeepSWE `cost_usd` field.
+The frozen pricing table currently uses:
 
-The Fireworks pricing constants are intentionally explicit in the script so a
-provider price change cannot silently change a previously documented budget.
-Update them deliberately if PA1's actual provider pricing changes.
+- **Claude Opus 5 medium:** Anthropic API pricing. Per-request DeepSWE
+  trajectories expose uncached input, 5-minute and 1-hour cache creation, cache
+  reads, and output tokens, so all cache tiers are repriced explicitly.
+- **GPT-5.6 Luna max:** current OpenAI reference pricing. Per-request prompt,
+  cached-input, and output counts are used so the >272K-token long-context
+  multipliers are applied to the correct requests. The historical DeepSWE
+  trajectories predate the current `cache_write_tokens` field, so the generated
+  budget reports both the observed-data estimate and a conservative upper bound
+  that treats every otherwise-unlabelled uncached input token as a cache write.
+- **DeepSeek V4 Flash max:** Fireworks pricing, using raw uncached input, cached
+  input, and output counts.
+- **Kimi K3 max:** Fireworks pricing, using raw uncached input, cached input, and
+  output counts.
+
+All price constants and source URLs are explicit in `PRICING` in the script and
+are emitted into the generated JSON. This prevents a provider price change from
+silently changing a previously documented budget. Update the table deliberately
+when PA1's actual provider pricing changes.

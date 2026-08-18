@@ -33,3 +33,7 @@ Thumbs.db
 *.bak
 
 /.quarto/
+# Python and local analysis caches
+__pycache__/
+*.pyc
+.cache/

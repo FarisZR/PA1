@@ -1,148 +1,173 @@
 {
   "cost_estimate": {
+    "grand_total_upper_usd": 753.4197535440001,
     "grand_total_usd": 750.747761394,
     "harness_count": 4,
     "models": [
       {
         "average_cost_per_selected_task_usd": 7.43697015625,
-        "cost_method": "reported",
+        "cost_method": "anthropic_trajectory",
         "label": "Claude Opus 5 medium",
         "model": "claude-opus-5",
+        "one_harness_total_upper_usd": 74.3697015625,
         "one_harness_total_usd": 74.3697015625,
         "per_task": [
           {
+            "average_cost_upper_usd": 5.079286312500001,
             "average_cost_usd": 5.079286312500001,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "expr-try-catch-errors"
           },
           {
+            "average_cost_upper_usd": 3.4373769375,
             "average_cost_usd": 3.4373769375,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "katex-multicolumn-array-spans"
           },
           {
+            "average_cost_upper_usd": 7.8907461875,
             "average_cost_usd": 7.8907461875,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "python-statemachine-state-data-scoping"
           },
           {
+            "average_cost_upper_usd": 8.1722164375,
             "average_cost_usd": 8.1722164375,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "oxvg-structural-selector-preservation"
           },
           {
-            "average_cost_usd": 9.46522875,
+            "average_cost_upper_usd": 9.465228749999998,
+            "average_cost_usd": 9.465228749999998,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "effect-sse-httpapi-streaming"
           },
           {
+            "average_cost_upper_usd": 22.5764115,
             "average_cost_usd": 22.5764115,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "scriggo-method-declarations"
           },
           {
+            "average_cost_upper_usd": 1.8285360625000002,
             "average_cost_usd": 1.8285360625000002,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "csstree-shorthand-expansion-compression"
           },
           {
+            "average_cost_upper_usd": 2.81977075,
             "average_cost_usd": 2.81977075,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "fastapi-implicit-head-options"
           },
           {
+            "average_cost_upper_usd": 5.260913375000001,
             "average_cost_usd": 5.260913375000001,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "boa-hierarchical-evaluation-cancellation"
           },
           {
-            "average_cost_usd": 7.839215249999998,
+            "average_cost_upper_usd": 7.839215249999999,
+            "average_cost_usd": 7.839215249999999,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "koota-composite-trait-aspects"
           }
         ],
+        "projected_total_upper_usd": 297.47880625,
         "projected_total_usd": 297.47880625,
         "reasoning_effort": "medium"
       },
       {
-        "average_cost_per_selected_task_usd": 1.34188814,
-        "cost_method": "reported_factor",
+        "average_cost_per_selected_task_usd": 1.3418881400000005,
+        "cost_method": "openai_trajectory",
         "label": "GPT-5.6 Luna max",
         "model": "gpt-5-6-luna",
-        "one_harness_total_usd": 13.4188814,
+        "one_harness_total_upper_usd": 14.0868794375,
+        "one_harness_total_usd": 13.418881400000004,
         "per_task": [
           {
+            "average_cost_upper_usd": 0.9508459025,
             "average_cost_usd": 0.89165664,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "expr-try-catch-errors"
           },
           {
-            "average_cost_usd": 0.55455989,
+            "average_cost_upper_usd": 0.6006876274999999,
+            "average_cost_usd": 0.5545598899999999,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "katex-multicolumn-array-spans"
           },
           {
-            "average_cost_usd": 1.08048718,
+            "average_cost_upper_usd": 1.13977388,
+            "average_cost_usd": 1.0804871799999998,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "python-statemachine-state-data-scoping"
           },
           {
-            "average_cost_usd": 1.81174572,
+            "average_cost_upper_usd": 1.9043457450000003,
+            "average_cost_usd": 1.8117457200000007,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "oxvg-structural-selector-preservation"
           },
           {
+            "average_cost_upper_usd": 2.2296823600000004,
             "average_cost_usd": 2.1358786600000004,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "effect-sse-httpapi-streaming"
           },
           {
-            "average_cost_usd": 2.9656071400000004,
+            "average_cost_upper_usd": 3.0693151775,
+            "average_cost_usd": 2.96560714,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "scriggo-method-declarations"
           },
           {
-            "average_cost_usd": 0.33401980000000003,
+            "average_cost_upper_usd": 0.361021825,
+            "average_cost_usd": 0.3340198,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "csstree-shorthand-expansion-compression"
           },
           {
-            "average_cost_usd": 0.67063129,
+            "average_cost_upper_usd": 0.7113663024999999,
+            "average_cost_usd": 0.6706312900000002,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "fastapi-implicit-head-options"
           },
           {
+            "average_cost_upper_usd": 1.8472334599999995,
             "average_cost_usd": 1.76901681,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "boa-hierarchical-evaluation-cancellation"
           },
           {
+            "average_cost_upper_usd": 1.2726071575000002,
             "average_cost_usd": 1.20527827,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "koota-composite-trait-aspects"
           }
         ],
-        "projected_total_usd": 53.6755256,
+        "projected_total_upper_usd": 56.34751775,
+        "projected_total_usd": 53.675525600000014,
         "reasoning_effort": "max"
       },
       {
@@ -150,146 +175,171 @@
         "cost_method": "fireworks_tokens",
         "label": "DeepSeek V4 Flash max (Fireworks)",
         "model": "deepseek-v4-flash",
+        "one_harness_total_upper_usd": 10.012259061,
         "one_harness_total_usd": 10.012259061,
         "per_task": [
           {
+            "average_cost_upper_usd": 0.860639409,
             "average_cost_usd": 0.860639409,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "expr-try-catch-errors"
           },
           {
+            "average_cost_upper_usd": 0.620371094,
             "average_cost_usd": 0.620371094,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "katex-multicolumn-array-spans"
           },
           {
+            "average_cost_upper_usd": 0.9816043440000001,
             "average_cost_usd": 0.9816043440000001,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "python-statemachine-state-data-scoping"
           },
           {
+            "average_cost_upper_usd": 1.185908969,
             "average_cost_usd": 1.185908969,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "oxvg-structural-selector-preservation"
           },
           {
+            "average_cost_upper_usd": 1.16196731,
             "average_cost_usd": 1.16196731,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "effect-sse-httpapi-streaming"
           },
           {
+            "average_cost_upper_usd": 2.0066593260000003,
             "average_cost_usd": 2.0066593260000003,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "scriggo-method-declarations"
           },
           {
+            "average_cost_upper_usd": 0.616845152,
             "average_cost_usd": 0.616845152,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "csstree-shorthand-expansion-compression"
           },
           {
+            "average_cost_upper_usd": 0.8274775600000001,
             "average_cost_usd": 0.8274775600000001,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "fastapi-implicit-head-options"
           },
           {
+            "average_cost_upper_usd": 1.062971077,
             "average_cost_usd": 1.062971077,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "boa-hierarchical-evaluation-cancellation"
           },
           {
+            "average_cost_upper_usd": 0.68781482,
             "average_cost_usd": 0.68781482,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "koota-composite-trait-aspects"
           }
         ],
+        "projected_total_upper_usd": 40.049036244,
         "projected_total_usd": 40.049036244,
         "reasoning_effort": "max"
       },
       {
         "average_cost_per_selected_task_usd": 8.9886098325,
-        "cost_method": "reported",
-        "label": "Kimi K3 max",
+        "cost_method": "fireworks_tokens",
+        "label": "Kimi K3 max (Fireworks)",
         "model": "kimi-k3",
+        "one_harness_total_upper_usd": 89.886098325,
         "one_harness_total_usd": 89.886098325,
         "per_task": [
           {
+            "average_cost_upper_usd": 6.3123663,
             "average_cost_usd": 6.3123663,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "expr-try-catch-errors"
           },
           {
+            "average_cost_upper_usd": 4.492570725,
             "average_cost_usd": 4.492570725,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "katex-multicolumn-array-spans"
           },
           {
+            "average_cost_upper_usd": 7.008515625,
             "average_cost_usd": 7.008515625,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "python-statemachine-state-data-scoping"
           },
           {
+            "average_cost_upper_usd": 14.860826175,
             "average_cost_usd": 14.860826175,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "oxvg-structural-selector-preservation"
           },
           {
+            "average_cost_upper_usd": 9.4941657,
             "average_cost_usd": 9.4941657,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "effect-sse-httpapi-streaming"
           },
           {
+            "average_cost_upper_usd": 25.44762975,
             "average_cost_usd": 25.44762975,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "scriggo-method-declarations"
           },
           {
+            "average_cost_upper_usd": 2.26816215,
             "average_cost_usd": 2.26816215,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "csstree-shorthand-expansion-compression"
           },
           {
+            "average_cost_upper_usd": 3.712652625,
             "average_cost_usd": 3.712652625,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "fastapi-implicit-head-options"
           },
           {
+            "average_cost_upper_usd": 7.03821675,
             "average_cost_usd": 7.03821675,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "boa-hierarchical-evaluation-cancellation"
           },
           {
-            "average_cost_usd": 9.250992525000001,
+            "average_cost_upper_usd": 9.250992525,
+            "average_cost_usd": 9.250992525,
             "n_cost_rollouts": 4,
             "n_public_rollouts": 4,
             "task_id": "koota-composite-trait-aspects"
           }
         ],
+        "projected_total_upper_usd": 359.5443933,
         "projected_total_usd": 359.5443933,
         "reasoning_effort": "max"
       }
     ],
     "runs_per_model": 40,
-    "total_projected_runs": 160
+    "total_projected_runs": 160,
+    "uncertainty_note": "GPT-5.6 historical DeepSWE trajectories do not expose cache_write_tokens. The upper bound treats every unlabelled uncached GPT input token as a cache write at 1.25x input pricing; other models are repriced exactly from the available raw cache/token fields."
   },
   "method": {
     "benchmark_version": "v1.1",
@@ -460,13 +510,128 @@
     }
   ],
   "sources": {
-    "fireworks_v4_flash_pricing": {
-      "source": "https://fireworks.ai/models/fireworks/deepseek-v4-flash",
-      "usd_per_million_tokens": {
+    "cost_trajectory_artifacts": {
+      "count": 80,
+      "sha256_by_trial": {
+        "boa-hierarchical-evaluation-canc__FTYHx26": "203d151e2d93657d2730b8a964aec178b8b8aeee7c43d31be31f954f8f43580b",
+        "boa-hierarchical-evaluation-canc__K4YAxyX": "6982d99cf9e824d14739d770f053043d426abd9f13ad5da9ac69c3516693f1f8",
+        "boa-hierarchical-evaluation-canc__M4voLtX": "291b48f24af9206451c180ac60a23255cd9d2f1c2e7b314e37aac47dd3b246c1",
+        "boa-hierarchical-evaluation-canc__RQ9KDXN": "720022233044c3baed6ad60b1984c590204a1f623ec7551aa2f12508094c1d25",
+        "boa-hierarchical-evaluation-canc__bFrSEe8": "ccb2da455ff131ab4d1e3387613ba8401967fffd516d0c69e882622018b588f1",
+        "boa-hierarchical-evaluation-canc__hCX6No2": "6475bca61ca21d92eb2c64269edf6359805184f46914a08638113a4dd66bcc5b",
+        "boa-hierarchical-evaluation-canc__zb8jTbL": "dedab46eb4ac3ac322e4baa6b641553c31e4baad341859ca86daedf1331788c1",
+        "boa-hierarchical-evaluation-canc__zbdvuXk": "50d4581abf85c019dd9f2e7461041c73f56f4f0be06c65585f132a1573a68ce9",
+        "csstree-shorthand-expansion-comp__4rqszvM": "79eaab42782b88c9f0489830418f38e921b54483492e042e9bae8ac62a061b51",
+        "csstree-shorthand-expansion-comp__8joguXF": "1b5e2a1230325000db0d851e2490a486d39c4743669be55786f1b46bde733c7a",
+        "csstree-shorthand-expansion-comp__HDzfNcu": "5b65db9701065867e96b9ba8ce53939efc803c067cf665e1e6366308f26d3cdb",
+        "csstree-shorthand-expansion-comp__XArrKXd": "f453dbc8f4e9b725d38fc662efe4e896e7b2fd7737c61a03480d368bbcd1df9b",
+        "csstree-shorthand-expansion-comp__XFcSqzX": "1b8753c95fb9d4489595e3e6efc9f043e7955c2c50278681326948ead5f56f62",
+        "csstree-shorthand-expansion-comp__vM8RGw3": "6f041715c47cad9cff3318b7270b82f1416cea128c3472d4b40856f5f603b68b",
+        "csstree-shorthand-expansion-comp__yvpnPRe": "74a7e633c463986a29712a6cedda625f6e9e94a802711f31c84dcb04b5d4c376",
+        "csstree-shorthand-expansion-comp__zes8m8A": "bf33a6586a7ca1215348230a794222e01a1ce2c29b80f5442e62b125b3d61363",
+        "effect-sse-httpapi-streaming__6iFW8ne": "33f170f020a482872671e199074a3d8b1e795cc29a76d60adeae6d470e4bda77",
+        "effect-sse-httpapi-streaming__AmRxfvo": "5d83da483d41a50caf5a354e598e24a11c9a1c2170a5818f63fe271a42ecf6d0",
+        "effect-sse-httpapi-streaming__Arw5ELP": "d8fda333255d3c28fe274c2f3f0f28998f12a6fc6623eec5e8b37dbbf2e51e6e",
+        "effect-sse-httpapi-streaming__B5A2yHu": "548f69023da1ea5c8b28fd8ff920222164188792591d5939ddb7f875382a9580",
+        "effect-sse-httpapi-streaming__at7gFM8": "432b98a1afac40e3506610763c8f1f05a1498510679b008ad7ed3e2f1ea0098e",
+        "effect-sse-httpapi-streaming__cpActVa": "6b35a3fca7908a1dbc6cf54941b03affde2061ecdbc8b1eaf1312b38f580bd41",
+        "effect-sse-httpapi-streaming__j7btzNa": "a0a254fe53f8487f10557f97b737f229f3152183f65cf3aa165bf22a75c29cf1",
+        "effect-sse-httpapi-streaming__nYsspLQ": "ee9e05efabec0d2357ca6e79a385cb3651bed301c9b3c421365cd009c762b9e7",
+        "expr-try-catch-errors__HGhD8rZ": "d68d8cce2652f3e8714fc4224406a253262a1554b5fd1722130f404a1174b22f",
+        "expr-try-catch-errors__UxfpHu5": "050f03223538499d8e97a6eb2e772470195804240192ff506933008a4f4b4b17",
+        "expr-try-catch-errors__cHxAorc": "946468ab622ad1dbc9eff26fc8c7736187a108256d4186372ea8dc1ee8298d6a",
+        "expr-try-catch-errors__cM6U4aT": "1c98a9b09d599d5625cab724482365a533c085a5effeb786cb56661cd97e324d",
+        "expr-try-catch-errors__iVNS6S8": "3139f9e1602be10ae264c6a1ca003be40fd872c1df3b1b4dcdd5d4fe218a9fd1",
+        "expr-try-catch-errors__iWVAQSi": "c0b2c415d27027c79142947f3b142a3d64bb7516aa18a6d3a3442c210b5524b6",
+        "expr-try-catch-errors__inEjz6a": "386f60d52de45dce3c02ca82c592ad2fc376615db4713e6d9f1c6933854cb51a",
+        "expr-try-catch-errors__nthNkiM": "7d0dee2b966fcc0f99f2429598218737c28a1a086b639d0da931dcd965d63a7b",
+        "fastapi-implicit-head-options__4FAC9BT": "d2d4d75a724f30ea3d89c6a0007ca959b7c12a87bdd5a2c4519d218dcab7ebc5",
+        "fastapi-implicit-head-options__4Totxfc": "7e4b760fc1738a71c71aa5d74d2a8320d088c80afc46ec4732249567e580ba0a",
+        "fastapi-implicit-head-options__Dnuof35": "05d40240251fb208bc36736fbe0a4c51c79eba0dad454463fca8ff278efd2ab6",
+        "fastapi-implicit-head-options__VpAMU9J": "bcf445ff4876cc9891e789c2515c2c1b2ee81dc96feb692d1f58e46aaf682610",
+        "fastapi-implicit-head-options__awmrHsp": "3b1086768a17c07ba8a4a65fb568728014bd7e7bfe90fc3176482347d8695f65",
+        "fastapi-implicit-head-options__wY9xv8U": "563cd682283b231c73600dd554d9a3383d89ea235065b7ea5f1737d68dfe4ccd",
+        "fastapi-implicit-head-options__wvg967B": "0e74fbafaeb634d9539b9791ef00bcc14d7f7ca4abea38357dc998fbf8d0012c",
+        "fastapi-implicit-head-options__xUNFn9D": "330001a6a6cd82160a1514bc050c5613c975878fa0f07b515190c9e012c9a0c4",
+        "katex-multicolumn-array-spans__8T7Vtf5": "abc71ebaab314a7b10093ec5cb78527a1a8740a2bf8b51a3ac77fbf53081abe2",
+        "katex-multicolumn-array-spans__GTRjMf6": "f9af679d9e5e045eba04d21220e3a037b6f1d82f9a93ee8729a0095e5e7ec254",
+        "katex-multicolumn-array-spans__KiYFdZD": "987cc27369b629ca5104bbe9be9a7d3a976e6d4a7a7f87fe2d6bdc7a0eafdf3d",
+        "katex-multicolumn-array-spans__dqyq9eN": "bf17a8e9b3297cf92bea31f8e0cbf5e41cecef97486536dd3a47b495bb4a1ec4",
+        "katex-multicolumn-array-spans__gsV6RyV": "e359c874deec3637f47fc1b81310c723382775a999e20cb2d59b7e654a17588d",
+        "katex-multicolumn-array-spans__hiQ7fgF": "5e0ce09fd993a65e9841f76cbf469e66ab71471e453583064f6b7c7cf6569ecf",
+        "katex-multicolumn-array-spans__vL34yZW": "c65a3de90cf8116189ed8d1da6ab7f9885622251ead009cd4ebaf1301d445e2e",
+        "katex-multicolumn-array-spans__vQ6YYFL": "e1f52358024a03f64c6229e870979e3c39bfba7ee915da7faa2eff4126aa4fd6",
+        "koota-composite-trait-aspects__3XZQbtc": "983ea1267becb5007a4cc71485e43e496dbe735a4b5b0e273fffe224c8acc9f2",
+        "koota-composite-trait-aspects__7QCApFK": "7163f0e456051dbcccfafa7ccc4927ce45e1b9d65e7e2b4cc07a80a35c2c5673",
+        "koota-composite-trait-aspects__7urX2jb": "36b976f0107c4192d71b65eefd1022b71760fa93565347aced0574cac3d5d0ff",
+        "koota-composite-trait-aspects__X9B8E2j": "d70831a08b0e05783d017f3b5a6b55ef7c131bcaeb4f425bbd920ab5fa09d09d",
+        "koota-composite-trait-aspects__keG4MPx": "7bac54b067d2a42997ecfe61bb619da73d8386607450ebc3166f2aeeeac7cae4",
+        "koota-composite-trait-aspects__ohT4DiG": "c28a6b6f69cbdbf532f0968cd5262fbde0a32dac16bcf679f20dcc001e9e4fc0",
+        "koota-composite-trait-aspects__pYXxxDa": "80404455cb434abfb6cbd9ebcbe62e6cb1529ca8932ef90b290439a8b452063d",
+        "koota-composite-trait-aspects__qhyjPMh": "4732d5b2db8afc388cf494bead4bfe287db3def0626d489bcd103f9a53a06acf",
+        "oxvg-structural-selector-preserv__8UxfCY8": "994aee1398774688600ff3e3469abe6e9cbe653f8a9d03a723641f17e76707b2",
+        "oxvg-structural-selector-preserv__Cd4nRR3": "174f3f631641f9901419e16eb0343cd795758675c68ff0211cd13acb5aa74eba",
+        "oxvg-structural-selector-preserv__GRNFr7M": "b6f1d559eaaf78ff59c419d074786c53bb8ed1781e0aa5e802d5816a31b09e03",
+        "oxvg-structural-selector-preserv__TZW2kbu": "01b9967f2b77ae3bd95e00b1d6c46b3f8cef0ea446fecb7fb85098b599d38d4b",
+        "oxvg-structural-selector-preserv__YZJk57x": "34822c4ef0f455463b9ab43f69cf98148800cc5822a4cb5334690b607441c805",
+        "oxvg-structural-selector-preserv__Zro7aAw": "748e786dd6bc489b9e8fcda234ca1887d51ef1d99a5b4ad239d70598fa27ef11",
+        "oxvg-structural-selector-preserv__cDN3MWR": "fec12401297caec3bcf46ea4981702f12d9043492bd57e4edb991aa2c0488032",
+        "oxvg-structural-selector-preserv__zRVBnon": "2e5778e78572b9f4ce444f900c29162d8fca722a4edee4846f54c68923938bb0",
+        "python-statemachine-state-data-s__5wUqZHa": "0ac09e431045e5ed37c5210e3567bdff5391f9d138b942bb47198489be19de1d",
+        "python-statemachine-state-data-s__QJAbTgG": "3cdd884d8669f35fcd51a8d3e84696f81fa1434741ee89298d5f962712d9d4e2",
+        "python-statemachine-state-data-s__Rxb4MZP": "9f8cdbb120b7f1815e4e94be4634d320bf2bdb323b67aaf4fe12aa834e837e0d",
+        "python-statemachine-state-data-s__VNEHseH": "e3dffd5275d3c0d3faf2fea8679a813cac99a99ddb13addae8392bb70aa1a26f",
+        "python-statemachine-state-data-s__apUBMLu": "be8843118bb7cd90584e1e0c9d1e360e5cd8599e939ce23a43104fc73aee3de2",
+        "python-statemachine-state-data-s__cpTBuYe": "40075ed4fc065da951ff6fc2654a593a087e8d70420cef322f14449d1117aace",
+        "python-statemachine-state-data-s__jLDduoy": "401ccf8386c8bdfc8c1d05d23297990850423df559769544919181155cdc8fc3",
+        "python-statemachine-state-data-s__xUUibhK": "d02116a06e953bf59b8d93a658ef6c06094f8fef79e33f7a9d6fa54bf9b903da",
+        "scriggo-method-declarations__8qCYghT": "7273e4f08039e77bd8c62cdd4635d6cf3b69d8055fd12e037da7144a4761fc4c",
+        "scriggo-method-declarations__GzT4Kep": "8d4e99d6294425df064bcd1c4aa7fbdbb4a70e5dae8a259f2539ef29c5019790",
+        "scriggo-method-declarations__HmqdKz3": "a7bb87d3b3255b9b4308d6028f6bbe79ea26eb24bf16068d217c50c9c33ad272",
+        "scriggo-method-declarations__KS4gtad": "4b02598ee34e9f88338d8130a28eb5470645a7f6330ae32f0810a44a3d7a2cdf",
+        "scriggo-method-declarations__ZsihmCj": "1d008afd26f1299251c115f0bfc34d7d3131a34a0b7de9284a1f964ae866543a",
+        "scriggo-method-declarations__pxE7RfX": "928d1ccd26d5dbc00aa810aea6b6238c8cc2d0ab9fc0f2197a90e808e1968415",
+        "scriggo-method-declarations__z3SQwW3": "1a4572ad3eece288615284db795eb9bae96ca30611200d7dac436a7e1457fc11",
+        "scriggo-method-declarations__zY29eb8": "23b4c161cf027c189299f59e4552d516007d2a18d230870965635e79c15b4739"
+      }
+    },
+    "pricing": {
+      "anthropic_opus_5": {
+        "cache_write_1h": 10.0,
+        "cache_write_5m": 6.25,
+        "cached_input": 0.5,
+        "input": 5.0,
+        "output": 25.0,
+        "source": "https://platform.claude.com/docs/en/about-claude/pricing"
+      },
+      "fireworks_kimi_k3": {
+        "cached_input": 0.3,
+        "input": 3.0,
+        "output": 15.0,
+        "source": "https://fireworks.ai/models/fireworks/kimi-k3"
+      },
+      "fireworks_v4_flash": {
         "cached_input": 0.028,
         "input": 0.14,
-        "output": 0.28
+        "output": 0.28,
+        "source": "https://fireworks.ai/models/fireworks/deepseek-v4-flash"
+      },
+      "openai_gpt_5_6_luna": {
+        "cache_rules_source": "https://developers.openai.com/api/docs/guides/latest-model",
+        "cache_write": 0.25,
+        "cached_input": 0.02,
+        "input": 0.2,
+        "long_context_input_multiplier": 2.0,
+        "long_context_output_multiplier": 1.5,
+        "long_context_threshold": 272000,
+        "output": 1.2,
+        "pricing_change_source": "https://openai.com/index/advancing-the-price-performance-frontier-with-gpt-5-6/",
+        "source": "https://developers.openai.com/api/docs/models"
       }
+    },
+    "release": {
+      "sha256": "0b77963ed8c54ef40c5f744ade178b54bfae2662ed94f9235cee85eb542bdc85",
+      "source": "https://deepswe.datacurve.ai/artifacts/v1.1/release.json"
     },
     "tasks": {
       "sha256": "bae967f6472943564c3fc5232fba3c8e0ac465c1be5ccf9dd4895d4ee9df6242",
