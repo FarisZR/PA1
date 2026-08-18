@@ -1,0 +1,610 @@
+{
+  "cost_estimate": {
+    "grand_total_usd": 750.747761394,
+    "harness_count": 4,
+    "models": [
+      {
+        "average_cost_per_selected_task_usd": 7.43697015625,
+        "cost_method": "reported",
+        "label": "Claude Opus 5 medium",
+        "model": "claude-opus-5",
+        "one_harness_total_usd": 74.3697015625,
+        "per_task": [
+          {
+            "average_cost_usd": 5.079286312500001,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "expr-try-catch-errors"
+          },
+          {
+            "average_cost_usd": 3.4373769375,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "katex-multicolumn-array-spans"
+          },
+          {
+            "average_cost_usd": 7.8907461875,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "python-statemachine-state-data-scoping"
+          },
+          {
+            "average_cost_usd": 8.1722164375,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "oxvg-structural-selector-preservation"
+          },
+          {
+            "average_cost_usd": 9.46522875,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "effect-sse-httpapi-streaming"
+          },
+          {
+            "average_cost_usd": 22.5764115,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "scriggo-method-declarations"
+          },
+          {
+            "average_cost_usd": 1.8285360625000002,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "csstree-shorthand-expansion-compression"
+          },
+          {
+            "average_cost_usd": 2.81977075,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "fastapi-implicit-head-options"
+          },
+          {
+            "average_cost_usd": 5.260913375000001,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "boa-hierarchical-evaluation-cancellation"
+          },
+          {
+            "average_cost_usd": 7.839215249999998,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "koota-composite-trait-aspects"
+          }
+        ],
+        "projected_total_usd": 297.47880625,
+        "reasoning_effort": "medium"
+      },
+      {
+        "average_cost_per_selected_task_usd": 1.34188814,
+        "cost_method": "reported_factor",
+        "label": "GPT-5.6 Luna max",
+        "model": "gpt-5-6-luna",
+        "one_harness_total_usd": 13.4188814,
+        "per_task": [
+          {
+            "average_cost_usd": 0.89165664,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "expr-try-catch-errors"
+          },
+          {
+            "average_cost_usd": 0.55455989,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "katex-multicolumn-array-spans"
+          },
+          {
+            "average_cost_usd": 1.08048718,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "python-statemachine-state-data-scoping"
+          },
+          {
+            "average_cost_usd": 1.81174572,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "oxvg-structural-selector-preservation"
+          },
+          {
+            "average_cost_usd": 2.1358786600000004,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "effect-sse-httpapi-streaming"
+          },
+          {
+            "average_cost_usd": 2.9656071400000004,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "scriggo-method-declarations"
+          },
+          {
+            "average_cost_usd": 0.33401980000000003,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "csstree-shorthand-expansion-compression"
+          },
+          {
+            "average_cost_usd": 0.67063129,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "fastapi-implicit-head-options"
+          },
+          {
+            "average_cost_usd": 1.76901681,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "boa-hierarchical-evaluation-cancellation"
+          },
+          {
+            "average_cost_usd": 1.20527827,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "koota-composite-trait-aspects"
+          }
+        ],
+        "projected_total_usd": 53.6755256,
+        "reasoning_effort": "max"
+      },
+      {
+        "average_cost_per_selected_task_usd": 1.0012259061,
+        "cost_method": "fireworks_tokens",
+        "label": "DeepSeek V4 Flash max (Fireworks)",
+        "model": "deepseek-v4-flash",
+        "one_harness_total_usd": 10.012259061,
+        "per_task": [
+          {
+            "average_cost_usd": 0.860639409,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "expr-try-catch-errors"
+          },
+          {
+            "average_cost_usd": 0.620371094,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "katex-multicolumn-array-spans"
+          },
+          {
+            "average_cost_usd": 0.9816043440000001,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "python-statemachine-state-data-scoping"
+          },
+          {
+            "average_cost_usd": 1.185908969,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "oxvg-structural-selector-preservation"
+          },
+          {
+            "average_cost_usd": 1.16196731,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "effect-sse-httpapi-streaming"
+          },
+          {
+            "average_cost_usd": 2.0066593260000003,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "scriggo-method-declarations"
+          },
+          {
+            "average_cost_usd": 0.616845152,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "csstree-shorthand-expansion-compression"
+          },
+          {
+            "average_cost_usd": 0.8274775600000001,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "fastapi-implicit-head-options"
+          },
+          {
+            "average_cost_usd": 1.062971077,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "boa-hierarchical-evaluation-cancellation"
+          },
+          {
+            "average_cost_usd": 0.68781482,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "koota-composite-trait-aspects"
+          }
+        ],
+        "projected_total_usd": 40.049036244,
+        "reasoning_effort": "max"
+      },
+      {
+        "average_cost_per_selected_task_usd": 8.9886098325,
+        "cost_method": "reported",
+        "label": "Kimi K3 max",
+        "model": "kimi-k3",
+        "one_harness_total_usd": 89.886098325,
+        "per_task": [
+          {
+            "average_cost_usd": 6.3123663,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "expr-try-catch-errors"
+          },
+          {
+            "average_cost_usd": 4.492570725,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "katex-multicolumn-array-spans"
+          },
+          {
+            "average_cost_usd": 7.008515625,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "python-statemachine-state-data-scoping"
+          },
+          {
+            "average_cost_usd": 14.860826175,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "oxvg-structural-selector-preservation"
+          },
+          {
+            "average_cost_usd": 9.4941657,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "effect-sse-httpapi-streaming"
+          },
+          {
+            "average_cost_usd": 25.44762975,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "scriggo-method-declarations"
+          },
+          {
+            "average_cost_usd": 2.26816215,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "csstree-shorthand-expansion-compression"
+          },
+          {
+            "average_cost_usd": 3.712652625,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "fastapi-implicit-head-options"
+          },
+          {
+            "average_cost_usd": 7.03821675,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "boa-hierarchical-evaluation-cancellation"
+          },
+          {
+            "average_cost_usd": 9.250992525000001,
+            "n_cost_rollouts": 4,
+            "n_public_rollouts": 4,
+            "task_id": "koota-composite-trait-aspects"
+          }
+        ],
+        "projected_total_usd": 359.5443933,
+        "reasoning_effort": "max"
+      }
+    ],
+    "runs_per_model": 40,
+    "total_projected_runs": 160
+  },
+  "method": {
+    "benchmark_version": "v1.1",
+    "difficulty_metric": "solve rate over valid non-target mini-swe-agent rollouts",
+    "difficulty_percentile": "rank within language; hardest=100, easiest=0; solve-rate ties use task_id",
+    "excluded_evaluated_models": [
+      "claude-opus-5",
+      "deepseek-v4-flash",
+      "gpt-5-6-luna",
+      "kimi-k3"
+    ],
+    "hard_stratum": "75 <= difficulty_percentile <= 100",
+    "medium_stratum": "50 <= difficulty_percentile < 75",
+    "reference_harness": "mini-swe-agent",
+    "secondary_selection_metric": "maximum median (n_input_tokens + n_output_tokens) over valid non-target mini-swe-agent rollouts",
+    "secondary_tie_breaker": "lexicographically smallest task_id"
+  },
+  "selected_tasks": [
+    {
+      "difficulty_percentile": 90.9090909090909,
+      "difficulty_rank": 4,
+      "language": "go",
+      "median_input_tokens": 11353819.5,
+      "median_output_tokens": 73604.5,
+      "median_total_tokens": 11448960.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add try/catch error recovery to expr",
+      "repository": "expr-lang/expr",
+      "solve_rate": 0.29591836734693877,
+      "stratum": "hard",
+      "task_id": "expr-try-catch-errors"
+    },
+    {
+      "difficulty_percentile": 75.0,
+      "difficulty_rank": 2,
+      "language": "javascript",
+      "median_input_tokens": 8765190.0,
+      "median_output_tokens": 64295.0,
+      "median_total_tokens": 8892481.0,
+      "n_reference_rollouts": 195,
+      "n_token_rollouts": 195,
+      "problem_title": "Add `\\multicolumn` column spans to array-like environments",
+      "repository": "KaTeX/KaTeX",
+      "solve_rate": 0.31794871794871793,
+      "stratum": "hard",
+      "task_id": "katex-multicolumn-array-spans"
+    },
+    {
+      "difficulty_percentile": 87.87878787878788,
+      "difficulty_rank": 5,
+      "language": "python",
+      "median_input_tokens": 13241112.5,
+      "median_output_tokens": 61847.0,
+      "median_total_tokens": 13313843.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add scoped state data to state machine callbacks and history",
+      "repository": "fgmacedo/python-statemachine",
+      "solve_rate": 0.3112244897959184,
+      "stratum": "hard",
+      "task_id": "python-statemachine-state-data-scoping"
+    },
+    {
+      "difficulty_percentile": 75.0,
+      "difficulty_rank": 2,
+      "language": "rust",
+      "median_input_tokens": 14962727.5,
+      "median_output_tokens": 68720.0,
+      "median_total_tokens": 15030673.5,
+      "n_reference_rollouts": 193,
+      "n_token_rollouts": 192,
+      "problem_title": "Preserve structure needed by stylesheet selectors",
+      "repository": "noahbald/oxvg",
+      "solve_rate": 0.21243523316062177,
+      "stratum": "hard",
+      "task_id": "oxvg-structural-selector-preservation"
+    },
+    {
+      "difficulty_percentile": 97.05882352941177,
+      "difficulty_rank": 2,
+      "language": "typescript",
+      "median_input_tokens": 17132852.0,
+      "median_output_tokens": 71921.5,
+      "median_total_tokens": 17207399.5,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add SSE streaming endpoints to HttpApi",
+      "repository": "Effect-TS/effect",
+      "solve_rate": 0.15306122448979592,
+      "stratum": "hard",
+      "task_id": "effect-sse-httpapi-streaming"
+    },
+    {
+      "difficulty_percentile": 57.57575757575758,
+      "difficulty_rank": 15,
+      "language": "go",
+      "median_input_tokens": 29459448.0,
+      "median_output_tokens": 123276.0,
+      "median_total_tokens": 29588528.0,
+      "n_reference_rollouts": 194,
+      "n_token_rollouts": 194,
+      "problem_title": "Add method declarations and interface dispatch to Scriggo",
+      "repository": "open2b/scriggo",
+      "solve_rate": 0.5824742268041238,
+      "stratum": "medium",
+      "task_id": "scriggo-method-declarations"
+    },
+    {
+      "difficulty_percentile": 50.0,
+      "difficulty_rank": 3,
+      "language": "javascript",
+      "median_input_tokens": 3466636.0,
+      "median_output_tokens": 56144.0,
+      "median_total_tokens": 3513585.0,
+      "n_reference_rollouts": 193,
+      "n_token_rollouts": 193,
+      "problem_title": "Add shorthand expansion and compression to the lexer",
+      "repository": "csstree/csstree",
+      "solve_rate": 0.33678756476683935,
+      "stratum": "medium",
+      "task_id": "csstree-shorthand-expansion-compression"
+    },
+    {
+      "difficulty_percentile": 57.57575757575758,
+      "difficulty_rank": 15,
+      "language": "python",
+      "median_input_tokens": 8018241.0,
+      "median_output_tokens": 66700.0,
+      "median_total_tokens": 8104925.0,
+      "n_reference_rollouts": 195,
+      "n_token_rollouts": 195,
+      "problem_title": "Add implicit HEAD and automatic OPTIONS responses to FastAPI routes",
+      "repository": "fastapi/fastapi",
+      "solve_rate": 0.5025641025641026,
+      "stratum": "medium",
+      "task_id": "fastapi-implicit-head-options"
+    },
+    {
+      "difficulty_percentile": 50.0,
+      "difficulty_rank": 3,
+      "language": "rust",
+      "median_input_tokens": 14384065.0,
+      "median_output_tokens": 62430.0,
+      "median_total_tokens": 14473338.0,
+      "n_reference_rollouts": 191,
+      "n_token_rollouts": 191,
+      "problem_title": "Add hierarchical evaluation cancellation to Boa",
+      "repository": "boa-dev/boa",
+      "solve_rate": 0.47643979057591623,
+      "stratum": "medium",
+      "task_id": "boa-hierarchical-evaluation-cancellation"
+    },
+    {
+      "difficulty_percentile": 58.8235294117647,
+      "difficulty_rank": 15,
+      "language": "typescript",
+      "median_input_tokens": 11227681.0,
+      "median_output_tokens": 85580.5,
+      "median_total_tokens": 11313662.0,
+      "n_reference_rollouts": 186,
+      "n_token_rollouts": 186,
+      "problem_title": "Add composite trait aspects to Koota",
+      "repository": "pmndrs/koota",
+      "solve_rate": 0.34946236559139787,
+      "stratum": "medium",
+      "task_id": "koota-composite-trait-aspects"
+    }
+  ],
+  "sources": {
+    "fireworks_v4_flash_pricing": {
+      "source": "https://fireworks.ai/models/fireworks/deepseek-v4-flash",
+      "usd_per_million_tokens": {
+        "cached_input": 0.028,
+        "input": 0.14,
+        "output": 0.28
+      }
+    },
+    "tasks": {
+      "sha256": "bae967f6472943564c3fc5232fba3c8e0ac465c1be5ccf9dd4895d4ee9df6242",
+      "source": "https://deepswe.datacurve.ai/artifacts/v1.1/tasks.json"
+    },
+    "trials": {
+      "sha256": "13d6f7563330110231b008ae4eb38e03de24af08acead840de296d1127144971",
+      "source": "https://deepswe.datacurve.ai/artifacts/v1.1/trials.json"
+    }
+  },
+  "strata_audit": {
+    "go": {
+      "hard": {
+        "candidate_count": 9,
+        "candidate_task_ids": [
+          "updo-policy-alerting",
+          "termenv-preserve-ansi-resets",
+          "helm-array-merge-strategies",
+          "expr-try-catch-errors",
+          "participle-grammar-conflict-analysis",
+          "onedump-dump-encryption-pipeline",
+          "kgateway-consistent-hash-policy",
+          "anko-typed-variable-bindings",
+          "dasel-html-document-format"
+        ],
+        "selected_task_id": "expr-try-catch-errors"
+      },
+      "medium": {
+        "candidate_count": 8,
+        "candidate_task_ids": [
+          "go-critic-doc-link-checker",
+          "pebble-durability-wait-apis",
+          "prometheus-typed-label-sorting",
+          "opa-rego-rule-profiling",
+          "tengo-destructuring-bindings",
+          "scriggo-method-declarations",
+          "scc-bounded-memory-spilling",
+          "opa-template-string-reconstruction"
+        ],
+        "selected_task_id": "scriggo-method-declarations"
+      }
+    },
+    "javascript": {
+      "hard": {
+        "candidate_count": 2,
+        "candidate_task_ids": [
+          "testem-bail-on-test-failure",
+          "katex-multicolumn-array-spans"
+        ],
+        "selected_task_id": "katex-multicolumn-array-spans"
+      },
+      "medium": {
+        "candidate_count": 1,
+        "candidate_task_ids": [
+          "csstree-shorthand-expansion-compression"
+        ],
+        "selected_task_id": "csstree-shorthand-expansion-compression"
+      }
+    },
+    "python": {
+      "hard": {
+        "candidate_count": 9,
+        "candidate_task_ids": [
+          "gql-incremental-graphql-delivery",
+          "bandit-structured-nosec-directives",
+          "sqlfmt-create-table-ddl-formatting",
+          "kombu-virtual-queue-dead-lettering",
+          "python-statemachine-state-data-scoping",
+          "langchain-request-coalescing",
+          "pwntools-tube-multiplexing",
+          "vulture-persistent-analysis-cache",
+          "textual-kitty-key-phases"
+        ],
+        "selected_task_id": "python-statemachine-state-data-scoping"
+      },
+      "medium": {
+        "candidate_count": 8,
+        "candidate_task_ids": [
+          "dateutil-rfc5545-timezone-interop",
+          "httpx-streaming-json-iteration",
+          "bandit-incremental-cache-control",
+          "fastapi-deprecation-response-headers",
+          "mashumaro-flattened-dataclass-fields",
+          "fastapi-implicit-head-options",
+          "bandit-interprocedural-taint-checks",
+          "igel-persist-feature-schema"
+        ],
+        "selected_task_id": "fastapi-implicit-head-options"
+      }
+    },
+    "rust": {
+      "hard": {
+        "candidate_count": 2,
+        "candidate_task_ids": [
+          "pest-character-class-coalescing",
+          "oxvg-structural-selector-preservation"
+        ],
+        "selected_task_id": "oxvg-structural-selector-preservation"
+      },
+      "medium": {
+        "candidate_count": 1,
+        "candidate_task_ids": [
+          "boa-hierarchical-evaluation-cancellation"
+        ],
+        "selected_task_id": "boa-hierarchical-evaluation-cancellation"
+      }
+    },
+    "typescript": {
+      "hard": {
+        "candidate_count": 9,
+        "candidate_task_ids": [
+          "obsidian-linter-auto-table-of-contents",
+          "effect-sse-httpapi-streaming",
+          "koota-pair-relation-tracking",
+          "meriyah-explicit-resource-declarations",
+          "prometheus-transactional-reload-status",
+          "koota-query-predicates",
+          "quill-shared-toolbar-focus",
+          "koota-deferred-mutation-buffer",
+          "happy-dom-deterministic-intersectionobserver"
+        ],
+        "selected_task_id": "effect-sse-httpapi-streaming"
+      },
+      "medium": {
+        "candidate_count": 9,
+        "candidate_task_ids": [
+          "obsidian-linter-link-format-conversion",
+          "superjson-error-stack-serialization",
+          "ink-grid-box-layout",
+          "eicrud-keyset-pagination-cursor",
+          "kea-atomic-signal-selectors",
+          "koota-composite-trait-aspects",
+          "optique-conditional-option-dependencies",
+          "awilix-async-container-initialization",
+          "clack-async-autocomplete-options"
+        ],
+        "selected_task_id": "koota-composite-trait-aspects"
+      }
+    }
+  }
+}
