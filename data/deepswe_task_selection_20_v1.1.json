@@ -1,0 +1,2262 @@
+{
+  "combined_tasks": [
+    {
+      "difficulty_percentile": 90.9090909090909,
+      "difficulty_rank": 4,
+      "language": "go",
+      "median_input_tokens": 11353819.5,
+      "median_output_tokens": 73604.5,
+      "median_total_tokens": 11448960.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add try/catch error recovery to expr",
+      "repository": "expr-lang/expr",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.29591836734693877,
+      "stratum": "hard",
+      "task_id": "expr-try-catch-errors",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 75.0,
+      "difficulty_rank": 2,
+      "language": "javascript",
+      "median_input_tokens": 8765190.0,
+      "median_output_tokens": 64295.0,
+      "median_total_tokens": 8892481.0,
+      "n_reference_rollouts": 195,
+      "n_token_rollouts": 195,
+      "problem_title": "Add `\\multicolumn` column spans to array-like environments",
+      "repository": "KaTeX/KaTeX",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.31794871794871793,
+      "stratum": "hard",
+      "task_id": "katex-multicolumn-array-spans",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 87.87878787878788,
+      "difficulty_rank": 5,
+      "language": "python",
+      "median_input_tokens": 13241112.5,
+      "median_output_tokens": 61847.0,
+      "median_total_tokens": 13313843.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add scoped state data to state machine callbacks and history",
+      "repository": "fgmacedo/python-statemachine",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.3112244897959184,
+      "stratum": "hard",
+      "task_id": "python-statemachine-state-data-scoping",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 75.0,
+      "difficulty_rank": 2,
+      "language": "rust",
+      "median_input_tokens": 14962727.5,
+      "median_output_tokens": 68720.0,
+      "median_total_tokens": 15030673.5,
+      "n_reference_rollouts": 193,
+      "n_token_rollouts": 192,
+      "problem_title": "Preserve structure needed by stylesheet selectors",
+      "repository": "noahbald/oxvg",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.21243523316062177,
+      "stratum": "hard",
+      "task_id": "oxvg-structural-selector-preservation",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 97.05882352941177,
+      "difficulty_rank": 2,
+      "language": "typescript",
+      "median_input_tokens": 17132852.0,
+      "median_output_tokens": 71921.5,
+      "median_total_tokens": 17207399.5,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add SSE streaming endpoints to HttpApi",
+      "repository": "Effect-TS/effect",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.15306122448979592,
+      "stratum": "hard",
+      "task_id": "effect-sse-httpapi-streaming",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 57.57575757575758,
+      "difficulty_rank": 15,
+      "language": "go",
+      "median_input_tokens": 29459448.0,
+      "median_output_tokens": 123276.0,
+      "median_total_tokens": 29588528.0,
+      "n_reference_rollouts": 194,
+      "n_token_rollouts": 194,
+      "problem_title": "Add method declarations and interface dispatch to Scriggo",
+      "repository": "open2b/scriggo",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.5824742268041238,
+      "stratum": "medium",
+      "task_id": "scriggo-method-declarations",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 50.0,
+      "difficulty_rank": 3,
+      "language": "javascript",
+      "median_input_tokens": 3466636.0,
+      "median_output_tokens": 56144.0,
+      "median_total_tokens": 3513585.0,
+      "n_reference_rollouts": 193,
+      "n_token_rollouts": 193,
+      "problem_title": "Add shorthand expansion and compression to the lexer",
+      "repository": "csstree/csstree",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.33678756476683935,
+      "stratum": "medium",
+      "task_id": "csstree-shorthand-expansion-compression",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 57.57575757575758,
+      "difficulty_rank": 15,
+      "language": "python",
+      "median_input_tokens": 8018241.0,
+      "median_output_tokens": 66700.0,
+      "median_total_tokens": 8104925.0,
+      "n_reference_rollouts": 195,
+      "n_token_rollouts": 195,
+      "problem_title": "Add implicit HEAD and automatic OPTIONS responses to FastAPI routes",
+      "repository": "fastapi/fastapi",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.5025641025641026,
+      "stratum": "medium",
+      "task_id": "fastapi-implicit-head-options",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 50.0,
+      "difficulty_rank": 3,
+      "language": "rust",
+      "median_input_tokens": 14384065.0,
+      "median_output_tokens": 62430.0,
+      "median_total_tokens": 14473338.0,
+      "n_reference_rollouts": 191,
+      "n_token_rollouts": 191,
+      "problem_title": "Add hierarchical evaluation cancellation to Boa",
+      "repository": "boa-dev/boa",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.47643979057591623,
+      "stratum": "medium",
+      "task_id": "boa-hierarchical-evaluation-cancellation",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 58.8235294117647,
+      "difficulty_rank": 15,
+      "language": "typescript",
+      "median_input_tokens": 11227681.0,
+      "median_output_tokens": 85580.5,
+      "median_total_tokens": 11313662.0,
+      "n_reference_rollouts": 186,
+      "n_token_rollouts": 186,
+      "problem_title": "Add composite trait aspects to Koota",
+      "repository": "pmndrs/koota",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.34946236559139787,
+      "stratum": "medium",
+      "task_id": "koota-composite-trait-aspects",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 93.93939393939394,
+      "difficulty_rank": 3,
+      "language": "go",
+      "median_input_tokens": 10001282.0,
+      "median_output_tokens": 66143.0,
+      "median_total_tokens": 10067425.0,
+      "n_reference_rollouts": 195,
+      "n_token_rollouts": 195,
+      "problem_title": "Add configurable array merge strategies to Helm value coalescing",
+      "repository": "helm/helm",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.16923076923076924,
+      "stratum": "hard",
+      "task_id": "helm-array-merge-strategies",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 100.0,
+      "difficulty_rank": 1,
+      "language": "javascript",
+      "median_input_tokens": 8114657.5,
+      "median_output_tokens": 56422.0,
+      "median_total_tokens": 8187334.5,
+      "n_reference_rollouts": 194,
+      "n_token_rollouts": 194,
+      "problem_title": "Add bail-on-test-failure handling to Testem",
+      "repository": "testem/testem",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.20103092783505155,
+      "stratum": "hard",
+      "task_id": "testem-bail-on-test-failure",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 100.0,
+      "difficulty_rank": 1,
+      "language": "python",
+      "median_input_tokens": 8207525.0,
+      "median_output_tokens": 56819.5,
+      "median_total_tokens": 8267788.5,
+      "n_reference_rollouts": 194,
+      "n_token_rollouts": 194,
+      "problem_title": "Add GraphQL incremental delivery with @defer and @stream",
+      "repository": "graphql-python/gql",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.04639175257731959,
+      "stratum": "hard",
+      "task_id": "gql-incremental-graphql-delivery",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 100.0,
+      "difficulty_rank": 1,
+      "language": "rust",
+      "median_input_tokens": 5780442.5,
+      "median_output_tokens": 46308.0,
+      "median_total_tokens": 5845564.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Coalesce qualifying choices into character classes",
+      "repository": "pest-parser/pest",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.1683673469387755,
+      "stratum": "hard",
+      "task_id": "pest-character-class-coalescing",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 94.11764705882354,
+      "difficulty_rank": 3,
+      "language": "typescript",
+      "median_input_tokens": 12678939.5,
+      "median_output_tokens": 88235.0,
+      "median_total_tokens": 12776361.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add pair-level relation tracking modifiers",
+      "repository": "pmndrs/koota",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.18877551020408162,
+      "stratum": "hard",
+      "task_id": "koota-pair-relation-tracking",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 91.17647058823529,
+      "difficulty_rank": 4,
+      "language": "typescript",
+      "median_input_tokens": 11820958.0,
+      "median_output_tokens": 58617.5,
+      "median_total_tokens": 11887501.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add explicit resource management declarations to the parser",
+      "repository": "meriyah/meriyah",
+      "role": "optional",
+      "selection_stage": "global_token_fill",
+      "solve_rate": 0.23469387755102042,
+      "stratum": "hard",
+      "task_id": "meriyah-explicit-resource-declarations",
+      "within_cell_token_rank": 3
+    },
+    {
+      "difficulty_percentile": 51.515151515151516,
+      "difficulty_rank": 17,
+      "language": "go",
+      "median_input_tokens": 11981852.0,
+      "median_output_tokens": 76115.5,
+      "median_total_tokens": 12037808.5,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Reconstruct template strings in partial evaluation output",
+      "repository": "open-policy-agent/opa",
+      "role": "optional",
+      "selection_stage": "global_token_fill",
+      "solve_rate": 0.6020408163265306,
+      "stratum": "medium",
+      "task_id": "opa-template-string-reconstruction",
+      "within_cell_token_rank": 3
+    },
+    {
+      "difficulty_percentile": 69.6969696969697,
+      "difficulty_rank": 11,
+      "language": "go",
+      "median_input_tokens": 12546416.5,
+      "median_output_tokens": 72055.0,
+      "median_total_tokens": 12634927.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add durability callbacks and wait APIs for sync writes",
+      "repository": "cockroachdb/pebble",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.5153061224489796,
+      "stratum": "medium",
+      "task_id": "pebble-durability-wait-apis",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 60.60606060606061,
+      "difficulty_rank": 14,
+      "language": "python",
+      "median_input_tokens": 7727774.0,
+      "median_output_tokens": 63977.0,
+      "median_total_tokens": 7778073.5,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add flattened dataclass fields to Mashumaro field options",
+      "repository": "Fatal1ty/mashumaro",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.4897959183673469,
+      "stratum": "medium",
+      "task_id": "mashumaro-flattened-dataclass-fields",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 55.88235294117647,
+      "difficulty_rank": 16,
+      "language": "typescript",
+      "median_input_tokens": 10645551.5,
+      "median_output_tokens": 71412.5,
+      "median_total_tokens": 10698043.5,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add conditional option dependencies to Optique",
+      "repository": "dahlia/optique",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.3520408163265306,
+      "stratum": "medium",
+      "task_id": "optique-conditional-option-dependencies",
+      "within_cell_token_rank": 2
+    }
+  ],
+  "cost_estimates": {
+    "combined_20": {
+      "grand_total_upper_usd": 1270.4201961659999,
+      "grand_total_usd": 1265.255010466,
+      "harness_count": 4,
+      "models": [
+        {
+          "average_cost_per_selected_task_usd": 5.851018328125,
+          "cost_method": "anthropic_trajectory",
+          "label": "Claude Opus 5 medium",
+          "model": "claude-opus-5",
+          "one_harness_total_upper_usd": 117.0203665625,
+          "one_harness_total_usd": 117.0203665625,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 5.079286312500001,
+              "average_cost_usd": 5.079286312500001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "expr-try-catch-errors"
+            },
+            {
+              "average_cost_upper_usd": 3.4373769375,
+              "average_cost_usd": 3.4373769375,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "katex-multicolumn-array-spans"
+            },
+            {
+              "average_cost_upper_usd": 7.8907461875,
+              "average_cost_usd": 7.8907461875,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "python-statemachine-state-data-scoping"
+            },
+            {
+              "average_cost_upper_usd": 8.1722164375,
+              "average_cost_usd": 8.1722164375,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "oxvg-structural-selector-preservation"
+            },
+            {
+              "average_cost_upper_usd": 9.465228749999998,
+              "average_cost_usd": 9.465228749999998,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "effect-sse-httpapi-streaming"
+            },
+            {
+              "average_cost_upper_usd": 22.5764115,
+              "average_cost_usd": 22.5764115,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "scriggo-method-declarations"
+            },
+            {
+              "average_cost_upper_usd": 1.8285360625000002,
+              "average_cost_usd": 1.8285360625000002,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "csstree-shorthand-expansion-compression"
+            },
+            {
+              "average_cost_upper_usd": 2.81977075,
+              "average_cost_usd": 2.81977075,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "fastapi-implicit-head-options"
+            },
+            {
+              "average_cost_upper_usd": 5.260913375000001,
+              "average_cost_usd": 5.260913375000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "boa-hierarchical-evaluation-cancellation"
+            },
+            {
+              "average_cost_upper_usd": 7.839215249999999,
+              "average_cost_usd": 7.839215249999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-composite-trait-aspects"
+            },
+            {
+              "average_cost_upper_usd": 3.4393660625,
+              "average_cost_usd": 3.4393660625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "helm-array-merge-strategies"
+            },
+            {
+              "average_cost_upper_usd": 3.0619388749999996,
+              "average_cost_usd": 3.0619388749999996,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "testem-bail-on-test-failure"
+            },
+            {
+              "average_cost_upper_usd": 3.265691625,
+              "average_cost_usd": 3.265691625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "gql-incremental-graphql-delivery"
+            },
+            {
+              "average_cost_upper_usd": 3.0349736249999997,
+              "average_cost_usd": 3.0349736249999997,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pest-character-class-coalescing"
+            },
+            {
+              "average_cost_upper_usd": 8.999367562499998,
+              "average_cost_usd": 8.999367562499998,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-pair-relation-tracking"
+            },
+            {
+              "average_cost_upper_usd": 4.234590062500001,
+              "average_cost_usd": 4.234590062500001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "meriyah-explicit-resource-declarations"
+            },
+            {
+              "average_cost_upper_usd": 5.4750788125,
+              "average_cost_usd": 5.4750788125,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "opa-template-string-reconstruction"
+            },
+            {
+              "average_cost_upper_usd": 3.1362286875,
+              "average_cost_usd": 3.1362286875,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 3.7383120625,
+              "average_cost_usd": 3.7383120625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "mashumaro-flattened-dataclass-fields"
+            },
+            {
+              "average_cost_upper_usd": 4.265117625,
+              "average_cost_usd": 4.265117625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "optique-conditional-option-dependencies"
+            }
+          ],
+          "projected_total_upper_usd": 468.08146625,
+          "projected_total_usd": 468.08146625,
+          "reasoning_effort": "medium"
+        },
+        {
+          "average_cost_per_selected_task_usd": 1.1482780025000003,
+          "cost_method": "openai_trajectory",
+          "label": "GPT-5.6 Luna max",
+          "model": "gpt-5-6-luna",
+          "one_harness_total_upper_usd": 24.256856475000003,
+          "one_harness_total_usd": 22.965560050000008,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 0.9508459025,
+              "average_cost_usd": 0.89165664,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "expr-try-catch-errors"
+            },
+            {
+              "average_cost_upper_usd": 0.6006876274999999,
+              "average_cost_usd": 0.5545598899999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "katex-multicolumn-array-spans"
+            },
+            {
+              "average_cost_upper_usd": 1.13977388,
+              "average_cost_usd": 1.0804871799999998,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "python-statemachine-state-data-scoping"
+            },
+            {
+              "average_cost_upper_usd": 1.9043457450000003,
+              "average_cost_usd": 1.8117457200000007,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "oxvg-structural-selector-preservation"
+            },
+            {
+              "average_cost_upper_usd": 2.2296823600000004,
+              "average_cost_usd": 2.1358786600000004,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "effect-sse-httpapi-streaming"
+            },
+            {
+              "average_cost_upper_usd": 3.0693151775,
+              "average_cost_usd": 2.96560714,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "scriggo-method-declarations"
+            },
+            {
+              "average_cost_upper_usd": 0.361021825,
+              "average_cost_usd": 0.3340198,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "csstree-shorthand-expansion-compression"
+            },
+            {
+              "average_cost_upper_usd": 0.7113663024999999,
+              "average_cost_usd": 0.6706312900000002,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "fastapi-implicit-head-options"
+            },
+            {
+              "average_cost_upper_usd": 1.8472334599999995,
+              "average_cost_usd": 1.76901681,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "boa-hierarchical-evaluation-cancellation"
+            },
+            {
+              "average_cost_upper_usd": 1.2726071575000002,
+              "average_cost_usd": 1.20527827,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-composite-trait-aspects"
+            },
+            {
+              "average_cost_upper_usd": 0.8278006474999999,
+              "average_cost_usd": 0.7801167099999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "helm-array-merge-strategies"
+            },
+            {
+              "average_cost_upper_usd": 0.6292180549999998,
+              "average_cost_usd": 0.5788899800000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "testem-bail-on-test-failure"
+            },
+            {
+              "average_cost_upper_usd": 0.6604780425,
+              "average_cost_usd": 0.61529213,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "gql-incremental-graphql-delivery"
+            },
+            {
+              "average_cost_upper_usd": 0.36467112,
+              "average_cost_usd": 0.33537792,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pest-character-class-coalescing"
+            },
+            {
+              "average_cost_upper_usd": 1.2021475675,
+              "average_cost_usd": 1.1307315799999997,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-pair-relation-tracking"
+            },
+            {
+              "average_cost_upper_usd": 1.4463628075000003,
+              "average_cost_usd": 1.32917722,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "meriyah-explicit-resource-declarations"
+            },
+            {
+              "average_cost_upper_usd": 0.9599535625000001,
+              "average_cost_usd": 0.9025961500000002,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "opa-template-string-reconstruction"
+            },
+            {
+              "average_cost_upper_usd": 1.9747976600000003,
+              "average_cost_usd": 1.8941397599999998,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 0.7328409250000001,
+              "average_cost_usd": 0.6859209999999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "mashumaro-flattened-dataclass-fields"
+            },
+            {
+              "average_cost_upper_usd": 1.3717066500000001,
+              "average_cost_usd": 1.2944362000000003,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "optique-conditional-option-dependencies"
+            }
+          ],
+          "projected_total_upper_usd": 97.02742590000001,
+          "projected_total_usd": 91.86224020000003,
+          "reasoning_effort": "max"
+        },
+        {
+          "average_cost_per_selected_task_usd": 0.9055754739499999,
+          "cost_method": "fireworks_tokens",
+          "label": "DeepSeek V4 Flash max (Fireworks)",
+          "model": "deepseek-v4-flash",
+          "one_harness_total_upper_usd": 18.111509479,
+          "one_harness_total_usd": 18.111509479,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 0.860639409,
+              "average_cost_usd": 0.860639409,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "expr-try-catch-errors"
+            },
+            {
+              "average_cost_upper_usd": 0.620371094,
+              "average_cost_usd": 0.620371094,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "katex-multicolumn-array-spans"
+            },
+            {
+              "average_cost_upper_usd": 0.9816043440000001,
+              "average_cost_usd": 0.9816043440000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "python-statemachine-state-data-scoping"
+            },
+            {
+              "average_cost_upper_usd": 1.185908969,
+              "average_cost_usd": 1.185908969,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "oxvg-structural-selector-preservation"
+            },
+            {
+              "average_cost_upper_usd": 1.16196731,
+              "average_cost_usd": 1.16196731,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "effect-sse-httpapi-streaming"
+            },
+            {
+              "average_cost_upper_usd": 2.0066593260000003,
+              "average_cost_usd": 2.0066593260000003,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "scriggo-method-declarations"
+            },
+            {
+              "average_cost_upper_usd": 0.616845152,
+              "average_cost_usd": 0.616845152,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "csstree-shorthand-expansion-compression"
+            },
+            {
+              "average_cost_upper_usd": 0.8274775600000001,
+              "average_cost_usd": 0.8274775600000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "fastapi-implicit-head-options"
+            },
+            {
+              "average_cost_upper_usd": 1.062971077,
+              "average_cost_usd": 1.062971077,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "boa-hierarchical-evaluation-cancellation"
+            },
+            {
+              "average_cost_upper_usd": 0.68781482,
+              "average_cost_usd": 0.68781482,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-composite-trait-aspects"
+            },
+            {
+              "average_cost_upper_usd": 0.780098585,
+              "average_cost_usd": 0.780098585,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "helm-array-merge-strategies"
+            },
+            {
+              "average_cost_upper_usd": 0.6217778700000001,
+              "average_cost_usd": 0.6217778700000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "testem-bail-on-test-failure"
+            },
+            {
+              "average_cost_upper_usd": 0.7073706500000001,
+              "average_cost_usd": 0.7073706500000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "gql-incremental-graphql-delivery"
+            },
+            {
+              "average_cost_upper_usd": 0.607720316,
+              "average_cost_usd": 0.607720316,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pest-character-class-coalescing"
+            },
+            {
+              "average_cost_upper_usd": 0.8277997420000001,
+              "average_cost_usd": 0.8277997420000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-pair-relation-tracking"
+            },
+            {
+              "average_cost_upper_usd": 0.924373107,
+              "average_cost_usd": 0.924373107,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "meriyah-explicit-resource-declarations"
+            },
+            {
+              "average_cost_upper_usd": 0.868599424,
+              "average_cost_usd": 0.868599424,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "opa-template-string-reconstruction"
+            },
+            {
+              "average_cost_upper_usd": 1.0877268500000001,
+              "average_cost_usd": 1.0877268500000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 0.7258681499999999,
+              "average_cost_usd": 0.7258681499999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "mashumaro-flattened-dataclass-fields"
+            },
+            {
+              "average_cost_upper_usd": 0.947915724,
+              "average_cost_usd": 0.947915724,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "optique-conditional-option-dependencies"
+            }
+          ],
+          "projected_total_upper_usd": 72.446037916,
+          "projected_total_usd": 72.446037916,
+          "reasoning_effort": "max"
+        },
+        {
+          "average_cost_per_selected_task_usd": 7.910815826249999,
+          "cost_method": "fireworks_tokens",
+          "label": "Kimi K3 max (Fireworks)",
+          "model": "kimi-k3",
+          "one_harness_total_upper_usd": 158.21631652499997,
+          "one_harness_total_usd": 158.21631652499997,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 6.3123663,
+              "average_cost_usd": 6.3123663,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "expr-try-catch-errors"
+            },
+            {
+              "average_cost_upper_usd": 4.492570725,
+              "average_cost_usd": 4.492570725,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "katex-multicolumn-array-spans"
+            },
+            {
+              "average_cost_upper_usd": 7.008515625,
+              "average_cost_usd": 7.008515625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "python-statemachine-state-data-scoping"
+            },
+            {
+              "average_cost_upper_usd": 14.860826175,
+              "average_cost_usd": 14.860826175,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "oxvg-structural-selector-preservation"
+            },
+            {
+              "average_cost_upper_usd": 9.4941657,
+              "average_cost_usd": 9.4941657,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "effect-sse-httpapi-streaming"
+            },
+            {
+              "average_cost_upper_usd": 25.44762975,
+              "average_cost_usd": 25.44762975,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "scriggo-method-declarations"
+            },
+            {
+              "average_cost_upper_usd": 2.26816215,
+              "average_cost_usd": 2.26816215,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "csstree-shorthand-expansion-compression"
+            },
+            {
+              "average_cost_upper_usd": 3.712652625,
+              "average_cost_usd": 3.712652625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "fastapi-implicit-head-options"
+            },
+            {
+              "average_cost_upper_usd": 7.03821675,
+              "average_cost_usd": 7.03821675,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "boa-hierarchical-evaluation-cancellation"
+            },
+            {
+              "average_cost_upper_usd": 9.250992525,
+              "average_cost_usd": 9.250992525,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-composite-trait-aspects"
+            },
+            {
+              "average_cost_upper_usd": 5.499998625,
+              "average_cost_usd": 5.499998625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "helm-array-merge-strategies"
+            },
+            {
+              "average_cost_upper_usd": 5.6160621,
+              "average_cost_usd": 5.6160621,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "testem-bail-on-test-failure"
+            },
+            {
+              "average_cost_upper_usd": 6.1837932,
+              "average_cost_usd": 6.1837932,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "gql-incremental-graphql-delivery"
+            },
+            {
+              "average_cost_upper_usd": 5.394186524999999,
+              "average_cost_usd": 5.394186524999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pest-character-class-coalescing"
+            },
+            {
+              "average_cost_upper_usd": 9.4191216,
+              "average_cost_usd": 9.4191216,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-pair-relation-tracking"
+            },
+            {
+              "average_cost_upper_usd": 8.104569974999999,
+              "average_cost_usd": 8.104569974999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "meriyah-explicit-resource-declarations"
+            },
+            {
+              "average_cost_upper_usd": 13.4283624,
+              "average_cost_usd": 13.4283624,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "opa-template-string-reconstruction"
+            },
+            {
+              "average_cost_upper_usd": 4.1995837499999995,
+              "average_cost_usd": 4.1995837499999995,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 4.41067335,
+              "average_cost_usd": 4.41067335,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "mashumaro-flattened-dataclass-fields"
+            },
+            {
+              "average_cost_upper_usd": 6.073866675,
+              "average_cost_usd": 6.073866675,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "optique-conditional-option-dependencies"
+            }
+          ],
+          "projected_total_upper_usd": 632.8652660999999,
+          "projected_total_usd": 632.8652660999999,
+          "reasoning_effort": "max"
+        }
+      ],
+      "runs_per_model": 80,
+      "total_projected_runs": 320,
+      "uncertainty_note": "GPT-5.6 historical DeepSWE trajectories do not expose cache_write_tokens. The upper bound treats every unlabelled uncached GPT input token as a cache write at 1.25x input pricing; other models are repriced exactly from the available raw cache/token fields."
+    },
+    "optional_10": {
+      "grand_total_upper_usd": 517.000442622,
+      "grand_total_usd": 514.5072490719999,
+      "harness_count": 4,
+      "models": [
+        {
+          "average_cost_per_selected_task_usd": 4.2650665,
+          "cost_method": "anthropic_trajectory",
+          "label": "Claude Opus 5 medium",
+          "model": "claude-opus-5",
+          "one_harness_total_upper_usd": 42.650665,
+          "one_harness_total_usd": 42.650665,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 3.4393660625,
+              "average_cost_usd": 3.4393660625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "helm-array-merge-strategies"
+            },
+            {
+              "average_cost_upper_usd": 3.0619388749999996,
+              "average_cost_usd": 3.0619388749999996,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "testem-bail-on-test-failure"
+            },
+            {
+              "average_cost_upper_usd": 3.265691625,
+              "average_cost_usd": 3.265691625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "gql-incremental-graphql-delivery"
+            },
+            {
+              "average_cost_upper_usd": 3.0349736249999997,
+              "average_cost_usd": 3.0349736249999997,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pest-character-class-coalescing"
+            },
+            {
+              "average_cost_upper_usd": 8.999367562499998,
+              "average_cost_usd": 8.999367562499998,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-pair-relation-tracking"
+            },
+            {
+              "average_cost_upper_usd": 4.234590062500001,
+              "average_cost_usd": 4.234590062500001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "meriyah-explicit-resource-declarations"
+            },
+            {
+              "average_cost_upper_usd": 5.4750788125,
+              "average_cost_usd": 5.4750788125,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "opa-template-string-reconstruction"
+            },
+            {
+              "average_cost_upper_usd": 3.1362286875,
+              "average_cost_usd": 3.1362286875,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 3.7383120625,
+              "average_cost_usd": 3.7383120625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "mashumaro-flattened-dataclass-fields"
+            },
+            {
+              "average_cost_upper_usd": 4.265117625,
+              "average_cost_usd": 4.265117625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "optique-conditional-option-dependencies"
+            }
+          ],
+          "projected_total_upper_usd": 170.60266,
+          "projected_total_usd": 170.60266,
+          "reasoning_effort": "medium"
+        },
+        {
+          "average_cost_per_selected_task_usd": 0.954667865,
+          "cost_method": "openai_trajectory",
+          "label": "GPT-5.6 Luna max",
+          "model": "gpt-5-6-luna",
+          "one_harness_total_upper_usd": 10.1699770375,
+          "one_harness_total_usd": 9.54667865,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 0.8278006474999999,
+              "average_cost_usd": 0.7801167099999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "helm-array-merge-strategies"
+            },
+            {
+              "average_cost_upper_usd": 0.6292180549999998,
+              "average_cost_usd": 0.5788899800000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "testem-bail-on-test-failure"
+            },
+            {
+              "average_cost_upper_usd": 0.6604780425,
+              "average_cost_usd": 0.61529213,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "gql-incremental-graphql-delivery"
+            },
+            {
+              "average_cost_upper_usd": 0.36467112,
+              "average_cost_usd": 0.33537792,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pest-character-class-coalescing"
+            },
+            {
+              "average_cost_upper_usd": 1.2021475675,
+              "average_cost_usd": 1.1307315799999997,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-pair-relation-tracking"
+            },
+            {
+              "average_cost_upper_usd": 1.4463628075000003,
+              "average_cost_usd": 1.32917722,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "meriyah-explicit-resource-declarations"
+            },
+            {
+              "average_cost_upper_usd": 0.9599535625000001,
+              "average_cost_usd": 0.9025961500000002,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "opa-template-string-reconstruction"
+            },
+            {
+              "average_cost_upper_usd": 1.9747976600000003,
+              "average_cost_usd": 1.8941397599999998,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 0.7328409250000001,
+              "average_cost_usd": 0.6859209999999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "mashumaro-flattened-dataclass-fields"
+            },
+            {
+              "average_cost_upper_usd": 1.3717066500000001,
+              "average_cost_usd": 1.2944362000000003,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "optique-conditional-option-dependencies"
+            }
+          ],
+          "projected_total_upper_usd": 40.67990815,
+          "projected_total_usd": 38.1867146,
+          "reasoning_effort": "max"
+        },
+        {
+          "average_cost_per_selected_task_usd": 0.8099250418,
+          "cost_method": "fireworks_tokens",
+          "label": "DeepSeek V4 Flash max (Fireworks)",
+          "model": "deepseek-v4-flash",
+          "one_harness_total_upper_usd": 8.099250418,
+          "one_harness_total_usd": 8.099250418,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 0.780098585,
+              "average_cost_usd": 0.780098585,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "helm-array-merge-strategies"
+            },
+            {
+              "average_cost_upper_usd": 0.6217778700000001,
+              "average_cost_usd": 0.6217778700000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "testem-bail-on-test-failure"
+            },
+            {
+              "average_cost_upper_usd": 0.7073706500000001,
+              "average_cost_usd": 0.7073706500000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "gql-incremental-graphql-delivery"
+            },
+            {
+              "average_cost_upper_usd": 0.607720316,
+              "average_cost_usd": 0.607720316,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pest-character-class-coalescing"
+            },
+            {
+              "average_cost_upper_usd": 0.8277997420000001,
+              "average_cost_usd": 0.8277997420000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-pair-relation-tracking"
+            },
+            {
+              "average_cost_upper_usd": 0.924373107,
+              "average_cost_usd": 0.924373107,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "meriyah-explicit-resource-declarations"
+            },
+            {
+              "average_cost_upper_usd": 0.868599424,
+              "average_cost_usd": 0.868599424,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "opa-template-string-reconstruction"
+            },
+            {
+              "average_cost_upper_usd": 1.0877268500000001,
+              "average_cost_usd": 1.0877268500000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 0.7258681499999999,
+              "average_cost_usd": 0.7258681499999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "mashumaro-flattened-dataclass-fields"
+            },
+            {
+              "average_cost_upper_usd": 0.947915724,
+              "average_cost_usd": 0.947915724,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "optique-conditional-option-dependencies"
+            }
+          ],
+          "projected_total_upper_usd": 32.397001672,
+          "projected_total_usd": 32.397001672,
+          "reasoning_effort": "max"
+        },
+        {
+          "average_cost_per_selected_task_usd": 6.833021820000001,
+          "cost_method": "fireworks_tokens",
+          "label": "Kimi K3 max (Fireworks)",
+          "model": "kimi-k3",
+          "one_harness_total_upper_usd": 68.3302182,
+          "one_harness_total_usd": 68.3302182,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 5.499998625,
+              "average_cost_usd": 5.499998625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "helm-array-merge-strategies"
+            },
+            {
+              "average_cost_upper_usd": 5.6160621,
+              "average_cost_usd": 5.6160621,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "testem-bail-on-test-failure"
+            },
+            {
+              "average_cost_upper_usd": 6.1837932,
+              "average_cost_usd": 6.1837932,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "gql-incremental-graphql-delivery"
+            },
+            {
+              "average_cost_upper_usd": 5.394186524999999,
+              "average_cost_usd": 5.394186524999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pest-character-class-coalescing"
+            },
+            {
+              "average_cost_upper_usd": 9.4191216,
+              "average_cost_usd": 9.4191216,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-pair-relation-tracking"
+            },
+            {
+              "average_cost_upper_usd": 8.104569974999999,
+              "average_cost_usd": 8.104569974999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "meriyah-explicit-resource-declarations"
+            },
+            {
+              "average_cost_upper_usd": 13.4283624,
+              "average_cost_usd": 13.4283624,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "opa-template-string-reconstruction"
+            },
+            {
+              "average_cost_upper_usd": 4.1995837499999995,
+              "average_cost_usd": 4.1995837499999995,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 4.41067335,
+              "average_cost_usd": 4.41067335,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "mashumaro-flattened-dataclass-fields"
+            },
+            {
+              "average_cost_upper_usd": 6.073866675,
+              "average_cost_usd": 6.073866675,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "optique-conditional-option-dependencies"
+            }
+          ],
+          "projected_total_upper_usd": 273.3208728,
+          "projected_total_usd": 273.3208728,
+          "reasoning_effort": "max"
+        }
+      ],
+      "runs_per_model": 40,
+      "total_projected_runs": 160,
+      "uncertainty_note": "GPT-5.6 historical DeepSWE trajectories do not expose cache_write_tokens. The upper bound treats every unlabelled uncached GPT input token as a cache write at 1.25x input pricing; other models are repriced exactly from the available raw cache/token fields."
+    },
+    "primary_10": {
+      "grand_total_upper_usd": 753.4197535440001,
+      "grand_total_usd": 750.747761394,
+      "harness_count": 4,
+      "models": [
+        {
+          "average_cost_per_selected_task_usd": 7.43697015625,
+          "cost_method": "anthropic_trajectory",
+          "label": "Claude Opus 5 medium",
+          "model": "claude-opus-5",
+          "one_harness_total_upper_usd": 74.3697015625,
+          "one_harness_total_usd": 74.3697015625,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 5.079286312500001,
+              "average_cost_usd": 5.079286312500001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "expr-try-catch-errors"
+            },
+            {
+              "average_cost_upper_usd": 3.4373769375,
+              "average_cost_usd": 3.4373769375,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "katex-multicolumn-array-spans"
+            },
+            {
+              "average_cost_upper_usd": 7.8907461875,
+              "average_cost_usd": 7.8907461875,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "python-statemachine-state-data-scoping"
+            },
+            {
+              "average_cost_upper_usd": 8.1722164375,
+              "average_cost_usd": 8.1722164375,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "oxvg-structural-selector-preservation"
+            },
+            {
+              "average_cost_upper_usd": 9.465228749999998,
+              "average_cost_usd": 9.465228749999998,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "effect-sse-httpapi-streaming"
+            },
+            {
+              "average_cost_upper_usd": 22.5764115,
+              "average_cost_usd": 22.5764115,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "scriggo-method-declarations"
+            },
+            {
+              "average_cost_upper_usd": 1.8285360625000002,
+              "average_cost_usd": 1.8285360625000002,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "csstree-shorthand-expansion-compression"
+            },
+            {
+              "average_cost_upper_usd": 2.81977075,
+              "average_cost_usd": 2.81977075,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "fastapi-implicit-head-options"
+            },
+            {
+              "average_cost_upper_usd": 5.260913375000001,
+              "average_cost_usd": 5.260913375000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "boa-hierarchical-evaluation-cancellation"
+            },
+            {
+              "average_cost_upper_usd": 7.839215249999999,
+              "average_cost_usd": 7.839215249999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-composite-trait-aspects"
+            }
+          ],
+          "projected_total_upper_usd": 297.47880625,
+          "projected_total_usd": 297.47880625,
+          "reasoning_effort": "medium"
+        },
+        {
+          "average_cost_per_selected_task_usd": 1.3418881400000005,
+          "cost_method": "openai_trajectory",
+          "label": "GPT-5.6 Luna max",
+          "model": "gpt-5-6-luna",
+          "one_harness_total_upper_usd": 14.0868794375,
+          "one_harness_total_usd": 13.418881400000004,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 0.9508459025,
+              "average_cost_usd": 0.89165664,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "expr-try-catch-errors"
+            },
+            {
+              "average_cost_upper_usd": 0.6006876274999999,
+              "average_cost_usd": 0.5545598899999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "katex-multicolumn-array-spans"
+            },
+            {
+              "average_cost_upper_usd": 1.13977388,
+              "average_cost_usd": 1.0804871799999998,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "python-statemachine-state-data-scoping"
+            },
+            {
+              "average_cost_upper_usd": 1.9043457450000003,
+              "average_cost_usd": 1.8117457200000007,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "oxvg-structural-selector-preservation"
+            },
+            {
+              "average_cost_upper_usd": 2.2296823600000004,
+              "average_cost_usd": 2.1358786600000004,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "effect-sse-httpapi-streaming"
+            },
+            {
+              "average_cost_upper_usd": 3.0693151775,
+              "average_cost_usd": 2.96560714,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "scriggo-method-declarations"
+            },
+            {
+              "average_cost_upper_usd": 0.361021825,
+              "average_cost_usd": 0.3340198,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "csstree-shorthand-expansion-compression"
+            },
+            {
+              "average_cost_upper_usd": 0.7113663024999999,
+              "average_cost_usd": 0.6706312900000002,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "fastapi-implicit-head-options"
+            },
+            {
+              "average_cost_upper_usd": 1.8472334599999995,
+              "average_cost_usd": 1.76901681,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "boa-hierarchical-evaluation-cancellation"
+            },
+            {
+              "average_cost_upper_usd": 1.2726071575000002,
+              "average_cost_usd": 1.20527827,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-composite-trait-aspects"
+            }
+          ],
+          "projected_total_upper_usd": 56.34751775,
+          "projected_total_usd": 53.675525600000014,
+          "reasoning_effort": "max"
+        },
+        {
+          "average_cost_per_selected_task_usd": 1.0012259061,
+          "cost_method": "fireworks_tokens",
+          "label": "DeepSeek V4 Flash max (Fireworks)",
+          "model": "deepseek-v4-flash",
+          "one_harness_total_upper_usd": 10.012259061,
+          "one_harness_total_usd": 10.012259061,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 0.860639409,
+              "average_cost_usd": 0.860639409,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "expr-try-catch-errors"
+            },
+            {
+              "average_cost_upper_usd": 0.620371094,
+              "average_cost_usd": 0.620371094,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "katex-multicolumn-array-spans"
+            },
+            {
+              "average_cost_upper_usd": 0.9816043440000001,
+              "average_cost_usd": 0.9816043440000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "python-statemachine-state-data-scoping"
+            },
+            {
+              "average_cost_upper_usd": 1.185908969,
+              "average_cost_usd": 1.185908969,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "oxvg-structural-selector-preservation"
+            },
+            {
+              "average_cost_upper_usd": 1.16196731,
+              "average_cost_usd": 1.16196731,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "effect-sse-httpapi-streaming"
+            },
+            {
+              "average_cost_upper_usd": 2.0066593260000003,
+              "average_cost_usd": 2.0066593260000003,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "scriggo-method-declarations"
+            },
+            {
+              "average_cost_upper_usd": 0.616845152,
+              "average_cost_usd": 0.616845152,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "csstree-shorthand-expansion-compression"
+            },
+            {
+              "average_cost_upper_usd": 0.8274775600000001,
+              "average_cost_usd": 0.8274775600000001,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "fastapi-implicit-head-options"
+            },
+            {
+              "average_cost_upper_usd": 1.062971077,
+              "average_cost_usd": 1.062971077,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "boa-hierarchical-evaluation-cancellation"
+            },
+            {
+              "average_cost_upper_usd": 0.68781482,
+              "average_cost_usd": 0.68781482,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-composite-trait-aspects"
+            }
+          ],
+          "projected_total_upper_usd": 40.049036244,
+          "projected_total_usd": 40.049036244,
+          "reasoning_effort": "max"
+        },
+        {
+          "average_cost_per_selected_task_usd": 8.9886098325,
+          "cost_method": "fireworks_tokens",
+          "label": "Kimi K3 max (Fireworks)",
+          "model": "kimi-k3",
+          "one_harness_total_upper_usd": 89.886098325,
+          "one_harness_total_usd": 89.886098325,
+          "per_task": [
+            {
+              "average_cost_upper_usd": 6.3123663,
+              "average_cost_usd": 6.3123663,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "expr-try-catch-errors"
+            },
+            {
+              "average_cost_upper_usd": 4.492570725,
+              "average_cost_usd": 4.492570725,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "katex-multicolumn-array-spans"
+            },
+            {
+              "average_cost_upper_usd": 7.008515625,
+              "average_cost_usd": 7.008515625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "python-statemachine-state-data-scoping"
+            },
+            {
+              "average_cost_upper_usd": 14.860826175,
+              "average_cost_usd": 14.860826175,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "oxvg-structural-selector-preservation"
+            },
+            {
+              "average_cost_upper_usd": 9.4941657,
+              "average_cost_usd": 9.4941657,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "effect-sse-httpapi-streaming"
+            },
+            {
+              "average_cost_upper_usd": 25.44762975,
+              "average_cost_usd": 25.44762975,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "scriggo-method-declarations"
+            },
+            {
+              "average_cost_upper_usd": 2.26816215,
+              "average_cost_usd": 2.26816215,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "csstree-shorthand-expansion-compression"
+            },
+            {
+              "average_cost_upper_usd": 3.712652625,
+              "average_cost_usd": 3.712652625,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "fastapi-implicit-head-options"
+            },
+            {
+              "average_cost_upper_usd": 7.03821675,
+              "average_cost_usd": 7.03821675,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "boa-hierarchical-evaluation-cancellation"
+            },
+            {
+              "average_cost_upper_usd": 9.250992525,
+              "average_cost_usd": 9.250992525,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "koota-composite-trait-aspects"
+            }
+          ],
+          "projected_total_upper_usd": 359.5443933,
+          "projected_total_usd": 359.5443933,
+          "reasoning_effort": "max"
+        }
+      ],
+      "runs_per_model": 40,
+      "total_projected_runs": 160,
+      "uncertainty_note": "GPT-5.6 historical DeepSWE trajectories do not expose cache_write_tokens. The upper bound treats every unlabelled uncached GPT input token as a cache write at 1.25x input pricing; other models are repriced exactly from the available raw cache/token fields."
+    }
+  },
+  "method": {
+    "benchmark_version": "v1.1",
+    "combined_count": 20,
+    "difficulty_and_token_rules": {
+      "difficulty_percentile": "rank within language; hardest=100, easiest=0; solve-rate ties use task_id",
+      "excluded_evaluated_models": [
+        "claude-opus-5",
+        "deepseek-v4-flash",
+        "gpt-5-6-luna",
+        "kimi-k3"
+      ],
+      "hard_stratum": "75 <= difficulty_percentile <= 100",
+      "medium_stratum": "50 <= difficulty_percentile < 75",
+      "reference_harness": "mini-swe-agent",
+      "secondary_selection_metric": "maximum median (n_input_tokens + n_output_tokens) over valid non-target mini-swe-agent rollouts",
+      "secondary_tie_breaker": "lexicographically smallest task_id"
+    },
+    "extension_of": "scripts/select_deepswe_tasks.py",
+    "optional_count": 10,
+    "optional_extension_rule": "take the second token-ranked eligible task in every language/stratum cell; if a cell has no second distinct task, fill the remaining optional slots from all still-unselected hard/medium-eligible tasks by descending median historical total tokens with stable identifiers as tie-breakers",
+    "primary_count": 10
+  },
+  "optional_selection_audit": {
+    "balanced_second_choices_selected": 8,
+    "cells": {
+      "go:hard": {
+        "eligible_count": 9,
+        "eligible_task_ids_in_token_order": [
+          "expr-try-catch-errors",
+          "helm-array-merge-strategies",
+          "kgateway-consistent-hash-policy",
+          "anko-typed-variable-bindings",
+          "updo-policy-alerting",
+          "dasel-html-document-format",
+          "onedump-dump-encryption-pipeline",
+          "participle-grammar-conflict-analysis",
+          "termenv-preserve-ansi-resets"
+        ],
+        "optional_second_task_id": "helm-array-merge-strategies",
+        "primary_task_id": "expr-try-catch-errors",
+        "second_distinct_task_available": true
+      },
+      "go:medium": {
+        "eligible_count": 8,
+        "eligible_task_ids_in_token_order": [
+          "scriggo-method-declarations",
+          "pebble-durability-wait-apis",
+          "opa-template-string-reconstruction",
+          "tengo-destructuring-bindings",
+          "scc-bounded-memory-spilling",
+          "opa-rego-rule-profiling",
+          "go-critic-doc-link-checker",
+          "prometheus-typed-label-sorting"
+        ],
+        "optional_second_task_id": "pebble-durability-wait-apis",
+        "primary_task_id": "scriggo-method-declarations",
+        "second_distinct_task_available": true
+      },
+      "javascript:hard": {
+        "eligible_count": 2,
+        "eligible_task_ids_in_token_order": [
+          "katex-multicolumn-array-spans",
+          "testem-bail-on-test-failure"
+        ],
+        "optional_second_task_id": "testem-bail-on-test-failure",
+        "primary_task_id": "katex-multicolumn-array-spans",
+        "second_distinct_task_available": true
+      },
+      "javascript:medium": {
+        "eligible_count": 1,
+        "eligible_task_ids_in_token_order": [
+          "csstree-shorthand-expansion-compression"
+        ],
+        "primary_task_id": "csstree-shorthand-expansion-compression",
+        "second_distinct_task_available": false
+      },
+      "python:hard": {
+        "eligible_count": 9,
+        "eligible_task_ids_in_token_order": [
+          "python-statemachine-state-data-scoping",
+          "gql-incremental-graphql-delivery",
+          "sqlfmt-create-table-ddl-formatting",
+          "kombu-virtual-queue-dead-lettering",
+          "textual-kitty-key-phases",
+          "bandit-structured-nosec-directives",
+          "langchain-request-coalescing",
+          "vulture-persistent-analysis-cache",
+          "pwntools-tube-multiplexing"
+        ],
+        "optional_second_task_id": "gql-incremental-graphql-delivery",
+        "primary_task_id": "python-statemachine-state-data-scoping",
+        "second_distinct_task_available": true
+      },
+      "python:medium": {
+        "eligible_count": 8,
+        "eligible_task_ids_in_token_order": [
+          "fastapi-implicit-head-options",
+          "mashumaro-flattened-dataclass-fields",
+          "fastapi-deprecation-response-headers",
+          "dateutil-rfc5545-timezone-interop",
+          "bandit-incremental-cache-control",
+          "bandit-interprocedural-taint-checks",
+          "igel-persist-feature-schema",
+          "httpx-streaming-json-iteration"
+        ],
+        "optional_second_task_id": "mashumaro-flattened-dataclass-fields",
+        "primary_task_id": "fastapi-implicit-head-options",
+        "second_distinct_task_available": true
+      },
+      "rust:hard": {
+        "eligible_count": 2,
+        "eligible_task_ids_in_token_order": [
+          "oxvg-structural-selector-preservation",
+          "pest-character-class-coalescing"
+        ],
+        "optional_second_task_id": "pest-character-class-coalescing",
+        "primary_task_id": "oxvg-structural-selector-preservation",
+        "second_distinct_task_available": true
+      },
+      "rust:medium": {
+        "eligible_count": 1,
+        "eligible_task_ids_in_token_order": [
+          "boa-hierarchical-evaluation-cancellation"
+        ],
+        "primary_task_id": "boa-hierarchical-evaluation-cancellation",
+        "second_distinct_task_available": false
+      },
+      "typescript:hard": {
+        "eligible_count": 9,
+        "eligible_task_ids_in_token_order": [
+          "effect-sse-httpapi-streaming",
+          "koota-pair-relation-tracking",
+          "meriyah-explicit-resource-declarations",
+          "koota-query-predicates",
+          "prometheus-transactional-reload-status",
+          "koota-deferred-mutation-buffer",
+          "quill-shared-toolbar-focus",
+          "happy-dom-deterministic-intersectionobserver",
+          "obsidian-linter-auto-table-of-contents"
+        ],
+        "optional_second_task_id": "koota-pair-relation-tracking",
+        "primary_task_id": "effect-sse-httpapi-streaming",
+        "second_distinct_task_available": true
+      },
+      "typescript:medium": {
+        "eligible_count": 9,
+        "eligible_task_ids_in_token_order": [
+          "koota-composite-trait-aspects",
+          "optique-conditional-option-dependencies",
+          "ink-grid-box-layout",
+          "eicrud-keyset-pagination-cursor",
+          "kea-atomic-signal-selectors",
+          "obsidian-linter-link-format-conversion",
+          "clack-async-autocomplete-options",
+          "awilix-async-container-initialization",
+          "superjson-error-stack-serialization"
+        ],
+        "optional_second_task_id": "optique-conditional-option-dependencies",
+        "primary_task_id": "koota-composite-trait-aspects",
+        "second_distinct_task_available": true
+      }
+    },
+    "cells_without_second_distinct_task": [
+      "javascript:medium",
+      "rust:medium"
+    ],
+    "global_fill_selected_task_ids": [
+      "opa-template-string-reconstruction",
+      "meriyah-explicit-resource-declarations"
+    ],
+    "global_fill_slots_needed": 2,
+    "optional_target_count": 10
+  },
+  "optional_tasks": [
+    {
+      "difficulty_percentile": 93.93939393939394,
+      "difficulty_rank": 3,
+      "language": "go",
+      "median_input_tokens": 10001282.0,
+      "median_output_tokens": 66143.0,
+      "median_total_tokens": 10067425.0,
+      "n_reference_rollouts": 195,
+      "n_token_rollouts": 195,
+      "problem_title": "Add configurable array merge strategies to Helm value coalescing",
+      "repository": "helm/helm",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.16923076923076924,
+      "stratum": "hard",
+      "task_id": "helm-array-merge-strategies",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 100.0,
+      "difficulty_rank": 1,
+      "language": "javascript",
+      "median_input_tokens": 8114657.5,
+      "median_output_tokens": 56422.0,
+      "median_total_tokens": 8187334.5,
+      "n_reference_rollouts": 194,
+      "n_token_rollouts": 194,
+      "problem_title": "Add bail-on-test-failure handling to Testem",
+      "repository": "testem/testem",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.20103092783505155,
+      "stratum": "hard",
+      "task_id": "testem-bail-on-test-failure",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 100.0,
+      "difficulty_rank": 1,
+      "language": "python",
+      "median_input_tokens": 8207525.0,
+      "median_output_tokens": 56819.5,
+      "median_total_tokens": 8267788.5,
+      "n_reference_rollouts": 194,
+      "n_token_rollouts": 194,
+      "problem_title": "Add GraphQL incremental delivery with @defer and @stream",
+      "repository": "graphql-python/gql",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.04639175257731959,
+      "stratum": "hard",
+      "task_id": "gql-incremental-graphql-delivery",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 100.0,
+      "difficulty_rank": 1,
+      "language": "rust",
+      "median_input_tokens": 5780442.5,
+      "median_output_tokens": 46308.0,
+      "median_total_tokens": 5845564.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Coalesce qualifying choices into character classes",
+      "repository": "pest-parser/pest",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.1683673469387755,
+      "stratum": "hard",
+      "task_id": "pest-character-class-coalescing",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 94.11764705882354,
+      "difficulty_rank": 3,
+      "language": "typescript",
+      "median_input_tokens": 12678939.5,
+      "median_output_tokens": 88235.0,
+      "median_total_tokens": 12776361.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add pair-level relation tracking modifiers",
+      "repository": "pmndrs/koota",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.18877551020408162,
+      "stratum": "hard",
+      "task_id": "koota-pair-relation-tracking",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 91.17647058823529,
+      "difficulty_rank": 4,
+      "language": "typescript",
+      "median_input_tokens": 11820958.0,
+      "median_output_tokens": 58617.5,
+      "median_total_tokens": 11887501.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add explicit resource management declarations to the parser",
+      "repository": "meriyah/meriyah",
+      "role": "optional",
+      "selection_stage": "global_token_fill",
+      "solve_rate": 0.23469387755102042,
+      "stratum": "hard",
+      "task_id": "meriyah-explicit-resource-declarations",
+      "within_cell_token_rank": 3
+    },
+    {
+      "difficulty_percentile": 51.515151515151516,
+      "difficulty_rank": 17,
+      "language": "go",
+      "median_input_tokens": 11981852.0,
+      "median_output_tokens": 76115.5,
+      "median_total_tokens": 12037808.5,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Reconstruct template strings in partial evaluation output",
+      "repository": "open-policy-agent/opa",
+      "role": "optional",
+      "selection_stage": "global_token_fill",
+      "solve_rate": 0.6020408163265306,
+      "stratum": "medium",
+      "task_id": "opa-template-string-reconstruction",
+      "within_cell_token_rank": 3
+    },
+    {
+      "difficulty_percentile": 69.6969696969697,
+      "difficulty_rank": 11,
+      "language": "go",
+      "median_input_tokens": 12546416.5,
+      "median_output_tokens": 72055.0,
+      "median_total_tokens": 12634927.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add durability callbacks and wait APIs for sync writes",
+      "repository": "cockroachdb/pebble",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.5153061224489796,
+      "stratum": "medium",
+      "task_id": "pebble-durability-wait-apis",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 60.60606060606061,
+      "difficulty_rank": 14,
+      "language": "python",
+      "median_input_tokens": 7727774.0,
+      "median_output_tokens": 63977.0,
+      "median_total_tokens": 7778073.5,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add flattened dataclass fields to Mashumaro field options",
+      "repository": "Fatal1ty/mashumaro",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.4897959183673469,
+      "stratum": "medium",
+      "task_id": "mashumaro-flattened-dataclass-fields",
+      "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 55.88235294117647,
+      "difficulty_rank": 16,
+      "language": "typescript",
+      "median_input_tokens": 10645551.5,
+      "median_output_tokens": 71412.5,
+      "median_total_tokens": 10698043.5,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add conditional option dependencies to Optique",
+      "repository": "dahlia/optique",
+      "role": "optional",
+      "selection_stage": "cell_second_choice",
+      "solve_rate": 0.3520408163265306,
+      "stratum": "medium",
+      "task_id": "optique-conditional-option-dependencies",
+      "within_cell_token_rank": 2
+    }
+  ],
+  "primary_tasks": [
+    {
+      "difficulty_percentile": 90.9090909090909,
+      "difficulty_rank": 4,
+      "language": "go",
+      "median_input_tokens": 11353819.5,
+      "median_output_tokens": 73604.5,
+      "median_total_tokens": 11448960.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add try/catch error recovery to expr",
+      "repository": "expr-lang/expr",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.29591836734693877,
+      "stratum": "hard",
+      "task_id": "expr-try-catch-errors",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 75.0,
+      "difficulty_rank": 2,
+      "language": "javascript",
+      "median_input_tokens": 8765190.0,
+      "median_output_tokens": 64295.0,
+      "median_total_tokens": 8892481.0,
+      "n_reference_rollouts": 195,
+      "n_token_rollouts": 195,
+      "problem_title": "Add `\\multicolumn` column spans to array-like environments",
+      "repository": "KaTeX/KaTeX",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.31794871794871793,
+      "stratum": "hard",
+      "task_id": "katex-multicolumn-array-spans",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 87.87878787878788,
+      "difficulty_rank": 5,
+      "language": "python",
+      "median_input_tokens": 13241112.5,
+      "median_output_tokens": 61847.0,
+      "median_total_tokens": 13313843.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add scoped state data to state machine callbacks and history",
+      "repository": "fgmacedo/python-statemachine",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.3112244897959184,
+      "stratum": "hard",
+      "task_id": "python-statemachine-state-data-scoping",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 75.0,
+      "difficulty_rank": 2,
+      "language": "rust",
+      "median_input_tokens": 14962727.5,
+      "median_output_tokens": 68720.0,
+      "median_total_tokens": 15030673.5,
+      "n_reference_rollouts": 193,
+      "n_token_rollouts": 192,
+      "problem_title": "Preserve structure needed by stylesheet selectors",
+      "repository": "noahbald/oxvg",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.21243523316062177,
+      "stratum": "hard",
+      "task_id": "oxvg-structural-selector-preservation",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 97.05882352941177,
+      "difficulty_rank": 2,
+      "language": "typescript",
+      "median_input_tokens": 17132852.0,
+      "median_output_tokens": 71921.5,
+      "median_total_tokens": 17207399.5,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add SSE streaming endpoints to HttpApi",
+      "repository": "Effect-TS/effect",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.15306122448979592,
+      "stratum": "hard",
+      "task_id": "effect-sse-httpapi-streaming",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 57.57575757575758,
+      "difficulty_rank": 15,
+      "language": "go",
+      "median_input_tokens": 29459448.0,
+      "median_output_tokens": 123276.0,
+      "median_total_tokens": 29588528.0,
+      "n_reference_rollouts": 194,
+      "n_token_rollouts": 194,
+      "problem_title": "Add method declarations and interface dispatch to Scriggo",
+      "repository": "open2b/scriggo",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.5824742268041238,
+      "stratum": "medium",
+      "task_id": "scriggo-method-declarations",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 50.0,
+      "difficulty_rank": 3,
+      "language": "javascript",
+      "median_input_tokens": 3466636.0,
+      "median_output_tokens": 56144.0,
+      "median_total_tokens": 3513585.0,
+      "n_reference_rollouts": 193,
+      "n_token_rollouts": 193,
+      "problem_title": "Add shorthand expansion and compression to the lexer",
+      "repository": "csstree/csstree",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.33678756476683935,
+      "stratum": "medium",
+      "task_id": "csstree-shorthand-expansion-compression",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 57.57575757575758,
+      "difficulty_rank": 15,
+      "language": "python",
+      "median_input_tokens": 8018241.0,
+      "median_output_tokens": 66700.0,
+      "median_total_tokens": 8104925.0,
+      "n_reference_rollouts": 195,
+      "n_token_rollouts": 195,
+      "problem_title": "Add implicit HEAD and automatic OPTIONS responses to FastAPI routes",
+      "repository": "fastapi/fastapi",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.5025641025641026,
+      "stratum": "medium",
+      "task_id": "fastapi-implicit-head-options",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 50.0,
+      "difficulty_rank": 3,
+      "language": "rust",
+      "median_input_tokens": 14384065.0,
+      "median_output_tokens": 62430.0,
+      "median_total_tokens": 14473338.0,
+      "n_reference_rollouts": 191,
+      "n_token_rollouts": 191,
+      "problem_title": "Add hierarchical evaluation cancellation to Boa",
+      "repository": "boa-dev/boa",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.47643979057591623,
+      "stratum": "medium",
+      "task_id": "boa-hierarchical-evaluation-cancellation",
+      "within_cell_token_rank": 1
+    },
+    {
+      "difficulty_percentile": 58.8235294117647,
+      "difficulty_rank": 15,
+      "language": "typescript",
+      "median_input_tokens": 11227681.0,
+      "median_output_tokens": 85580.5,
+      "median_total_tokens": 11313662.0,
+      "n_reference_rollouts": 186,
+      "n_token_rollouts": 186,
+      "problem_title": "Add composite trait aspects to Koota",
+      "repository": "pmndrs/koota",
+      "role": "primary",
+      "selection_stage": "original_cell_first_choice",
+      "solve_rate": 0.34946236559139787,
+      "stratum": "medium",
+      "task_id": "koota-composite-trait-aspects",
+      "within_cell_token_rank": 1
+    }
+  ],
+  "sources": {
+    "cost_trajectory_artifacts": {
+      "combined_sha256": "f3896866e1767c56ecd8691a6dba23ab85541d158d6d3b187916b0ffdec219b5",
+      "count": 160,
+      "hash_method": "SHA-256 of newline-separated, trial-name-sorted '<trial_name>\t<artifact_sha256>' records"
+    },
+    "pricing": {
+      "anthropic_opus_5": {
+        "cache_write_1h": 10.0,
+        "cache_write_5m": 6.25,
+        "cached_input": 0.5,
+        "input": 5.0,
+        "output": 25.0,
+        "source": "https://platform.claude.com/docs/en/about-claude/pricing"
+      },
+      "fireworks_kimi_k3": {
+        "cached_input": 0.3,
+        "input": 3.0,
+        "output": 15.0,
+        "source": "https://fireworks.ai/models/fireworks/kimi-k3"
+      },
+      "fireworks_v4_flash": {
+        "cached_input": 0.028,
+        "input": 0.14,
+        "output": 0.28,
+        "source": "https://fireworks.ai/models/fireworks/deepseek-v4-flash"
+      },
+      "openai_gpt_5_6_luna": {
+        "cache_rules_source": "https://developers.openai.com/api/docs/guides/latest-model",
+        "cache_write": 0.25,
+        "cached_input": 0.02,
+        "input": 0.2,
+        "long_context_input_multiplier": 2.0,
+        "long_context_output_multiplier": 1.5,
+        "long_context_threshold": 272000,
+        "output": 1.2,
+        "pricing_change_source": "https://openai.com/index/advancing-the-price-performance-frontier-with-gpt-5-6/",
+        "source": "https://developers.openai.com/api/docs/models"
+      }
+    },
+    "release": {
+      "sha256": "0b77963ed8c54ef40c5f744ade178b54bfae2662ed94f9235cee85eb542bdc85",
+      "source": "/tmp/deepswe-v11/release.json"
+    },
+    "tasks": {
+      "sha256": "bae967f6472943564c3fc5232fba3c8e0ac465c1be5ccf9dd4895d4ee9df6242",
+      "source": "/tmp/deepswe-v11/tasks.json"
+    },
+    "trials": {
+      "sha256": "13d6f7563330110231b008ae4eb38e03de24af08acead840de296d1127144971",
+      "source": "/tmp/deepswe-v11/trials.json"
+    }
+  }
+}
