@@ -271,24 +271,6 @@
       "within_cell_token_rank": 2
     },
     {
-      "difficulty_percentile": 91.17647058823529,
-      "difficulty_rank": 4,
-      "language": "typescript",
-      "median_input_tokens": 11820958.0,
-      "median_output_tokens": 58617.5,
-      "median_total_tokens": 11887501.0,
-      "n_reference_rollouts": 196,
-      "n_token_rollouts": 196,
-      "problem_title": "Add explicit resource management declarations to the parser",
-      "repository": "meriyah/meriyah",
-      "role": "optional",
-      "selection_stage": "global_token_fill",
-      "solve_rate": 0.23469387755102042,
-      "stratum": "hard",
-      "task_id": "meriyah-explicit-resource-declarations",
-      "within_cell_token_rank": 3
-    },
-    {
       "difficulty_percentile": 51.515151515151516,
       "difficulty_rank": 17,
       "language": "go",
@@ -300,7 +282,7 @@
       "problem_title": "Reconstruct template strings in partial evaluation output",
       "repository": "open-policy-agent/opa",
       "role": "optional",
-      "selection_stage": "global_token_fill",
+      "selection_stage": "same_stratum_token_fill",
       "solve_rate": 0.6020408163265306,
       "stratum": "medium",
       "task_id": "opa-template-string-reconstruction",
@@ -323,6 +305,24 @@
       "stratum": "medium",
       "task_id": "pebble-durability-wait-apis",
       "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 60.60606060606061,
+      "difficulty_rank": 14,
+      "language": "go",
+      "median_input_tokens": 7935170.0,
+      "median_output_tokens": 58928.5,
+      "median_total_tokens": 8008070.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add destructuring bindings to Tengo",
+      "repository": "d5/tengo",
+      "role": "optional",
+      "selection_stage": "same_stratum_token_fill",
+      "solve_rate": 0.5816326530612245,
+      "stratum": "medium",
+      "task_id": "tengo-destructuring-bindings",
+      "within_cell_token_rank": 4
     },
     {
       "difficulty_percentile": 60.60606060606061,
@@ -363,17 +363,17 @@
   ],
   "cost_estimates": {
     "combined_20": {
-      "grand_total_upper_usd": 1270.4201961659999,
-      "grand_total_usd": 1265.255010466,
+      "grand_total_upper_usd": 1257.8924446639999,
+      "grand_total_usd": 1253.038149864,
       "harness_count": 4,
       "models": [
         {
-          "average_cost_per_selected_task_usd": 5.851018328125,
+          "average_cost_per_selected_task_usd": 5.8172132437499995,
           "cost_method": "anthropic_trajectory",
           "label": "Claude Opus 5 medium",
           "model": "claude-opus-5",
-          "one_harness_total_upper_usd": 117.0203665625,
-          "one_harness_total_usd": 117.0203665625,
+          "one_harness_total_upper_usd": 116.344264875,
+          "one_harness_total_usd": 116.344264875,
           "per_task": [
             {
               "average_cost_upper_usd": 5.079286312500001,
@@ -481,13 +481,6 @@
               "task_id": "koota-pair-relation-tracking"
             },
             {
-              "average_cost_upper_usd": 4.234590062500001,
-              "average_cost_usd": 4.234590062500001,
-              "n_cost_rollouts": 4,
-              "n_public_rollouts": 4,
-              "task_id": "meriyah-explicit-resource-declarations"
-            },
-            {
               "average_cost_upper_usd": 5.4750788125,
               "average_cost_usd": 5.4750788125,
               "n_cost_rollouts": 4,
@@ -500,6 +493,13 @@
               "n_cost_rollouts": 4,
               "n_public_rollouts": 4,
               "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 3.5584883750000005,
+              "average_cost_usd": 3.5584883750000005,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "tengo-destructuring-bindings"
             },
             {
               "average_cost_upper_usd": 3.7383120625,
@@ -516,17 +516,17 @@
               "task_id": "optique-conditional-option-dependencies"
             }
           ],
-          "projected_total_upper_usd": 468.08146625,
-          "projected_total_usd": 468.08146625,
+          "projected_total_upper_usd": 465.3770595,
+          "projected_total_usd": 465.3770595,
           "reasoning_effort": "medium"
         },
         {
-          "average_cost_per_selected_task_usd": 1.1482780025000003,
+          "average_cost_per_selected_task_usd": 1.110568803,
           "cost_method": "openai_trajectory",
           "label": "GPT-5.6 Luna max",
           "model": "gpt-5-6-luna",
-          "one_harness_total_upper_usd": 24.256856475000003,
-          "one_harness_total_usd": 22.965560050000008,
+          "one_harness_total_upper_usd": 23.42494976,
+          "one_harness_total_usd": 22.211376060000003,
           "per_task": [
             {
               "average_cost_upper_usd": 0.9508459025,
@@ -634,13 +634,6 @@
               "task_id": "koota-pair-relation-tracking"
             },
             {
-              "average_cost_upper_usd": 1.4463628075000003,
-              "average_cost_usd": 1.32917722,
-              "n_cost_rollouts": 4,
-              "n_public_rollouts": 4,
-              "task_id": "meriyah-explicit-resource-declarations"
-            },
-            {
               "average_cost_upper_usd": 0.9599535625000001,
               "average_cost_usd": 0.9025961500000002,
               "n_cost_rollouts": 4,
@@ -653,6 +646,13 @@
               "n_cost_rollouts": 4,
               "n_public_rollouts": 4,
               "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 0.6144560925,
+              "average_cost_usd": 0.5749932299999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "tengo-destructuring-bindings"
             },
             {
               "average_cost_upper_usd": 0.7328409250000001,
@@ -669,17 +669,17 @@
               "task_id": "optique-conditional-option-dependencies"
             }
           ],
-          "projected_total_upper_usd": 97.02742590000001,
-          "projected_total_usd": 91.86224020000003,
+          "projected_total_upper_usd": 93.69979904,
+          "projected_total_usd": 88.84550424000001,
           "reasoning_effort": "max"
         },
         {
-          "average_cost_per_selected_task_usd": 0.9055754739499999,
+          "average_cost_per_selected_task_usd": 0.9050786703,
           "cost_method": "fireworks_tokens",
           "label": "DeepSeek V4 Flash max (Fireworks)",
           "model": "deepseek-v4-flash",
-          "one_harness_total_upper_usd": 18.111509479,
-          "one_harness_total_usd": 18.111509479,
+          "one_harness_total_upper_usd": 18.101573406,
+          "one_harness_total_usd": 18.101573406,
           "per_task": [
             {
               "average_cost_upper_usd": 0.860639409,
@@ -787,13 +787,6 @@
               "task_id": "koota-pair-relation-tracking"
             },
             {
-              "average_cost_upper_usd": 0.924373107,
-              "average_cost_usd": 0.924373107,
-              "n_cost_rollouts": 4,
-              "n_public_rollouts": 4,
-              "task_id": "meriyah-explicit-resource-declarations"
-            },
-            {
               "average_cost_upper_usd": 0.868599424,
               "average_cost_usd": 0.868599424,
               "n_cost_rollouts": 4,
@@ -806,6 +799,13 @@
               "n_cost_rollouts": 4,
               "n_public_rollouts": 4,
               "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 0.914437034,
+              "average_cost_usd": 0.914437034,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "tengo-destructuring-bindings"
             },
             {
               "average_cost_upper_usd": 0.7258681499999999,
@@ -822,17 +822,17 @@
               "task_id": "optique-conditional-option-dependencies"
             }
           ],
-          "projected_total_upper_usd": 72.446037916,
-          "projected_total_usd": 72.446037916,
+          "projected_total_upper_usd": 72.406293624,
+          "projected_total_usd": 72.406293624,
           "reasoning_effort": "max"
         },
         {
-          "average_cost_per_selected_task_usd": 7.910815826249999,
+          "average_cost_per_selected_task_usd": 7.83011615625,
           "cost_method": "fireworks_tokens",
           "label": "Kimi K3 max (Fireworks)",
           "model": "kimi-k3",
-          "one_harness_total_upper_usd": 158.21631652499997,
-          "one_harness_total_usd": 158.21631652499997,
+          "one_harness_total_upper_usd": 156.602323125,
+          "one_harness_total_usd": 156.602323125,
           "per_task": [
             {
               "average_cost_upper_usd": 6.3123663,
@@ -940,13 +940,6 @@
               "task_id": "koota-pair-relation-tracking"
             },
             {
-              "average_cost_upper_usd": 8.104569974999999,
-              "average_cost_usd": 8.104569974999999,
-              "n_cost_rollouts": 4,
-              "n_public_rollouts": 4,
-              "task_id": "meriyah-explicit-resource-declarations"
-            },
-            {
               "average_cost_upper_usd": 13.4283624,
               "average_cost_usd": 13.4283624,
               "n_cost_rollouts": 4,
@@ -959,6 +952,13 @@
               "n_cost_rollouts": 4,
               "n_public_rollouts": 4,
               "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 6.4905765749999995,
+              "average_cost_usd": 6.4905765749999995,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "tengo-destructuring-bindings"
             },
             {
               "average_cost_upper_usd": 4.41067335,
@@ -975,8 +975,8 @@
               "task_id": "optique-conditional-option-dependencies"
             }
           ],
-          "projected_total_upper_usd": 632.8652660999999,
-          "projected_total_usd": 632.8652660999999,
+          "projected_total_upper_usd": 626.4092925,
+          "projected_total_usd": 626.4092925,
           "reasoning_effort": "max"
         }
       ],
@@ -985,17 +985,17 @@
       "uncertainty_note": "GPT-5.6 historical DeepSWE trajectories do not expose cache_write_tokens. The upper bound treats every unlabelled uncached GPT input token as a cache write at 1.25x input pricing; other models are repriced exactly from the available raw cache/token fields."
     },
     "optional_10": {
-      "grand_total_upper_usd": 517.000442622,
-      "grand_total_usd": 514.5072490719999,
+      "grand_total_upper_usd": 504.47269112000004,
+      "grand_total_usd": 502.29038847000004,
       "harness_count": 4,
       "models": [
         {
-          "average_cost_per_selected_task_usd": 4.2650665,
+          "average_cost_per_selected_task_usd": 4.197456331250001,
           "cost_method": "anthropic_trajectory",
           "label": "Claude Opus 5 medium",
           "model": "claude-opus-5",
-          "one_harness_total_upper_usd": 42.650665,
-          "one_harness_total_usd": 42.650665,
+          "one_harness_total_upper_usd": 41.9745633125,
+          "one_harness_total_usd": 41.9745633125,
           "per_task": [
             {
               "average_cost_upper_usd": 3.4393660625,
@@ -1033,13 +1033,6 @@
               "task_id": "koota-pair-relation-tracking"
             },
             {
-              "average_cost_upper_usd": 4.234590062500001,
-              "average_cost_usd": 4.234590062500001,
-              "n_cost_rollouts": 4,
-              "n_public_rollouts": 4,
-              "task_id": "meriyah-explicit-resource-declarations"
-            },
-            {
               "average_cost_upper_usd": 5.4750788125,
               "average_cost_usd": 5.4750788125,
               "n_cost_rollouts": 4,
@@ -1052,6 +1045,13 @@
               "n_cost_rollouts": 4,
               "n_public_rollouts": 4,
               "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 3.5584883750000005,
+              "average_cost_usd": 3.5584883750000005,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "tengo-destructuring-bindings"
             },
             {
               "average_cost_upper_usd": 3.7383120625,
@@ -1068,17 +1068,17 @@
               "task_id": "optique-conditional-option-dependencies"
             }
           ],
-          "projected_total_upper_usd": 170.60266,
-          "projected_total_usd": 170.60266,
+          "projected_total_upper_usd": 167.89825325,
+          "projected_total_usd": 167.89825325,
           "reasoning_effort": "medium"
         },
         {
-          "average_cost_per_selected_task_usd": 0.954667865,
+          "average_cost_per_selected_task_usd": 0.8792494659999999,
           "cost_method": "openai_trajectory",
           "label": "GPT-5.6 Luna max",
           "model": "gpt-5-6-luna",
-          "one_harness_total_upper_usd": 10.1699770375,
-          "one_harness_total_usd": 9.54667865,
+          "one_harness_total_upper_usd": 9.3380703225,
+          "one_harness_total_usd": 8.79249466,
           "per_task": [
             {
               "average_cost_upper_usd": 0.8278006474999999,
@@ -1116,13 +1116,6 @@
               "task_id": "koota-pair-relation-tracking"
             },
             {
-              "average_cost_upper_usd": 1.4463628075000003,
-              "average_cost_usd": 1.32917722,
-              "n_cost_rollouts": 4,
-              "n_public_rollouts": 4,
-              "task_id": "meriyah-explicit-resource-declarations"
-            },
-            {
               "average_cost_upper_usd": 0.9599535625000001,
               "average_cost_usd": 0.9025961500000002,
               "n_cost_rollouts": 4,
@@ -1135,6 +1128,13 @@
               "n_cost_rollouts": 4,
               "n_public_rollouts": 4,
               "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 0.6144560925,
+              "average_cost_usd": 0.5749932299999999,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "tengo-destructuring-bindings"
             },
             {
               "average_cost_upper_usd": 0.7328409250000001,
@@ -1151,17 +1151,17 @@
               "task_id": "optique-conditional-option-dependencies"
             }
           ],
-          "projected_total_upper_usd": 40.67990815,
-          "projected_total_usd": 38.1867146,
+          "projected_total_upper_usd": 37.35228129,
+          "projected_total_usd": 35.16997864,
           "reasoning_effort": "max"
         },
         {
-          "average_cost_per_selected_task_usd": 0.8099250418,
+          "average_cost_per_selected_task_usd": 0.8089314345,
           "cost_method": "fireworks_tokens",
           "label": "DeepSeek V4 Flash max (Fireworks)",
           "model": "deepseek-v4-flash",
-          "one_harness_total_upper_usd": 8.099250418,
-          "one_harness_total_usd": 8.099250418,
+          "one_harness_total_upper_usd": 8.089314345,
+          "one_harness_total_usd": 8.089314345,
           "per_task": [
             {
               "average_cost_upper_usd": 0.780098585,
@@ -1199,13 +1199,6 @@
               "task_id": "koota-pair-relation-tracking"
             },
             {
-              "average_cost_upper_usd": 0.924373107,
-              "average_cost_usd": 0.924373107,
-              "n_cost_rollouts": 4,
-              "n_public_rollouts": 4,
-              "task_id": "meriyah-explicit-resource-declarations"
-            },
-            {
               "average_cost_upper_usd": 0.868599424,
               "average_cost_usd": 0.868599424,
               "n_cost_rollouts": 4,
@@ -1218,6 +1211,13 @@
               "n_cost_rollouts": 4,
               "n_public_rollouts": 4,
               "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 0.914437034,
+              "average_cost_usd": 0.914437034,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "tengo-destructuring-bindings"
             },
             {
               "average_cost_upper_usd": 0.7258681499999999,
@@ -1234,17 +1234,17 @@
               "task_id": "optique-conditional-option-dependencies"
             }
           ],
-          "projected_total_upper_usd": 32.397001672,
-          "projected_total_usd": 32.397001672,
+          "projected_total_upper_usd": 32.35725738,
+          "projected_total_usd": 32.35725738,
           "reasoning_effort": "max"
         },
         {
-          "average_cost_per_selected_task_usd": 6.833021820000001,
+          "average_cost_per_selected_task_usd": 6.671622480000001,
           "cost_method": "fireworks_tokens",
           "label": "Kimi K3 max (Fireworks)",
           "model": "kimi-k3",
-          "one_harness_total_upper_usd": 68.3302182,
-          "one_harness_total_usd": 68.3302182,
+          "one_harness_total_upper_usd": 66.7162248,
+          "one_harness_total_usd": 66.7162248,
           "per_task": [
             {
               "average_cost_upper_usd": 5.499998625,
@@ -1282,13 +1282,6 @@
               "task_id": "koota-pair-relation-tracking"
             },
             {
-              "average_cost_upper_usd": 8.104569974999999,
-              "average_cost_usd": 8.104569974999999,
-              "n_cost_rollouts": 4,
-              "n_public_rollouts": 4,
-              "task_id": "meriyah-explicit-resource-declarations"
-            },
-            {
               "average_cost_upper_usd": 13.4283624,
               "average_cost_usd": 13.4283624,
               "n_cost_rollouts": 4,
@@ -1301,6 +1294,13 @@
               "n_cost_rollouts": 4,
               "n_public_rollouts": 4,
               "task_id": "pebble-durability-wait-apis"
+            },
+            {
+              "average_cost_upper_usd": 6.4905765749999995,
+              "average_cost_usd": 6.4905765749999995,
+              "n_cost_rollouts": 4,
+              "n_public_rollouts": 4,
+              "task_id": "tengo-destructuring-bindings"
             },
             {
               "average_cost_upper_usd": 4.41067335,
@@ -1317,8 +1317,8 @@
               "task_id": "optique-conditional-option-dependencies"
             }
           ],
-          "projected_total_upper_usd": 273.3208728,
-          "projected_total_usd": 273.3208728,
+          "projected_total_upper_usd": 266.8648992,
+          "projected_total_usd": 266.8648992,
           "reasoning_effort": "max"
         }
       ],
@@ -1688,11 +1688,10 @@
     },
     "extension_of": "scripts/select_deepswe_tasks.py",
     "optional_count": 10,
-    "optional_extension_rule": "take the second token-ranked eligible task in every language/stratum cell; if a cell has no second distinct task, fill the remaining optional slots from all still-unselected hard/medium-eligible tasks by descending median historical total tokens with stable identifiers as tie-breakers",
+    "optional_extension_rule": "select exactly 5 hard and 5 medium optional tasks; first take the second token-ranked eligible task in each language/stratum cell where available; then fill any shortfall separately within the same stratum from remaining eligible tasks by descending median historical total tokens with stable identifiers as tie-breakers",
     "primary_count": 10
   },
   "optional_selection_audit": {
-    "balanced_second_choices_selected": 8,
     "cells": {
       "go:hard": {
         "eligible_count": 9,
@@ -1835,12 +1834,30 @@
       "javascript:medium",
       "rust:medium"
     ],
-    "global_fill_selected_task_ids": [
-      "opa-template-string-reconstruction",
-      "meriyah-explicit-resource-declarations"
-    ],
-    "global_fill_slots_needed": 2,
-    "optional_target_count": 10
+    "combined_count_by_stratum": {
+      "hard": 10,
+      "medium": 10
+    },
+    "optional_count_by_stratum": {
+      "hard": 5,
+      "medium": 5
+    },
+    "optional_target_by_stratum": {
+      "hard": 5,
+      "medium": 5
+    },
+    "optional_target_count": 10,
+    "primary_count_by_stratum": {
+      "hard": 5,
+      "medium": 5
+    },
+    "same_stratum_fill_selected_task_ids": {
+      "hard": [],
+      "medium": [
+        "opa-template-string-reconstruction",
+        "tengo-destructuring-bindings"
+      ]
+    }
   },
   "optional_tasks": [
     {
@@ -1934,24 +1951,6 @@
       "within_cell_token_rank": 2
     },
     {
-      "difficulty_percentile": 91.17647058823529,
-      "difficulty_rank": 4,
-      "language": "typescript",
-      "median_input_tokens": 11820958.0,
-      "median_output_tokens": 58617.5,
-      "median_total_tokens": 11887501.0,
-      "n_reference_rollouts": 196,
-      "n_token_rollouts": 196,
-      "problem_title": "Add explicit resource management declarations to the parser",
-      "repository": "meriyah/meriyah",
-      "role": "optional",
-      "selection_stage": "global_token_fill",
-      "solve_rate": 0.23469387755102042,
-      "stratum": "hard",
-      "task_id": "meriyah-explicit-resource-declarations",
-      "within_cell_token_rank": 3
-    },
-    {
       "difficulty_percentile": 51.515151515151516,
       "difficulty_rank": 17,
       "language": "go",
@@ -1963,7 +1962,7 @@
       "problem_title": "Reconstruct template strings in partial evaluation output",
       "repository": "open-policy-agent/opa",
       "role": "optional",
-      "selection_stage": "global_token_fill",
+      "selection_stage": "same_stratum_token_fill",
       "solve_rate": 0.6020408163265306,
       "stratum": "medium",
       "task_id": "opa-template-string-reconstruction",
@@ -1986,6 +1985,24 @@
       "stratum": "medium",
       "task_id": "pebble-durability-wait-apis",
       "within_cell_token_rank": 2
+    },
+    {
+      "difficulty_percentile": 60.60606060606061,
+      "difficulty_rank": 14,
+      "language": "go",
+      "median_input_tokens": 7935170.0,
+      "median_output_tokens": 58928.5,
+      "median_total_tokens": 8008070.0,
+      "n_reference_rollouts": 196,
+      "n_token_rollouts": 196,
+      "problem_title": "Add destructuring bindings to Tengo",
+      "repository": "d5/tengo",
+      "role": "optional",
+      "selection_stage": "same_stratum_token_fill",
+      "solve_rate": 0.5816326530612245,
+      "stratum": "medium",
+      "task_id": "tengo-destructuring-bindings",
+      "within_cell_token_rank": 4
     },
     {
       "difficulty_percentile": 60.60606060606061,
@@ -2208,7 +2225,7 @@
   ],
   "sources": {
     "cost_trajectory_artifacts": {
-      "combined_sha256": "f3896866e1767c56ecd8691a6dba23ab85541d158d6d3b187916b0ffdec219b5",
+      "combined_sha256": "90cefb0abfe59ffb3058b5337decfad8895238b2c4c45b1165214d185c729424",
       "count": 160,
       "hash_method": "SHA-256 of newline-separated, trial-name-sorted '<trial_name>\t<artifact_sha256>' records"
     },

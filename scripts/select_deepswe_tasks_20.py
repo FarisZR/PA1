@@ -11,15 +11,18 @@ eligibility and ranking criteria:
 - within a language/stratum, prefer larger median historical total token count;
 - task ID is the final tie-breaker.
 
-The first optional pass takes the second-highest-token task in each
-language/stratum. DeepSWE v1.1 has only five JavaScript and five Rust tasks, so
-its JavaScript-medium and Rust-medium strata contain only one task each. Those
-two cells therefore cannot supply a second distinct task without violating the
-fixed strata. The two remaining optional slots are filled deterministically by
-the highest-token eligible tasks remaining anywhere in the hard/medium strata.
+The optional sample is balanced by stratum: exactly five hard and five medium
+tasks. The first optional pass takes the second-highest-token task in each
+language/stratum when one exists. DeepSWE v1.1 has only five JavaScript and five
+Rust tasks, so its JavaScript-medium and Rust-medium strata contain only one
+task each. Missing slots are therefore filled deterministically from the
+highest-token still-unselected tasks in the *same* stratum. This preserves the
+required 5 hard / 5 medium optional balance without relaxing the difficulty
+boundaries.
 
-The result is exactly 20 distinct tasks: the original 10 primary tasks plus 10
-optional tasks. Only the Python standard library is required.
+The result is exactly 20 distinct tasks: the original 10 primary tasks (5 hard,
+5 medium) plus 10 optional tasks (5 hard, 5 medium), yielding 10 hard and 10
+medium tasks in total. Only the Python standard library is required.
 """
 
 from __future__ import annotations
@@ -37,6 +40,7 @@ import select_deepswe_tasks as base
 
 DEFAULT_OUTPUT = Path("data/deepswe_task_selection_20_v1.1.json")
 OPTIONAL_TASK_COUNT = 10
+OPTIONAL_PER_STRATUM = {"hard": 5, "medium": 5}
 
 
 def parse_args() -> argparse.Namespace:
@@ -115,10 +119,11 @@ def select_20(
     optional: list[dict[str, Any]] = []
     optional_ids: set[str] = set()
     cell_audit: dict[str, Any] = {}
+    fill_selected_by_stratum: dict[str, list[str]] = {"hard": [], "medium": []}
 
-    # Balanced-first pass: take the second-ranked token task from each cell when
-    # one exists. This preserves the original per-language/per-stratum design as
-    # far as the benchmark's sparse JS/Rust task counts permit.
+    # First pass: take the second token-ranked task from every language/stratum
+    # cell where one exists. This preserves language balance as far as the
+    # benchmark permits while never changing the fixed difficulty strata.
     for language, stratum in sorted(by_cell):
         candidates = by_cell[(language, stratum)]
         cell_key = f"{language}:{stratum}"
@@ -144,64 +149,98 @@ def select_20(
         optional_ids.add(task["id"])
         cell_audit[cell_key]["optional_second_task_id"] = task["id"]
 
-    # Fill any shortfall without changing the hard/medium eligibility rules.
-    # Ranking is globally by the same secondary token metric, then by stable
-    # language/stratum/task identifiers for deterministic ties.
-    remaining: list[tuple[dict[str, Any], str, int]] = []
-    for (language, stratum), candidates in by_cell.items():
-        for rank, task in enumerate(candidates, start=1):
-            if task["id"] in primary_ids or task["id"] in optional_ids:
+    # Fill each difficulty stratum independently until it contains exactly five
+    # optional tasks. This is the critical balance rule: fallback tasks can
+    # compensate for sparse languages, but a missing medium slot may only be
+    # filled by another medium task (and likewise for hard).
+    for stratum in ("hard", "medium"):
+        selected_in_stratum = sum(row["stratum"] == stratum for row in optional)
+        target = OPTIONAL_PER_STRATUM[stratum]
+        needed = target - selected_in_stratum
+        if needed < 0:
+            raise RuntimeError(
+                f"Second-choice pass produced {selected_in_stratum} optional {stratum} "
+                f"tasks, exceeding target {target}"
+            )
+        if needed == 0:
+            continue
+
+        remaining: list[tuple[dict[str, Any], int]] = []
+        for (language, candidate_stratum), candidates in by_cell.items():
+            if candidate_stratum != stratum:
                 continue
-            remaining.append((task, stratum, rank))
+            for rank, task in enumerate(candidates, start=1):
+                if task["id"] in primary_ids or task["id"] in optional_ids:
+                    continue
+                remaining.append((task, rank))
 
-    remaining.sort(
-        key=lambda item: (
-            -metrics[item[0]["id"]]["median_total_tokens"],
-            item[0]["language"],
-            item[1],
-            item[0]["id"],
-        )
-    )
-
-    needed = OPTIONAL_TASK_COUNT - len(optional)
-    if needed < 0:
-        raise RuntimeError("Balanced optional pass produced more than 10 tasks")
-    if len(remaining) < needed:
-        raise RuntimeError(
-            f"Need {needed} fallback tasks but only {len(remaining)} eligible tasks remain"
-        )
-
-    fallback_selected: list[str] = []
-    for task, stratum, rank in remaining[:needed]:
-        optional.append(
-            task_record(
-                task,
-                metrics,
-                stratum=stratum,
-                role="optional",
-                selection_stage="global_token_fill",
-                within_cell_token_rank=rank,
+        remaining.sort(
+            key=lambda item: (
+                -metrics[item[0]["id"]]["median_total_tokens"],
+                item[0]["language"],
+                item[0]["id"],
             )
         )
-        optional_ids.add(task["id"])
-        fallback_selected.append(task["id"])
+        if len(remaining) < needed:
+            raise RuntimeError(
+                f"Need {needed} additional {stratum} tasks but only "
+                f"{len(remaining)} eligible tasks remain"
+            )
+
+        for task, rank in remaining[:needed]:
+            optional.append(
+                task_record(
+                    task,
+                    metrics,
+                    stratum=stratum,
+                    role="optional",
+                    selection_stage="same_stratum_token_fill",
+                    within_cell_token_rank=rank,
+                )
+            )
+            optional_ids.add(task["id"])
+            fill_selected_by_stratum[stratum].append(task["id"])
 
     if len(optional) != OPTIONAL_TASK_COUNT:
         raise RuntimeError(f"Expected 10 optional tasks, got {len(optional)}")
     if primary_ids & optional_ids:
         raise RuntimeError("Primary and optional samples overlap")
 
+    optional_counts = {
+        stratum: sum(row["stratum"] == stratum for row in optional)
+        for stratum in ("hard", "medium")
+    }
+    if optional_counts != OPTIONAL_PER_STRATUM:
+        raise RuntimeError(
+            f"Optional sample must be 5 hard / 5 medium, got {optional_counts}"
+        )
+
+    primary_counts = {
+        stratum: sum(row["stratum"] == stratum for row in primary)
+        for stratum in ("hard", "medium")
+    }
+    combined_counts = {
+        stratum: primary_counts[stratum] + optional_counts[stratum]
+        for stratum in ("hard", "medium")
+    }
+    if primary_counts != {"hard": 5, "medium": 5}:
+        raise RuntimeError(f"Primary sample is unexpectedly unbalanced: {primary_counts}")
+    if combined_counts != {"hard": 10, "medium": 10}:
+        raise RuntimeError(f"Combined sample is unexpectedly unbalanced: {combined_counts}")
+
     # Keep primary ordering identical to the base script; optional ordering is
     # stable and presentation-oriented rather than selection-significant.
     optional.sort(key=lambda row: (row["stratum"], row["language"], row["task_id"]))
 
-    # Validate all records against the original cells and enrich the primary
-    # rows with a role marker while leaving their substantive fields untouched.
+    # Enrich the primary rows with a role marker while leaving their substantive
+    # fields untouched.
     primary_with_role: list[dict[str, Any]] = []
     for row in primary:
         task = tasks_by_id[row["task_id"]]
         candidates = by_cell[(row["language"], row["stratum"])]
-        rank = next(i for i, candidate in enumerate(candidates, 1) if candidate["id"] == task["id"])
+        rank = next(
+            i for i, candidate in enumerate(candidates, 1) if candidate["id"] == task["id"]
+        )
         primary_with_role.append(
             {
                 "role": "primary",
@@ -213,9 +252,11 @@ def select_20(
 
     audit = {
         "optional_target_count": OPTIONAL_TASK_COUNT,
-        "balanced_second_choices_selected": OPTIONAL_TASK_COUNT - needed,
-        "global_fill_slots_needed": needed,
-        "global_fill_selected_task_ids": fallback_selected,
+        "optional_target_by_stratum": OPTIONAL_PER_STRATUM,
+        "primary_count_by_stratum": primary_counts,
+        "optional_count_by_stratum": optional_counts,
+        "combined_count_by_stratum": combined_counts,
+        "same_stratum_fill_selected_task_ids": fill_selected_by_stratum,
         "cells_without_second_distinct_task": sorted(
             key
             for key, value in cell_audit.items()
@@ -300,10 +341,11 @@ def main() -> int:
                 "secondary_tie_breaker": "lexicographically smallest task_id",
             },
             "optional_extension_rule": (
-                "take the second token-ranked eligible task in every language/stratum cell; "
-                "if a cell has no second distinct task, fill the remaining optional slots "
-                "from all still-unselected hard/medium-eligible tasks by descending median "
-                "historical total tokens with stable identifiers as tie-breakers"
+                "select exactly 5 hard and 5 medium optional tasks; first take the second "
+                "token-ranked eligible task in each language/stratum cell where available; "
+                "then fill any shortfall separately within the same stratum from remaining "
+                "eligible tasks by descending median historical total tokens with stable "
+                "identifiers as tie-breakers"
             ),
         },
         "sources": {
