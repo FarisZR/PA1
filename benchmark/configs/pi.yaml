@@ -1,0 +1,107 @@
+job_name: pi
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 10
+
+environment:
+  type: docker
+
+datasets:
+  - path: ../DeepSWE/tasks
+    task_names:
+      - expr-try-catch-errors
+      - katex-multicolumn-array-spans
+      - python-statemachine-state-data-scoping
+      - oxvg-structural-selector-preservation
+      - effect-sse-httpapi-streaming
+      - scriggo-method-declarations
+      - csstree-shorthand-expansion-compression
+      - fastapi-implicit-head-options
+      - boa-hierarchical-evaluation-cancellation
+      - koota-composite-trait-aspects
+
+agents:
+  # Opus is the only model that bypasses LiteLLM for this harness.
+  - name: pi
+    model_name: anthropic/claude-opus-5
+    env:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    kwargs:
+      version: "0.84.3"
+      thinking: medium
+
+  # Pi 0.84.3 already ships the OpenAI gpt-5.6-luna entry at 272k, so only
+  # redirect the built-in provider to LiteLLM. Keeping the built-in metadata
+  # avoids replacing capability/cost information with a custom model entry.
+  - name: pi
+    model_name: openai/gpt-5.6-luna
+    env:
+      OPENAI_API_KEY: ${LITELLM_API_KEY}
+      OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+    kwargs:
+      version: "0.84.3"
+      thinking: max
+
+  - name: pi
+    model_name: openai/deepseek-v4-flash-0731
+    env:
+      OPENAI_API_KEY: ${LITELLM_API_KEY}
+      OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+    kwargs:
+      version: "0.84.3"
+      thinking: max
+      pi_config:
+        providers:
+          openai:
+            models:
+              - id: deepseek-v4-flash-0731
+                name: DeepSeek V4 Flash 0731
+                api: openai-responses
+                reasoning: true
+                input: [text]
+                contextWindow: 1040000
+                maxTokens: 384000
+                thinkingLevelMap:
+                  low: low
+                  medium: medium
+                  high: high
+                  xhigh: xhigh
+                  max: max
+                # Fireworks serverless rates in USD per million tokens.
+                cost:
+                  input: 0.22
+                  output: 0.66
+                  cacheRead: 0.007
+                  cacheWrite: 0.22
+
+  - name: pi
+    model_name: openai/kimi-k3
+    env:
+      OPENAI_API_KEY: ${LITELLM_API_KEY}
+      OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+    kwargs:
+      version: "0.84.3"
+      thinking: max
+      pi_config:
+        providers:
+          openai:
+            models:
+              - id: kimi-k3
+                name: Kimi K3
+                api: openai-responses
+                reasoning: true
+                input: [text, image]
+                contextWindow: 1040000
+                maxTokens: 131072
+                thinkingLevelMap:
+                  low: low
+                  medium: medium
+                  high: high
+                  xhigh: xhigh
+                  max: max
+                # Fireworks serverless rates in USD per million tokens.
+                cost:
+                  input: 3.0
+                  output: 15.0
+                  cacheRead: 0.3
+                  cacheWrite: 3.0
