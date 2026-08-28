@@ -34,8 +34,9 @@ agents:
       reasoning_effort: max
       restrict_model_catalog: true
 
-  # Codex has no Anthropic Messages wire protocol. This provider is a dedicated
-  # Responses bridge whose upstream route must be the Anthropic API.
+  # Codex has no Anthropic Messages wire protocol. This cell therefore uses a
+  # dedicated Responses-to-Anthropic bridge, separate from the shared LiteLLM
+  # gateway. The bridge's upstream connection must be the direct Anthropic API.
   - name: codex
     model_name: anthropic/claude-opus-5
     env:

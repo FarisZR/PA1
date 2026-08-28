@@ -21,7 +21,8 @@ datasets:
       - koota-composite-trait-aspects
 
 agents:
-  # Opus is the only model that bypasses LiteLLM for this harness.
+  # Native Pi provider/model IDs are intentional. They preserve Pi 0.84.3's
+  # built-in model capabilities, compatibility flags, and official pricing.
   - name: pi
     model_name: anthropic/claude-opus-5
     env:
@@ -30,9 +31,8 @@ agents:
       version: "0.84.3"
       thinking: medium
 
-  # Pi 0.84.3 already ships the OpenAI gpt-5.6-luna entry at 272k, so only
-  # redirect the built-in provider to LiteLLM. Keeping the built-in metadata
-  # avoids replacing capability/cost information with a custom model entry.
+  # Pi's direct OpenAI Luna entry already uses the 272k short-context window and
+  # official OpenAI price table. Only its endpoint/auth are redirected to LiteLLM.
   - name: pi
     model_name: openai/gpt-5.6-luna
     env:
@@ -42,66 +42,33 @@ agents:
       version: "0.84.3"
       thinking: max
 
+  # The DeepSeek API's stable model ID currently resolves to the selected
+  # DeepSeek-V4-Flash-0731 checkpoint. Keep that upstream ID so Pi retains its
+  # native 1M context, thinking compatibility, and launch-price metadata.
   - name: pi
-    model_name: openai/deepseek-v4-flash-0731
+    model_name: deepseek/deepseek-v4-flash
     env:
-      OPENAI_API_KEY: ${LITELLM_API_KEY}
-      OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+      DEEPSEEK_API_KEY: ${LITELLM_API_KEY}
     kwargs:
       version: "0.84.3"
       thinking: max
       pi_config:
         providers:
-          openai:
-            models:
-              - id: deepseek-v4-flash-0731
-                name: DeepSeek V4 Flash 0731
-                api: openai-responses
-                reasoning: true
-                input: [text]
-                contextWindow: 1040000
-                maxTokens: 384000
-                thinkingLevelMap:
-                  low: low
-                  medium: medium
-                  high: high
-                  xhigh: xhigh
-                  max: max
-                # Fireworks serverless rates in USD per million tokens.
-                cost:
-                  input: 0.22
-                  output: 0.66
-                  cacheRead: 0.007
-                  cacheWrite: 0.22
+          deepseek:
+            baseUrl: __LITELLM_OPENAI_BASE_URL__
 
+  # Likewise, use Pi's native Moonshot entry rather than presenting Kimi as an
+  # OpenAI model. This preserves Kimi-specific multi-turn/tool compatibility and
+  # Pi's official launch pricing metadata.
   - name: pi
-    model_name: openai/kimi-k3
+    model_name: moonshotai/kimi-k3
     env:
-      OPENAI_API_KEY: ${LITELLM_API_KEY}
-      OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+      MOONSHOT_API_KEY: ${LITELLM_API_KEY}
     kwargs:
       version: "0.84.3"
       thinking: max
       pi_config:
         providers:
-          openai:
-            models:
-              - id: kimi-k3
-                name: Kimi K3
-                api: openai-responses
-                reasoning: true
-                input: [text, image]
-                contextWindow: 1040000
-                maxTokens: 131072
-                thinkingLevelMap:
-                  low: low
-                  medium: medium
-                  high: high
-                  xhigh: xhigh
-                  max: max
-                # Fireworks serverless rates in USD per million tokens.
-                cost:
-                  input: 3.0
-                  output: 15.0
-                  cacheRead: 0.3
-                  cacheWrite: 3.0
+          moonshotai:
+            baseUrl: __LITELLM_OPENAI_BASE_URL__
+            apiKey: $MOONSHOT_API_KEY

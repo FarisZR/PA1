@@ -30,10 +30,25 @@ agents:
       version: "2.1.247"
       reasoning_effort: medium
 
-  # Non-Anthropic models use LiteLLM's Anthropic-compatible surface. The proxy
-  # alias gpt-5.6-luna must enforce the benchmark's 272k context cap.
+  # Claude Code recognizes the [1m] suffix used by third-party integrations
+  # such as Z.AI. Explicitly lower Luna's auto-compaction window to 272k so its
+  # effective context matches Codex's short-context configuration.
   - name: claude-code
-    model_name: gpt-5.6-luna
+    model_name: gpt-5.6-luna[1m]
+    env:
+      ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
+      ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "272000"
+      DISABLE_AUTOUPDATER: "1"
+    kwargs:
+      version: "2.1.247"
+      reasoning_effort: max
+
+  # The proxy must expose these exact [1m] aliases. The suffix prevents Claude
+  # Code from treating an otherwise unknown third-party model as a small-context
+  # model; their normal provider context is retained.
+  - name: claude-code
+    model_name: deepseek-v4-flash-0731[1m]
     env:
       ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
@@ -43,17 +58,7 @@ agents:
       reasoning_effort: max
 
   - name: claude-code
-    model_name: deepseek-v4-flash-0731
-    env:
-      ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
-      ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
-      DISABLE_AUTOUPDATER: "1"
-    kwargs:
-      version: "2.1.247"
-      reasoning_effort: max
-
-  - name: claude-code
-    model_name: kimi-k3
+    model_name: kimi-k3[1m]
     env:
       ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}

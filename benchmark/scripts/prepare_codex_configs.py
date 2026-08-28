@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Generate Codex provider TOML from benchmark environment variables.
+"""Generate endpoint-dependent benchmark configuration artifacts.
 
 Pier resolves ${VAR} templates in an agent's ``env`` mapping, but it does not
-interpolate arbitrary ``config_toml_file`` contents.  Keeping the generated
-TOML out of Git lets the benchmark use environment-specific endpoints without
-embedding them in the committed Pier job configuration.
+interpolate arbitrary ``kwargs`` or ``config_toml_file`` contents. Generated
+artifacts keep deployment-specific endpoint URLs out of the committed job
+definitions while retaining versioned source configuration.
 """
 
 from __future__ import annotations
@@ -19,6 +19,8 @@ from urllib.request import urlopen
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 GENERATED_DIR = BENCHMARK_DIR / "generated"
+PI_CONFIG_TEMPLATE = BENCHMARK_DIR / "configs" / "pi.yaml"
+PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
 CODEX_SOURCE_TAG = "rust-v0.150.1"
 CODEX_FALLBACK_PROMPT_URL = (
     "https://raw.githubusercontent.com/openai/codex/"
@@ -48,6 +50,7 @@ def load_env_file(path: Path) -> None:
 
 
 def require(name: str) -> str:
+    """Return a required non-empty environment variable or abort generation."""
     value = os.environ.get(name, "").strip()
     if not value:
         raise SystemExit(f"Missing required environment variable: {name}")
@@ -55,10 +58,12 @@ def require(name: str) -> str:
 
 
 def toml_string(value: str) -> str:
+    """Encode a Python string using TOML-compatible JSON string syntax."""
     return json.dumps(value)
 
 
 def provider_toml(*, provider_id: str, name: str, base_url: str, env_key: str) -> str:
+    """Build the minimal Codex Responses provider configuration."""
     return "\n".join(
         [
             f"model_provider = {toml_string(provider_id)}",
@@ -76,6 +81,7 @@ def provider_toml(*, provider_id: str, name: str, base_url: str, env_key: str) -
 
 
 def fetch_codex_fallback_instructions() -> str:
+    """Fetch and hash-verify Codex 0.150.1's generic fallback instructions."""
     with urlopen(CODEX_FALLBACK_PROMPT_URL, timeout=30) as response:
         raw = response.read()
     digest = hashlib.sha256(raw).hexdigest()
@@ -144,7 +150,20 @@ def codex_model_entry(
     }
 
 
+def render_pi_config(litellm_base_url: str) -> str:
+    """Render Pi's native-provider job with the deployment-specific gateway URL."""
+    template = PI_CONFIG_TEMPLATE.read_text()
+    count = template.count(PI_BASE_URL_SENTINEL)
+    if count != 2:
+        raise SystemExit(
+            f"Expected two {PI_BASE_URL_SENTINEL} placeholders in {PI_CONFIG_TEMPLATE}, "
+            f"found {count}"
+        )
+    return template.replace(PI_BASE_URL_SENTINEL, litellm_base_url.rstrip("/"))
+
+
 def main() -> None:
+    """Load endpoint settings and write all generated benchmark config files."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--env-file",
@@ -161,6 +180,7 @@ def main() -> None:
     base_instructions = fetch_codex_fallback_instructions()
 
     GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+    (GENERATED_DIR / "pi.yaml").write_text(render_pi_config(litellm_base_url))
     (GENERATED_DIR / "codex-litellm.toml").write_text(
         provider_toml(
             provider_id="litellm",
@@ -172,7 +192,7 @@ def main() -> None:
     (GENERATED_DIR / "codex-opus.toml").write_text(
         provider_toml(
             provider_id="anthropic_responses",
-            name="Anthropic upstream via Responses bridge",
+            name="Direct Anthropic via dedicated Responses bridge",
             base_url=opus_base_url,
             env_key="CODEX_OPUS_RESPONSES_API_KEY",
         )
@@ -191,7 +211,7 @@ def main() -> None:
                 slug="deepseek-v4-flash-0731",
                 display_name="DeepSeek V4 Flash 0731",
                 effort="max",
-                context_window=1_040_000,
+                context_window=1_000_000,
                 input_modalities=["text"],
                 base_instructions=base_instructions,
             ),
@@ -199,7 +219,7 @@ def main() -> None:
                 slug="kimi-k3",
                 display_name="Kimi K3",
                 effort="max",
-                context_window=1_040_000,
+                context_window=1_048_576,
                 input_modalities=["text", "image"],
                 base_instructions=base_instructions,
             ),
@@ -209,6 +229,7 @@ def main() -> None:
         json.dumps(catalog, indent=2) + "\n"
     )
 
+    print(f"Wrote {GENERATED_DIR / 'pi.yaml'}")
     print(f"Wrote {GENERATED_DIR / 'codex-litellm.toml'}")
     print(f"Wrote {GENERATED_DIR / 'codex-opus.toml'}")
     print(f"Wrote {GENERATED_DIR / 'codex-thirdparty-models.json'}")

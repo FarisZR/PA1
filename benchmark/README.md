@@ -64,6 +64,14 @@ values. `env.local` is ignored by Git.
 - **GPT-5.6 Luna, max; DeepSeek V4 Flash 0731, max; Kimi K3, max:** use the
   custom LiteLLM gateway through `LITELLM_API_KEY` and the protocol-specific
   gateway base URLs.
+- **Pi:** keeps each model under its native built-in provider so Pi 0.84.3 keeps
+  its own compatibility metadata and official model pricing. Luna stays
+  `openai/gpt-5.6-luna`; DeepSeek uses `deepseek/deepseek-v4-flash` (the stable
+  API ID for the selected 0731 checkpoint); Kimi uses `moonshotai/kimi-k3`.
+  The generated Pi job changes only the DeepSeek/Moonshot base URL to LiteLLM.
+  The gateway therefore needs a `deepseek-v4-flash` alias pinned to the same
+  0731 checkpoint in addition to the `deepseek-v4-flash-0731` alias used by the
+  other harnesses.
 - **Codex + GPT-5.6 Luna:** remains Codex's built-in `openai` provider. Pier
   only redirects `openai_base_url` to LiteLLM. This preserves Codex's
   OpenAI-specific behavior, including its model metadata, multi-agent selection,
@@ -71,23 +79,35 @@ values. `env.local` is ignored by Git.
 - **Codex + DeepSeek/Kimi:** use an explicit third-party `litellm` Responses
   provider and generated fallback-style model metadata with the models' native
   context limits.
-- **Codex + Opus:** Codex does not speak Anthropic Messages directly; current
-  Codex only supports the Responses wire protocol. The separate
-  `CODEX_OPUS_RESPONSES_*` variables therefore point to a Responses-compatible
-  bridge whose upstream route is Anthropic. This is intentionally separate from
-  the normal LiteLLM route. If direct Anthropic Messages is a hard requirement
-  for this cell, Codex + Opus cannot be run with the current Codex CLI.
+- **Codex + Opus:** is the one exception that cannot use the shared LiteLLM
+  gateway. Codex 0.150.1 only speaks the Responses wire protocol, so
+  `CODEX_OPUS_RESPONSES_*` must identify a dedicated Responses-to-Anthropic
+  bridge. That bridge connects directly to `api.anthropic.com` using the
+  benchmark's Anthropic account/key; it must not route Opus through the shared
+  model proxy.
 
-Generate the endpoint-specific Codex TOML files and third-party model catalog
-before starting Codex:
+Generate the endpoint-specific Pi job plus Codex TOML/model catalog before
+starting the benchmark:
 
 ```bash
-python benchmark/scripts/prepare_codex_configs.py --env-file benchmark/env.local
+python3 benchmark/scripts/prepare_codex_configs.py --env-file benchmark/env.local
+uv run benchmark/scripts/preflight.py --env-file benchmark/env.local
 ```
 
 The generated files contain endpoint URLs and provider metadata, but never API
-keys. They are written under `benchmark/generated/` and ignored by Git. Codex
-reads the actual key from the environment named by `env_key`.
+keys. They are written under `benchmark/generated/` and ignored by Git. The Pi
+source job needs generation because Pier does not interpolate environment
+variables inside nested `kwargs.pi_config`; the generator replaces only the
+non-secret LiteLLM base URL while keeping the native Pi provider/model IDs.
+Codex reads the actual key from the environment named by `env_key`.
+
+For the Codex+Opus cell, deploy the dedicated bridge in
+`benchmark/bridges/codex-opus/` on the benchmark runner (or another endpoint the
+runner can reach). It is pinned to LiteLLM 1.83.0 solely for Responses-to-Anthropic
+protocol translation and has one route: `claude-opus-5` ->
+`anthropic/claude-opus-5`. Its outbound credential is `ANTHROPIC_API_KEY`; it has
+no shared-LiteLLM route or credential. The bridge README documents the HTTPS
+exposure requirement for Pier's filtered egress.
 
 For third-party model entries Codex also requires base harness instructions.
 The generator downloads the generic fallback prompt from the exact
@@ -104,22 +124,49 @@ every harness so the benchmark stays below OpenAI's long-context pricing tier.
 
 - Codex derives Luna's 272k metadata from the frozen Codex binary's bundled
   catalog; no custom Luna catalog is supplied.
-- Pi and OpenCode declare 272k explicitly for the Luna alias.
-- The LiteLLM `gpt-5.6-luna` alias used by Claude Code must enforce the same
-  272k maximum. Claude Code has no equivalent local model-catalog context
-  override.
-- Opus 5 keeps its upstream 1M window. Fireworks DeepSeek V4 Flash 0731 and Kimi
-  K3 keep their 1040k provider windows.
+- Pi uses its built-in `openai/gpt-5.6-luna` entry, which is already 272k in
+  Pi 0.84.3. OpenCode declares 272k explicitly.
+- Claude Code uses the same `[1m]` model-name convention used by third-party
+  integrations such as Z.AI, then sets `CLAUDE_CODE_AUTO_COMPACT_WINDOW=272000`
+  for Luna. This makes Claude Code compact at the benchmark limit locally rather
+  than relying on the gateway to reject oversized requests.
+- DeepSeek and Kimi also use `[1m]` aliases in Claude Code so unknown third-party
+  names are not assigned a small default context. Opus keeps its native 1M
+  window; DeepSeek keeps 1M; Kimi's native window is 1,048,576 tokens (Claude
+  Code's `[1m]` marker represents the corresponding 1M class).
 
 The context limits are harness metadata/compaction limits, not a request to pad
 prompts to those sizes.
 
+## Cost normalization
+
+`benchmark/pricing.yaml` freezes the official model launch/reference prices used
+for the benchmark cost metric. Provider invoices and gateway-specific prices are
+not comparable across harnesses and are therefore not the source of truth for
+ranking. Final analysis reprices the recorded token/cache usage with this table.
+
+Pi is configured so its own per-call cost metadata already follows the same
+upstream model identities: `anthropic`, `openai`, `deepseek`, and `moonshotai`.
+In particular, no Fireworks price block is injected into Pi. Raw harness/provider
+`cost_usd` fields remain useful diagnostics, but the normalized PA1 cost is
+computed from token usage plus the frozen table.
+
 ## Running jobs
 
-Run from the PA1 repository root:
+If Codex+Opus is part of the next run, start the dedicated bridge first. From
+`benchmark/bridges/codex-opus/`:
 
 ```bash
-pier job start -c benchmark/configs/pi.yaml --env-file benchmark/env.local
+docker compose --env-file ../../env.local up -d --build
+```
+
+Expose it through the stable HTTPS URL configured in
+`CODEX_OPUS_RESPONSES_BASE_URL`; the default compose binding is localhost-only.
+
+Run the benchmark jobs from the PA1 repository root:
+
+```bash
+pier job start -c benchmark/generated/pi.yaml --env-file benchmark/env.local
 pier job start -c benchmark/configs/claude-code.yaml --env-file benchmark/env.local
 pier job start -c benchmark/configs/codex.yaml --env-file benchmark/env.local
 ```
@@ -147,7 +194,12 @@ Before paid runs, do one task with each harness/model routing mode and verify:
 
 1. the reported harness version matches the frozen version;
 2. the expected provider endpoint receives the request;
-3. Luna reports/compacts against 272k in every harness;
-4. Codex Luna still uses its first-party OpenAI provider behavior;
-5. token, cache, cost, wall-clock, and verifier fields are present in Pier's
+3. Luna reports/compacts against 272k in every harness; for Claude Code,
+   verify the `[1m]` alias plus `CLAUDE_CODE_AUTO_COMPACT_WINDOW=272000`;
+4. Pi reports the native providers (`openai`, `deepseek`, `moonshotai`) and its
+   built-in launch-price metadata rather than proxy-provider prices;
+5. Codex Luna still uses its first-party OpenAI provider behavior;
+6. Codex Opus reaches the dedicated Responses-to-Anthropic bridge and that
+   bridge's upstream connection is the direct Anthropic API;
+7. token, cache, cost, wall-clock, and verifier fields are present in Pier's
    result/trajectory output.

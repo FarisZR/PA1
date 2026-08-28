@@ -1,0 +1,10 @@
+services:
+  codex-opus-bridge:
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      CODEX_OPUS_RESPONSES_API_KEY: ${CODEX_OPUS_RESPONSES_API_KEY}
+    ports:
+      - "${CODEX_OPUS_BRIDGE_BIND:-127.0.0.1}:${CODEX_OPUS_BRIDGE_PORT:-4000}:4000"

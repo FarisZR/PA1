@@ -108,7 +108,7 @@ agents:
                 modelID: deepseek-v4-flash-0731
                 name: DeepSeek V4 Flash 0731
                 limit:
-                  context: 1040000
+                  context: 1000000
                   output: 384000
                 variants:
                   - id: max
@@ -137,7 +137,7 @@ agents:
                 modelID: kimi-k3
                 name: Kimi K3
                 limit:
-                  context: 1040000
+                  context: 1048576
                   output: 131072
                 variants:
                   - id: max
