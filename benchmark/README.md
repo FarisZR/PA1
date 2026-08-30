@@ -85,11 +85,12 @@ For DeepSeek, Kimi, and deferred Opus, the Sol profile is preserved except for:
 
 - model identity/display metadata;
 - model-specific context, modality, and supported reasoning metadata;
+- `multi_agent_version: "v1"` because non-GPT models use Codex Multi-Agent V1;
 - `use_responses_lite: false` because these third-party LiteLLM routes use the
   normal Responses path.
 
-This preserves the current-release Sol behavior including
-`multi_agent_version: "v2"`, `tool_mode: "code_mode_only"`, parallel tool calls,
+This preserves the rest of the current-release Sol behavior, including
+`tool_mode: "code_mode_only"`, parallel tool calls,
 the Sol system/profile instructions, and `auto_compact_token_limit: null`.
 DeepSeek therefore keeps the Codex compaction field; only its Claude Code
 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` override is removed.

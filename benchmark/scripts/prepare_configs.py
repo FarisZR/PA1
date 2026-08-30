@@ -64,6 +64,8 @@ def load_codex_sol_profile() -> dict[str, object]:
         raise SystemExit(
             f"Missing {CODEX_BASE_PROFILE} in frozen Codex catalog"
         ) from exc
+    # Verify the frozen source is the intended upstream Sol profile; third-party
+    # entries explicitly override this to V1 in third_party_codex_entry().
     if profile.get("multi_agent_version") != "v2":
         raise SystemExit("Frozen GPT-5.6 Sol profile is not Multi-Agent V2")
     return profile
@@ -114,8 +116,9 @@ def third_party_codex_entry(
             "default_reasoning_level": default_reasoning_level,
             "supported_reasoning_levels": supported_reasoning_levels,
             "supports_image_detail_original": supports_image_detail_original,
-            # Third-party LiteLLM routes use normal Responses, not Responses Lite.
-            # Everything else remains the frozen GPT-5.6 Sol profile, including V2.
+            # Third-party routes use Codex Multi-Agent V1 and normal Responses.
+            # Multi-Agent V2 and Responses Lite are OpenAI-only compatibility paths.
+            "multi_agent_version": "v1",
             "use_responses_lite": False,
         }
     )
