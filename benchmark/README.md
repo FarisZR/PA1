@@ -20,7 +20,7 @@ and frozen to the newest release on the selected channel available at that time
 
 | Component | Frozen revision/version |
 | --- | --- |
-| FZR Pier fork | `6307395aad1679f8044d3274abe65c6fe600070d` |
+| FZR Pier fork | `13fb8c6c1e271bbdd9088758e04bfc3bcc77a8f8` |
 | DeepSWE | `435ee89ec2f2e2289f33b0da4f992f0b7b7266b9` |
 | Codex CLI | `0.151.0` |
 | Claude Code | `2.1.251` |
