@@ -9,15 +9,15 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import ipaddress
 import json
 import os
 from pathlib import Path
 from urllib.parse import urlsplit
 
+import tomllib
 import yaml
-
 from prepare_codex_configs import CODEX_FALLBACK_PROMPT_SHA256, CODEX_SOURCE_TAG
-
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 CONFIG_DIR = BENCHMARK_DIR / "configs"
@@ -41,6 +41,32 @@ EXPECTED_HARNESS_VERSIONS = {
     "codex.yaml": "0.151.0",
     "opencode-v2.yaml": "0.0.0-beta-18684",
     "pi.yaml": "0.84.4",
+}
+EXPECTED_HARNESS_MODELS = {
+    "claude-code.yaml": {
+        "anthropic/claude-opus-5",
+        "gpt-5.6-luna[1m]",
+        "deepseek-v4-flash-0731[1m]",
+        "kimi-k3[1m]",
+    },
+    "codex.yaml": {
+        "openai/gpt-5.6-luna",
+        "anthropic/claude-opus-5",
+        "deepseek/deepseek-v4-flash-0731",
+        "kimi/kimi-k3",
+    },
+    "opencode-v2.yaml": {
+        "anthropic/claude-opus-5",
+        "litellm/gpt-5.6-luna",
+        "litellm/deepseek-v4-flash-0731",
+        "litellm/kimi-k3",
+    },
+    "pi.yaml": {
+        "anthropic/claude-opus-5",
+        "openai/gpt-5.6-luna",
+        "deepseek/deepseek-v4-flash",
+        "moonshotai/kimi-k3",
+    },
 }
 EXPECTED_CODEX_CATALOG = {
     "claude-opus-5": ("medium", 1_000_000),
@@ -89,12 +115,44 @@ def agent_by_model(config: dict, model_name: str) -> dict:
 def normalized_endpoint(value: str) -> tuple[str, str, int | None, str]:
     """Normalize a URL enough to detect accidental bridge/proxy reuse."""
     parsed = urlsplit(value.rstrip("/"))
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise SystemExit(f"Invalid endpoint port in {value!r}: {exc}") from exc
+    if port is None:
+        port = {"http": 80, "https": 443}.get(parsed.scheme.lower())
     return (
         parsed.scheme.lower(),
         (parsed.hostname or "").lower(),
-        parsed.port,
+        port,
         parsed.path.rstrip("/"),
     )
+
+
+def validate_endpoint(name: str, value: str) -> None:
+    """Require an HTTP(S) endpoint and forbid cleartext remote credentials."""
+    parsed = urlsplit(value)
+    scheme = parsed.scheme.lower()
+    hostname = parsed.hostname
+    if scheme not in {"http", "https"} or not hostname:
+        raise SystemExit(f"{name} must be an absolute HTTP(S) URL with a hostname")
+    try:
+        _ = parsed.port
+    except ValueError as exc:
+        raise SystemExit(f"{name} has an invalid port: {exc}") from exc
+    if parsed.username is not None or parsed.password is not None:
+        raise SystemExit(f"{name} must not contain URL-embedded credentials")
+    if scheme == "https":
+        return
+
+    is_loopback = hostname.lower() == "localhost"
+    if not is_loopback:
+        try:
+            is_loopback = ipaddress.ip_address(hostname).is_loopback
+        except ValueError:
+            is_loopback = False
+    if not is_loopback:
+        raise SystemExit(f"{name} must use HTTPS unless it targets loopback")
 
 
 def validate_matrix(path: Path, config: dict) -> None:
@@ -104,11 +162,38 @@ def validate_matrix(path: Path, config: dict) -> None:
     agents = config.get("agents", [])
     if len(agents) != 4:
         raise SystemExit(f"{path}: expected 4 agents, found {len(agents)}")
+    expected_models = EXPECTED_HARNESS_MODELS.get(path.name)
+    if expected_models is not None:
+        models = [agent.get("model_name") for agent in agents]
+        if len(set(models)) != len(models) or set(models) != expected_models:
+            raise SystemExit(f"{path}: configured model set does not match the freeze")
     datasets = config.get("datasets", [])
-    if len(datasets) != 1 or set(datasets[0].get("task_names", [])) != EXPECTED_TASKS:
+    task_names = datasets[0].get("task_names", []) if len(datasets) == 1 else []
+    if (
+        len(task_names) != len(EXPECTED_TASKS)
+        or len(set(task_names)) != len(task_names)
+        or set(task_names) != EXPECTED_TASKS
+    ):
         raise SystemExit(
             f"{path}: selected DeepSWE task set does not match the frozen 10 tasks"
         )
+
+
+def validate_deepswe_tasks(config: dict) -> None:
+    """Ensure every frozen task exists in the checkout Pier will load."""
+    dataset = config["datasets"][0]
+    tasks_root = (BENCHMARK_DIR.parent / dataset["path"]).resolve()
+    if not tasks_root.is_dir():
+        raise SystemExit(
+            f"DeepSWE tasks directory does not exist: {tasks_root}; clone the pinned checkout first"
+        )
+    missing = sorted(
+        task_id
+        for task_id in EXPECTED_TASKS
+        if not (tasks_root / task_id / "task.toml").is_file()
+    )
+    if missing:
+        raise SystemExit(f"Pinned DeepSWE checkout is missing tasks: {', '.join(missing)}")
 
 
 def validate_harness_version(path: Path, config: dict) -> None:
@@ -178,6 +263,33 @@ def validate_codex_generated_catalog() -> None:
             raise SystemExit(f"{slug}: generated Codex reasoning effort is stale")
         if model.get("context_window") != context_window:
             raise SystemExit(f"{slug}: generated Codex context window is stale")
+
+
+def validate_codex_provider_toml(
+    path: Path,
+    *,
+    provider_id: str,
+    expected_base_url: str,
+    expected_env_key: str,
+) -> None:
+    """Validate one generated Codex provider against the current endpoints."""
+    if not path.exists():
+        raise SystemExit(f"Missing {path}; run prepare_codex_configs.py first")
+    try:
+        config = tomllib.loads(path.read_text())
+    except tomllib.TOMLDecodeError as exc:
+        raise SystemExit(f"Invalid generated Codex TOML in {path}: {exc}") from exc
+    if config.get("model_provider") != provider_id:
+        raise SystemExit(f"{path}: stale Codex model_provider")
+    provider = config.get("model_providers", {}).get(provider_id, {})
+    if normalized_endpoint(provider.get("base_url", "")) != normalized_endpoint(
+        expected_base_url
+    ):
+        raise SystemExit(f"{path}: generated Codex base URL is stale")
+    if provider.get("env_key") != expected_env_key:
+        raise SystemExit(f"{path}: generated Codex credential variable is stale")
+    if provider.get("wire_api") != "responses":
+        raise SystemExit(f"{path}: Codex provider must use the Responses wire API")
 
 
 def validate_claude_code(config: dict) -> None:
@@ -276,6 +388,8 @@ def main() -> None:
         raise SystemExit(
             "LITELLM_OPENAI_BASE_URL and CODEX_OPUS_RESPONSES_BASE_URL are required"
         )
+    validate_endpoint("LITELLM_OPENAI_BASE_URL", litellm_base_url)
+    validate_endpoint("CODEX_OPUS_RESPONSES_BASE_URL", opus_bridge_url)
     for key in ("ANTHROPIC_API_KEY", "CODEX_OPUS_RESPONSES_API_KEY"):
         if not os.environ.get(key, "").strip():
             raise SystemExit(f"{key} is required")
@@ -287,8 +401,21 @@ def main() -> None:
         validate_matrix(CONFIG_DIR / name, config)
         validate_harness_version(CONFIG_DIR / name, config)
 
+    validate_deepswe_tasks(source_configs["codex.yaml"])
     validate_claude_code(source_configs["claude-code.yaml"])
     validate_codex_generated_catalog()
+    validate_codex_provider_toml(
+        GENERATED_DIR / "codex-litellm.toml",
+        provider_id="litellm",
+        expected_base_url=litellm_base_url,
+        expected_env_key="LITELLM_API_KEY",
+    )
+    validate_codex_provider_toml(
+        GENERATED_DIR / "codex-opus.toml",
+        provider_id="anthropic_responses",
+        expected_base_url=opus_bridge_url,
+        expected_env_key="CODEX_OPUS_RESPONSES_API_KEY",
+    )
     validate_pricing(read_yaml(PRICING_PATH))
     validate_opus_bridge_config(read_yaml(OPUS_BRIDGE_CONFIG))
     validate_bridge(litellm_base_url, opus_bridge_url)
