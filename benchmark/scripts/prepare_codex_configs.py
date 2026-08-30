@@ -228,11 +228,22 @@ def main() -> None:
     (GENERATED_DIR / "codex-thirdparty-models.json").write_text(
         json.dumps(catalog, indent=2) + "\n"
     )
+    (GENERATED_DIR / "codex-provenance.json").write_text(
+        json.dumps(
+            {
+                "codex_source_tag": CODEX_SOURCE_TAG,
+                "fallback_prompt_sha256": CODEX_FALLBACK_PROMPT_SHA256,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
 
     print(f"Wrote {GENERATED_DIR / 'pi.yaml'}")
     print(f"Wrote {GENERATED_DIR / 'codex-litellm.toml'}")
     print(f"Wrote {GENERATED_DIR / 'codex-opus.toml'}")
     print(f"Wrote {GENERATED_DIR / 'codex-thirdparty-models.json'}")
+    print(f"Wrote {GENERATED_DIR / 'codex-provenance.json'}")
 
 
 if __name__ == "__main__":

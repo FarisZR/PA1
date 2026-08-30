@@ -104,6 +104,10 @@ source job needs generation because Pier does not interpolate environment
 variables inside nested `kwargs.pi_config`; the generator replaces only the
 non-secret LiteLLM base URL while keeping the native Pi provider/model IDs.
 Codex reads the actual key from the environment named by `env_key`.
+The generator also records the pinned Codex source tag and fallback-prompt hash
+in `codex-provenance.json`; preflight verifies that provenance and every generated
+third-party catalog entry before a paid run, so changing the frozen Codex version
+requires regeneration rather than silently reusing stale metadata.
 
 For the Codex+Opus cell, deploy the dedicated bridge in
 `benchmark/bridges/codex-opus/` on the benchmark runner (or another endpoint the

@@ -8,11 +8,15 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import os
 from pathlib import Path
 from urllib.parse import urlsplit
 
 import yaml
+
+from prepare_codex_configs import CODEX_FALLBACK_PROMPT_SHA256, CODEX_SOURCE_TAG
 
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
@@ -37,6 +41,11 @@ EXPECTED_HARNESS_VERSIONS = {
     "codex.yaml": "0.151.0",
     "opencode-v2.yaml": "0.0.0-beta-18684",
     "pi.yaml": "0.84.4",
+}
+EXPECTED_CODEX_CATALOG = {
+    "claude-opus-5": ("medium", 1_000_000),
+    "deepseek-v4-flash-0731": ("max", 1_000_000),
+    "kimi-k3": ("max", 1_048_576),
 }
 
 
@@ -113,6 +122,62 @@ def validate_harness_version(path: Path, config: dict) -> None:
             f"{path}: expected every agent to use harness version {expected}, "
             f"found {sorted(versions)}"
         )
+
+
+def validate_codex_generated_catalog() -> None:
+    """Reject stale Codex metadata generated for a different frozen build."""
+    expected_tag = f"rust-v{EXPECTED_HARNESS_VERSIONS['codex.yaml']}"
+    if CODEX_SOURCE_TAG != expected_tag:
+        raise SystemExit(
+            f"Codex generator source tag {CODEX_SOURCE_TAG!r} does not match "
+            f"frozen harness version {expected_tag!r}"
+        )
+
+    catalog_path = GENERATED_DIR / "codex-thirdparty-models.json"
+    provenance_path = GENERATED_DIR / "codex-provenance.json"
+    for path in (catalog_path, provenance_path):
+        if not path.exists():
+            raise SystemExit(f"Missing {path}; run prepare_codex_configs.py first")
+
+    try:
+        catalog = json.loads(catalog_path.read_text())
+        provenance = json.loads(provenance_path.read_text())
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid generated Codex JSON: {exc}") from exc
+
+    if provenance != {
+        "codex_source_tag": CODEX_SOURCE_TAG,
+        "fallback_prompt_sha256": CODEX_FALLBACK_PROMPT_SHA256,
+    }:
+        raise SystemExit(
+            "Generated Codex provenance does not match the frozen Codex source tag; "
+            "rerun prepare_codex_configs.py"
+        )
+
+    models = catalog.get("models") if isinstance(catalog, dict) else None
+    if not isinstance(models, list):
+        raise SystemExit("Generated Codex model catalog must contain a models list")
+    by_slug = {
+        model.get("slug"): model for model in models if isinstance(model, dict)
+    }
+    if set(by_slug) != set(EXPECTED_CODEX_CATALOG):
+        raise SystemExit("Generated Codex model catalog has an unexpected model set")
+
+    for slug, (effort, context_window) in EXPECTED_CODEX_CATALOG.items():
+        model = by_slug[slug]
+        instructions = model.get("base_instructions")
+        if not isinstance(instructions, str):
+            raise SystemExit(f"{slug}: generated Codex base instructions are missing")
+        digest = hashlib.sha256(instructions.encode()).hexdigest()
+        if digest != CODEX_FALLBACK_PROMPT_SHA256:
+            raise SystemExit(
+                f"{slug}: generated Codex fallback instructions do not match "
+                f"{CODEX_SOURCE_TAG}"
+            )
+        if model.get("default_reasoning_level") != effort:
+            raise SystemExit(f"{slug}: generated Codex reasoning effort is stale")
+        if model.get("context_window") != context_window:
+            raise SystemExit(f"{slug}: generated Codex context window is stale")
 
 
 def validate_claude_code(config: dict) -> None:
@@ -223,6 +288,7 @@ def main() -> None:
         validate_harness_version(CONFIG_DIR / name, config)
 
     validate_claude_code(source_configs["claude-code.yaml"])
+    validate_codex_generated_catalog()
     validate_pricing(read_yaml(PRICING_PATH))
     validate_opus_bridge_config(read_yaml(OPUS_BRIDGE_CONFIG))
     validate_bridge(litellm_base_url, opus_bridge_url)
@@ -238,6 +304,7 @@ def main() -> None:
 
     print("Benchmark preflight passed: 4 harness configs, 10 tasks, concurrency 10")
     print("Harness versions: frozen to npm releases available on 2026-08-30")
+    print(f"Codex metadata: generated from and verified against {CODEX_SOURCE_TAG}")
     print("Claude Code Luna: [1m] alias with local 272000-token compaction window")
     print("Pi: native OpenAI/DeepSeek/Moonshot model metadata with LiteLLM routing")
     print("Pricing: frozen upstream model prices; no Fireworks normalization")
