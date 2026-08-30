@@ -3,6 +3,9 @@ job_name: opencode-v2-opus
 jobs_dir: benchmark/runs
 n_attempts: 1
 n_concurrent_trials: 10
+retry:
+  max_retries: 1
+  exclude_exceptions: []
 environment:
   type: docker
 datasets:

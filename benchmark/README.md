@@ -30,10 +30,14 @@ Each primary model job contains:
 - Codex
 - 10 selected DeepSWE tasks
 - 1 attempt per task
+- 1 automatic retry if a trial fails for any exception, including timeouts
 - `n_concurrent_trials: 10`
 
-That is **30 trials per model job** and 90 trials in the current primary batch.
-Run only one model job at a time.
+That is **30 planned trials per model job** and 90 planned trials in the current
+primary batch. Successful trials run once. A failed trial is discarded and run
+again once; if the retry also fails, the second failure is final. In the
+pathological case where every trial fails once, a 30-trial model job can execute
+up to 60 trial attempts. Run only one model job at a time.
 
 ## Frozen versions
 
