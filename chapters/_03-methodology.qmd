@@ -5,15 +5,40 @@
 
 ## Benchmark/task selection
 
+Tests were selected as hard (75-100th percentile) and medium (75th-50th precentile) with the second criteria being maximum token usage to make potential differences more visible.
+
 - TODO: Define the benchmark and task-selection process.
 
 ## Models and agent harnesses
+
+Confirmed models: Kimi k3, GPT 5.6 luna, Deepseek v4 flash
+Upcoming models to test: Opus 5 medium
+Potential models to come: GLM 5.3 flash, glm 5.3.
+
+Harnesses to test: Anthropic Claude Code, OpenAi Codex CLI, PI and eventually Opencode V2 when it stabalizes (deadline: first week of September)
 
 - TODO: List the models and agent harnesses used in the study.
 
 ## Experimental setup
 
 - TODO: Describe the experimental setup and controlled variables.
+
+We are sticking to the upstream provdier setup.
+if a harness has specific upstream provider optimizations, such as remote compaction in codex or tool call behavior in claude code, these are left turned on, we are testing how harnesses behave across models in a real world scenario.
+
+
+### Setup decisions.
+- GPT models have increased pricing past 272k context window, codex cli ignores the full 1m context window and will use 272k unless overriden.
+We've decided to use the same limited context window 272k window in other harnesses for the sake of comparison and not let the price difference due to the used context affect the results, and it's only a config option compared to remote compaction.
+
+- Remote compaction. GPT models use a remote compaction endpoint for compacting chat history.
+we are only running stock harnesses here, pi and opencode can support remote compaction through plugins, but plugins are out of scope.
+
+#### Codex
+For non-native models, Codex's minimal unknown-model fallback metadata was replaced by a standardized metadata profile derived from GPT-5.6 Sol in the pinned Codex version. This prevents model-recognition status from changing the Codex harness capability set. Model-specific capabilities were adjusted to the respective model, while backend-dependent features that could not be supported uniformly were disabled.
+
+Disabled features for non-gpt models: multi_agents v2 and reponses lite. 
+GPT use the built in model configuration shipped in the forzen release.
 
 ## Evaluation metrics
 
@@ -22,6 +47,13 @@
 ## Reproducibility
 
 - TODO: Record versions, configuration, seeds, and execution instructions.
+
+August run:
+Claude Code 2.1.251
+Codex 0.151.0
+pi 0.84.4
+
+opencode v2: not included
 
 ## Setup demonstration {.unnumbered}
 
