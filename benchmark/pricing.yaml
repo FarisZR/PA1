@@ -1,0 +1,41 @@
+# Frozen official launch/reference pricing for PA1 cost normalization.
+# Values are USD per 1M tokens. Actual proxy/provider invoices are not used for
+# cross-harness cost comparisons.
+models:
+  claude-opus-5:
+    provider: anthropic
+    input: 5.0
+    cached_input: 0.5
+    cache_write_5m: 6.25
+    cache_write_1h: 10.0
+    output: 25.0
+    context_limit: 1000000
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+
+  gpt-5.6-luna:
+    provider: openai
+    input: 0.2
+    cached_input: 0.02
+    cache_write: 0.25
+    output: 1.2
+    context_limit: 272000
+    source: https://developers.openai.com/api/docs/models
+
+  # Benchmark policy intentionally freezes the original 0731 reference rate.
+  # DeepSeek switched to higher peak/off-peak prices on 2026-08-16; those later
+  # serving rates are not used for normalized cross-model benchmark cost.
+  deepseek-v4-flash-0731:
+    provider: deepseek
+    input: 0.14
+    cached_input: 0.0028
+    output: 0.28
+    context_limit: 1048576
+    source: https://api-docs.deepseek.com/quick_start/pricing/
+
+  kimi-k3:
+    provider: moonshotai
+    input: 3.0
+    cached_input: 0.3
+    output: 15.0
+    context_limit: 1048576
+    source: https://forum.moonshot.ai/t/kimi-k3-is-here-our-most-capable-model/480

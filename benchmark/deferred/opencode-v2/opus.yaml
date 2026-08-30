@@ -1,0 +1,46 @@
+# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+job_name: opencode-v2-opus
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 10
+retry:
+  max_retries: 1
+  exclude_exceptions: []
+environment:
+  type: docker
+datasets:
+- path: ../DeepSWE/tasks
+  task_names:
+  - expr-try-catch-errors
+  - katex-multicolumn-array-spans
+  - python-statemachine-state-data-scoping
+  - oxvg-structural-selector-preservation
+  - effect-sse-httpapi-streaming
+  - scriggo-method-declarations
+  - csstree-shorthand-expansion-compression
+  - fastapi-implicit-head-options
+  - boa-hierarchical-evaluation-cancellation
+  - koota-composite-trait-aspects
+agents:
+- name: opencode
+  model_name: anthropic/claude-opus-5
+  env:
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+  kwargs:
+    version: 0.0.0-beta-18684
+    variant: medium
+    opencode_config:
+      autoupdate: false
+      providers:
+        anthropic:
+          models:
+            claude-opus-5:
+              limit:
+                context: 1000000
+                output: 128000
+              variants:
+              - id: medium
+                settings:
+                  thinking:
+                    type: adaptive
+                  effort: medium

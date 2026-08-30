@@ -1,0 +1,61 @@
+job_name: deepseek-v4-flash
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 10
+retry:
+  max_retries: 1
+  exclude_exceptions: []
+
+environment:
+  type: docker
+
+datasets:
+  - path: ../DeepSWE/tasks
+    task_names:
+      - expr-try-catch-errors
+      - katex-multicolumn-array-spans
+      - python-statemachine-state-data-scoping
+      - oxvg-structural-selector-preservation
+      - effect-sse-httpapi-streaming
+      - scriggo-method-declarations
+      - csstree-shorthand-expansion-compression
+      - fastapi-implicit-head-options
+      - boa-hierarchical-evaluation-cancellation
+      - koota-composite-trait-aspects
+
+agents:
+  - name: pi
+    model_name: deepseek/deepseek-v4-flash
+    env:
+      DEEPSEEK_API_KEY: ${LITELLM_API_KEY}
+    kwargs:
+      version: "0.84.4"
+      thinking: max
+      pi_config:
+        providers:
+          deepseek:
+            baseUrl: __LITELLM_OPENAI_BASE_URL__
+
+  - name: claude-code
+    model_name: deepseek-v4-flash-0731[1m]
+    env:
+      ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
+      ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
+      ANTHROPIC_DEFAULT_FABLE_MODEL: deepseek-v4-flash-0731[1m]
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1048576"
+      DISABLE_AUTOUPDATER: "1"
+    kwargs:
+      version: "2.1.251"
+      reasoning_effort: max
+
+  - name: codex
+    model_name: deepseek/deepseek-v4-flash-0731
+    env:
+      LITELLM_API_KEY: ${LITELLM_API_KEY}
+    kwargs:
+      version: "0.151.0"
+      command_model_name: deepseek-v4-flash-0731
+      reasoning_effort: max
+      restrict_model_catalog: true
+      model_catalog_file: benchmark/generated/codex-thirdparty-models.json
+      config_toml_file: benchmark/generated/codex-litellm.toml
