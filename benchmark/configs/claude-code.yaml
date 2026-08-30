@@ -21,16 +21,6 @@ datasets:
       - koota-composite-trait-aspects
 
 agents:
-  - name: claude-code
-    model_name: anthropic/claude-opus-5
-    env:
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      ANTHROPIC_DEFAULT_FABLE_MODEL: claude-opus-5
-      DISABLE_AUTOUPDATER: "1"
-    kwargs:
-      version: "2.1.251"
-      reasoning_effort: medium
-
   # Claude Code recognizes the [1m] suffix used by third-party integrations
   # such as Z.AI. Explicitly lower Luna's auto-compaction window to 272k so its
   # effective context matches Codex's short-context configuration.

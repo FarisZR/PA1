@@ -1,0 +1,27 @@
+job_name: pi-opus
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 10
+environment:
+  type: docker
+datasets:
+- path: ../DeepSWE/tasks
+  task_names:
+  - expr-try-catch-errors
+  - katex-multicolumn-array-spans
+  - python-statemachine-state-data-scoping
+  - oxvg-structural-selector-preservation
+  - effect-sse-httpapi-streaming
+  - scriggo-method-declarations
+  - csstree-shorthand-expansion-compression
+  - fastapi-implicit-head-options
+  - boa-hierarchical-evaluation-cancellation
+  - koota-composite-trait-aspects
+agents:
+- name: pi
+  model_name: anthropic/claude-opus-5
+  env:
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+  kwargs:
+    version: 0.84.4
+    thinking: medium

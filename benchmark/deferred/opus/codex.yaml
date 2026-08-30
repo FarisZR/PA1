@@ -1,0 +1,31 @@
+job_name: codex-opus
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 10
+environment:
+  type: docker
+datasets:
+- path: ../DeepSWE/tasks
+  task_names:
+  - expr-try-catch-errors
+  - katex-multicolumn-array-spans
+  - python-statemachine-state-data-scoping
+  - oxvg-structural-selector-preservation
+  - effect-sse-httpapi-streaming
+  - scriggo-method-declarations
+  - csstree-shorthand-expansion-compression
+  - fastapi-implicit-head-options
+  - boa-hierarchical-evaluation-cancellation
+  - koota-composite-trait-aspects
+agents:
+- name: codex
+  model_name: anthropic/claude-opus-5
+  env:
+    CODEX_OPUS_RESPONSES_API_KEY: ${CODEX_OPUS_RESPONSES_API_KEY}
+  kwargs:
+    version: 0.151.0
+    command_model_name: claude-opus-5
+    reasoning_effort: medium
+    restrict_model_catalog: true
+    model_catalog_file: benchmark/generated/codex-opus-models.json
+    config_toml_file: benchmark/generated/codex-opus.toml

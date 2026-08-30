@@ -222,24 +222,41 @@ def main() -> None:
     """Generate endpoint-dependent Pi and Codex configuration files."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--env-file", type=Path)
+    parser.add_argument(
+        "--include-opus",
+        action="store_true",
+        help="also generate the deferred Codex Opus bridge config/catalog",
+    )
     args = parser.parse_args()
     if args.env_file:
         load_env_file(args.env_file)
 
     litellm_url = require("LITELLM_OPENAI_BASE_URL")
-    opus_bridge_url = require("CODEX_OPUS_RESPONSES_BASE_URL")
     GENERATED_DIR.mkdir(parents=True, exist_ok=True)
     (GENERATED_DIR / "codex-provenance.json").unlink(missing_ok=True)
 
     pi_path = GENERATED_DIR / "pi.yaml"
     litellm_path = GENERATED_DIR / "codex-litellm.toml"
-    opus_path = GENERATED_DIR / "codex-opus.toml"
     catalog_path = GENERATED_DIR / "codex-thirdparty-models.json"
 
     pi_path.write_text(render_pi_config(litellm_url))
     litellm_path.write_text(
         provider_toml("litellm", "LiteLLM", litellm_url, "LITELLM_API_KEY")
     )
+    catalog = {"models": [deepseek_codex_entry(), kimi_codex_entry()]}
+    catalog_path.write_text(json.dumps(catalog, indent=2) + "\n")
+
+    for path in (pi_path, litellm_path, catalog_path):
+        print(f"Wrote {path}")
+
+    if not args.include_opus:
+        (GENERATED_DIR / "codex-opus.toml").unlink(missing_ok=True)
+        (GENERATED_DIR / "codex-opus-models.json").unlink(missing_ok=True)
+        return
+
+    opus_bridge_url = require("CODEX_OPUS_RESPONSES_BASE_URL")
+    opus_path = GENERATED_DIR / "codex-opus.toml"
+    opus_catalog_path = GENERATED_DIR / "codex-opus-models.json"
     opus_path.write_text(
         provider_toml(
             "anthropic_responses",
@@ -248,13 +265,11 @@ def main() -> None:
             "CODEX_OPUS_RESPONSES_API_KEY",
         )
     )
-    catalog = {
-        "models": [opus_codex_entry(), deepseek_codex_entry(), kimi_codex_entry()]
-    }
-    catalog_path.write_text(json.dumps(catalog, indent=2) + "\n")
-
-    for path in (pi_path, litellm_path, opus_path, catalog_path):
-        print(f"Wrote {path}")
+    opus_catalog_path.write_text(
+        json.dumps({"models": [opus_codex_entry()]}, indent=2) + "\n"
+    )
+    print(f"Wrote {opus_path}")
+    print(f"Wrote {opus_catalog_path}")
 
 
 if __name__ == "__main__":

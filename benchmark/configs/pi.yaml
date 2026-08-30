@@ -21,16 +21,6 @@ datasets:
       - koota-composite-trait-aspects
 
 agents:
-  # Native Pi provider/model IDs are intentional. They preserve Pi 0.84.4's
-  # built-in model capabilities, compatibility flags, and official pricing.
-  - name: pi
-    model_name: anthropic/claude-opus-5
-    env:
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-    kwargs:
-      version: "0.84.4"
-      thinking: medium
-
   # Pi's direct OpenAI Luna entry already uses the 272k short-context window and
   # official OpenAI price table. Only its endpoint/auth are redirected to LiteLLM.
   - name: pi
