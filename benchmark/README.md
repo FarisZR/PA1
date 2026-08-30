@@ -38,6 +38,7 @@ Do not update these revisions between jobs in the primary batch.
 | Codex CLI | `0.151.0` |
 | Claude Code | `2.1.251` |
 | Pi | `0.84.4` |
+| Codex model catalog | `rust-v0.151.0` vendored at `benchmark/references/codex-rust-v0.151.0-models.json` |
 
 The DeepSWE revision includes the upstream 10,800-second task timeout. Claude
 Code runs with its updater disabled. Pier writes `lock.json` into each job
@@ -49,7 +50,7 @@ used for the run.
 | Model | Reasoning | Routing | Context behavior |
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
-| DeepSeek V4 Flash 0731 | max | Existing LiteLLM gateway | Native 1,048,576 context; no explicit auto-compaction override |
+| DeepSeek V4 Flash 0731 | max | Existing LiteLLM gateway | Native 1,048,576 context; no Claude Code auto-compaction override |
 | GPT-5.6 Luna | max | Existing LiteLLM gateway | 272,000-token benchmark window |
 
 The smoke test is intentionally different: it runs Luna at **low** reasoning to
@@ -73,9 +74,25 @@ same model.
 model. Luna remains Codex's built-in `openai/gpt-5.6-luna` model and only its
 base URL is redirected to LiteLLM, preserving Codex's first-party Luna behavior.
 
-DeepSeek and Kimi use generated Codex metadata derived from their documented
-Codex integrations while keeping LiteLLM as the actual transport. DeepSeek's
-explicit auto-compaction metadata is intentionally omitted.
+Every non-GPT Codex model uses the exact `gpt-5.6-sol` profile from Codex
+`rust-v0.151.0` as its compatibility base. The complete upstream `models.json`
+is frozen in this repository at
+`benchmark/references/codex-rust-v0.151.0-models.json` with SHA-256
+`eb0d7b9a5dcaf103895c5f8a14c16b269df46e039b375a55ba97f6238542d2ed`.
+Generation reads only this local file.
+
+For DeepSeek, Kimi, and deferred Opus, the Sol profile is preserved except for:
+
+- model identity/display metadata;
+- model-specific context, modality, and supported reasoning metadata;
+- `use_responses_lite: false` because these third-party LiteLLM routes use the
+  normal Responses path.
+
+This preserves the current-release Sol behavior including
+`multi_agent_version: "v2"`, `tool_mode: "code_mode_only"`, parallel tool calls,
+the Sol system/profile instructions, and `auto_compact_token_limit: null`.
+DeepSeek therefore keeps the Codex compaction field; only its Claude Code
+`CLAUDE_CODE_AUTO_COMPACT_WINDOW` override is removed.
 
 ### Claude Code
 
@@ -176,10 +193,10 @@ No Anthropic/Opus credential is required for the current batch.
 
 ### 0. Install runner prerequisites
 
-The runner needs Git, Docker, `uv`, Python 3.13, and `curl`. Preparation also
-needs outbound HTTPS because the single config generator downloads
-SHA-256-pinned Codex, DeepSeek, and CC Switch reference data. No model API key is
-sent to those reference hosts.
+The runner needs Git, Docker, `uv`, Python 3.13, and `curl`. The config generator
+has no network dependency: its Codex model source is vendored in this repository.
+Network access is needed only for normal repository/package setup such as Git
+clone/fetch and harness installation.
 
 The Pier task containers must be able to resolve and reach the configured
 LiteLLM hosts through the runner's Docker/network/firewall setup.
@@ -269,7 +286,9 @@ benchmark/generated/codex-thirdparty-models.json
 The three generated YAML files correspond directly to the three source files in
 `benchmark/configs/`; generation only injects deployment-specific endpoint data
 needed by Pi. The Codex catalog contains only DeepSeek and Kimi because Luna uses
-Codex's bundled first-party model entry.
+Codex's bundled first-party model entry. DeepSeek and Kimi are cloned from the
+vendored GPT-5.6 Sol entry; no upstream file is fetched while generating these
+artifacts.
 
 ### 6. Run Kimi K3 first
 
@@ -341,11 +360,14 @@ are not referenced by the current smoke or primary commands.
 
 ## Upstream compatibility references
 
-These references supply model/harness behavior settings only. Their vendor
-endpoint/API-key instructions are deliberately ignored because the active batch
-routes through the existing LiteLLM gateway.
+Codex third-party model behavior is based on the frozen OpenAI `gpt-5.6-sol`
+profile, not the vendor Codex setup scripts. The exact upstream source is:
 
-- DeepSeek Codex: https://api-docs.deepseek.com/quick_start/agent_integrations/codex/
+- Codex 0.151.0 model catalog: https://raw.githubusercontent.com/openai/codex/refs/tags/rust-v0.151.0/codex-rs/models-manager/models.json
+
+The vendor guides below are used only for Claude Code/model transport
+compatibility. Their endpoint/API-key instructions are ignored because the
+active batch routes through the existing LiteLLM gateway.
+
 - DeepSeek Claude Code: https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/
-- Kimi Codex: https://platform.kimi.ai/docs/guide/codex-kimi
 - Kimi Claude Code: https://platform.kimi.ai/docs/guide/claude-code-kimi

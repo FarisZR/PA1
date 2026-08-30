@@ -4,12 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import os
-import re
 from pathlib import Path
-from urllib.request import urlopen
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 GENERATED_DIR = BENCHMARK_DIR / "generated"
@@ -17,33 +16,9 @@ CONFIG_DIR = BENCHMARK_DIR / "configs"
 CURRENT_MODEL_CONFIGS = ("kimi-k3.yaml", "deepseek-v4-flash.yaml", "luna.yaml")
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
 
-CODEX_VERSION = "0.151.0"
-CODEX_PROMPT_URL = (
-    "https://raw.githubusercontent.com/openai/codex/"
-    f"rust-v{CODEX_VERSION}/codex-rs/models-manager/prompt.md"
-)
-CODEX_PROMPT_SHA256 = "ac8ae107a0d72fe3476b430afb161ea4e67da2e446d778aefc44828160559807"
-
-# DeepSeek's official Codex integration embeds the complete model catalog in its
-# setup script. We parse it as data; the script is never executed.
-DEEPSEEK_CODEX_SETUP_URL = (
-    "https://cdn.deepseek.com/api-docs/codex-deepseek-setup-en.sh"
-)
-DEEPSEEK_CODEX_SETUP_SHA256 = (
-    "92d72d7027d0f800318d816bf0c12c64c14844ec7f86170f2fc63f7e7254901c"
-)
-
-# Kimi's official Codex guide uses CC Switch. This is the exact catalog template
-# used by the current CC Switch Kimi preset; we override only Kimi-specific
-# capabilities documented by that preset/guide.
-CC_SWITCH_COMMIT = "d8065cc628fcd373d00c4363d718095f19e78c9e"
-CC_SWITCH_TEMPLATE_URL = (
-    "https://raw.githubusercontent.com/farion1231/cc-switch/"
-    f"{CC_SWITCH_COMMIT}/src-tauri/src/resources/gpt5_5_template.json"
-)
-CC_SWITCH_TEMPLATE_SHA256 = (
-    "711db8a980e873152498cd601e31166348c685e37c305d0855dbb2e9f6867a52"
-)
+CODEX_MODELS_PATH = BENCHMARK_DIR / "references" / "codex-rust-v0.151.0-models.json"
+CODEX_MODELS_SHA256 = "eb0d7b9a5dcaf103895c5f8a14c16b269df46e039b375a55ba97f6238542d2ed"
+CODEX_BASE_PROFILE = "gpt-5.6-sol"
 
 
 def load_env_file(path: Path) -> None:
@@ -71,16 +46,27 @@ def require(name: str) -> str:
     return value
 
 
-def fetch_verified(url: str, expected_sha256: str) -> bytes:
-    """Fetch a frozen reference and reject content drift."""
-    with urlopen(url, timeout=30) as response:
-        data = response.read()
+def load_codex_sol_profile() -> dict[str, object]:
+    """Load and verify the vendored Codex 0.151.0 GPT-5.6 Sol model profile."""
+    data = CODEX_MODELS_PATH.read_bytes()
     digest = hashlib.sha256(data).hexdigest()
-    if digest != expected_sha256:
+    if digest != CODEX_MODELS_SHA256:
         raise SystemExit(
-            f"Pinned source changed: {url}\nexpected {expected_sha256}\nactual   {digest}"
+            f"Frozen Codex model catalog changed: {CODEX_MODELS_PATH}\n"
+            f"expected {CODEX_MODELS_SHA256}\nactual   {digest}"
         )
-    return data
+    catalog = json.loads(data)
+    try:
+        profile = next(
+            model for model in catalog["models"] if model["slug"] == CODEX_BASE_PROFILE
+        )
+    except (KeyError, StopIteration) as exc:
+        raise SystemExit(
+            f"Missing {CODEX_BASE_PROFILE} in frozen Codex catalog"
+        ) from exc
+    if profile.get("multi_agent_version") != "v2":
+        raise SystemExit("Frozen GPT-5.6 Sol profile is not Multi-Agent V2")
+    return profile
 
 
 def provider_toml(provider_id: str, name: str, base_url: str, env_key: str) -> str:
@@ -103,113 +89,110 @@ def provider_toml(provider_id: str, name: str, base_url: str, env_key: str) -> s
     )
 
 
-def deepseek_codex_entry() -> dict[str, object]:
-    """Return DeepSeek V4 Flash official Codex metadata under the PA1 alias."""
-    script = fetch_verified(
-        DEEPSEEK_CODEX_SETUP_URL, DEEPSEEK_CODEX_SETUP_SHA256
-    ).decode()
-    match = re.search(
-        r"<<'CODEX_MODELS_JSON'\n(?P<json>\{.*?\})\nCODEX_MODELS_JSON",
-        script,
-        re.DOTALL,
+def third_party_codex_entry(
+    sol_profile: dict[str, object],
+    *,
+    slug: str,
+    display_name: str,
+    description: str,
+    context_window: int,
+    input_modalities: list[str],
+    default_reasoning_level: str,
+    supported_reasoning_levels: list[dict[str, str]],
+    supports_image_detail_original: bool,
+) -> dict[str, object]:
+    """Clone Sol and change only third-party identity/model metadata."""
+    entry = copy.deepcopy(sol_profile)
+    entry.update(
+        {
+            "slug": slug,
+            "display_name": display_name,
+            "description": description,
+            "context_window": context_window,
+            "max_context_window": context_window,
+            "input_modalities": input_modalities,
+            "default_reasoning_level": default_reasoning_level,
+            "supported_reasoning_levels": supported_reasoning_levels,
+            "supports_image_detail_original": supports_image_detail_original,
+            # Third-party LiteLLM routes use normal Responses, not Responses Lite.
+            # Everything else remains the frozen GPT-5.6 Sol profile, including V2.
+            "use_responses_lite": False,
+        }
     )
-    if not match:
-        raise SystemExit("Could not extract DeepSeek's official Codex model catalog")
-    catalog = json.loads(match.group("json"))
-    entry = next(
-        model for model in catalog["models"] if model["slug"] == "deepseek-v4-flash"
-    )
-
-    # Our gateway exposes the benchmark checkpoint under an explicit 0731 alias.
-    # The benchmark intentionally leaves auto-compaction unspecified for V4 Flash.
-    entry["slug"] = "deepseek-v4-flash-0731"
-    entry["display_name"] = "DeepSeek-V4-Flash 0731"
-    entry.pop("auto_compact_token_limit", None)
     return entry
 
 
-def kimi_codex_entry() -> dict[str, object]:
-    """Return the Kimi K3 Codex profile used by its documented CC Switch setup."""
-    template = json.loads(
-        fetch_verified(CC_SWITCH_TEMPLATE_URL, CC_SWITCH_TEMPLATE_SHA256).decode()
+def deepseek_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
+    """Return DeepSeek metadata on top of the frozen GPT-5.6 Sol profile."""
+    return third_party_codex_entry(
+        sol_profile,
+        slug="deepseek-v4-flash-0731",
+        display_name="DeepSeek V4 Flash 0731",
+        description="DeepSeek V4 Flash 0731",
+        context_window=1_048_576,
+        input_modalities=["text"],
+        default_reasoning_level="high",
+        supported_reasoning_levels=[
+            {
+                "effort": "low",
+                "description": "Fast responses with lighter reasoning",
+            },
+            {
+                "effort": "high",
+                "description": "Extra high reasoning depth for complex problems",
+            },
+            {
+                "effort": "max",
+                "description": "Maximum reasoning depth for the hardest problems",
+            },
+        ],
+        supports_image_detail_original=False,
     )
-    template.update(
-        {
-            "slug": "kimi-k3",
-            "display_name": "Kimi K3",
-            "description": "Kimi K3",
-            "context_window": 1_048_576,
-            "max_context_window": 1_048_576,
-            "input_modalities": ["text", "image"],
-            "default_reasoning_level": "max",
-            "supported_reasoning_levels": [
-                {
-                    "effort": "low",
-                    "description": "Fast responses with lighter reasoning",
-                },
-                {
-                    "effort": "high",
-                    "description": "Greater reasoning depth for complex problems",
-                },
-                {
-                    "effort": "max",
-                    "description": "Maximum reasoning depth for the hardest problems",
-                },
-            ],
-            "priority": 99,
-        }
-    )
-    return template
 
 
-def opus_codex_entry() -> dict[str, object]:
-    """Return generic Codex metadata for Opus behind the direct bridge."""
-    instructions = fetch_verified(CODEX_PROMPT_URL, CODEX_PROMPT_SHA256).decode()
-    return {
-        "slug": "claude-opus-5",
-        "display_name": "Claude Opus 5",
-        "description": "Claude Opus 5",
-        "default_reasoning_level": "medium",
-        "supported_reasoning_levels": [
+def kimi_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
+    """Return Kimi K3 metadata on top of the frozen GPT-5.6 Sol profile."""
+    return third_party_codex_entry(
+        sol_profile,
+        slug="kimi-k3",
+        display_name="Kimi K3",
+        description="Kimi K3",
+        context_window=1_048_576,
+        input_modalities=["text", "image"],
+        default_reasoning_level="max",
+        supported_reasoning_levels=[
+            {
+                "effort": "low",
+                "description": "Fast responses with lighter reasoning",
+            },
+            {
+                "effort": "high",
+                "description": "Greater reasoning depth for complex problems",
+            },
+            {
+                "effort": "max",
+                "description": "Maximum reasoning depth for the hardest problems",
+            },
+        ],
+        supports_image_detail_original=True,
+    )
+
+
+def opus_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
+    """Return Opus metadata on top of the frozen GPT-5.6 Sol profile."""
+    return third_party_codex_entry(
+        sol_profile,
+        slug="claude-opus-5",
+        display_name="Claude Opus 5",
+        description="Claude Opus 5",
+        context_window=1_000_000,
+        input_modalities=["text", "image"],
+        default_reasoning_level="medium",
+        supported_reasoning_levels=[
             {"effort": "medium", "description": "Benchmark reasoning effort"}
         ],
-        "shell_type": "unified_exec",
-        "visibility": "list",
-        "supported_in_api": True,
-        "priority": 99,
-        "additional_speed_tiers": [],
-        "service_tiers": [],
-        "default_service_tier": None,
-        "availability_nux": None,
-        "upgrade": None,
-        "model_messages": None,
-        "base_instructions": instructions,
-        "include_skills_usage_instructions": False,
-        "include_plugin_usage_instructions": False,
-        "include_apps_usage_instructions": False,
-        "supports_reasoning_summary_parameter": True,
-        "supports_reasoning_summaries": True,
-        "default_reasoning_summary": "auto",
-        "support_verbosity": False,
-        "default_verbosity": None,
-        "apply_patch_tool_type": None,
-        "web_search_tool_type": "text",
-        "truncation_policy": {"mode": "bytes", "limit": 10000},
-        "supports_image_detail_original": False,
-        "context_window": 1_000_000,
-        "max_context_window": 1_000_000,
-        "auto_compact_token_limit": None,
-        "effective_context_window_percent": 95,
-        "experimental_supported_tools": [],
-        "input_modalities": ["text", "image"],
-        "supports_search_tool": False,
-        "use_responses_lite": False,
-        "node_repl_auto_review_required": False,
-        "node_repl_disabled": False,
-        "auto_review_model_override": None,
-        "model_specialty": None,
-        "tool_mode": None,
-    }
+        supports_image_detail_original=False,
+    )
 
 
 def render_model_config(path: Path, base_url: str) -> str:
@@ -248,7 +231,10 @@ def main() -> None:
     litellm_path.write_text(
         provider_toml("litellm", "LiteLLM", litellm_url, "LITELLM_API_KEY")
     )
-    catalog = {"models": [deepseek_codex_entry(), kimi_codex_entry()]}
+    sol_profile = load_codex_sol_profile()
+    catalog = {
+        "models": [deepseek_codex_entry(sol_profile), kimi_codex_entry(sol_profile)]
+    }
     catalog_path.write_text(json.dumps(catalog, indent=2) + "\n")
 
     for path in (*model_paths, litellm_path, catalog_path):
@@ -271,7 +257,7 @@ def main() -> None:
         )
     )
     opus_catalog_path.write_text(
-        json.dumps({"models": [opus_codex_entry()]}, indent=2) + "\n"
+        json.dumps({"models": [opus_codex_entry(sol_profile)]}, indent=2) + "\n"
     )
     print(f"Wrote {opus_path}")
     print(f"Wrote {opus_catalog_path}")
