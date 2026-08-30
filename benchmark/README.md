@@ -1,17 +1,25 @@
 # DeepSWE benchmark runner
 
-This directory contains the runnable PA1 benchmark configuration for the current
-batch. Jobs are split **per model**, not per harness, so expensive/high-priority
-models can be completed independently.
+This directory contains the PA1 benchmark templates, frozen compatibility data,
+and runbook for the current batch. Primary jobs are split **per model**, not per
+harness, so expensive/high-priority models can be completed independently.
 
 ## Current run order
 
-Run these jobs in this order:
+Run these steps in this order:
 
-1. `smoke-test.yaml` — Luna low on one pilot task, all three runnable harnesses
-2. `kimi-k3.yaml` — **highest-priority primary job**
-3. `deepseek-v4-flash.yaml`
-4. `luna.yaml`
+1. `benchmark/configs/smoke-test.yaml` — Luna low on one pilot task, all three runnable harnesses
+2. generate the deployment-specific primary files with `prepare_configs.py`
+3. one-task Kimi gateway acceptance run using `benchmark/generated/kimi-k3.yaml`
+4. `benchmark/generated/kimi-k3.yaml` — **highest-priority primary job**
+5. one-task DeepSeek gateway acceptance run using `benchmark/generated/deepseek-v4-flash.yaml`
+6. `benchmark/generated/deepseek-v4-flash.yaml`
+7. `benchmark/generated/luna.yaml`
+
+The primary files under `benchmark/configs/` are source templates. Do not launch
+the Kimi or DeepSeek templates directly: their Pi endpoint placeholder is
+resolved only in `benchmark/generated/`. Use generated files for all three
+primary jobs for one consistent workflow.
 
 Claude Opus 5 and OpenCode 2 are deferred and are not part of the commands above.
 
@@ -29,7 +37,8 @@ Run only one model job at a time.
 
 ## Frozen versions
 
-Do not update these revisions between jobs in the primary batch.
+Re-verified on **2026-08-31** immediately before the benchmark launch. Do not
+update these revisions between jobs in the primary batch.
 
 | Component | Frozen revision/version |
 | --- | --- |
@@ -50,15 +59,16 @@ used for the run.
 | Model | Reasoning | Routing | Context behavior |
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
-| DeepSeek V4 Flash 0731 | max | Existing LiteLLM gateway | Native 1,048,576 context; no Claude Code auto-compaction override |
+| DeepSeek V4 Flash 0731 | max | Existing LiteLLM gateway | Native 1,048,576 context; Claude Code compacts at 1,048,576 |
 | GPT-5.6 Luna | max | Existing LiteLLM gateway | 272,000-token benchmark window |
 
 The smoke test is intentionally different: it runs Luna at **low** reasoning to
 validate the environment cheaply before primary spending.
 
 The repository does not change the LiteLLM deployment. DeepSeek/Kimi vendor
-documentation is used only for harness compatibility/model metadata, not for
-vendor API endpoints or credentials.
+documentation is used for Claude Code compatibility and model-specific facts
+such as context/modality, not for vendor API endpoints or credentials. Codex
+behavior comes from the frozen GPT-5.6 Sol profile described below.
 
 Cost normalization uses `benchmark/pricing.yaml` and official upstream model
 prices, not proxy/provider invoice pricing.
@@ -92,8 +102,8 @@ For DeepSeek, Kimi, and deferred Opus, the Sol profile is preserved except for:
 This preserves the rest of the current-release Sol behavior, including
 `tool_mode: "code_mode_only"`, parallel tool calls,
 the Sol system/profile instructions, and `auto_compact_token_limit: null`.
-DeepSeek therefore keeps the Codex compaction field; only its Claude Code
-`CLAUDE_CODE_AUTO_COMPACT_WINDOW` override is removed.
+DeepSeek keeps the Codex compaction field and explicitly sets Claude Code
+`CLAUDE_CODE_AUTO_COMPACT_WINDOW=1048576`.
 
 ### Claude Code
 
@@ -105,8 +115,7 @@ call in a trial remains on the model being benchmarked.
 
 The third-party `[1m]` aliases are retained for DeepSeek/Kimi compatibility.
 Luna also uses `[1m]`, then explicitly lowers its compaction window to 272,000.
-Kimi keeps its documented 1,048,576 compaction setting. DeepSeek has **no**
-`CLAUDE_CODE_AUTO_COMPACT_WINDOW` override.
+Kimi and DeepSeek both explicitly use a 1,048,576 Claude Code auto-compaction window.
 
 ### Pi
 
@@ -284,14 +293,46 @@ benchmark/generated/codex-litellm.toml
 benchmark/generated/codex-thirdparty-models.json
 ```
 
-The three generated YAML files correspond directly to the three source files in
-`benchmark/configs/`; generation only injects deployment-specific endpoint data
-needed by Pi. The Codex catalog contains only DeepSeek and Kimi because Luna uses
-Codex's bundled first-party model entry. DeepSeek and Kimi are cloned from the
-vendored GPT-5.6 Sol entry; no upstream file is fetched while generating these
-artifacts.
+The three generated YAML files correspond directly to the three source templates
+in `benchmark/configs/`. Generation resolves the nested Pi endpoint placeholder,
+writes the Codex LiteLLM provider TOML, and builds the restricted third-party
+Codex catalog. It verifies the expected placeholder count and the SHA-256 of the
+vendored Codex catalog before writing the run set, so a stale template/reference
+fails generation instead of leaving a partially updated configuration.
 
-### 6. Run Kimi K3 first
+The Codex catalog contains only DeepSeek and Kimi because Luna uses Codex's
+bundled first-party model entry. DeepSeek and Kimi are cloned from the vendored
+GPT-5.6 Sol entry; no upstream file is fetched while generating these artifacts.
+
+### 6. Run the Kimi gateway acceptance check
+
+The Luna smoke test proves the task environment and both LiteLLM surfaces, but it
+does not exercise the third-party Codex profile. Codex 0.151.0 sends normal
+Responses HTTP requests for Kimi/DeepSeek and, under the frozen Sol profile, may
+include Codex tool definitions such as `custom` exec and `web_search`. Correct
+translation of those requests by the already-deployed LiteLLM route is outside
+this repository.
+
+Before starting Kimi's 30 primary trials, run the same generated Kimi job on the
+cheap pilot task. This is an acceptance run, not benchmark data:
+
+```bash
+cd ~/PA1
+PIER=~/pier/.venv/bin/pier
+
+$PIER job start -c benchmark/generated/kimi-k3.yaml \
+  --env-file benchmark/env.local \
+  --path ../DeepSWE/tasks \
+  --include-task-name anko-default-function-arguments \
+  --job-name acceptance-kimi
+```
+
+Confirm all three harness trials complete and, for Codex specifically, that a
+tool call followed by another model turn succeeds. If the Codex trial fails on a
+tool schema, reasoning-state, or Responses translation error, stop before the
+full Kimi batch and fix the gateway route.
+
+### 7. Run Kimi K3 first
 
 Kimi is the highest-priority primary model and should finish before Luna or
 DeepSeek.
@@ -307,14 +348,29 @@ $PIER job start -c benchmark/generated/kimi-k3.yaml \
 This runs Pi, Claude Code, and Codex across all 10 selected tasks: 30 trials,
 with at most 10 concurrent trials.
 
-### 7. Run DeepSeek V4 Flash 0731
+### 8. Run the DeepSeek gateway acceptance check
+
+DeepSeek uses a different gateway alias from Kimi. Before its 30-trial batch,
+run the same pilot-task override:
+
+```bash
+$PIER job start -c benchmark/generated/deepseek-v4-flash.yaml \
+  --env-file benchmark/env.local \
+  --path ../DeepSWE/tasks \
+  --include-task-name anko-default-function-arguments \
+  --job-name acceptance-deepseek
+```
+
+If all three trials complete, start the primary DeepSeek job.
+
+### 9. Run DeepSeek V4 Flash 0731
 
 ```bash
 $PIER job start -c benchmark/generated/deepseek-v4-flash.yaml \
   --env-file benchmark/env.local
 ```
 
-### 8. Run GPT-5.6 Luna
+### 10. Run GPT-5.6 Luna
 
 ```bash
 $PIER job start -c benchmark/generated/luna.yaml \

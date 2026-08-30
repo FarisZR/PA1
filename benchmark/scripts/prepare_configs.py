@@ -13,7 +13,11 @@ from pathlib import Path
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 GENERATED_DIR = BENCHMARK_DIR / "generated"
 CONFIG_DIR = BENCHMARK_DIR / "configs"
-CURRENT_MODEL_CONFIGS = ("kimi-k3.yaml", "deepseek-v4-flash.yaml", "luna.yaml")
+CURRENT_MODEL_CONFIGS = {
+    "kimi-k3.yaml": 1,
+    "deepseek-v4-flash.yaml": 1,
+    "luna.yaml": 0,
+}
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
 
 CODEX_MODELS_PATH = BENCHMARK_DIR / "references" / "codex-rust-v0.151.0-models.json"
@@ -198,9 +202,19 @@ def opus_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
     )
 
 
-def render_model_config(path: Path, base_url: str) -> str:
-    """Insert the existing LiteLLM URL into nested Pi provider overrides."""
-    return path.read_text().replace(PI_BASE_URL_SENTINEL, base_url.rstrip("/"))
+def render_model_config(path: Path, base_url: str, expected_sentinels: int) -> str:
+    """Insert the LiteLLM URL and reject stale/missing Pi endpoint sentinels."""
+    template = path.read_text()
+    actual_sentinels = template.count(PI_BASE_URL_SENTINEL)
+    if actual_sentinels != expected_sentinels:
+        raise SystemExit(
+            f"{path}: expected {expected_sentinels} {PI_BASE_URL_SENTINEL} "
+            f"placeholder(s), found {actual_sentinels}"
+        )
+    rendered = template.replace(PI_BASE_URL_SENTINEL, base_url.rstrip("/"))
+    if PI_BASE_URL_SENTINEL in rendered:
+        raise SystemExit(f"{path}: unresolved {PI_BASE_URL_SENTINEL} placeholder")
+    return rendered
 
 
 def main() -> None:
@@ -217,51 +231,67 @@ def main() -> None:
         load_env_file(args.env_file)
 
     litellm_url = require("LITELLM_OPENAI_BASE_URL")
-    GENERATED_DIR.mkdir(parents=True, exist_ok=True)
-    for obsolete in ("pi.yaml", "codex-provenance.json"):
-        (GENERATED_DIR / obsolete).unlink(missing_ok=True)
+    opus_bridge_url = (
+        require("CODEX_OPUS_RESPONSES_BASE_URL") if args.include_opus else None
+    )
 
-    model_paths: list[Path] = []
-    for name in CURRENT_MODEL_CONFIGS:
+    # Build and validate every output before touching benchmark/generated. A bad
+    # frozen catalog or template therefore cannot leave a half-updated run set.
+    rendered_models: list[tuple[Path, str]] = []
+    for name, expected_sentinels in CURRENT_MODEL_CONFIGS.items():
         source = CONFIG_DIR / name
         destination = GENERATED_DIR / name
-        destination.write_text(render_model_config(source, litellm_url))
-        model_paths.append(destination)
+        rendered_models.append(
+            (
+                destination,
+                render_model_config(source, litellm_url, expected_sentinels),
+            )
+        )
 
-    litellm_path = GENERATED_DIR / "codex-litellm.toml"
-    catalog_path = GENERATED_DIR / "codex-thirdparty-models.json"
-
-    litellm_path.write_text(
-        provider_toml("litellm", "LiteLLM", litellm_url, "LITELLM_API_KEY")
-    )
     sol_profile = load_codex_sol_profile()
     catalog = {
         "models": [deepseek_codex_entry(sol_profile), kimi_codex_entry(sol_profile)]
     }
-    catalog_path.write_text(json.dumps(catalog, indent=2) + "\n")
+    litellm_toml = provider_toml("litellm", "LiteLLM", litellm_url, "LITELLM_API_KEY")
+    catalog_json = json.dumps(catalog, indent=2) + "\n"
 
-    for path in (*model_paths, litellm_path, catalog_path):
-        print(f"Wrote {path}")
-
-    if not args.include_opus:
-        (GENERATED_DIR / "codex-opus.toml").unlink(missing_ok=True)
-        (GENERATED_DIR / "codex-opus-models.json").unlink(missing_ok=True)
-        return
-
-    opus_bridge_url = require("CODEX_OPUS_RESPONSES_BASE_URL")
-    opus_path = GENERATED_DIR / "codex-opus.toml"
-    opus_catalog_path = GENERATED_DIR / "codex-opus-models.json"
-    opus_path.write_text(
-        provider_toml(
+    opus_toml = None
+    opus_catalog_json = None
+    if opus_bridge_url is not None:
+        opus_toml = provider_toml(
             "anthropic_responses",
             "Direct Anthropic via Responses bridge",
             opus_bridge_url,
             "CODEX_OPUS_RESPONSES_API_KEY",
         )
-    )
-    opus_catalog_path.write_text(
-        json.dumps({"models": [opus_codex_entry(sol_profile)]}, indent=2) + "\n"
-    )
+        opus_catalog_json = (
+            json.dumps({"models": [opus_codex_entry(sol_profile)]}, indent=2) + "\n"
+        )
+
+    GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+    for obsolete in ("pi.yaml", "codex-provenance.json"):
+        (GENERATED_DIR / obsolete).unlink(missing_ok=True)
+
+    for path, contents in rendered_models:
+        path.write_text(contents)
+        print(f"Wrote {path}")
+
+    litellm_path = GENERATED_DIR / "codex-litellm.toml"
+    catalog_path = GENERATED_DIR / "codex-thirdparty-models.json"
+    litellm_path.write_text(litellm_toml)
+    catalog_path.write_text(catalog_json)
+    print(f"Wrote {litellm_path}")
+    print(f"Wrote {catalog_path}")
+
+    opus_path = GENERATED_DIR / "codex-opus.toml"
+    opus_catalog_path = GENERATED_DIR / "codex-opus-models.json"
+    if opus_toml is None or opus_catalog_json is None:
+        opus_path.unlink(missing_ok=True)
+        opus_catalog_path.unlink(missing_ok=True)
+        return
+
+    opus_path.write_text(opus_toml)
+    opus_catalog_path.write_text(opus_catalog_json)
     print(f"Wrote {opus_path}")
     print(f"Wrote {opus_catalog_path}")
 
