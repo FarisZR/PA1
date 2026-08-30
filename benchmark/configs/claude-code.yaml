@@ -27,7 +27,7 @@ agents:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       DISABLE_AUTOUPDATER: "1"
     kwargs:
-      version: "2.1.247"
+      version: "2.1.251"
       reasoning_effort: medium
 
   # Claude Code recognizes the [1m] suffix used by third-party integrations
@@ -41,7 +41,7 @@ agents:
       CLAUDE_CODE_AUTO_COMPACT_WINDOW: "272000"
       DISABLE_AUTOUPDATER: "1"
     kwargs:
-      version: "2.1.247"
+      version: "2.1.251"
       reasoning_effort: max
 
   # The proxy must expose these exact [1m] aliases. The suffix prevents Claude
@@ -54,7 +54,7 @@ agents:
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
       DISABLE_AUTOUPDATER: "1"
     kwargs:
-      version: "2.1.247"
+      version: "2.1.251"
       reasoning_effort: max
 
   - name: claude-code
@@ -64,5 +64,5 @@ agents:
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
       DISABLE_AUTOUPDATER: "1"
     kwargs:
-      version: "2.1.247"
+      version: "2.1.251"
       reasoning_effort: max

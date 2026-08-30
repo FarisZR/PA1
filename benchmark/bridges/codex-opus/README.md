@@ -1,6 +1,6 @@
 # Codex Opus bridge
 
-Codex 0.150.1 only emits OpenAI Responses requests. Claude Opus 5 is intentionally
+Codex 0.151.0 only emits OpenAI Responses requests. Claude Opus 5 is intentionally
 not available through the shared benchmark LiteLLM gateway, so this service does
 one protocol-translation job:
 

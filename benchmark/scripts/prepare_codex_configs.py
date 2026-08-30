@@ -21,7 +21,7 @@ BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 GENERATED_DIR = BENCHMARK_DIR / "generated"
 PI_CONFIG_TEMPLATE = BENCHMARK_DIR / "configs" / "pi.yaml"
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
-CODEX_SOURCE_TAG = "rust-v0.150.1"
+CODEX_SOURCE_TAG = "rust-v0.151.0"
 CODEX_FALLBACK_PROMPT_URL = (
     "https://raw.githubusercontent.com/openai/codex/"
     f"{CODEX_SOURCE_TAG}/codex-rs/models-manager/prompt.md"
@@ -81,7 +81,7 @@ def provider_toml(*, provider_id: str, name: str, base_url: str, env_key: str) -
 
 
 def fetch_codex_fallback_instructions() -> str:
-    """Fetch and hash-verify Codex 0.150.1's generic fallback instructions."""
+    """Fetch and hash-verify Codex 0.151.0's generic fallback instructions."""
     with urlopen(CODEX_FALLBACK_PROMPT_URL, timeout=30) as response:
         raw = response.read()
     digest = hashlib.sha256(raw).hexdigest()

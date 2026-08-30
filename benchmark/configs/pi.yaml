@@ -21,14 +21,14 @@ datasets:
       - koota-composite-trait-aspects
 
 agents:
-  # Native Pi provider/model IDs are intentional. They preserve Pi 0.84.3's
+  # Native Pi provider/model IDs are intentional. They preserve Pi 0.84.4's
   # built-in model capabilities, compatibility flags, and official pricing.
   - name: pi
     model_name: anthropic/claude-opus-5
     env:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     kwargs:
-      version: "0.84.3"
+      version: "0.84.4"
       thinking: medium
 
   # Pi's direct OpenAI Luna entry already uses the 272k short-context window and
@@ -39,7 +39,7 @@ agents:
       OPENAI_API_KEY: ${LITELLM_API_KEY}
       OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
     kwargs:
-      version: "0.84.3"
+      version: "0.84.4"
       thinking: max
 
   # The DeepSeek API's stable model ID currently resolves to the selected
@@ -50,7 +50,7 @@ agents:
     env:
       DEEPSEEK_API_KEY: ${LITELLM_API_KEY}
     kwargs:
-      version: "0.84.3"
+      version: "0.84.4"
       thinking: max
       pi_config:
         providers:
@@ -65,7 +65,7 @@ agents:
     env:
       MOONSHOT_API_KEY: ${LITELLM_API_KEY}
     kwargs:
-      version: "0.84.3"
+      version: "0.84.4"
       thinking: max
       pi_config:
         providers:

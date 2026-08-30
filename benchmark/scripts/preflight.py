@@ -32,6 +32,12 @@ EXPECTED_TASKS = {
     "boa-hierarchical-evaluation-cancellation",
     "koota-composite-trait-aspects",
 }
+EXPECTED_HARNESS_VERSIONS = {
+    "claude-code.yaml": "2.1.251",
+    "codex.yaml": "0.151.0",
+    "opencode-v2.yaml": "0.0.0-beta-18684",
+    "pi.yaml": "0.84.4",
+}
 
 
 def load_env_file(path: Path) -> None:
@@ -93,6 +99,19 @@ def validate_matrix(path: Path, config: dict) -> None:
     if len(datasets) != 1 or set(datasets[0].get("task_names", [])) != EXPECTED_TASKS:
         raise SystemExit(
             f"{path}: selected DeepSWE task set does not match the frozen 10 tasks"
+        )
+
+
+def validate_harness_version(path: Path, config: dict) -> None:
+    """Ensure every model cell uses the harness version frozen on 2026-08-30."""
+    expected = EXPECTED_HARNESS_VERSIONS[path.name]
+    versions = {
+        str(agent.get("kwargs", {}).get("version")) for agent in config.get("agents", [])
+    }
+    if versions != {expected}:
+        raise SystemExit(
+            f"{path}: expected every agent to use harness version {expected}, "
+            f"found {sorted(versions)}"
         )
 
 
@@ -201,6 +220,7 @@ def main() -> None:
     }
     for name, config in source_configs.items():
         validate_matrix(CONFIG_DIR / name, config)
+        validate_harness_version(CONFIG_DIR / name, config)
 
     validate_claude_code(source_configs["claude-code.yaml"])
     validate_pricing(read_yaml(PRICING_PATH))
@@ -217,6 +237,7 @@ def main() -> None:
     validate_pi(generated_pi, litellm_base_url)
 
     print("Benchmark preflight passed: 4 harness configs, 10 tasks, concurrency 10")
+    print("Harness versions: frozen to npm releases available on 2026-08-30")
     print("Claude Code Luna: [1m] alias with local 272000-token compaction window")
     print("Pi: native OpenAI/DeepSeek/Moonshot model metadata with LiteLLM routing")
     print("Pricing: frozen upstream model prices; no Fireworks normalization")

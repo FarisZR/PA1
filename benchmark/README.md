@@ -14,14 +14,18 @@ trials over the four model providers without allowing ten trials per model.
 The benchmark configuration is written against these exact versions. Do not
 update them between primary runs.
 
+Harness package versions were checked against the npm registry on **2026-08-30**
+and frozen to the newest release on the selected channel available at that time
+(`latest` for Codex, Claude Code, and Pi; `beta` for OpenCode 2).
+
 | Component | Frozen revision/version |
 | --- | --- |
 | FZR Pier fork | `6307395aad1679f8044d3274abe65c6fe600070d` |
 | DeepSWE | `435ee89ec2f2e2289f33b0da4f992f0b7b7266b9` |
-| Codex CLI | `0.150.1` |
-| Claude Code | `2.1.247` |
-| Pi | `0.84.3` |
-| OpenCode 2 beta | `0.0.0-beta-18387` |
+| Codex CLI | `0.151.0` |
+| Claude Code | `2.1.251` |
+| Pi | `0.84.4` |
+| OpenCode 2 beta | `0.0.0-beta-18684` |
 
 Claude Code is additionally launched with `DISABLE_AUTOUPDATER=1`. The staged
 OpenCode 2 configuration sets `autoupdate: false`, so the pinned harness cannot
@@ -64,7 +68,7 @@ values. `env.local` is ignored by Git.
 - **GPT-5.6 Luna, max; DeepSeek V4 Flash 0731, max; Kimi K3, max:** use the
   custom LiteLLM gateway through `LITELLM_API_KEY` and the protocol-specific
   gateway base URLs.
-- **Pi:** keeps each model under its native built-in provider so Pi 0.84.3 keeps
+- **Pi:** keeps each model under its native built-in provider so Pi 0.84.4 keeps
   its own compatibility metadata and official model pricing. Luna stays
   `openai/gpt-5.6-luna`; DeepSeek uses `deepseek/deepseek-v4-flash` (the stable
   API ID for the selected 0731 checkpoint); Kimi uses `moonshotai/kimi-k3`.
@@ -80,7 +84,7 @@ values. `env.local` is ignored by Git.
   provider and generated fallback-style model metadata with the models' native
   context limits.
 - **Codex + Opus:** is the one exception that cannot use the shared LiteLLM
-  gateway. Codex 0.150.1 only speaks the Responses wire protocol, so
+  gateway. Codex 0.151.0 only speaks the Responses wire protocol, so
   `CODEX_OPUS_RESPONSES_*` must identify a dedicated Responses-to-Anthropic
   bridge. That bridge connects directly to `api.anthropic.com` using the
   benchmark's Anthropic account/key; it must not route Opus through the shared
@@ -111,7 +115,7 @@ exposure requirement for Pier's filtered egress.
 
 For third-party model entries Codex also requires base harness instructions.
 The generator downloads the generic fallback prompt from the exact
-`rust-v0.150.1` Codex source tag and verifies SHA-256
+`rust-v0.151.0` Codex source tag and verifies SHA-256
 `ac8ae107a0d72fe3476b430afb161ea4e67da2e446d778aefc44828160559807`
 before embedding it in the generated catalog. This avoids copying Luna/GPT
 model-specific instructions onto Opus, DeepSeek, or Kimi.
@@ -125,7 +129,7 @@ every harness so the benchmark stays below OpenAI's long-context pricing tier.
 - Codex derives Luna's 272k metadata from the frozen Codex binary's bundled
   catalog; no custom Luna catalog is supplied.
 - Pi uses its built-in `openai/gpt-5.6-luna` entry, which is already 272k in
-  Pi 0.84.3. OpenCode declares 272k explicitly.
+  Pi 0.84.4. OpenCode declares 272k explicitly.
 - Claude Code uses the same `[1m]` model-name convention used by third-party
   integrations such as Z.AI, then sets `CLAUDE_CODE_AUTO_COMPACT_WINDOW=272000`
   for Luna. This makes Claude Code compact at the benchmark limit locally rather
@@ -177,7 +181,7 @@ that directory.
 ### OpenCode 2 blocker
 
 The selected harness is OpenCode **2**, not OpenCode 1. The frozen V2 package is
-`@opencode-ai/cli@0.0.0-beta-18387` and its executable is `opencode2`. The
+`@opencode-ai/cli@0.0.0-beta-18684` and its executable is `opencode2`. The
 current FZR Pier `opencode` adapter still installs `opencode-ai` and executes
 `opencode`, so running that adapter would benchmark the wrong harness.
 

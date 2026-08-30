@@ -30,7 +30,7 @@ agents:
       OPENAI_API_KEY: ${LITELLM_API_KEY}
       OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
     kwargs:
-      version: "0.150.1"
+      version: "0.151.0"
       reasoning_effort: max
       restrict_model_catalog: true
 
@@ -42,7 +42,7 @@ agents:
     env:
       CODEX_OPUS_RESPONSES_API_KEY: ${CODEX_OPUS_RESPONSES_API_KEY}
     kwargs:
-      version: "0.150.1"
+      version: "0.151.0"
       command_model_name: claude-opus-5
       reasoning_effort: medium
       restrict_model_catalog: true
@@ -54,7 +54,7 @@ agents:
     env:
       LITELLM_API_KEY: ${LITELLM_API_KEY}
     kwargs:
-      version: "0.150.1"
+      version: "0.151.0"
       command_model_name: deepseek-v4-flash-0731
       reasoning_effort: max
       restrict_model_catalog: true
@@ -66,7 +66,7 @@ agents:
     env:
       LITELLM_API_KEY: ${LITELLM_API_KEY}
     kwargs:
-      version: "0.150.1"
+      version: "0.151.0"
       command_model_name: kimi-k3
       reasoning_effort: max
       restrict_model_catalog: true
