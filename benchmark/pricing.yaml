@@ -25,7 +25,7 @@ models:
     input: 0.14
     cached_input: 0.0028
     output: 0.28
-    context_limit: 1000000
+    context_limit: 1048576
     source: https://www.deepseek.com/platform/
 
   kimi-k3:

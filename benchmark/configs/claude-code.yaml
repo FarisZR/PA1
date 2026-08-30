@@ -25,6 +25,7 @@ agents:
     model_name: anthropic/claude-opus-5
     env:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_DEFAULT_FABLE_MODEL: claude-opus-5
       DISABLE_AUTOUPDATER: "1"
     kwargs:
       version: "2.1.251"
@@ -38,6 +39,7 @@ agents:
     env:
       ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
+      ANTHROPIC_DEFAULT_FABLE_MODEL: gpt-5.6-luna[1m]
       CLAUDE_CODE_AUTO_COMPACT_WINDOW: "272000"
       DISABLE_AUTOUPDATER: "1"
     kwargs:
@@ -52,6 +54,9 @@ agents:
     env:
       ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
+      ANTHROPIC_DEFAULT_FABLE_MODEL: deepseek-v4-flash-0731[1m]
+      # DeepSeek current Claude Code integration compacts the 1M V4 family here.
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "786432"
       DISABLE_AUTOUPDATER: "1"
     kwargs:
       version: "2.1.251"
@@ -62,6 +67,8 @@ agents:
     env:
       ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
+      ANTHROPIC_DEFAULT_FABLE_MODEL: kimi-k3[1m]
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1048576"
       DISABLE_AUTOUPDATER: "1"
     kwargs:
       version: "2.1.251"
