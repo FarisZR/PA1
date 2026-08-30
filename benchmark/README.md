@@ -1,12 +1,17 @@
 # DeepSWE benchmark runner
 
-This directory is the runnable configuration for the primary PA1 DeepSWE matrix:
-four harnesses, four models, and ten selected DeepSWE v1.1 tasks. Each harness
-is one Pier job containing all four models. With one attempt per task, each job
-contains 40 trials and the full matrix contains 160 trials.
+This directory is the runnable configuration for the current primary PA1 DeepSWE
+matrix: three harnesses (Pi, Claude Code, Codex), four models, and ten selected
+DeepSWE v1.1 tasks. Each harness is one Pier job containing all four models. With
+one attempt per task, each job contains 40 trials and the current primary matrix
+contains 120 trials.
 
-Every job uses `n_concurrent_trials: 10`. Run one harness job at a time; the
-limit is global to the job, not per model.
+OpenCode 2 is intentionally excluded from the runnable matrix for now. Its staged
+configuration lives separately at `benchmark/deferred/opencode-v2.yaml`.
+
+Each primary harness job uses `n_concurrent_trials: 10`; run one primary harness
+job at a time. The dedicated smoke job contains only three trials and uses
+`n_concurrent_trials: 3`.
 
 ## Frozen versions
 
@@ -20,12 +25,10 @@ benchmark freeze. Do not update any of them between primary runs.
 | Codex CLI | `0.151.0` |
 | Claude Code | `2.1.251` |
 | Pi | `0.84.4` |
-| OpenCode 2 beta | `0.0.0-beta-18684` |
 
 The DeepSWE revision above is the current v1.1 task tree. Relative to the
 previous PA1 pin, its only change is the upstream increase of task timeouts to
-10,800 seconds. Claude Code is run with `DISABLE_AUTOUPDATER=1`; OpenCode 2 has
-`autoupdate: false` in its staged configuration.
+10,800 seconds. Claude Code is run with `DISABLE_AUTOUPDATER=1`.
 
 Pier writes `lock.json` in every job directory. Keep it with the results. Also
 record the PA1 commit used for each primary run because the generator and
@@ -99,7 +102,7 @@ files is deliberately relative because Pier does not expand `~` in
 ```
 
 If you use different directory names, either preserve the sibling relationship
-or adjust `datasets[].path` consistently in all four configs.
+or adjust `datasets[].path` consistently in the three primary configs and the smoke-test config.
 
 ## Proxy assumptions
 
@@ -142,8 +145,7 @@ directly to Anthropic.
 For Kimi in Codex, LiteLLM must preserve the compatibility behavior that the
 documented CC Switch path provides at its Chat Completions boundary: thinking
 enabled, `reasoning_effort` forwarded, and reasoning content preserved across
-tool-call turns. The PA1 repository does not change the proxy to achieve this;
-the smoke test below is the acceptance check for the already-deployed route.
+tool-call turns. The PA1 repository does not change the proxy to achieve this.
 
 ## Required environment variables
 
@@ -159,8 +161,8 @@ Fill these values in `benchmark/env.local`:
 
 | Variable | Required for | Meaning |
 | --- | --- | --- |
-| `LITELLM_API_KEY` | Pi, Claude Code, Codex, later OpenCode | Credential for the existing shared LiteLLM gateway |
-| `LITELLM_OPENAI_BASE_URL` | Pi, Codex, later OpenCode | OpenAI-compatible gateway base URL, normally ending in `/v1` |
+| `LITELLM_API_KEY` | Pi, Claude Code, Codex | Credential for the existing shared LiteLLM gateway |
+| `LITELLM_OPENAI_BASE_URL` | Pi, Codex | OpenAI-compatible gateway base URL, normally ending in `/v1` |
 | `LITELLM_ANTHROPIC_BASE_URL` | Claude Code | Anthropic-compatible gateway base URL |
 | `ANTHROPIC_API_KEY` | Opus in Pi/Claude Code and the Codex Opus bridge | Direct upstream Anthropic API key |
 | `CODEX_OPUS_RESPONSES_API_KEY` | Codex Opus | A private key chosen for Codex→bridge authentication; it is not an Anthropic key |
@@ -234,9 +236,46 @@ itself can reach both LiteLLM surfaces and that the three `[1m]` Claude aliases
 plus the four OpenAI-compatible aliases exist on the gateway. This repository
 assumes those routes already exist and does not modify them.
 
-### 4. Start the Codex Opus bridge
+### 4. Run the Luna smoke test
 
-This is required only before a Codex job. Pi and Claude Code do not use it.
+Before starting the Opus bridge or generating any model-specific primary-run
+artifacts, run the dedicated smoke job. It uses only GPT-5.6 Luna at **low**
+reasoning on the simple DeepSWE pilot task `anko-default-function-arguments`.
+The job contains exactly three trials: Pi, Claude Code, and Codex.
+
+It exercises the real DeepSWE task environment, Docker execution, all three
+harness installations, both LiteLLM protocol surfaces used by Luna, the 272k
+context policy, Codex model-catalog restriction, and Pier result/trajectory
+capture without spending the full benchmark budget.
+
+From `~/PA1`:
+
+```bash
+PIER=~/pier/.venv/bin/pier
+
+$PIER job start -c benchmark/configs/smoke-test.yaml \
+  --env-file benchmark/env.local
+```
+
+The smoke job is self-contained: it does **not** require
+`benchmark/generated/`, the direct Anthropic key, or the Codex Opus bridge.
+Only these three values must already be valid:
+
+```text
+LITELLM_API_KEY
+LITELLM_OPENAI_BASE_URL
+LITELLM_ANTHROPIC_BASE_URL
+```
+
+Before proceeding, confirm that all three trials finish, the verifier runs, and
+`benchmark/runs/smoke-luna/` contains the expected result/trajectory data. Also
+confirm the recorded harness/model pairs are Pi/Luna, Claude Code/Luna, and
+Codex/Luna; Codex must still use the built-in OpenAI Luna catalog entry.
+
+### 5. Start the Codex Opus bridge
+
+This is required only before a full Codex primary job. Pi and Claude Code do not
+use it.
 
 ```bash
 cd ~/PA1/benchmark/bridges/codex-opus
@@ -251,7 +290,7 @@ HTTPS endpoint reachable by Pier's Docker containers and put that URL in
 `ANTHROPIC_API_KEY` and goes directly to Anthropic; it has no shared LiteLLM
 route or credential.
 
-### 5. Generate the deployment-specific files
+### 6. Generate the deployment-specific files
 
 Pier resolves `${VAR}` in an agent's `env` mapping, but it does not recursively
 interpolate nested Pi config or external Codex TOML. One preparation script is
@@ -277,51 +316,6 @@ the documented DeepSeek/Kimi integration profiles. Its vendor reference inputs
 and the Codex fallback prompt are version/hash pinned so a later documentation or
 helper change cannot silently alter a frozen run.
 
-### 6. Smoke-test one DeepSWE task
-
-Use the same job configs that will be used for the primary run. Pier's CLI
-`--path`/`--include-task-name` override only the dataset selection, so each
-command below runs the four configured model cells on one task.
-
-From `~/PA1`:
-
-```bash
-PIER=~/pier/.venv/bin/pier
-TASK=expr-try-catch-errors
-
-$PIER job start -c benchmark/generated/pi.yaml \
-  --env-file benchmark/env.local \
-  --path ../DeepSWE/tasks --include-task-name "$TASK" \
-  --job-name smoke-pi
-
-$PIER job start -c benchmark/configs/claude-code.yaml \
-  --env-file benchmark/env.local \
-  --path ../DeepSWE/tasks --include-task-name "$TASK" \
-  --job-name smoke-claude-code
-
-$PIER job start -c benchmark/configs/codex.yaml \
-  --env-file benchmark/env.local \
-  --path ../DeepSWE/tasks --include-task-name "$TASK" \
-  --job-name smoke-codex
-```
-
-Before spending the primary budget, inspect those smoke jobs and confirm:
-
-1. the installed harness version equals the frozen version above;
-2. Luna, DeepSeek and Kimi requests reach the existing LiteLLM gateway, while
-   Opus reaches Anthropic directly (or the dedicated bridge for Codex);
-3. Claude Code reports the expected `[1m]` model aliases and compaction windows;
-4. Codex Luna remains the built-in OpenAI provider, DeepSeek has the vendor
-   Codex capability profile, and Kimi uses the K3 compatibility profile;
-5. Pi reports native `openai`, `deepseek`, `moonshotai` and `anthropic` model
-   identities rather than custom proxy model definitions;
-6. result/trajectory output contains token/cache, call, wall-clock and verifier
-   data needed for analysis.
-
-For Kimi/Codex specifically, use a smoke task that performs at least one tool
-call and a subsequent model turn. A one-shot text reply is not enough to verify
-that reasoning/tool state survives the Responses→provider translation.
-
 ### 7. Run the primary jobs
 
 Run only one harness job at a time. From `~/PA1`:
@@ -339,18 +333,16 @@ $PIER job start -c benchmark/configs/codex.yaml \
   --env-file benchmark/env.local
 ```
 
-Each job uses the 10-task selection, one attempt, and concurrency 10 from its
-YAML file. Results are written below `benchmark/runs/<job-name>/`. Keep the
-entire job directory, especially `lock.json`, with the benchmark artifacts.
+Each primary job uses the 10-task selection, one attempt, and concurrency 10
+from its YAML file. Results are written below `benchmark/runs/<job-name>/`. Keep
+the entire job directory, especially `lock.json`, with the benchmark artifacts.
 
-## OpenCode 2 status
+## Deferred OpenCode 2
 
-The intended OpenCode 2 job is staged in `benchmark/configs/opencode-v2.yaml`,
-frozen to `@opencode-ai/cli@0.0.0-beta-18684`. Do **not** run it yet. At the
-frozen Pier revision, Pier's `opencode` adapter still installs the OpenCode 1
-`opencode-ai` package and executes `opencode`; doing so would benchmark the
-wrong harness. PA1 issue #9 remains the blocker. Once the V2 adapter is merged,
-run the same one-task smoke pattern and then the primary job with this config.
+OpenCode 2 is deliberately outside the runnable benchmark path. Its staged,
+non-runnable configuration is kept separately in
+`benchmark/deferred/opencode-v2.yaml` until PA1 issue #9 / Pier V2 support is
+ready. Nothing in the smoke test or primary commands above references it.
 
 ## Upstream configuration references
 
