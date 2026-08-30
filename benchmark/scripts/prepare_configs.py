@@ -13,7 +13,8 @@ from urllib.request import urlopen
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 GENERATED_DIR = BENCHMARK_DIR / "generated"
-PI_CONFIG_TEMPLATE = BENCHMARK_DIR / "configs" / "pi.yaml"
+CONFIG_DIR = BENCHMARK_DIR / "configs"
+CURRENT_MODEL_CONFIGS = ("kimi-k3.yaml", "deepseek-v4-flash.yaml", "luna.yaml")
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
 
 CODEX_VERSION = "0.151.0"
@@ -120,9 +121,10 @@ def deepseek_codex_entry() -> dict[str, object]:
     )
 
     # Our gateway exposes the benchmark checkpoint under an explicit 0731 alias.
-    # Everything else is DeepSeek's official Codex profile verbatim.
+    # The benchmark intentionally leaves auto-compaction unspecified for V4 Flash.
     entry["slug"] = "deepseek-v4-flash-0731"
     entry["display_name"] = "DeepSeek-V4-Flash 0731"
+    entry.pop("auto_compact_token_limit", None)
     return entry
 
 
@@ -210,12 +212,9 @@ def opus_codex_entry() -> dict[str, object]:
     }
 
 
-def render_pi_config(base_url: str) -> str:
-    """Insert the existing LiteLLM URL into Pi nested provider overrides."""
-    template = PI_CONFIG_TEMPLATE.read_text()
-    if template.count(PI_BASE_URL_SENTINEL) != 2:
-        raise SystemExit(f"Expected two {PI_BASE_URL_SENTINEL} placeholders")
-    return template.replace(PI_BASE_URL_SENTINEL, base_url.rstrip("/"))
+def render_model_config(path: Path, base_url: str) -> str:
+    """Insert the existing LiteLLM URL into nested Pi provider overrides."""
+    return path.read_text().replace(PI_BASE_URL_SENTINEL, base_url.rstrip("/"))
 
 
 def main() -> None:
@@ -233,20 +232,26 @@ def main() -> None:
 
     litellm_url = require("LITELLM_OPENAI_BASE_URL")
     GENERATED_DIR.mkdir(parents=True, exist_ok=True)
-    (GENERATED_DIR / "codex-provenance.json").unlink(missing_ok=True)
+    for obsolete in ("pi.yaml", "codex-provenance.json"):
+        (GENERATED_DIR / obsolete).unlink(missing_ok=True)
 
-    pi_path = GENERATED_DIR / "pi.yaml"
+    model_paths: list[Path] = []
+    for name in CURRENT_MODEL_CONFIGS:
+        source = CONFIG_DIR / name
+        destination = GENERATED_DIR / name
+        destination.write_text(render_model_config(source, litellm_url))
+        model_paths.append(destination)
+
     litellm_path = GENERATED_DIR / "codex-litellm.toml"
     catalog_path = GENERATED_DIR / "codex-thirdparty-models.json"
 
-    pi_path.write_text(render_pi_config(litellm_url))
     litellm_path.write_text(
         provider_toml("litellm", "LiteLLM", litellm_url, "LITELLM_API_KEY")
     )
     catalog = {"models": [deepseek_codex_entry(), kimi_codex_entry()]}
     catalog_path.write_text(json.dumps(catalog, indent=2) + "\n")
 
-    for path in (pi_path, litellm_path, catalog_path):
+    for path in (*model_paths, litellm_path, catalog_path):
         print(f"Wrote {path}")
 
     if not args.include_opus:

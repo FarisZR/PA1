@@ -1,0 +1,50 @@
+# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+job_name: opencode-v2-luna
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 10
+environment:
+  type: docker
+datasets:
+- path: ../DeepSWE/tasks
+  task_names:
+  - expr-try-catch-errors
+  - katex-multicolumn-array-spans
+  - python-statemachine-state-data-scoping
+  - oxvg-structural-selector-preservation
+  - effect-sse-httpapi-streaming
+  - scriggo-method-declarations
+  - csstree-shorthand-expansion-compression
+  - fastapi-implicit-head-options
+  - boa-hierarchical-evaluation-cancellation
+  - koota-composite-trait-aspects
+agents:
+- name: opencode
+  model_name: litellm/gpt-5.6-luna
+  env:
+    LITELLM_API_KEY: ${LITELLM_API_KEY}
+    LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+  kwargs:
+    version: 0.0.0-beta-18684
+    variant: max
+    opencode_config:
+      autoupdate: false
+      providers:
+        litellm:
+          name: LiteLLM
+          env:
+          - LITELLM_API_KEY
+          package: '@opencode-ai/ai/providers/openai-compatible/responses'
+          settings:
+            baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
+          models:
+            gpt-5.6-luna:
+              modelID: gpt-5.6-luna
+              name: GPT-5.6 Luna
+              limit:
+                context: 272000
+                output: 128000
+              variants:
+              - id: max
+                settings:
+                  reasoningEffort: max

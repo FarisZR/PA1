@@ -1,0 +1,50 @@
+# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+job_name: opencode-v2-kimi-k3
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 10
+environment:
+  type: docker
+datasets:
+- path: ../DeepSWE/tasks
+  task_names:
+  - expr-try-catch-errors
+  - katex-multicolumn-array-spans
+  - python-statemachine-state-data-scoping
+  - oxvg-structural-selector-preservation
+  - effect-sse-httpapi-streaming
+  - scriggo-method-declarations
+  - csstree-shorthand-expansion-compression
+  - fastapi-implicit-head-options
+  - boa-hierarchical-evaluation-cancellation
+  - koota-composite-trait-aspects
+agents:
+- name: opencode
+  model_name: litellm/kimi-k3
+  env:
+    LITELLM_API_KEY: ${LITELLM_API_KEY}
+    LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+  kwargs:
+    version: 0.0.0-beta-18684
+    variant: max
+    opencode_config:
+      autoupdate: false
+      providers:
+        litellm:
+          name: LiteLLM
+          env:
+          - LITELLM_API_KEY
+          package: '@opencode-ai/ai/providers/openai-compatible/responses'
+          settings:
+            baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
+          models:
+            kimi-k3:
+              modelID: kimi-k3
+              name: Kimi K3
+              limit:
+                context: 1048576
+                output: 131072
+              variants:
+              - id: max
+                settings:
+                  reasoningEffort: max
