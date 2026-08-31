@@ -19,6 +19,7 @@ CURRENT_MODEL_CONFIGS = {
     "luna.yaml": 0,
 }
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
+CLAUDE_OUTPUT_OVERRIDE = "CLAUDE_CODE_MAX_OUTPUT_TOKENS"
 
 CODEX_MODELS_PATH = BENCHMARK_DIR / "references" / "codex-rust-v0.151.0-models.json"
 CODEX_MODELS_SHA256 = "eb0d7b9a5dcaf103895c5f8a14c16b269df46e039b375a55ba97f6238542d2ed"
@@ -217,6 +218,21 @@ def render_model_config(path: Path, base_url: str, expected_sentinels: int) -> s
     return rendered
 
 
+def validate_claude_output_policy() -> None:
+    """Keep Claude Code on its native per-model output-token behavior."""
+    offenders = [
+        path.name
+        for path in sorted(CONFIG_DIR.glob("*.yaml"))
+        if CLAUDE_OUTPUT_OVERRIDE in path.read_text()
+    ]
+    if offenders:
+        joined = ", ".join(offenders)
+        raise SystemExit(
+            f"Remove {CLAUDE_OUTPUT_OVERRIDE} from benchmark configs: {joined}. "
+            "PA1 intentionally leaves Claude Code's output limit unset."
+        )
+
+
 def main() -> None:
     """Generate endpoint-dependent Pi and Codex configuration files."""
     parser = argparse.ArgumentParser()
@@ -229,6 +245,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.env_file:
         load_env_file(args.env_file)
+
+    validate_claude_output_policy()
 
     litellm_url = require("LITELLM_OPENAI_BASE_URL")
     opus_bridge_url = (

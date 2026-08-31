@@ -136,12 +136,11 @@ the one it assumes for the model ID, which is 1,000,000 for an unrecognized
 `[1m]` alias, so the effective threshold is 1,000,000 and the declared value is
 the model's context rather than the reachable ceiling.
 
-Every Claude Code cell also sets three variables that only matter because the
-gateway aliases are model IDs Claude Code does not recognize:
+Every Claude Code cell also sets two timeout variables that only matter because
+the requests are routed through a gateway rather than directly to Anthropic:
 
 | Variable | Value | Why |
 | --- | --- | --- |
-| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `64000` | Claude Code defaults to 32,000 output tokens for an unrecognized model ID. Pi's bundled metadata gives these same models 128,000 (Luna), 131,072 (Kimi), and 384,000 (DeepSeek), so the default would cap the harness under test at a quarter of what the others get while reasoning effort is `max`. 64,000 sits under every model's real cap, so Claude Code does not silently lower it, and stays a small enough share of each window to limit the context Claude Code reserves for output. |
 | `API_FORCE_IDLE_TIMEOUT` | `0` | Turns off the 5-minute body idle timeout, which is active by default on any provider other than the direct Anthropic API. At `max` reasoning a silent thinking pause can exceed it. |
 | `CLAUDE_STREAM_IDLE_TIMEOUT_MS` | `1800000` | Raises both the event- and byte-level streaming idle watchdogs to 30 minutes, the byte-level cap. Claude Code counts gateway-relayed bytes including SSE pings and aborts a silent stream; a gateway that strips or buffers pings during a long thinking pause would otherwise abort the trial. |
 
@@ -149,6 +148,45 @@ These are documented in [Claude Code environment variables](https://code.claude.
 and [Model configuration](https://code.claude.com/docs/en/model-config#correct-the-window-for-a-gateway-or-custom-model-id).
 The deferred Opus job sets none of them: `claude-opus-5` is a model ID Claude
 Code recognizes, and it connects to the Anthropic API directly.
+
+#### Claude Code output-token policy
+
+PA1 deliberately leaves `CLAUDE_CODE_MAX_OUTPUT_TOKENS` unset. Claude Code
+documents a 32,000-token default for model IDs it does not recognize, including
+gateway-specific names. The earlier benchmark configuration overrode this with
+64,000 tokens. That override was removed because it was a PA1-specific policy,
+not a requirement of the models or their official Claude Code integrations.
+
+The model-level limits are substantially larger: [Kimi K3's API defaults
+`max_completion_tokens` to 131,072](https://www.kimi.ai/help/kimi-api/api-troubleshooting),
+while [DeepSeek V4 Flash 0731 documents a 384K maximum output](https://api-docs.deepseek.com/quick_start/pricing/).
+Their official Claude Code setup instructions do not set
+`CLAUDE_CODE_MAX_OUTPUT_TOKENS`; they configure model routing, reasoning and
+context behavior and leave Claude Code's output policy intact. See
+[Claude Code environment variables](https://code.claude.com/docs/en/env-vars),
+[Kimi's Claude Code integration](https://www.kimi.com/code/docs/en/third-party-tools/claude-code.html),
+and [DeepSeek's Claude Code integration](https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/).
+
+An acceptance run also showed that Claude Code 2.1.251 treats an exhausted
+output budget as an intermediate generation boundary rather than necessarily a
+terminal agent failure. A DeepSeek V4 Flash turn reached 63,999 completion
+tokens with `stop_reason: max_tokens`, emitted neither visible text nor a tool
+call, and Claude Code immediately issued a follow-up request in the same
+session. The model continued the task, resumed tool execution, and the run later
+ended normally with `stop_reason: end_turn`. The smaller native default can
+therefore add another model request and its associated input/cache cost, but
+that behavior belongs to the Claude Code harness being measured.
+
+The other harnesses are intentionally unchanged. Pi uses its model metadata and
+request-specific context clamping (for example 131,072 for Kimi K3 and 384,000
+for DeepSeek V4 Flash). The PA1 Codex configuration does not set an output-token
+limit; its generated third-party model catalog only carries identity, context,
+modality and reasoning metadata on top of the frozen Codex profile. This keeps
+completion-limit policy harness-native instead of normalizing it in PA1.
+
+The config generator rejects any future reintroduction of
+`CLAUDE_CODE_MAX_OUTPUT_TOKENS` under `benchmark/configs/` so generated trial
+files cannot silently restore the removed override.
 
 ### Pi
 
