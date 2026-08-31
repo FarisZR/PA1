@@ -175,12 +175,36 @@ Before a primary batch, also run the full pilot-task acceptance job described in
 
 ## Known behavior to watch
 
-- **Codex context accounting.** CLIProxyAPI carries reasoning in the Responses
-  `summary` field with an empty `encrypted_content`. Codex's local context
-  estimator treats reasoning items with `encrypted_content` specially, so its
-  *estimate* of older reasoning can read as zero. This does not change what the
-  model receives: the bridge still reconstructs the exact `reasoning_content`
-  upstream. It is a local token-accounting concern for very long tasks only.
+- **Codex context accounting — investigated, not a defect on this path.**
+  CLIProxyAPI carries reasoning in the Responses `summary` field with no
+  `encrypted_content`, and Codex's `get_non_last_reasoning_items_tokens` only
+  counts reasoning items matching `encrypted_content: Some(_)`, so that term is
+  always zero here. That term is a *correction*, applied only when the
+  `x-reasoning-included` response header is absent — an OpenAI-backend header the
+  bridge does not send — and it exists to compensate for a server that did not
+  bill historical reasoning.
+
+  On this path the server does bill it. The bridge replays reasoning as
+  `reasoning_content` in the upstream body, so Fireworks charges it as prompt
+  tokens, and those land in Codex's base term via the usage mapping. Measured on
+  the 83 logged requests of a real Codex trial: the largest body was 578,035
+  characters of which 222,644 were replayed reasoning, at 3.61 characters per
+  reported prompt token. Excluding the reasoning would imply 2.22 characters per
+  token, which no tokenizer produces on this content — the reasoning is counted.
+
+  Skipping the correction is therefore correct rather than lossy; applying it
+  would double-count. Across 74 adjacent turn pairs, Codex's base
+  (`total_tokens` of the previous response) never exceeded the next request's
+  real `prompt_tokens`, and every gap was attributable to locally added items
+  that Codex estimates separately.
+
+  This holds *because* the bridge replays reasoning upstream. The three-turn
+  contract test asserts exactly that, so it also guards this property.
+
+  Note the practical guard here is the 1,048,576-token context window, not
+  auto-compaction: the Sol profile sets `auto_compact_token_limit: null`, which
+  leaves `auto_compact_scope_limit` unset so only the full-window cap applies.
+  The trial peaked around 160,000 tokens.
 - **Unpinned metadata refresh.** CLIProxyAPI fetches a model-metadata catalog
   and its management-panel asset from GitHub at startup and every three hours.
   Those entries are keyed by OAuth provider and do not govern the
