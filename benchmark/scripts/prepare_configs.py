@@ -133,7 +133,7 @@ def deepseek_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
     """Return DeepSeek metadata on top of the frozen GPT-5.6 Sol profile."""
     return third_party_codex_entry(
         sol_profile,
-        slug="deepseek-v4-flash-0731",
+        slug="deepseek-v4-flash",
         display_name="DeepSeek V4 Flash 0731",
         description="DeepSeek V4 Flash 0731",
         context_window=1_048_576,

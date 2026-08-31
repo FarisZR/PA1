@@ -22,7 +22,7 @@ models:
     source: https://developers.openai.com/api/docs/models
 
   # DeepSeek official off-peak pricing, USD per 1M tokens.
-  deepseek-v4-flash-0731:
+  deepseek-v4-flash:
     provider: deepseek
     input: 0.22
     cached_input: 0.007

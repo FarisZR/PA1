@@ -186,20 +186,20 @@ Anthropic-compatible surface.
 
 ```text
 gpt-5.6-luna
-deepseek-v4-flash-0731
+deepseek-v4-flash
 deepseek-v4-flash
 kimi-k3
 ```
 
 `deepseek-v4-flash` is needed by Pi because that is Pi's native stable DeepSeek
 model ID. It must route to the same V4 Flash 0731 checkpoint as
-`deepseek-v4-flash-0731`.
+`deepseek-v4-flash`.
 
 ### Claude Code aliases
 
 ```text
 gpt-5.6-luna[1m]
-deepseek-v4-flash-0731[1m]
+deepseek-v4-flash[1m]
 kimi-k3[1m]
 ```
 

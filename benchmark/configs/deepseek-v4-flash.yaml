@@ -45,11 +45,11 @@ agents:
             baseUrl: __LITELLM_OPENAI_BASE_URL__
 
   - name: claude-code
-    model_name: deepseek-v4-flash-0731[1m]
+    model_name: deepseek-v4-flash[1m]
     env:
       ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
-      ANTHROPIC_DEFAULT_FABLE_MODEL: deepseek-v4-flash-0731[1m]
+      ANTHROPIC_DEFAULT_FABLE_MODEL: deepseek-v4-flash[1m]
       CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1048576"
       CLAUDE_CODE_MAX_OUTPUT_TOKENS: "64000"
       API_FORCE_IDLE_TIMEOUT: "0"
@@ -60,12 +60,12 @@ agents:
       reasoning_effort: max
 
   - name: codex
-    model_name: deepseek/deepseek-v4-flash-0731
+    model_name: deepseek/deepseek-v4-flash
     env:
       LITELLM_API_KEY: ${LITELLM_API_KEY}
     kwargs:
       version: "0.151.0"
-      command_model_name: deepseek-v4-flash-0731
+      command_model_name: deepseek-v4-flash
       reasoning_effort: max
       restrict_model_catalog: true
       model_catalog_file: benchmark/generated/codex-thirdparty-models.json
