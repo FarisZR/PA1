@@ -4,7 +4,15 @@ n_attempts: 1
 n_concurrent_trials: 10
 retry:
   max_retries: 1
-  exclude_exceptions: []
+  # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
+  # result on this task set, and verifier/reward failures are grading faults, so
+  # re-running a whole trial for either would corrupt the measurement.
+  exclude_exceptions:
+    - AgentTimeoutError
+    - VerifierTimeoutError
+    - RewardFileNotFoundError
+    - RewardFileEmptyError
+    - VerifierOutputParseError
 
 environment:
   type: docker
@@ -42,7 +50,10 @@ agents:
       ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
       ANTHROPIC_DEFAULT_FABLE_MODEL: deepseek-v4-flash-0731[1m]
-      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1048576"
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1000000"
+      CLAUDE_CODE_MAX_OUTPUT_TOKENS: "64000"
+      API_FORCE_IDLE_TIMEOUT: "0"
+      CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
       DISABLE_AUTOUPDATER: "1"
     kwargs:
       version: "2.1.251"
