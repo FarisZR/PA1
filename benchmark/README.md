@@ -175,7 +175,35 @@ mapped from `--thinking` by the bundled `thinkingLevelMap` (`max` -> `"max"`).
 `modelOverrides` is the topmost `models.json` layer and merges `compat`, so the
 bundled cost/context metadata and DeepSeek's required reasoning-content echo
 are preserved. Verified against pi 0.84.4: the request carries only
-`reasoning_effort: "max"` afterwards. Kimi and Luna need no override.
+`reasoning_effort: "max"` afterwards.
+
+The underlying rule is a property of the gateway's Fireworks route, not of one
+model: it rejects `thinking` and `reasoning_effort` together, and accepts either
+one alone. Both Fireworks-backed aliases were probed directly against the
+gateway, and both behave identically — `deepseek-v4-flash` and `kimi-k3` each
+return HTTP 200 for `reasoning_effort` alone and HTTP 400 for the pair. Any
+further Fireworks model added to Pi must therefore be checked for a bundled
+`thinkingFormat` that emits two controls.
+
+Kimi K3 needs no override: its bundled entry already declares
+`thinkingFormat: "openai"` with `supportsReasoningEffort: true`, and a captured
+request confirms it sends `reasoning_effort: "max"` alone. Luna needs none
+either; it is an OpenAI model that the gateway forwards to OpenAI, so the
+Fireworks restriction does not apply to it.
+
+Reasoning is also confirmed to be genuinely on at `max` for both Fireworks
+models: sampled against the gateway, `reasoning_effort: "max"` returns non-empty
+`reasoning_content` and non-zero `reasoning_tokens` for `kimi-k3` and
+`deepseek-v4-flash` alike, while `"none"` returns none. `--thinking max` is
+therefore a real setting on this route rather than a silently ignored one.
+
+Pi's own provider entries are kept and patched per model rather than replaced by
+a single custom gateway provider. Declaring the gateway as a new provider makes
+Pi lose its vendor-specific compatibility detection: a captured request for such
+a provider switches the system message to the `developer` role, adds
+`store: false`, sends `max_completion_tokens` instead of `max_tokens`, and drops
+Kimi's bundled `deferredToolsMode: "kimi"`. Those are harness behaviors under
+test, so per-model `modelOverrides` is the smaller deviation.
 
 ## Checkout layout
 

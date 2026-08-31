@@ -43,6 +43,11 @@ agents:
       pi_config:
         providers:
           moonshotai:
+            # No thinkingFormat override here, unlike deepseek-v4-flash.yaml.
+            # The gateway's Fireworks route rejects `thinking` and
+            # `reasoning_effort` in the same request, but Pi's bundled Kimi K3
+            # entry already declares compat.thinkingFormat "openai" and sends
+            # `reasoning_effort` alone, so the request is accepted as is.
             baseUrl: __LITELLM_OPENAI_BASE_URL__
             apiKey: $MOONSHOT_API_KEY
 
