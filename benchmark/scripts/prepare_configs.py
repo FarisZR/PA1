@@ -357,10 +357,6 @@ def cliproxy_config(
     if opus_entry is not None:
         if not anthropic_api_key:
             raise SystemExit("Missing required environment variable: ANTHROPIC_API_KEY")
-        levels = [
-            str(level["effort"])
-            for level in opus_entry["supported_reasoning_levels"]  # type: ignore[index]
-        ]
         lines.extend(
             [
                 "",
@@ -372,16 +368,12 @@ def cliproxy_config(
                 "claude-api-key:",
                 f"  - api-key: {yaml_quote(anthropic_api_key)}",
                 "    models:",
-                f"      - name: {yaml_quote(str(opus_entry['slug']))}",
-                f"        alias: {yaml_quote(str(opus_entry['slug']))}",
-                f"        display-name: {yaml_quote(str(opus_entry['display_name']))}",
-                f"        max-context-length: {int(opus_entry['context_window'])}",
-                "        thinking:",
-                "          levels: ["
-                + ", ".join(yaml_quote(level) for level in levels)
-                + "]",
             ]
         )
+        # Same renderer as the gateway routes: keeps the Opus entry's
+        # ["text", "image"] input-modalities and reasoning levels in sync with
+        # the generated Codex catalog instead of restating them here.
+        lines.extend(cliproxy_model_block(opus_entry))
 
     return "\n".join(lines) + "\n"
 
@@ -486,7 +478,11 @@ def main() -> None:
     )
 
     GENERATED_DIR.mkdir(parents=True, exist_ok=True)
-    (GENERATED_DIR / "cliproxy-logs").mkdir(exist_ok=True)
+    # request-log records prompts and unredacted Authorization headers, so the
+    # directory must be owner-only — including when it already exists.
+    logs_dir = GENERATED_DIR / "cliproxy-logs"
+    logs_dir.mkdir(mode=0o700, exist_ok=True)
+    logs_dir.chmod(0o700)
     for obsolete in (
         "pi.yaml",
         "codex-provenance.json",

@@ -27,6 +27,7 @@ import re
 import sys
 import urllib.error
 import urllib.request
+import uuid
 from pathlib import Path
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[3]
@@ -47,8 +48,21 @@ def check(condition: bool, label: str, detail: str = "") -> None:
     print(f"  FAIL  {label}" + (f"\n        {detail}" if detail else ""))
 
 
-def codex_request(model: str, effort: str) -> dict:
+def skip(label: str, detail: str = "") -> None:
+    """Record an inconclusive assertion: neither pass nor failure."""
+    print(f"  SKIP  {label}" + (f"\n        {detail}" if detail else ""))
+
+
+# Unique per run so logged upstream bodies can be correlated with *this*
+# request instead of whatever entry happens to be newest in the log files.
+MARKER_PREFIX = "pa1-live-acceptance"
+
+
+def codex_request(model: str, effort: str, marker: str | None = None) -> dict:
     """Build a request shaped like Codex 0.151.0's Responses payload."""
+    text = "List the files in the current directory."
+    if marker:
+        text += f" [{MARKER_PREFIX}:{marker}]"
     return {
         "model": model,
         "instructions": "You are Codex, based on GPT-5.",
@@ -59,7 +73,7 @@ def codex_request(model: str, effort: str) -> dict:
                 "content": [
                     {
                         "type": "input_text",
-                        "text": "List the files in the current directory.",
+                        "text": text,
                     }
                 ],
             }
@@ -119,6 +133,27 @@ def sse_events(body: str) -> list[dict]:
     return [json.loads(match) for match in re.findall(r"^data: (\{.*\})$", body, re.M)]
 
 
+def is_payload_rejection(status: int, body: str) -> bool:
+    """True only when the gateway rejected the Codex payload itself.
+
+    The issue #31 control requires the gateway's own validation to reject this
+    request shape (HTTP 400 naming the offending fields). Transport failures
+    (status 0), authentication problems, DNS/TLS errors, and 5xx responses
+    prove nothing about how the gateway treats the payload.
+    """
+    if status != 400:
+        return False
+    lowered = body.lower()
+    return any(
+        hint in lowered
+        for hint in (
+            "client_metadata",
+            "extra inputs are not permitted",
+            "reasoning_effort",
+        )
+    )
+
+
 def newest_upstream_bodies(since: float) -> list[dict]:
     """Return upstream request bodies from bridge logs written after `since`."""
     bodies: list[dict] = []
@@ -163,17 +198,33 @@ def main() -> int:
         print(f"\n=== {model} (reasoning effort: {args.effort}) ===")
 
         status, body = post(gateway_url, gateway_key, codex_request(model, args.effort))
-        check(
-            status != 200,
-            f"{model}: direct gateway still rejects the Codex request",
-            f"HTTP {status}; the issue #31 defect appears to be fixed upstream, "
-            "so re-evaluate whether the bridge is still required",
-        )
-        if status != 200:
+        if is_payload_rejection(status, body):
+            check(
+                True,
+                f"{model}: direct gateway still rejects the Codex request",
+            )
             print(f"        (control) direct gateway HTTP {status}: {body[:200]}")
+        elif status == 200:
+            check(
+                False,
+                f"{model}: direct gateway still rejects the Codex request",
+                "the gateway accepted the Codex payload; the issue #31 defect "
+                "appears to be fixed upstream, so re-evaluate whether the "
+                "bridge is still required",
+            )
+        else:
+            skip(
+                f"{model}: direct gateway rejection inconclusive (HTTP {status})",
+                "expected a 400 validation error naming the Codex payload "
+                "fields; transport, DNS, TLS, authentication, and server "
+                f"failures prove nothing about the payload. Body: {body[:200]}",
+            )
 
         started = time.time() - 1
-        status, body = post(bridge_url, bridge_key, codex_request(model, args.effort))
+        marker = f"{model}-{uuid.uuid4().hex[:12]}"
+        status, body = post(
+            bridge_url, bridge_key, codex_request(model, args.effort, marker)
+        )
         check(
             status == 200,
             f"{model}: same request succeeds through the bridge",
@@ -207,14 +258,26 @@ def main() -> int:
         print(f"        usage: {json.dumps(usage)}")
 
         bodies = newest_upstream_bodies(started)
-        if not bodies:
-            print(
-                "  SKIP  upstream body inspection: no bridge request logs found.\n"
-                "        Set CODEX_CLIPROXY_REQUEST_LOG=true, regenerate, and "
-                "restart the bridge to enable it."
+        # Only bodies carrying this request's unique marker belong to it; log
+        # files may also hold older or concurrent requests.
+        latest = next(
+            (
+                body
+                for body in bodies
+                if f"[{MARKER_PREFIX}:{marker}]" in json.dumps(body)
+            ),
+            None,
+        )
+        if latest is None:
+            hint = (
+                "no bridge request logs found. Set "
+                "CODEX_CLIPROXY_REQUEST_LOG=true, regenerate, and restart the "
+                "bridge to enable it."
+                if not bodies
+                else "no logged upstream body contains this request's marker."
             )
+            skip(f"{model}: upstream body inspection", hint)
             continue
-        latest = bodies[-1]
         check(
             "client_metadata" not in latest,
             f"{model}: real upstream request has no client_metadata",
