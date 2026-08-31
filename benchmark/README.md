@@ -32,7 +32,7 @@ Each primary model job contains:
 - 10 selected DeepSWE tasks
 - 1 attempt per task
 - 1 automatic retry, for transport/gateway faults only
-- `n_concurrent_trials: 10`
+- `n_concurrent_trials: 14`
 
 That is **30 planned trials per model job** and 90 planned trials in the current
 primary batch. Successful trials run once. A trial that fails with a

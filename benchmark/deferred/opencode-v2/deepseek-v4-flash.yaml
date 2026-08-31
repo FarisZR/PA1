@@ -2,7 +2,7 @@
 job_name: opencode-v2-deepseek-v4-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 10
+n_concurrent_trials: 14
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
