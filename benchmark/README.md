@@ -164,6 +164,19 @@ openai/gpt-5.6-luna
 Pi has no native subagent system in this benchmark setup. Pier launches the
 selected provider/model explicitly in non-interactive print mode.
 
+DeepSeek needs one compatibility override. Pi's bundled `deepseek-v4-flash`
+entry declares `compat.thinkingFormat: "deepseek"`, and that request builder
+sends `thinking: {type: "enabled"}` *and* `reasoning_effort` together; the
+gateway's Fireworks route rejects that pair with HTTP 400 before the first
+turn. `benchmark/configs/deepseek-v4-flash.yaml` therefore sets
+`thinkingFormat: openai` for that one model through `modelOverrides`, which is
+the same format Pi's bundled Kimi K3 entry uses: a single `reasoning_effort`,
+mapped from `--thinking` by the bundled `thinkingLevelMap` (`max` -> `"max"`).
+`modelOverrides` is the topmost `models.json` layer and merges `compat`, so the
+bundled cost/context metadata and DeepSeek's required reasoning-content echo
+are preserved. Verified against pi 0.84.4: the request carries only
+`reasoning_effort: "max"` afterwards. Kimi and Luna need no override.
+
 ## Checkout layout
 
 Run Pier commands from the PA1 repository root. The expected sibling layout is:
