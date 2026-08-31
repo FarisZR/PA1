@@ -187,13 +187,11 @@ Anthropic-compatible surface.
 ```text
 gpt-5.6-luna
 deepseek-v4-flash
-deepseek-v4-flash
 kimi-k3
 ```
 
-`deepseek-v4-flash` is needed by Pi because that is Pi's native stable DeepSeek
-model ID. It must route to the same V4 Flash 0731 checkpoint as
-`deepseek-v4-flash`.
+`deepseek-v4-flash` is the stable DeepSeek model ID used by all three harnesses.
+The gateway maps it to the V4 Flash 0731 checkpoint.
 
 ### Claude Code aliases
 
@@ -221,13 +219,14 @@ cp benchmark/env.example benchmark/env.local
 chmod 600 benchmark/env.local
 ```
 
-Fill these three values:
+Fill these four values:
 
 | Variable | Used by | Meaning |
 | --- | --- | --- |
 | `LITELLM_API_KEY` | all three harnesses | Credential for the existing LiteLLM gateway |
 | `LITELLM_OPENAI_BASE_URL` | Pi, Codex | OpenAI-compatible base URL, normally ending in `/v1` |
 | `LITELLM_ANTHROPIC_BASE_URL` | Claude Code | Anthropic-compatible base URL |
+| `PIER_EXTRA_CA_CERTS` | all three harnesses | Absolute path to a PEM bundle of private CA roots the trial containers must trust. Required on this runner: the gateway serves an internal IONOS PUKI certificate that containers do not trust by default, and without it every trial fails its first model call. `benchmark/env.example` has the command that builds the bundle. |
 
 No Anthropic/Opus credential is required for the current batch.
 `benchmark/env.local` is ignored by Git.
