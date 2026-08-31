@@ -1,12 +1,12 @@
 # Additional variables needed only when the deferred Opus runs are enabled.
 
-# Direct upstream Anthropic credential used by Pi/Claude Code and by the
-# dedicated Codex Responses->Anthropic bridge for its outbound request.
+# Direct upstream Anthropic credential. Pi and Claude Code use it to reach
+# api.anthropic.com, and the CLIProxyAPI bridge uses it for Codex's outbound
+# Anthropic Messages requests.
 ANTHROPIC_API_KEY=
 
-# Bridge-local authentication token chosen by us, not an Anthropic key.
-CODEX_OPUS_RESPONSES_API_KEY=
-
-# HTTPS /v1 endpoint exposing benchmark/bridges/codex-opus to Pier containers.
-# It must not point at the shared LiteLLM gateway.
-CODEX_OPUS_RESPONSES_BASE_URL=https://opus-responses-bridge.example/v1
+# Nothing else is required. Codex reaches Opus through the same
+# benchmark/bridges/codex-cliproxy deployment as DeepSeek and Kimi, using the
+# CODEX_CLIPROXY_* variables already in benchmark/env.local. Regenerate with
+# --include-opus so claude-opus-5 is added to the bridge's routes, then restart
+# the bridge.

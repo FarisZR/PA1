@@ -10,11 +10,12 @@ Run these steps in this order:
 
 1. `benchmark/configs/smoke-test.yaml` — Luna low on one pilot task, all three runnable harnesses
 2. generate the deployment-specific primary files with `prepare_configs.py`
-3. one-task Kimi gateway acceptance run using `benchmark/generated/kimi-k3.yaml`
-4. `benchmark/generated/kimi-k3.yaml` — **highest-priority primary job**
-5. one-task DeepSeek gateway acceptance run using `benchmark/generated/deepseek-v4-flash.yaml`
-6. `benchmark/generated/deepseek-v4-flash.yaml`
-7. `benchmark/generated/luna.yaml`
+3. start the Codex compatibility bridge under `benchmark/bridges/codex-cliproxy/`
+4. one-task Kimi gateway acceptance run using `benchmark/generated/kimi-k3.yaml`
+5. `benchmark/generated/kimi-k3.yaml` — **highest-priority primary job**
+6. one-task DeepSeek gateway acceptance run using `benchmark/generated/deepseek-v4-flash.yaml`
+7. `benchmark/generated/deepseek-v4-flash.yaml`
+8. `benchmark/generated/luna.yaml`
 
 The primary files under `benchmark/configs/` are source templates. Do not launch
 the Kimi or DeepSeek templates directly: their Pi endpoint placeholder is
@@ -62,6 +63,7 @@ update these revisions between jobs in the primary batch.
 | Claude Code | `2.1.251` |
 | Pi | `0.84.4` |
 | Codex model catalog | `rust-v0.151.0` vendored at `benchmark/references/codex-rust-v0.151.0-models.json` |
+| Codex compatibility bridge | CLIProxyAPI `v7.2.146`, digest `sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163` |
 
 The DeepSWE revision includes the upstream 10,800-second task timeout. Claude
 Code runs with its updater disabled. Pier writes `lock.json` into each job
@@ -110,14 +112,42 @@ For DeepSeek, Kimi, and deferred Opus, the Sol profile is preserved except for:
 - model identity/display metadata;
 - model-specific context, modality, and supported reasoning metadata;
 - `multi_agent_version: "v1"` because non-GPT models use Codex Multi-Agent V1;
-- `use_responses_lite: false` because these third-party LiteLLM routes use the
-  normal Responses path.
+- `use_responses_lite: false` because these third-party routes use the normal
+  Responses path.
 
 This preserves the rest of the current-release Sol behavior, including
 `tool_mode: "code_mode_only"`, parallel tool calls,
 the Sol system/profile instructions, and `auto_compact_token_limit: null`.
 DeepSeek keeps the Codex compaction field and explicitly sets Claude Code
 `CLAUDE_CODE_AUTO_COMPACT_WINDOW=1048576`.
+
+#### Codex compatibility bridge
+
+Codex's Responses requests are **not** sent to the LiteLLM gateway for the
+third-party models. Codex 0.151.0 unconditionally attaches `client_metadata`,
+and the gateway forwards the Responses `reasoning` object into `reasoning_effort`
+as an object, so the Fireworks-backed routes reject every request (PA1 issue
+[#31](https://github.com/FarisZR/PA1/issues/31)). DeepSeek, Kimi, and the
+deferred Opus therefore route through a pinned CLIProxyAPI instance that
+translates Responses to Chat Completions in front of the same gateway:
+
+```text
+Codex -> Responses -> CLIProxyAPI -> Chat Completions -> LiteLLM -> Fireworks
+```
+
+Luna stays on the direct native Responses path, because it is OpenAI-backed and
+works unchanged.
+
+This is a transport fix, not a harness change: the Codex model catalog, prompt,
+reasoning effort, and reasoning-summary settings are all unchanged, and the
+bridge is configured so it cannot retry, cool down a credential, or fall back to
+another model. One consequence is load-bearing and worth restating here: the
+bridge snaps an unknown `reasoning.effort` down to the nearest level it knows,
+so `prepare_configs.py` derives its declared reasoning levels from the same
+Codex catalog entries, and PA1's `max` requests reach Fireworks as `max`.
+
+Setup, the pinned digest, the acceptance tests, and the known caveats are in
+[`benchmark/bridges/codex-cliproxy/README.md`](bridges/codex-cliproxy/README.md).
 
 ### Claude Code
 
@@ -242,10 +272,12 @@ kimi-k3[1m]
 The `[1m]` suffix is Claude Code compatibility metadata, not a different model.
 Each alias must resolve to the same checkpoint as its unsuffixed counterpart.
 
-For Kimi/Codex, the existing LiteLLM route must preserve the compatibility
-behavior supplied by Kimi's documented CC Switch path: thinking enabled,
-`reasoning_effort` forwarded, and reasoning content preserved across tool-call
-turns. PA1 does not reimplement that translation.
+The gateway needs to serve Kimi and DeepSeek correctly on **Chat Completions**
+for Codex, not on Responses: thinking enabled, a string `reasoning_effort`
+forwarded, and `reasoning_content` accepted on historical assistant messages.
+The Responses/Chat translation itself is done by the pinned Codex compatibility
+bridge, which is why PA1 no longer depends on the gateway's own Responses
+translation for these models.
 
 ## Current environment variables
 
@@ -257,14 +289,18 @@ cp benchmark/env.example benchmark/env.local
 chmod 600 benchmark/env.local
 ```
 
-Fill these four values:
+Fill these values:
 
 | Variable | Used by | Meaning |
 | --- | --- | --- |
-| `LITELLM_API_KEY` | all three harnesses | Credential for the existing LiteLLM gateway |
-| `LITELLM_OPENAI_BASE_URL` | Pi, Codex | OpenAI-compatible base URL, normally ending in `/v1` |
+| `LITELLM_API_KEY` | all three harnesses | Credential for the existing LiteLLM gateway. Codex reaches it indirectly, through the bridge. |
+| `LITELLM_OPENAI_BASE_URL` | Pi, bridge | OpenAI-compatible base URL, normally ending in `/v1` |
 | `LITELLM_ANTHROPIC_BASE_URL` | Claude Code | Anthropic-compatible base URL |
 | `PIER_EXTRA_CA_CERTS` | all three harnesses | Absolute path to the tracked `benchmark/puki-root-ca-2022.pem` bundle containing both public PUKI Root CA 2022 RSA and EC certificates. Required on this runner: the gateway serves an internal IONOS PUKI certificate that containers do not trust by default, and without it every trial fails its first model call. |
+| `CODEX_CLIPROXY_BASE_URL` | Codex | `/v1` endpoint of the compatibility bridge as seen from a trial container. Must be on port 80 or 443 and must not be a dotless bare hostname; `prepare_configs.py` rejects both. |
+| `CODEX_CLIPROXY_API_KEY` | Codex | Token Codex presents to the bridge. Chosen locally; not a gateway or vendor credential. |
+| `CODEX_CLIPROXY_BIND`, `CODEX_CLIPROXY_PORT` | bridge | Host address and port the bridge publishes on. Must match `CODEX_CLIPROXY_BASE_URL`. |
+| `CODEX_CLIPROXY_REQUEST_LOG` | bridge | Log full request bodies for the live acceptance check. Keep `false` for benchmark jobs; it records every prompt verbatim. |
 
 No Anthropic/Opus credential is required for the current batch.
 `benchmark/env.local` is ignored by Git.
@@ -279,7 +315,13 @@ Network access is needed only for normal repository/package setup such as Git
 clone/fetch and harness installation.
 
 The Pier task containers must be able to resolve and reach the configured
-LiteLLM hosts through the runner's Docker/network/firewall setup.
+LiteLLM hosts through the runner's Docker/network/firewall setup, and — for
+Codex — the Codex compatibility bridge on the runner host.
+
+Pier gives each trial a filtered egress proxy that permits only plain HTTP to
+port 80 and HTTPS to port 443, on hostnames it derives from the configured base
+URLs. That is why the bridge is published on port 80 of the Docker bridge
+gateway rather than on CLIProxyAPI's own port.
 
 ### 1. Pin DeepSWE
 
@@ -359,29 +401,61 @@ This writes ignored deployment-specific files:
 benchmark/generated/kimi-k3.yaml
 benchmark/generated/deepseek-v4-flash.yaml
 benchmark/generated/luna.yaml
-benchmark/generated/codex-litellm.toml
+benchmark/generated/codex-cliproxy.toml        # Codex -> compatibility bridge
+benchmark/generated/cliproxy-config.yaml       # bridge deployment config (0600)
+benchmark/generated/codex-litellm.toml         # direct route; control only
 benchmark/generated/codex-thirdparty-models.json
 ```
 
 The three generated YAML files correspond directly to the three source templates
 in `benchmark/configs/`. Generation resolves the nested Pi endpoint placeholder,
-writes the Codex LiteLLM provider TOML, and builds the restricted third-party
-Codex catalog. It verifies the expected placeholder count and the SHA-256 of the
-vendored Codex catalog before writing the run set, so a stale template/reference
-fails generation instead of leaving a partially updated configuration.
+writes the Codex provider TOML and the bridge's deployment config, and builds
+the restricted third-party Codex catalog. It verifies the expected placeholder
+count and the SHA-256 of the vendored Codex catalog before writing the run set,
+so a stale template/reference fails generation instead of leaving a partially
+updated configuration.
+
+`codex-litellm.toml` is the direct corporate-gateway Codex route. No job uses
+it; it is kept so the issue #31 failure can be reproduced as a control.
+
+`cliproxy-config.yaml` contains live credentials and is written mode 0600.
 
 The Codex catalog contains only DeepSeek and Kimi because Luna uses Codex's
 bundled first-party model entry. DeepSeek and Kimi are cloned from the vendored
 GPT-5.6 Sol entry; no upstream file is fetched while generating these artifacts.
+
+### 5b. Start the Codex compatibility bridge
+
+Required before any Kimi or DeepSeek job, and before the acceptance runs below.
+Luna does not need it.
+
+```bash
+cd ~/PA1/benchmark/bridges/codex-cliproxy
+docker compose --env-file ../../env.local up -d
+docker compose ps          # expect: healthy
+```
+
+Verify the translation contract and the live gateway before spending:
+
+```bash
+cd ~/PA1
+python3 benchmark/bridges/codex-cliproxy/tests/test_codex_translation.py
+python3 benchmark/bridges/codex-cliproxy/tests/check_live_gateway.py \
+  --env-file benchmark/env.local --effort max
+```
+
+Re-run `docker compose ... up -d --force-recreate` after any regeneration that
+changes the bridge's model set. See
+[`bridges/codex-cliproxy/README.md`](bridges/codex-cliproxy/README.md).
 
 ### 6. Run the Kimi gateway acceptance check
 
 The Luna smoke test proves the task environment and both LiteLLM surfaces, but it
 does not exercise the third-party Codex profile. Codex 0.151.0 sends normal
 Responses HTTP requests for Kimi/DeepSeek and, under the frozen Sol profile, may
-include Codex tool definitions such as `custom` exec and `web_search`. Correct
-translation of those requests by the already-deployed LiteLLM route is outside
-this repository.
+include Codex tool definitions such as `custom` exec and `web_search`. The
+bridge tests in step 5b cover the protocol contract, but not Codex itself
+driving a full task, so this run stays.
 
 Before starting Kimi's 30 primary trials, run the same generated Kimi job on the
 cheap pilot task. This is an acceptance run, not benchmark data:
@@ -400,7 +474,9 @@ $PIER job start -c benchmark/generated/kimi-k3.yaml \
 Confirm all three harness trials complete and, for Codex specifically, that a
 tool call followed by another model turn succeeds. If the Codex trial fails on a
 tool schema, reasoning-state, or Responses translation error, stop before the
-full Kimi batch and fix the gateway route.
+full Kimi batch: check the bridge is healthy and, with
+`CODEX_CLIPROXY_REQUEST_LOG=true`, inspect the translated upstream body in
+`benchmark/generated/cliproxy-logs/` before touching the gateway route.
 
 ### 7. Run Kimi K3 first
 
@@ -456,21 +532,29 @@ Opus is not part of the current batch. Its model job is
 `benchmark/deferred/opus.yaml`, containing Pi + Claude Code + Codex for the same
 10 tasks.
 
+Codex reaches Opus through the same `benchmark/bridges/codex-cliproxy/`
+deployment as DeepSeek and Kimi. There is no separate Opus bridge: CLIProxyAPI
+routes `claude-opus-5` straight to `api.anthropic.com/v1/messages`, never
+through the shared LiteLLM gateway. The previous dedicated LiteLLM bridge has
+been removed.
+
 When Opus is enabled later:
 
 1. append the variables from `benchmark/deferred/opus-env.example` to
-   `benchmark/env.local`;
-2. start/expose the dedicated Codex Responses→Anthropic bridge under
-   `benchmark/bridges/codex-opus/`;
-3. generate the additional Codex Opus artifacts with:
+   `benchmark/env.local` — only `ANTHROPIC_API_KEY` is new;
+2. regenerate so the bridge learns the Opus route, and restart it:
 
 ```bash
 python3 benchmark/scripts/prepare_configs.py \
   --env-file benchmark/env.local \
   --include-opus
+
+cd benchmark/bridges/codex-cliproxy
+docker compose --env-file ../../env.local up -d --force-recreate
+cd ~/PA1
 ```
 
-4. run the single Opus model job:
+3. run the single Opus model job:
 
 ```bash
 $PIER job start -c benchmark/deferred/opus.yaml \
@@ -478,6 +562,14 @@ $PIER job start -c benchmark/deferred/opus.yaml \
 ```
 
 The generated Opus catalog is separate from the current DeepSeek/Kimi catalog.
+
+The Anthropic route through the bridge has **not** been validated against live
+Anthropic traffic, and it differs from the removed LiteLLM bridge in ways that
+matter for measurement: reasoning tokens are estimated rather than reported,
+reasoning effort maps to Anthropic adaptive thinking instead of a token budget,
+and `/v1/responses/compact` is unsupported. Run the Opus acceptance checks in
+[`bridges/codex-cliproxy/README.md`](bridges/codex-cliproxy/README.md) before
+treating Opus Codex numbers as comparable to anything.
 
 ## Deferred OpenCode 2
 
