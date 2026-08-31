@@ -1,0 +1,40 @@
+name: pa1-codex-cliproxy
+
+services:
+  codex-cliproxy:
+    # Pinned by tag *and* digest. The tag is only a label; the digest is what
+    # actually runs, so this cannot drift between benchmark jobs.
+    image: eceasy/cli-proxy-api:v7.2.146@sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163
+    pull_policy: missing
+    restart: unless-stopped
+    environment:
+      # CLIProxyAPI has no CA configuration key; Go uses the system trust store.
+      # Listing /etc/ssl/certs first keeps the image's public roots (needed for
+      # api.anthropic.com) while adding PA1's private roots for the LiteLLM
+      # gateway. Using SSL_CERT_FILE instead would *replace* the public roots.
+      SSL_CERT_DIR: /etc/ssl/certs:/pa1-ca
+    volumes:
+      - ../../generated/cliproxy-config.yaml:/CLIProxyAPI/config.yaml:ro
+      - ../../puki-root-ca-2022.pem:/pa1-ca/puki-root-ca-2022.pem:ro
+      - ../../generated/cliproxy-logs:/CLIProxyAPI/logs
+      # CLIProxyAPI expects an auth directory even though PA1 uses none: every
+      # upstream credential comes from the generated config file.
+      - codex-cliproxy-auths:/root/.cli-proxy-api
+    ports:
+      # Must be port 80 (or 443). Pier's egress Squid permits plain HTTP only to
+      # port 80 and CONNECT only to 443, so CLIProxyAPI's own 8317 is
+      # unreachable from a trial container no matter what the allowlist says.
+      #
+      # The default bind is the Docker bridge gateway: every trial's egress
+      # proxy container can reach it, and it is not published on the LAN.
+      - "${CODEX_CLIPROXY_BIND:-172.17.0.1}:${CODEX_CLIPROXY_PORT:-80}:8317"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "bash -c '</dev/tcp/127.0.0.1/8317'"
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  codex-cliproxy-auths:

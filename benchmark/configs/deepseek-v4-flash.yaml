@@ -61,11 +61,11 @@ agents:
   - name: codex
     model_name: deepseek/deepseek-v4-flash
     env:
-      LITELLM_API_KEY: ${LITELLM_API_KEY}
+      CODEX_CLIPROXY_API_KEY: ${CODEX_CLIPROXY_API_KEY}
     kwargs:
       version: "0.151.0"
       command_model_name: deepseek-v4-flash
       reasoning_effort: max
       restrict_model_catalog: true
       model_catalog_file: benchmark/generated/codex-thirdparty-models.json
-      config_toml_file: benchmark/generated/codex-litellm.toml
+      config_toml_file: benchmark/generated/codex-cliproxy.toml

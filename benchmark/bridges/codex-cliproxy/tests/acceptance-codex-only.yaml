@@ -1,0 +1,40 @@
+# Cheap end-to-end check that Codex itself drives a real task through the
+# compatibility bridge. Codex-only and low reasoning on purpose: this validates
+# transport, not model quality, and the primary jobs' `max` effort would turn a
+# few-minute check into a very long and expensive one.
+#
+# Requires the bridge to be running and prepare_configs.py to have been run.
+#
+#   $PIER job start \
+#     -c benchmark/bridges/codex-cliproxy/tests/acceptance-codex-only.yaml \
+#     --env-file benchmark/env.local
+#
+# Then confirm the trial reached the verifier without a transport error, and
+# inspect benchmark/generated/cliproxy-logs/ if CODEX_CLIPROXY_REQUEST_LOG=true.
+job_name: acceptance-cliproxy-codex
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 1
+retry:
+  max_retries: 0
+
+environment:
+  type: docker
+
+datasets:
+  - path: ../DeepSWE/tasks
+    task_names:
+      - anko-default-function-arguments
+
+agents:
+  - name: codex
+    model_name: deepseek/deepseek-v4-flash
+    env:
+      CODEX_CLIPROXY_API_KEY: ${CODEX_CLIPROXY_API_KEY}
+    kwargs:
+      version: "0.151.0"
+      command_model_name: deepseek-v4-flash
+      reasoning_effort: low
+      restrict_model_catalog: true
+      model_catalog_file: benchmark/generated/codex-thirdparty-models.json
+      config_toml_file: benchmark/generated/codex-cliproxy.toml
