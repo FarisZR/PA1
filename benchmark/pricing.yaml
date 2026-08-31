@@ -21,14 +21,12 @@ models:
     context_limit: 272000
     source: https://developers.openai.com/api/docs/models
 
-  # Benchmark policy intentionally freezes the original 0731 reference rate.
-  # DeepSeek switched to higher peak/off-peak prices on 2026-08-16; those later
-  # serving rates are not used for normalized cross-model benchmark cost.
+  # DeepSeek official off-peak pricing, USD per 1M tokens.
   deepseek-v4-flash-0731:
     provider: deepseek
-    input: 0.14
-    cached_input: 0.0028
-    output: 0.28
+    input: 0.22
+    cached_input: 0.007
+    output: 0.66
     context_limit: 1048576
     source: https://api-docs.deepseek.com/quick_start/pricing/
 

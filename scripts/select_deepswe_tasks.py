@@ -105,10 +105,10 @@ PRICING = {
         "cache_rules_source": "https://developers.openai.com/api/docs/guides/latest-model",
     },
     "fireworks_v4_flash": {
-        "input": 0.14,
-        "cached_input": 0.028,
-        "output": 0.28,
-        "source": "https://fireworks.ai/models/fireworks/deepseek-v4-flash",
+        "input": 0.22,
+        "cached_input": 0.007,
+        "output": 0.66,
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
     },
     "fireworks_kimi_k3": {
         "input": 3.0,
