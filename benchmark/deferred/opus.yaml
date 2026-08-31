@@ -5,7 +5,15 @@ n_attempts: 1
 n_concurrent_trials: 10
 retry:
   max_retries: 1
-  exclude_exceptions: []
+  # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
+  # result on this task set, and verifier/reward failures are grading faults, so
+  # re-running a whole trial for either would corrupt the measurement.
+  exclude_exceptions:
+    - AgentTimeoutError
+    - VerifierTimeoutError
+    - RewardFileNotFoundError
+    - RewardFileEmptyError
+    - VerifierOutputParseError
 
 environment:
   type: docker

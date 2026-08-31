@@ -30,14 +30,24 @@ Each primary model job contains:
 - Codex
 - 10 selected DeepSWE tasks
 - 1 attempt per task
-- 1 automatic retry if a trial fails for any exception, including timeouts
+- 1 automatic retry, for transport/gateway faults only
 - `n_concurrent_trials: 10`
 
 That is **30 planned trials per model job** and 90 planned trials in the current
-primary batch. Successful trials run once. A failed trial is discarded and run
-again once; if the retry also fails, the second failure is final. In the
-pathological case where every trial fails once, a 30-trial model job can execute
-up to 60 trial attempts. Run only one model job at a time.
+primary batch. Successful trials run once. A trial that fails with a
+transport/gateway fault is discarded and run again once; if the retry also fails,
+the second failure is final.
+
+Agent timeouts and verifier/reward faults are **not** retried
+(`exclude_exceptions` keeps Pier's default non-retryable set). A trial that
+exhausts the 10,800-second budget is a genuine efficiency result on this task
+set, not an infrastructure fault, and re-running it would both double the spend
+on the most expensive tasks and erase that result. Verifier and reward-file
+faults are grading faults; re-running a whole trial does not fix them.
+
+Discarded attempts still consume budget. Record their token usage and report
+cost inclusive of them, otherwise the harness that fails more often has its
+wasted spend deleted from the cost metric. Run only one model job at a time.
 
 ## Frozen versions
 
@@ -119,7 +129,26 @@ call in a trial remains on the model being benchmarked.
 
 The third-party `[1m]` aliases are retained for DeepSeek/Kimi compatibility.
 Luna also uses `[1m]`, then explicitly lowers its compaction window to 272,000.
-Kimi and DeepSeek both explicitly use a 1,048,576 Claude Code auto-compaction window.
+Kimi and DeepSeek both explicitly use a 1,048,576 Claude Code auto-compaction
+window, stated as each model's literal native context so the value matches
+`pricing.yaml` and the generated Codex catalog. Claude Code caps the window at
+the one it assumes for the model ID, which is 1,000,000 for an unrecognized
+`[1m]` alias, so the effective threshold is 1,000,000 and the declared value is
+the model's context rather than the reachable ceiling.
+
+Every Claude Code cell also sets three variables that only matter because the
+gateway aliases are model IDs Claude Code does not recognize:
+
+| Variable | Value | Why |
+| --- | --- | --- |
+| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `64000` | Claude Code defaults to 32,000 output tokens for an unrecognized model ID. Pi's bundled metadata gives these same models 128,000 (Luna), 131,072 (Kimi), and 384,000 (DeepSeek), so the default would cap the harness under test at a quarter of what the others get while reasoning effort is `max`. 64,000 sits under every model's real cap, so Claude Code does not silently lower it, and stays a small enough share of each window to limit the context Claude Code reserves for output. |
+| `API_FORCE_IDLE_TIMEOUT` | `0` | Turns off the 5-minute body idle timeout, which is active by default on any provider other than the direct Anthropic API. At `max` reasoning a silent thinking pause can exceed it. |
+| `CLAUDE_STREAM_IDLE_TIMEOUT_MS` | `1800000` | Raises both the event- and byte-level streaming idle watchdogs to 30 minutes, the byte-level cap. Claude Code counts gateway-relayed bytes including SSE pings and aborts a silent stream; a gateway that strips or buffers pings during a long thinking pause would otherwise abort the trial. |
+
+These are documented in [Claude Code environment variables](https://code.claude.com/docs/en/env-vars)
+and [Model configuration](https://code.claude.com/docs/en/model-config#correct-the-window-for-a-gateway-or-custom-model-id).
+The deferred Opus job sets none of them: `claude-opus-5` is a model ID Claude
+Code recognizes, and it connects to the Anthropic API directly.
 
 ### Pi
 
@@ -219,7 +248,7 @@ LiteLLM hosts through the runner's Docker/network/firewall setup.
 
 ```bash
 cd ~
-git clone https://github.com/DataCurveAI/deep-swe.git DeepSWE   # skip if present
+git clone https://github.com/datacurve-ai/deep-swe.git DeepSWE   # skip if present
 cd ~/DeepSWE
 git fetch origin
 git checkout 0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea
