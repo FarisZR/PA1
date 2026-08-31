@@ -1,4 +1,4 @@
-# Deferred: do not run with the current Luna/DeepSeek/Kimi batch.
+# Deferred: do not run with the current Luna/DeepSeek/Kimi/GLM batch.
 job_name: opus
 jobs_dir: benchmark/runs
 n_attempts: 1

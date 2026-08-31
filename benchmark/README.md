@@ -13,9 +13,11 @@ Run these steps in this order:
 3. start the Codex compatibility bridge under `benchmark/bridges/codex-cliproxy/`
 4. one-task Kimi gateway acceptance run using `benchmark/generated/kimi-k3.yaml`
 5. `benchmark/generated/kimi-k3.yaml` — **highest-priority primary job**
-6. one-task DeepSeek gateway acceptance run using `benchmark/generated/deepseek-v4-flash.yaml`
-7. `benchmark/generated/deepseek-v4-flash.yaml`
-8. `benchmark/generated/luna.yaml`
+6. one-task GLM-5.3 gateway acceptance run using `benchmark/generated/glm-5.3.yaml`
+7. `benchmark/generated/glm-5.3.yaml`
+8. one-task DeepSeek gateway acceptance run using `benchmark/generated/deepseek-v4-flash.yaml`
+9. `benchmark/generated/deepseek-v4-flash.yaml`
+10. `benchmark/generated/luna.yaml`
 
 The primary files under `benchmark/configs/` are source templates. Do not launch
 the Kimi or DeepSeek templates directly: their Pi endpoint placeholder is
@@ -75,13 +77,14 @@ used for the run.
 | Model | Reasoning | Routing | Context behavior |
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
+| GLM-5.3 | max | Existing LiteLLM gateway | Fireworks 1,048,576 context; Pi native entry uses 1,000,000 |
 | DeepSeek V4 Flash 0731 | max | Existing LiteLLM gateway | Native 1,048,576 context; Claude Code compacts at 1,048,576 |
 | GPT-5.6 Luna | max | Existing LiteLLM gateway | 272,000-token benchmark window |
 
 The smoke test is intentionally different: it runs Luna at **low** reasoning to
 validate the environment cheaply before primary spending.
 
-The repository does not change the LiteLLM deployment. DeepSeek/Kimi vendor
+The repository does not change the LiteLLM deployment. DeepSeek/Kimi/GLM vendor
 documentation is used for Claude Code compatibility and model-specific facts
 such as context/modality, not for vendor API endpoints or credentials. Codex
 behavior comes from the frozen GPT-5.6 Sol profile described below.
@@ -107,7 +110,7 @@ is frozen in this repository at
 `eb0d7b9a5dcaf103895c5f8a14c16b269df46e039b375a55ba97f6238542d2ed`.
 Generation reads only this local file.
 
-For DeepSeek, Kimi, and deferred Opus, the Sol profile is preserved except for:
+For DeepSeek, Kimi, GLM, and deferred Opus, the Sol profile is preserved except for:
 
 - model identity/display metadata;
 - model-specific context, modality, and supported reasoning metadata;
@@ -157,7 +160,7 @@ Opus/Sonnet/Haiku aliases, legacy small/fast alias, and
 Therefore Claude Code may use its normal internal agent behavior, but every LLM
 call in a trial remains on the model being benchmarked.
 
-The third-party `[1m]` aliases are retained for DeepSeek/Kimi compatibility.
+The third-party `[1m]` aliases are retained for DeepSeek/Kimi/GLM compatibility.
 Luna also uses `[1m]`, then explicitly lowers its compaction window to 272,000.
 Kimi and DeepSeek both explicitly use a 1,048,576 Claude Code auto-compaction
 window, stated as each model's literal native context so the value matches
@@ -226,8 +229,17 @@ pricing metadata remain intact:
 ```text
 moonshotai/kimi-k3
 deepseek/deepseek-v4-flash
+zai/glm-5p3
 openai/gpt-5.6-luna
 ```
+
+The gateway exposes GLM-5.3 as `glm-5p3`. Pi therefore registers that transport
+alias as a custom `zai` model while copying Pi 0.84.4's built-in `zai/glm-5.3`
+metadata exactly: text-only input, `low`/`high`/`max` reasoning, a 1,000,000-token
+context window, a 131,072-token output ceiling, Z.AI thinking/tool-stream
+compatibility, and the same cost metadata. The Fireworks route advertises
+1,048,576 context, which is used for Codex, Claude Code's declared compaction
+window, and cost normalization.
 
 Pi has no native subagent system in this benchmark setup. Pier launches the
 selected provider/model explicitly in non-interactive print mode.
@@ -256,6 +268,7 @@ Anthropic-compatible surface.
 gpt-5.6-luna
 deepseek-v4-flash
 kimi-k3
+glm-5p3
 ```
 
 `deepseek-v4-flash` is the stable DeepSeek model ID used by all three harnesses.
@@ -267,12 +280,13 @@ The gateway maps it to the V4 Flash 0731 checkpoint.
 gpt-5.6-luna[1m]
 deepseek-v4-flash[1m]
 kimi-k3[1m]
+glm-5p3[1m]
 ```
 
 The `[1m]` suffix is Claude Code compatibility metadata, not a different model.
 Each alias must resolve to the same checkpoint as its unsuffixed counterpart.
 
-The gateway needs to serve Kimi and DeepSeek correctly on **Chat Completions**
+The gateway needs to serve Kimi, DeepSeek, and GLM correctly on **Chat Completions**
 for Codex, not on Responses: thinking enabled, a string `reasoning_effort`
 forwarded, and `reasoning_content` accepted on historical assistant messages.
 The Responses/Chat translation itself is done by the pinned Codex compatibility
@@ -400,6 +414,7 @@ This writes ignored deployment-specific files:
 ```text
 benchmark/generated/kimi-k3.yaml
 benchmark/generated/deepseek-v4-flash.yaml
+benchmark/generated/glm-5.3.yaml
 benchmark/generated/luna.yaml
 benchmark/generated/codex-cliproxy.toml        # Codex -> compatibility bridge
 benchmark/generated/cliproxy-config.yaml       # bridge deployment config (0600)
@@ -407,7 +422,7 @@ benchmark/generated/codex-litellm.toml         # direct route; control only
 benchmark/generated/codex-thirdparty-models.json
 ```
 
-The three generated YAML files correspond directly to the three source templates
+The four generated YAML files correspond directly to the four source templates
 in `benchmark/configs/`. Generation resolves the nested Pi endpoint placeholder,
 writes the Codex provider TOML and the bridge's deployment config, and builds
 the restricted third-party Codex catalog. It verifies the expected placeholder
@@ -423,9 +438,10 @@ generated from the tracked templates in `benchmark/bridges/codex-cliproxy/`
 rather than mounted directly, because CLIProxyAPI does no environment
 interpolation and needs the credentials as literals.
 
-The Codex catalog contains only DeepSeek and Kimi because Luna uses Codex's
-bundled first-party model entry. DeepSeek and Kimi are cloned from the vendored
-GPT-5.6 Sol entry; no upstream file is fetched while generating these artifacts.
+The Codex catalog contains DeepSeek, Kimi, and GLM because Luna uses Codex's
+bundled first-party model entry. All three third-party entries are cloned from
+the vendored GPT-5.6 Sol entry; no upstream file is fetched while generating
+these artifacts.
 
 ### 5b. Start the Codex compatibility bridge
 
@@ -498,7 +514,31 @@ $PIER job start -c benchmark/generated/kimi-k3.yaml \
 This runs Pi, Claude Code, and Codex across all 10 selected tasks: 30 trials,
 with at most 10 concurrent trials.
 
-### 8. Run the DeepSeek gateway acceptance check
+### 8. Run the GLM-5.3 gateway acceptance check
+
+GLM uses its own gateway alias. Run the pilot-task override before the primary
+laptop batch:
+
+```bash
+$PIER job start -c benchmark/generated/glm-5.3.yaml \
+  --env-file benchmark/env.local \
+  --path ../DeepSWE/tasks \
+  --include-task-name anko-default-function-arguments \
+  --job-name acceptance-glm-5.3
+```
+
+If all three trials complete, start the primary GLM job.
+
+### 9. Run GLM-5.3
+
+```bash
+$PIER job start -c benchmark/generated/glm-5.3.yaml \
+  --env-file benchmark/env.local
+```
+
+The GLM job is pinned to six concurrent trials for the 64 GB laptop runner.
+
+### 10. Run the DeepSeek gateway acceptance check
 
 DeepSeek uses a different gateway alias from Kimi. Before its 30-trial batch,
 run the same pilot-task override:
@@ -513,14 +553,14 @@ $PIER job start -c benchmark/generated/deepseek-v4-flash.yaml \
 
 If all three trials complete, start the primary DeepSeek job.
 
-### 9. Run DeepSeek V4 Flash 0731
+### 11. Run DeepSeek V4 Flash 0731
 
 ```bash
 $PIER job start -c benchmark/generated/deepseek-v4-flash.yaml \
   --env-file benchmark/env.local
 ```
 
-### 10. Run GPT-5.6 Luna
+### 12. Run GPT-5.6 Luna
 
 ```bash
 $PIER job start -c benchmark/generated/luna.yaml \
@@ -537,7 +577,7 @@ Opus is not part of the current batch. Its model job is
 10 tasks.
 
 Codex reaches Opus through the same `benchmark/bridges/codex-cliproxy/`
-deployment as DeepSeek and Kimi. There is no separate Opus bridge: CLIProxyAPI
+deployment as DeepSeek, Kimi, and GLM. There is no separate Opus bridge: CLIProxyAPI
 routes `claude-opus-5` straight to `api.anthropic.com/v1/messages`, never
 through the shared LiteLLM gateway. The previous dedicated LiteLLM bridge has
 been removed.
@@ -565,7 +605,7 @@ $PIER job start -c benchmark/deferred/opus.yaml \
   --env-file benchmark/env.local
 ```
 
-The generated Opus catalog is separate from the current DeepSeek/Kimi catalog.
+The generated Opus catalog is separate from the current DeepSeek/Kimi/GLM catalog.
 
 The Anthropic route through the bridge has **not** been validated against live
 Anthropic traffic, and it differs from the removed LiteLLM bridge in ways that

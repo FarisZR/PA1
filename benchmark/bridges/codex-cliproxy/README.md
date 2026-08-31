@@ -28,7 +28,7 @@ Two independent defects, both reproduced against the live gateway:
 | `client_metadata` | Fireworks: `Extra inputs are not permitted, field: 'client_metadata'` | Codex 0.151.0 attaches it unconditionally in `ResponsesApiRequest` (`codex-rs/core/src/client.rs`, tag `rust-v0.151.0`). There is no config key or CLI flag to disable it. |
 | `reasoning: {effort, summary}` | Fireworks: `Request body field 'reasoning_effort' is of type 'object', expected 'string'` | The gateway forwards the Responses `reasoning` object into `reasoning_effort` instead of mapping `reasoning.effort` to a string. |
 
-A request-only field stripper is not sufficient. DeepSeek and Kimi return
+A request-only field stripper is not sufficient. DeepSeek, Kimi, and GLM return
 plaintext `reasoning_content` on Chat Completions rather than OpenAI's opaque
 `reasoning.encrypted_content`, so the adapter must also carry each turn's
 reasoning back through Codex and reconstruct it upstream, or the model loses its
@@ -172,7 +172,7 @@ python3 benchmark/bridges/codex-cliproxy/tests/check_live_gateway.py \
     --env-file benchmark/env.local --effort max
 ```
 
-For `deepseek-v4-flash` and `kimi-k3` this first confirms the direct gateway
+For `deepseek-v4-flash`, `kimi-k3`, and `glm-5p3` this first confirms the direct gateway
 *still fails* — otherwise the run cannot show the bridge fixed anything — then
 sends the identical request through the bridge, and finally reads the bridge's
 own request log to prove the real upstream body is clean.
@@ -189,10 +189,10 @@ python3 benchmark/bridges/codex-cliproxy/tests/test_generated_config.py
 
 Runs the real generator into a temporary directory — never touching
 `benchmark/generated/` — and checks what it actually emits: no unresolved
-placeholders, credentials substituted, `max` still declared for both models,
+placeholders, credentials substituted, `max` still declared for all three models,
 the transparency settings present, mode 0600, and the Codex provider TOML
 pointing at the bridge. It then boots the pinned image on that exact file and
-confirms CLIProxyAPI accepts it, serves exactly the two benchmark models, and
+confirms CLIProxyAPI accepts it, serves exactly the three benchmark models, and
 rejects an unknown API key. The `--include-opus` variant is checked too.
 
 ### Codex driving a real task

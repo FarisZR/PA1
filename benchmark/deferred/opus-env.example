@@ -6,7 +6,7 @@
 ANTHROPIC_API_KEY=
 
 # Nothing else is required. Codex reaches Opus through the same
-# benchmark/bridges/codex-cliproxy deployment as DeepSeek and Kimi, using the
+# benchmark/bridges/codex-cliproxy deployment as DeepSeek, Kimi, and GLM, using the
 # CODEX_CLIPROXY_* variables already in benchmark/env.local. Regenerate with
 # --include-opus so claude-opus-5 is added to the bridge's routes, then restart
 # the bridge.
