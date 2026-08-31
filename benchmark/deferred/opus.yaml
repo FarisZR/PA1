@@ -2,7 +2,7 @@
 job_name: opus
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 14
+n_concurrent_trials: 30
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
