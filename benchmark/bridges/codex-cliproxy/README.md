@@ -49,27 +49,45 @@ had different reasoning-replay behavior. Do not downgrade.
 
 ## Configuration
 
-The runtime config is **generated**, never committed: it carries the gateway
-key and, for Opus, the Anthropic key.
+The config lives in two tracked templates:
+
+| File | Contents |
+| --- | --- |
+| `config.template.yaml` | the whole deployment config, with `"__SENTINEL__"` placeholders for the three credentials and the request-log flag |
+| `config.opus.template.yaml` | the Anthropic route, appended by `--include-opus` |
+
+Both are reviewable and diffable. Everything above each file's `---8<---`
+delimiter is documentation for a reader of the repository; everything below it
+is written out verbatim.
 
 ```bash
 cd ~/PA1
 python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local
 ```
 
-writes `benchmark/generated/cliproxy-config.yaml` (mode 0600) and
-`benchmark/generated/codex-cliproxy.toml`, the Codex provider table the job
-configs point at.
+substitutes the sentinels and writes `benchmark/generated/cliproxy-config.yaml`
+(mode 0600), plus `benchmark/generated/codex-cliproxy.toml`, the Codex provider
+table the job configs point at.
+
+The file has to be generated rather than mounted straight from the template
+because **CLIProxyAPI performs no environment interpolation** — there is no
+`os.ExpandEnv` or `os.Getenv` anywhere in its config package — so the gateway
+key, the bridge key, and the Anthropic key must be literals in the file it
+reads. Sentinels are quoted in the template so it stays valid YAML on its own,
+and the generator replaces the whole quoted scalar so credentials are escaped
+rather than pasted in raw. It refuses to write a config with any placeholder
+left unresolved.
 
 Two properties of the generated config are load-bearing:
 
-- **Reasoning levels come from the Codex catalog.** CLIProxyAPI snaps an
-  incoming `reasoning.effort` to the nearest level it knows about, and its
-  default set is low/medium/high. A model declared without `thinking.levels`
-  would therefore turn PA1's `max` requests into `high` upstream, silently
-  changing the variable the benchmark measures. The generator derives each
-  model's levels from the same `supported_reasoning_levels` it writes into the
-  Codex catalog, so the two cannot drift apart.
+- **Reasoning levels are checked against the Codex catalog.** CLIProxyAPI snaps
+  an incoming `reasoning.effort` to the nearest level it knows about, and its
+  default set is low/medium/high. A model declared without `max` in
+  `thinking.levels` would therefore turn PA1's `max` requests into `high`
+  upstream, silently changing the variable the benchmark measures. Generation
+  renders each model block from the same `supported_reasoning_levels` it writes
+  into the Codex catalog and **fails** unless the template contains that block
+  verbatim, so the two cannot drift apart.
 - **Everything that could make the layer non-transparent is off.** `request-retry`,
   credential cooldown, retry intervals, and the quota fallbacks are disabled.
   Left at their defaults they would retry failed calls without attribution, take
@@ -115,10 +133,20 @@ which accepts multiple PEM blocks.
 ### Private CA trust
 
 CLIProxyAPI has no CA configuration key; Go uses the system trust store. The
-compose file mounts PA1's tracked PUKI bundle at `/pa1-ca` and sets
-`SSL_CERT_DIR=/etc/ssl/certs:/pa1-ca`, which **adds** the private roots while
-keeping the image's public roots. Using `SSL_CERT_FILE` instead would replace
-the public roots and break the Anthropic route.
+runner already trusts the gateway's private PUKI roots, so the compose file
+mounts the host bundle read-only at `/etc/ssl/certs` rather than carrying a
+second copy of the certificates into the container. That also supplies the
+public roots the Anthropic route needs.
+
+This means the bridge depends on the runner trusting the gateway. On a machine
+where the private roots are not installed system-wide it fails with
+`x509: certificate signed by unknown authority`; install them, or mount
+`benchmark/puki-root-ca-2022.pem` into a directory and set
+`SSL_CERT_DIR=/etc/ssl/certs:<that directory>`. Do not use `SSL_CERT_FILE` for
+this — it *replaces* the public roots instead of adding to them.
+
+The trial containers are unaffected and keep using the tracked bundle through
+`PIER_EXTRA_CA_CERTS`.
 
 ## Acceptance tests
 
@@ -152,6 +180,20 @@ own request log to prove the real upstream body is clean.
 `request-log` records every prompt verbatim, so leave
 `CODEX_CLIPROXY_REQUEST_LOG=false` for benchmark jobs and enable it only for
 acceptance runs. Logs land in `benchmark/generated/cliproxy-logs/`.
+
+### Generated config
+
+```bash
+python3 benchmark/bridges/codex-cliproxy/tests/test_generated_config.py
+```
+
+Runs the real generator into a temporary directory — never touching
+`benchmark/generated/` — and checks what it actually emits: no unresolved
+placeholders, credentials substituted, `max` still declared for both models,
+the transparency settings present, mode 0600, and the Codex provider TOML
+pointing at the bridge. It then boots the pinned image on that exact file and
+confirms CLIProxyAPI accepts it, serves exactly the two benchmark models, and
+rejects an unknown API key. The `--include-opus` variant is checked too.
 
 ### Codex driving a real task
 

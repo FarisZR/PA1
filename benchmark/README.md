@@ -418,7 +418,10 @@ updated configuration.
 `codex-litellm.toml` is the direct corporate-gateway Codex route. No job uses
 it; it is kept so the issue #31 failure can be reproduced as a control.
 
-`cliproxy-config.yaml` contains live credentials and is written mode 0600.
+`cliproxy-config.yaml` contains live credentials and is written mode 0600. It is
+generated from the tracked templates in `benchmark/bridges/codex-cliproxy/`
+rather than mounted directly, because CLIProxyAPI does no environment
+interpolation and needs the credentials as literals.
 
 The Codex catalog contains only DeepSeek and Kimi because Luna uses Codex's
 bundled first-party model entry. DeepSeek and Kimi are cloned from the vendored
@@ -440,6 +443,7 @@ Verify the translation contract and the live gateway before spending:
 ```bash
 cd ~/PA1
 python3 benchmark/bridges/codex-cliproxy/tests/test_codex_translation.py
+python3 benchmark/bridges/codex-cliproxy/tests/test_generated_config.py
 python3 benchmark/bridges/codex-cliproxy/tests/check_live_gateway.py \
   --env-file benchmark/env.local --effort max
 ```

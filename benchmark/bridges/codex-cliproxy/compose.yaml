@@ -7,15 +7,17 @@ services:
     image: eceasy/cli-proxy-api:v7.2.146@sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163
     pull_policy: missing
     restart: unless-stopped
-    environment:
-      # CLIProxyAPI has no CA configuration key; Go uses the system trust store.
-      # Listing /etc/ssl/certs first keeps the image's public roots (needed for
-      # api.anthropic.com) while adding PA1's private roots for the LiteLLM
-      # gateway. Using SSL_CERT_FILE instead would *replace* the public roots.
-      SSL_CERT_DIR: /etc/ssl/certs:/pa1-ca
     volumes:
+      # CLIProxyAPI has no CA configuration key; Go uses the system trust store.
+      # The runner already trusts the gateway's private PUKI roots, so reuse the
+      # host bundle rather than carrying a second copy into the container. This
+      # ships the public roots too, which the Anthropic route needs.
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+      # Must be a generated file: CLIProxyAPI does no environment interpolation,
+      # so the gateway and Anthropic credentials have to be literal here.
       - ../../generated/cliproxy-config.yaml:/CLIProxyAPI/config.yaml:ro
-      - ../../puki-root-ca-2022.pem:/pa1-ca/puki-root-ca-2022.pem:ro
+      # Only used when request-log is on; the live acceptance check reads it
+      # from the host. prepare_configs.py creates it mode 0700.
       - ../../generated/cliproxy-logs:/CLIProxyAPI/logs
       # CLIProxyAPI expects an auth directory even though PA1 uses none: every
       # upstream credential comes from the generated config file.

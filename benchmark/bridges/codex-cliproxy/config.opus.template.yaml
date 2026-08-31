@@ -1,0 +1,18 @@
+# Appended to config.template.yaml by prepare_configs.py --include-opus.
+# Routes Codex's Opus traffic straight to api.anthropic.com.
+# ---8<--- everything below this line is written to the generated config
+# --- Claude Opus 5 straight to the Anthropic API ----------------------
+# base-url is omitted on purpose: CLIProxyAPI then targets
+# api.anthropic.com directly, never the shared LiteLLM gateway.
+# Do not add a cloak block or fingerprint-profile here; those
+# would rewrite Codex's system prompt.
+claude-api-key:
+  - api-key: "__ANTHROPIC_API_KEY__"
+    models:
+      - name: "claude-opus-5"
+        alias: "claude-opus-5"
+        display-name: "Claude Opus 5"
+        max-context-length: 1000000
+        input-modalities: [text, image]
+        thinking:
+          levels: ["medium"]

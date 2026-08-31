@@ -1,0 +1,79 @@
+# Deployment config for the Codex compatibility bridge.
+#
+# This file is a TEMPLATE. benchmark/scripts/prepare_configs.py substitutes
+# the __SENTINEL__ values and writes benchmark/generated/cliproxy-config.yaml,
+# which is what the container actually mounts. It has to be generated rather
+# than mounted directly because CLIProxyAPI performs no environment
+# interpolation, so every credential must be a literal in the file it reads.
+#
+# Everything outside the sentinels lives here so it stays reviewable. The
+# generator verifies each model block against the frozen Codex catalog and
+# fails if they disagree, so the reasoning levels cannot drift out of sync.
+# ---8<--- everything below this line is written to the generated config
+host: ""
+port: 8317
+auth-dir: "/root/.cli-proxy-api"
+
+# Credential Codex presents to this bridge. The upstream credentials
+# below never leave the runner host.
+api-keys:
+  - "__CODEX_CLIPROXY_API_KEY__"
+
+# The management API stays off entirely while secret-key is empty.
+remote-management:
+  allow-remote: false
+  secret-key: ""
+
+debug: false
+request-log: "__REQUEST_LOG__"
+# commercial-mode would disable request logging, which the acceptance
+# tests rely on to inspect the translated upstream body.
+commercial-mode: false
+usage-statistics-enabled: false
+
+# --- Benchmark integrity ---------------------------------------------
+# This layer must be a protocol translator and nothing else. Every
+# feature below would otherwise change what PA1 measures: retries and
+# cooldowns hide gateway faults and add unattributed spend, and the
+# quota fallbacks can silently answer with a different model.
+request-retry: 0
+max-retry-credentials: 0
+max-retry-interval: 0
+disable-cooling: true
+transient-error-cooldown-seconds: -1
+quota-exceeded:
+  switch-project: false
+  switch-preview-model: false
+  antigravity-credits: false
+routing:
+  strategy: "round-robin"
+  session-affinity: false
+codex:
+  identity-confuse: false
+  # Buffering the handshake exists to enable transparent credential
+  # failover, which PA1 must not have.
+  stream-bootstrap-buffering: false
+  # PA1's third-party Codex profile is Multi-Agent V1.
+  optimize-multi-agent-v2: false
+
+# --- Third-party models via the existing LiteLLM gateway --------------
+openai-compatibility:
+  - name: "litellm"
+    base-url: "__LITELLM_OPENAI_BASE_URL__"
+    api-key-entries:
+      - api-key: "__LITELLM_API_KEY__"
+    models:
+      - name: "deepseek-v4-flash"
+        alias: "deepseek-v4-flash"
+        display-name: "DeepSeek V4 Flash 0731"
+        max-context-length: 1048576
+        input-modalities: [text]
+        thinking:
+          levels: ["low", "high", "max"]
+      - name: "kimi-k3"
+        alias: "kimi-k3"
+        display-name: "Kimi K3"
+        max-context-length: 1048576
+        input-modalities: [text, image]
+        thinking:
+          levels: ["low", "high", "max"]
