@@ -1,0 +1,106 @@
+job_name: glm-5.3
+jobs_dir: benchmark/runs
+n_attempts: 1
+# This job is intended for the 64 GB laptop runner. Six concurrent DeepSWE
+# sandboxes leave headroom for the host while still keeping the remote model busy.
+n_concurrent_trials: 6
+retry:
+  max_retries: 1
+  # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
+  # result on this task set, and verifier/reward failures are grading faults, so
+  # re-running a whole trial for either would corrupt the measurement.
+  exclude_exceptions:
+    - AgentTimeoutError
+    - VerifierTimeoutError
+    - RewardFileNotFoundError
+    - RewardFileEmptyError
+    - VerifierOutputParseError
+    - TrialCancelledError
+
+environment:
+  type: docker
+
+datasets:
+  - path: ../DeepSWE/tasks
+    task_names:
+      - expr-try-catch-errors
+      - katex-multicolumn-array-spans
+      - python-statemachine-state-data-scoping
+      - oxvg-structural-selector-preservation
+      - effect-sse-httpapi-streaming
+      - scriggo-method-declarations
+      - csstree-shorthand-expansion-compression
+      - fastapi-implicit-head-options
+      - boa-hierarchical-evaluation-cancellation
+      - koota-composite-trait-aspects
+
+agents:
+  - name: pi
+    model_name: zai/glm-5p3
+    env:
+      ZAI_API_KEY: ${LITELLM_API_KEY}
+    kwargs:
+      version: "0.84.4"
+      thinking: max
+      pi_config:
+        providers:
+          zai:
+            baseUrl: __LITELLM_OPENAI_BASE_URL__
+            apiKey: $ZAI_API_KEY
+            models:
+              # Transport alias for GLM-5.3. The capability/compatibility fields
+              # mirror Pi 0.84.4's built-in zai/glm-5.3 entry exactly; only the
+              # API-facing id is changed to the alias exposed by our gateway.
+              - id: glm-5p3
+                name: GLM-5.3
+                api: openai-completions
+                reasoning: true
+                thinkingLevelMap:
+                  "off": null
+                  minimal: null
+                  low: low
+                  medium: null
+                  high: high
+                  xhigh: null
+                  max: max
+                input: [text]
+                cost:
+                  input: 1.4
+                  output: 4.4
+                  cacheRead: 0.26
+                  cacheWrite: 0
+                compat:
+                  supportsStore: false
+                  supportsDeveloperRole: false
+                  supportsReasoningEffort: true
+                  maxTokensField: max_tokens
+                  thinkingFormat: zai
+                  zaiToolStream: true
+                contextWindow: 1000000
+                maxTokens: 131072
+
+  - name: claude-code
+    model_name: glm-5p3[1m]
+    env:
+      ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
+      ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
+      ANTHROPIC_DEFAULT_FABLE_MODEL: glm-5p3[1m]
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1048576"
+      API_FORCE_IDLE_TIMEOUT: "0"
+      CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
+      DISABLE_AUTOUPDATER: "1"
+    kwargs:
+      version: "2.1.251"
+      reasoning_effort: max
+
+  - name: codex
+    model_name: zai/glm-5p3
+    env:
+      CODEX_CLIPROXY_API_KEY: ${CODEX_CLIPROXY_API_KEY}
+    kwargs:
+      version: "0.151.0"
+      command_model_name: glm-5p3
+      reasoning_effort: max
+      restrict_model_catalog: true
+      model_catalog_file: benchmark/generated/codex-thirdparty-models.json
+      config_toml_file: benchmark/generated/codex-cliproxy.toml

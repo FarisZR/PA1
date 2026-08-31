@@ -18,6 +18,7 @@ CONFIG_DIR = BENCHMARK_DIR / "configs"
 CURRENT_MODEL_CONFIGS = {
     "kimi-k3.yaml": 1,
     "deepseek-v4-flash.yaml": 1,
+    "glm-5.3.yaml": 1,
     "luna.yaml": 0,
 }
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
@@ -206,6 +207,34 @@ def kimi_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
             },
         ],
         supports_image_detail_original=True,
+    )
+
+
+def glm_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
+    """Return GLM-5.3 metadata on top of the frozen GPT-5.6 Sol profile."""
+    return third_party_codex_entry(
+        sol_profile,
+        slug="glm-5p3",
+        display_name="GLM-5.3",
+        description="GLM-5.3",
+        context_window=1_048_576,
+        input_modalities=["text"],
+        default_reasoning_level="max",
+        supported_reasoning_levels=[
+            {
+                "effort": "low",
+                "description": "Fast responses with lighter reasoning",
+            },
+            {
+                "effort": "high",
+                "description": "Greater reasoning depth for complex problems",
+            },
+            {
+                "effort": "max",
+                "description": "Maximum reasoning depth for the hardest problems",
+            },
+        ],
+        supports_image_detail_original=False,
     )
 
 
@@ -478,6 +507,7 @@ def main() -> None:
     thirdparty_entries = [
         deepseek_codex_entry(sol_profile),
         kimi_codex_entry(sol_profile),
+        glm_codex_entry(sol_profile),
     ]
     catalog_json = json.dumps({"models": thirdparty_entries}, indent=2) + "\n"
 
