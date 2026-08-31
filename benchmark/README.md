@@ -73,7 +73,7 @@ used for the run.
 | Model | Reasoning | Routing | Context behavior |
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
-| DeepSeek V4 Flash 0731 | max | Existing LiteLLM gateway | Native 1,048,576 context; Claude Code compacts at 1,000,000 |
+| DeepSeek V4 Flash 0731 | max | Existing LiteLLM gateway | Native 1,048,576 context; Claude Code compacts at 1,048,576 |
 | GPT-5.6 Luna | max | Existing LiteLLM gateway | 272,000-token benchmark window |
 
 The smoke test is intentionally different: it runs Luna at **low** reasoning to
@@ -117,7 +117,7 @@ This preserves the rest of the current-release Sol behavior, including
 `tool_mode: "code_mode_only"`, parallel tool calls,
 the Sol system/profile instructions, and `auto_compact_token_limit: null`.
 DeepSeek keeps the Codex compaction field and explicitly sets Claude Code
-`CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000`.
+`CLAUDE_CODE_AUTO_COMPACT_WINDOW=1048576`.
 
 ### Claude Code
 
@@ -129,11 +129,12 @@ call in a trial remains on the model being benchmarked.
 
 The third-party `[1m]` aliases are retained for DeepSeek/Kimi compatibility.
 Luna also uses `[1m]`, then explicitly lowers its compaction window to 272,000.
-Kimi and DeepSeek both explicitly use a 1,000,000 Claude Code auto-compaction
-window. `CLAUDE_CODE_AUTO_COMPACT_WINDOW` accepts 100,000 to 1,000,000 and is
-capped at the window Claude Code assumes for the model, which is 1,000,000 for
-an unrecognized `[1m]` alias, so the models' native 1,048,576 is not a reachable
-compaction threshold here.
+Kimi and DeepSeek both explicitly use a 1,048,576 Claude Code auto-compaction
+window, stated as each model's literal native context so the value matches
+`pricing.yaml` and the generated Codex catalog. Claude Code caps the window at
+the one it assumes for the model ID, which is 1,000,000 for an unrecognized
+`[1m]` alias, so the effective threshold is 1,000,000 and the declared value is
+the model's context rather than the reachable ceiling.
 
 Every Claude Code cell also sets three variables that only matter because the
 gateway aliases are model IDs Claude Code does not recognize:
