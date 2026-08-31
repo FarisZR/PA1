@@ -57,7 +57,7 @@ update these revisions between jobs in the primary batch.
 
 | Component | Frozen revision/version |
 | --- | --- |
-| FZR Pier fork | `4349d63938804c25fea7166ede9f65df545331a2` |
+| FZR Pier fork | `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d` |
 | DeepSWE | `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea` |
 | Codex CLI | `0.151.0` |
 | Claude Code | `2.1.251` |
@@ -340,7 +340,7 @@ cd ~
 git clone https://github.com/FZR-forks/pier.git pier   # skip if present
 cd ~/pier
 git fetch origin
-git checkout 4349d63938804c25fea7166ede9f65df545331a2
+git checkout ff65bae55c9a8ff15ddd3c2967c81a936713dd4d
 uv sync --python /usr/bin/python3.13
 ~/pier/.venv/bin/pier job start --help
 ```
