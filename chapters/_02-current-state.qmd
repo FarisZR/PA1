@@ -1,16 +1,29 @@
 # Current State in the Company {#sec-current-state}
 
-> **Placeholder section:** Add only verified company-specific information and
-> approved observations when available.
+> draft
 
-## Current tooling
+### Internal Survey
 
-- TODO: Describe the relevant current tooling.
+To assess the current use of AI coding agents, an internal survey was conducted between August and September 2026. The survey received 56 responses. Participation was voluntary and the sample was not selected to be representative of the company as a whole. The results are therefore used descriptively to identify usage patterns among the respondents rather than to estimate company-wide adoption rates.
 
-## Current model usage
+### Agent Harness Usage
 
-- TODO: Describe the current model usage.
+Claude Code was clearly the dominant agent harness among respondents. It was selected as the first-choice harness by 40 of 56 respondents (71.4%) and appeared in the weekly workflow of 51 respondents (91.1%). OpenCode was the second-most common first choice with 8 respondents (14.3%) and was used weekly by 14 respondents (25.0%). Codex and GitHub Copilot were each used weekly by 9 respondents (16.1%), while Pi was used by 5 respondents (8.9%).
 
-## Interviews / observations
+Despite the concentration around Claude Code, the reported workflows were not homogeneous. A total of 41 respondents (73.2%) stated that they used at least one additional AI coding setup or model each week, and 31 respondents (55.4%) reported using two or more distinct harnesses. The most common multi-harness combination was Claude Code together with OpenCode, reported by 11 respondents. Claude Code was also frequently combined with GitHub Copilot and Codex.
 
-- TODO: Document the interviews or observations and their provenance.
+### Model Usage
+
+Anthropic models were similarly dominant. An Anthropic model was selected as the primary model by 41 respondents (73.2%), while 50 respondents (89.3%) reported using at least one Anthropic model in their weekly workflow.
+
+Claude Opus 5 was the most common primary model, selected by 20 respondents (35.7%), followed by Claude Sonnet 4.6 with 10 respondents (17.9%) and Claude Sonnet 5 with 8 respondents (14.3%). Looking at all reported weekly configurations, Opus 5 was used by 26 respondents (46.4%).
+
+The most common primary harness-model configuration was **Claude Code with Claude Opus 5**, used by 18 respondents (32.1%). It was followed by Claude Code with Sonnet 5 at 14.3% and Claude Code with Sonnet 4.6 at 12.5%. When secondary setups are also considered, Claude Code with Opus 5 appeared in the workflows of 24 respondents (42.9%).
+
+Non-Anthropic models were less common but showed greater variety. GPT-5.6 Sol was used weekly by five respondents, DeepSeek V4 Flash 0731 by four, and Kimi K3 by three. Overall, 23 respondents (41.1%) reported named models from at least two different model-provider families.
+
+### Reported Cost
+
+The cost responses were more difficult to compare because the questionnaire allowed both monetary ranges and answers such as flat-rate subscriptions or unknown costs. Of the 32 respondents who provided a monetary range, 21 (65.6%) reported monthly costs of at least EUR 100. However, these values should not be interpreted as an estimate of average company expenditure.
+
+Overall, the survey indicates a **dominant Claude Code and Anthropic baseline combined with substantial experimentation with alternative harnesses and models**. This makes harness choice relevant even in an environment where one ecosystem is clearly preferred, since a considerable share of respondents already use multiple agent configurations in parallel.
