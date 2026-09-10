@@ -186,7 +186,7 @@ def main() -> int:
     if args.env_file:
         load_env_file(args.env_file)
 
-    models = args.model or ["deepseek-v4-flash", "kimi-k3", "glm-5p3"]
+    models = args.model or ["deepseek-v4-flash", "kimi-k3", "glm-5p3-flash"]
     gateway_url = require("LITELLM_OPENAI_BASE_URL")
     gateway_key = require("LITELLM_API_KEY")
     bridge_url = require("CODEX_CLIPROXY_BASE_URL")

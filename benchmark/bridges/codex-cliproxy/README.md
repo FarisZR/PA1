@@ -172,7 +172,7 @@ python3 benchmark/bridges/codex-cliproxy/tests/check_live_gateway.py \
     --env-file benchmark/env.local --effort max
 ```
 
-For `deepseek-v4-flash`, `kimi-k3`, and `glm-5p3` this first confirms the direct gateway
+For `deepseek-v4-flash`, `kimi-k3`, and `glm-5p3-flash` this first confirms the direct gateway
 *still fails* — otherwise the run cannot show the bridge fixed anything — then
 sends the identical request through the bridge, and finally reads the bridge's
 own request log to prove the real upstream body is clean.

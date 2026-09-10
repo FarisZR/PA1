@@ -1,0 +1,62 @@
+# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+job_name: opencode-v2-glm-5.3-flash
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 14
+retry:
+  max_retries: 1
+  # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
+  # result on this task set, and verifier/reward failures are grading faults, so
+  # re-running a whole trial for either would corrupt the measurement.
+  exclude_exceptions:
+    - AgentTimeoutError
+    - VerifierTimeoutError
+    - RewardFileNotFoundError
+    - RewardFileEmptyError
+    - VerifierOutputParseError
+    # An operator interrupt (Ctrl-C) surfaces as CancelledError. It is not a
+    # transport fault, and retrying it relaunches every in-flight trial.
+    - CancelledError
+environment:
+  type: docker
+datasets:
+- path: ../DeepSWE/tasks
+  task_names:
+  - expr-try-catch-errors
+  - katex-multicolumn-array-spans
+  - python-statemachine-state-data-scoping
+  - oxvg-structural-selector-preservation
+  - effect-sse-httpapi-streaming
+  - scriggo-method-declarations
+  - csstree-shorthand-expansion-compression
+  - fastapi-implicit-head-options
+  - boa-hierarchical-evaluation-cancellation
+  - koota-composite-trait-aspects
+agents:
+- name: opencode
+  model_name: zai/glm-5p3-flash
+  env:
+    ZHIPU_API_KEY: ${LITELLM_API_KEY}
+    LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+  kwargs:
+    version: 0.0.0-beta-18684
+    variant: max
+    opencode_config:
+      autoupdate: false
+      providers:
+        zai:
+          settings:
+            # Keep OpenCode's built-in zai/GLM-5.3-Flash profile and only
+            # redirect its upstream API to the benchmark gateway.
+            baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
+          models:
+            glm-5p3-flash:
+              modelID: glm-5p3-flash
+              name: GLM-5.3-Flash
+              limit:
+                context: 1000000
+                output: 131072
+              variants:
+              - id: max
+                settings:
+                  reasoningEffort: max
