@@ -11,34 +11,46 @@ Tests were selected as hard (75-100th percentile) and medium (75th-50th precenti
 
 ## Models and agent harnesses
 
-Confirmed models: Kimi k3, GPT 5.6 luna, Deepseek v4 flash
+### Model Selection
+The goal when selecting our models is to cover as many model families as possible, to see if a harness is better overall.
+
+Confirmed models: Kimi K3 Max, GLM 5.3 Flash
 Upcoming models to test: Opus 5 medium
-Potential models to come: GLM 5.3 flash, glm 5.3.
+Depends on the budget: GPT 5.6 LUNA vs GPT 5.6 Sol high.
 
-Harnesses to test: Anthropic Claude Code, OpenAi Codex CLI, PI and eventually Opencode V2 when it stabalizes (deadline: first week of September)
+### Harness selection
+We have chose to Test OpenAI Codex and Claude code, the first party agent harnesses from the frontier ai labs.
+Opencode is the second most popular ai harness in the company, and Pi is very known in the community for being efficient.
 
-- TODO: List the models and agent harnesses used in the study.
+To make sure the results stay relevant over a longer time, we elected to test opencode V2, the upcoming major rewrite of opencode.
 
 ## Experimental setup
 
 - TODO: Describe the experimental setup and controlled variables.
 
-We are sticking to the upstream provdier setup.
+We are sticking to the upstream provider setup.
 if a harness has specific upstream provider optimizations, such as remote compaction in codex or tool call behavior in claude code, these are left turned on, we are testing how harnesses behave across models in a real world scenario.
-
 
 ### Setup decisions.
 - GPT models have increased pricing past 272k context window, codex cli ignores the full 1m context window and will use 272k unless overriden.
 We've decided to use the same limited context window 272k window in other harnesses for the sake of comparison and not let the price difference due to the used context affect the results, and it's only a config option compared to remote compaction.
 
 - Remote compaction. GPT models use a remote compaction endpoint for compacting chat history.
-we are only running stock harnesses here, pi and opencode can support remote compaction through plugins, but plugins are out of scope.
+We are only running stock harnesses here, pi can support remote compaction through plugins, but plugins are out of scope.
+Opencode V2 has native remote compaction support.
 
 #### Codex
 For non-native models, Codex's minimal unknown-model fallback metadata was replaced by a standardized metadata profile derived from GPT-5.6 Sol in the pinned Codex version. This prevents model-recognition status from changing the Codex harness capability set. Model-specific capabilities were adjusted to the respective model, while backend-dependent features that could not be supported uniformly were disabled.
 
-Disabled features for non-gpt models: multi_agents v2 and reponses lite. 
+Disabled features for non-gpt models: multi_agents v2 and responses lite. 
 GPT use the built in model configuration shipped in the forzen release.
+
+
+#### Opencode V2
+
+At the time of testing. opencode v2 is still in beta, with some bugs particularly effecting setting the maximum output tokens for the upstream provider.
+Our upstream provider for Kimi k3, Deepseek v4/v4.1 flash and GLM 5.3 flash is Fireworks ai. and the default for unset values is [2k maximum completion tokens](https://docs.fireworks.ai/faq/models/inference/limitations-controls).
+Due to this issue we had to modify the config file to explicitly define the max completion token amount in the body config to workaround the bug [#47398](https://github.com/anomalyco/opencode/issues/47398)
 
 ## Evaluation metrics
 
