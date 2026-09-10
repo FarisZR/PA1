@@ -13,8 +13,8 @@ Run these steps in this order:
 3. start the Codex compatibility bridge under `benchmark/bridges/codex-cliproxy/`
 4. one-task Kimi gateway acceptance run using `benchmark/generated/kimi-k3.yaml`
 5. `benchmark/generated/kimi-k3.yaml` — **highest-priority primary job**
-6. one-task GLM-5.3 gateway acceptance run using `benchmark/generated/glm-5.3.yaml`
-7. `benchmark/generated/glm-5.3.yaml`
+6. one-task GLM-5.3-Flash gateway acceptance run using `benchmark/generated/glm-5.3-flash.yaml`
+7. `benchmark/generated/glm-5.3-flash.yaml`
 8. one-task DeepSeek gateway acceptance run using `benchmark/generated/deepseek-v4-flash.yaml`
 9. `benchmark/generated/deepseek-v4-flash.yaml`
 10. `benchmark/generated/luna.yaml`
@@ -77,7 +77,7 @@ used for the run.
 | Model | Reasoning | Routing | Context behavior |
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
-| GLM-5.3 | max | Existing LiteLLM gateway | Fireworks 1,048,576 context; Pi native entry uses 1,000,000 |
+| GLM-5.3-Flash | max | Existing LiteLLM gateway | Fireworks 1,048,576 context; Pi native entry uses 1,000,000 |
 | DeepSeek V4 Flash 0731 | max | Existing LiteLLM gateway | Native 1,048,576 context; Claude Code compacts at 1,048,576 |
 | GPT-5.6 Luna | max | Existing LiteLLM gateway | 272,000-token benchmark window |
 
@@ -229,17 +229,17 @@ pricing metadata remain intact:
 ```text
 moonshotai/kimi-k3
 deepseek/deepseek-v4-flash
-zai/glm-5p3
+zai/glm-5p3-flash
 openai/gpt-5.6-luna
 ```
 
-The gateway exposes GLM-5.3 as `glm-5p3`. Pi therefore registers that transport
-alias as a custom `zai` model while copying Pi 0.84.4's built-in `zai/glm-5.3`
-metadata exactly: text-only input, `low`/`high`/`max` reasoning, a 1,000,000-token
-context window, a 131,072-token output ceiling, Z.AI thinking/tool-stream
-compatibility, and the same cost metadata. The Fireworks route advertises
-1,048,576 context, which is used for Codex, Claude Code's declared compaction
-window, and cost normalization.
+The gateway exposes GLM-5.3-Flash as `glm-5p3-flash`. Pi therefore registers that
+transport alias as a custom `zai` model while copying Pi 0.84.4's built-in
+`zai/glm-5.3-flash` metadata exactly: text-and-image input, `low`/`high`/`max`
+reasoning, a 1,000,000-token context window, a 131,072-token output ceiling,
+Z.AI thinking/tool-stream compatibility, and the built-in cost metadata. The
+Fireworks route advertises 1,048,576 context, which is used for Codex, Claude
+Code's declared compaction window, and cost normalization.
 
 Pi has no native subagent system in this benchmark setup. Pier launches the
 selected provider/model explicitly in non-interactive print mode.
@@ -268,7 +268,7 @@ Anthropic-compatible surface.
 gpt-5.6-luna
 deepseek-v4-flash
 kimi-k3
-glm-5p3
+glm-5p3-flash
 ```
 
 `deepseek-v4-flash` is the stable DeepSeek model ID used by all three harnesses.
@@ -280,7 +280,7 @@ The gateway maps it to the V4 Flash 0731 checkpoint.
 gpt-5.6-luna[1m]
 deepseek-v4-flash[1m]
 kimi-k3[1m]
-glm-5p3[1m]
+glm-5p3-flash[1m]
 ```
 
 The `[1m]` suffix is Claude Code compatibility metadata, not a different model.
@@ -414,7 +414,7 @@ This writes ignored deployment-specific files:
 ```text
 benchmark/generated/kimi-k3.yaml
 benchmark/generated/deepseek-v4-flash.yaml
-benchmark/generated/glm-5.3.yaml
+benchmark/generated/glm-5.3-flash.yaml
 benchmark/generated/luna.yaml
 benchmark/generated/codex-cliproxy.toml        # Codex -> compatibility bridge
 benchmark/generated/cliproxy-config.yaml       # bridge deployment config (0600)
@@ -514,25 +514,25 @@ $PIER job start -c benchmark/generated/kimi-k3.yaml \
 This runs Pi, Claude Code, and Codex across all 10 selected tasks: 30 trials,
 with at most 10 concurrent trials.
 
-### 8. Run the GLM-5.3 gateway acceptance check
+### 8. Run the GLM-5.3-Flash gateway acceptance check
 
 GLM uses its own gateway alias. Run the pilot-task override before the primary
 laptop batch:
 
 ```bash
-$PIER job start -c benchmark/generated/glm-5.3.yaml \
+$PIER job start -c benchmark/generated/glm-5.3-flash.yaml \
   --env-file benchmark/env.local \
   --path ../DeepSWE/tasks \
   --include-task-name anko-default-function-arguments \
-  --job-name acceptance-glm-5.3
+  --job-name acceptance-glm-5.3-flash
 ```
 
 If all three trials complete, start the primary GLM job.
 
-### 9. Run GLM-5.3
+### 9. Run GLM-5.3-Flash
 
 ```bash
-$PIER job start -c benchmark/generated/glm-5.3.yaml \
+$PIER job start -c benchmark/generated/glm-5.3-flash.yaml \
   --env-file benchmark/env.local
 ```
 

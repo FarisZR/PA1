@@ -77,10 +77,10 @@ openai-compatibility:
         input-modalities: [text, image]
         thinking:
           levels: ["low", "high", "max"]
-      - name: "glm-5p3"
-        alias: "glm-5p3"
-        display-name: "GLM-5.3"
+      - name: "glm-5p3-flash"
+        alias: "glm-5p3-flash"
+        display-name: "GLM-5.3-Flash"
         max-context-length: 1048576
-        input-modalities: [text]
+        input-modalities: [text, image]
         thinking:
           levels: ["low", "high", "max"]

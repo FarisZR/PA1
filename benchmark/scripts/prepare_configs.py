@@ -18,7 +18,7 @@ CONFIG_DIR = BENCHMARK_DIR / "configs"
 CURRENT_MODEL_CONFIGS = {
     "kimi-k3.yaml": 1,
     "deepseek-v4-flash.yaml": 1,
-    "glm-5.3.yaml": 1,
+    "glm-5.3-flash.yaml": 1,
     "luna.yaml": 0,
 }
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
@@ -211,14 +211,14 @@ def kimi_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
 
 
 def glm_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
-    """Return GLM-5.3 metadata on top of the frozen GPT-5.6 Sol profile."""
+    """Return GLM-5.3-Flash metadata on top of the frozen GPT-5.6 Sol profile."""
     return third_party_codex_entry(
         sol_profile,
-        slug="glm-5p3",
-        display_name="GLM-5.3",
-        description="GLM-5.3",
+        slug="glm-5p3-flash",
+        display_name="GLM-5.3-Flash",
+        description="GLM-5.3-Flash",
         context_window=1_048_576,
-        input_modalities=["text"],
+        input_modalities=["text", "image"],
         default_reasoning_level="max",
         supported_reasoning_levels=[
             {

@@ -1,4 +1,4 @@
-job_name: glm-5.3
+job_name: glm-5.3-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
 # This job is intended for the 64 GB laptop runner. Six concurrent DeepSWE
@@ -36,7 +36,7 @@ datasets:
 
 agents:
   - name: pi
-    model_name: zai/glm-5p3
+    model_name: zai/glm-5p3-flash
     env:
       ZAI_API_KEY: ${LITELLM_API_KEY}
     kwargs:
@@ -48,11 +48,11 @@ agents:
             baseUrl: __LITELLM_OPENAI_BASE_URL__
             apiKey: $ZAI_API_KEY
             models:
-              # Transport alias for GLM-5.3. The capability/compatibility fields
-              # mirror Pi 0.84.4's built-in zai/glm-5.3 entry exactly; only the
-              # API-facing id is changed to the alias exposed by our gateway.
-              - id: glm-5p3
-                name: GLM-5.3
+              # Transport alias for GLM-5.3-Flash. This matches Pi 0.84.4's
+              # built-in zai/glm-5.3-flash profile; only the API-facing id and
+              # provider endpoint are overridden for our gateway.
+              - id: glm-5p3-flash
+                name: GLM-5.3-Flash
                 api: openai-completions
                 reasoning: true
                 thinkingLevelMap:
@@ -63,11 +63,11 @@ agents:
                   high: high
                   xhigh: null
                   max: max
-                input: [text]
+                input: [text, image]
                 cost:
-                  input: 1.4
-                  output: 4.4
-                  cacheRead: 0.26
+                  input: 0.15
+                  output: 0.5
+                  cacheRead: 0.03
                   cacheWrite: 0
                 compat:
                   supportsStore: false
@@ -80,11 +80,11 @@ agents:
                 maxTokens: 131072
 
   - name: claude-code
-    model_name: glm-5p3[1m]
+    model_name: glm-5p3-flash[1m]
     env:
       ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
-      ANTHROPIC_DEFAULT_FABLE_MODEL: glm-5p3[1m]
+      ANTHROPIC_DEFAULT_FABLE_MODEL: glm-5p3-flash[1m]
       CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1048576"
       API_FORCE_IDLE_TIMEOUT: "0"
       CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
@@ -94,12 +94,12 @@ agents:
       reasoning_effort: max
 
   - name: codex
-    model_name: zai/glm-5p3
+    model_name: zai/glm-5p3-flash
     env:
       CODEX_CLIPROXY_API_KEY: ${CODEX_CLIPROXY_API_KEY}
     kwargs:
       version: "0.151.0"
-      command_model_name: glm-5p3
+      command_model_name: glm-5p3-flash
       reasoning_effort: max
       restrict_model_catalog: true
       model_catalog_file: benchmark/generated/codex-thirdparty-models.json

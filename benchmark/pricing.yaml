@@ -38,11 +38,11 @@ models:
     context_limit: 1048576
     source: https://forum.moonshot.ai/t/kimi-k3-is-here-our-most-capable-model/480
 
-  glm-5p3:
+  glm-5p3-flash:
     provider: zai
-    input: 1.4
-    cached_input: 0.26
+    input: 0.15
+    cached_input: 0.03
     cache_write: 0.0
-    output: 4.4
+    output: 0.5
     context_limit: 1048576
-    source: https://fireworks.ai/models/fireworks/glm-5p3
+    source: https://docs.z.ai/guides/overview/pricing

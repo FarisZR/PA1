@@ -126,7 +126,7 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
     # The reason this whole test exists. CLIProxyAPI snaps an unknown effort to
     # the nearest level it knows, so losing `max` here would silently downgrade
     # every third-party Codex request.
-    for model in ("deepseek-v4-flash", "kimi-k3", "glm-5p3"):
+    for model in ("deepseek-v4-flash", "kimi-k3", "glm-5p3-flash"):
         block = config.split(f'- name: "{model}"', 1)
         levels = re.search(r"levels: \[([^\]]*)\]", block[1]) if len(block) > 1 else None
         check(
@@ -207,7 +207,7 @@ def boot_check(config_path: Path) -> None:
 
     served = sorted(entry["id"] for entry in models.get("data", []))
     check(
-        served == ["deepseek-v4-flash", "glm-5p3", "kimi-k3"],
+        served == ["deepseek-v4-flash", "glm-5p3-flash", "kimi-k3"],
         "bridge serves exactly the three benchmark models",
         str(served),
     )
