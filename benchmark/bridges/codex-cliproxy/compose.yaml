@@ -4,7 +4,7 @@ services:
   codex-cliproxy:
     # Pinned by tag *and* digest. The tag is only a label; the digest is what
     # actually runs, so this cannot drift between benchmark jobs.
-    image: eceasy/cli-proxy-api:v7.2.146@sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163
+    image: eceasy/cli-proxy-api:v7.2.158@sha256:58178ab00cd1e54aa8520c35a62feca30b8ec2a227facb04b0fd765b96df0691
     pull_policy: missing
     restart: unless-stopped
     volumes:

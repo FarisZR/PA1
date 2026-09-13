@@ -1,5 +1,5 @@
 # BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
-job_name: opencode-v2-deepseek-v4-flash
+job_name: opencode-v2-deepseek-v4p1-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
 n_concurrent_trials: 14
@@ -34,7 +34,7 @@ datasets:
   - koota-composite-trait-aspects
 agents:
 - name: opencode
-  model_name: litellm/deepseek-v4-flash
+  model_name: litellm/deepseek-v4p1-flash
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
@@ -52,9 +52,9 @@ agents:
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
           models:
-            deepseek-v4-flash:
-              modelID: deepseek-v4-flash
-              name: DeepSeek V4 Flash 0731
+            deepseek-v4p1-flash:
+              modelID: deepseek-v4p1-flash
+              name: DeepSeek V4.1 Flash
               limit:
                 context: 1048576
                 output: 384000

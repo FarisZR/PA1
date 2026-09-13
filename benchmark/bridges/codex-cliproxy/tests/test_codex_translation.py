@@ -39,7 +39,7 @@ COMPOSE_FILE = BRIDGE_DIR / "compose.yaml"
 
 BRIDGE_KEY = "pa1-acceptance-bridge-key"
 UPSTREAM_KEY = "pa1-acceptance-upstream-key"
-MODEL = "deepseek-v4-flash"
+MODEL = "deepseek-v4p1-flash"
 NETWORK = "pa1-cliproxy-acceptance"
 MOCK_NAME = "pa1-cliproxy-acceptance-mock"
 BRIDGE_NAME = "pa1-cliproxy-acceptance-bridge"
@@ -223,7 +223,7 @@ def main() -> int:
                 "    models:",
                 f'      - name: "{MODEL}"',
                 f'        alias: "{MODEL}"',
-                "        input-modalities: [text]",
+                "        input-modalities: [text, image]",
                 "        thinking:",
                 '          levels: ["low", "high", "max"]',
                 "",

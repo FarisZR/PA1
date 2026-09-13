@@ -63,11 +63,11 @@ openai-compatibility:
     api-key-entries:
       - api-key: "__LITELLM_API_KEY__"
     models:
-      - name: "deepseek-v4-flash"
-        alias: "deepseek-v4-flash"
-        display-name: "DeepSeek V4 Flash 0731"
+      - name: "deepseek-v4p1-flash"
+        alias: "deepseek-v4p1-flash"
+        display-name: "DeepSeek V4.1 Flash"
         max-context-length: 1048576
-        input-modalities: [text]
+        input-modalities: [text, image]
         thinking:
           levels: ["low", "high", "max"]
       - name: "kimi-k3"

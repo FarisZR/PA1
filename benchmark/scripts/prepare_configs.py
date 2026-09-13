@@ -17,7 +17,7 @@ GENERATED_DIR = BENCHMARK_DIR / "generated"
 CONFIG_DIR = BENCHMARK_DIR / "configs"
 CURRENT_MODEL_CONFIGS = {
     "kimi-k3.yaml": 1,
-    "deepseek-v4-flash.yaml": 1,
+    "deepseek-v4p1-flash.yaml": 1,
     "glm-5.3-flash.yaml": 1,
     "luna.yaml": 0,
 }
@@ -155,14 +155,14 @@ def third_party_codex_entry(
 
 
 def deepseek_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
-    """Return DeepSeek metadata on top of the frozen GPT-5.6 Sol profile."""
+    """Return DeepSeek V4.1 Flash metadata on top of the frozen Sol profile."""
     return third_party_codex_entry(
         sol_profile,
-        slug="deepseek-v4-flash",
-        display_name="DeepSeek V4 Flash 0731",
-        description="DeepSeek V4 Flash 0731",
+        slug="deepseek-v4p1-flash",
+        display_name="DeepSeek V4.1 Flash",
+        description="DeepSeek V4.1 Flash",
         context_window=1_048_576,
-        input_modalities=["text"],
+        input_modalities=["text", "image"],
         default_reasoning_level="high",
         supported_reasoning_levels=[
             {
@@ -178,7 +178,7 @@ def deepseek_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
                 "description": "Maximum reasoning depth for the hardest problems",
             },
         ],
-        supports_image_detail_original=False,
+        supports_image_detail_original=True,
     )
 
 
