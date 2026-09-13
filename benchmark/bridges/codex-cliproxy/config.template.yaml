@@ -63,11 +63,11 @@ openai-compatibility:
     api-key-entries:
       - api-key: "__LITELLM_API_KEY__"
     models:
+      # DeepSeek documents 1M context; PA1 normalizes every harness to exactly
+      # 1,000,000 rather than using Fireworks' provider-specific 1,048,576.
       - name: "deepseek-v4p1-flash"
         alias: "deepseek-v4p1-flash"
         display-name: "DeepSeek V4.1 Flash"
-        # DeepSeek documents 1M context; PA1 normalizes every harness to exactly
-        # 1,000,000 rather than using Fireworks' provider-specific 1,048,576.
         max-context-length: 1000000
         input-modalities: [text, image]
         thinking:
