@@ -78,8 +78,15 @@ used for the run.
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
 | GLM-5.3-Flash | max | Existing LiteLLM gateway | Fireworks 1,048,576 context; Pi native entry uses 1,000,000 |
-| DeepSeek V4.1 Flash | max | Existing LiteLLM gateway | Native 1,048,576 context; Claude Code compacts at 1,048,576 |
+| DeepSeek V4.1 Flash | max | Existing LiteLLM gateway | Normalized to exactly 1,000,000 across Pi, Claude Code, Codex, and deferred OpenCode |
 | GPT-5.6 Luna | max | Existing LiteLLM gateway | 272,000-token benchmark window |
+
+DeepSeek is deliberately normalized to exactly **1,000,000 tokens** across all
+harnesses. DeepSeek documents the model as having a 1M context window, and the
+upstream Pi and OpenCode/models.dev profiles both encode that as 1,000,000.
+Fireworks advertises a larger 1,048,576-token route limit, but PA1 does not use
+that provider-specific ceiling because doing so would create harness-specific
+context differences for the same benchmark model.
 
 The smoke test is intentionally different: it runs Luna at **low** reasoning to
 validate the environment cheaply before primary spending.
@@ -122,7 +129,7 @@ This preserves the rest of the current-release Sol behavior, including
 `tool_mode: "code_mode_only"`, parallel tool calls,
 the Sol system/profile instructions, and `auto_compact_token_limit: null`.
 DeepSeek keeps the Codex compaction field and explicitly sets Claude Code
-`CLAUDE_CODE_AUTO_COMPACT_WINDOW=1048576`.
+`CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000`.
 
 #### Codex compatibility bridge
 
@@ -162,12 +169,11 @@ call in a trial remains on the model being benchmarked.
 
 The third-party `[1m]` aliases are retained for DeepSeek/Kimi/GLM compatibility.
 Luna also uses `[1m]`, then explicitly lowers its compaction window to 272,000.
-Kimi and DeepSeek both explicitly use a 1,048,576 Claude Code auto-compaction
-window, stated as each model's literal native context so the value matches
-`pricing.yaml` and the generated Codex catalog. Claude Code caps the window at
-the one it assumes for the model ID, which is 1,000,000 for an unrecognized
-`[1m]` alias, so the effective threshold is 1,000,000 and the declared value is
-the model's context rather than the reachable ceiling.
+Kimi keeps its 1,048,576 declared context. DeepSeek instead explicitly sets a
+1,000,000-token Claude Code auto-compaction window so it matches Pi, Codex, and
+the deferred OpenCode profile under the DeepSeek normalization policy above.
+For unrecognized `[1m]` aliases Claude Code itself assumes a 1,000,000-token
+window, so DeepSeek's declared and effective limits now match.
 
 Every Claude Code cell also sets two timeout variables that only matter because
 the requests are routed through a gateway rather than directly to Anthropic:
@@ -247,11 +253,12 @@ selected provider/model explicitly in non-interactive print mode.
 DeepSeek V4.1 Flash is newer than the frozen Pi 0.84.4 catalog, so
 `benchmark/configs/deepseek-v4p1-flash.yaml` declares its model explicitly. The
 entry preserves DeepSeek's required reasoning-content echo, adds native image
-input, and uses the same `thinkingFormat: openai` compatibility path as Pi's
-bundled Kimi K3 entry: a single `reasoning_effort`, mapped from `--thinking` by
-the declared `thinkingLevelMap` (`max` -> `"max"`). The gateway's Fireworks
-route rejects the alternative `thinking: {type: "enabled"}` plus
-`reasoning_effort` pair with HTTP 400 before the first turn.
+input, uses the normalized 1,000,000-token context window, and uses the same
+`thinkingFormat: openai` compatibility path as Pi's bundled Kimi K3 entry: a
+single `reasoning_effort`, mapped from `--thinking` by the declared
+`thinkingLevelMap` (`max` -> `"max"`). The gateway's Fireworks route rejects the
+alternative `thinking: {type: "enabled"}` plus `reasoning_effort` pair with HTTP
+400 before the first turn.
 
 The underlying rule is a property of the gateway's Fireworks route, not of one
 model: it rejects `thinking` and `reasoning_effort` together, and accepts either

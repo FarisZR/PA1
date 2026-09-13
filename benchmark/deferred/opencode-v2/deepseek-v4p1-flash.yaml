@@ -56,7 +56,9 @@ agents:
               modelID: deepseek-v4p1-flash
               name: DeepSeek V4.1 Flash
               limit:
-                context: 1048576
+                # Match DeepSeek's documented 1M window and the upstream
+                # OpenCode/models.dev DeepSeek profile used for this harness.
+                context: 1000000
                 output: 384000
               variants:
               - id: max

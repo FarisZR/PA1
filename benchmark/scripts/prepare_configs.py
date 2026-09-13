@@ -156,12 +156,15 @@ def third_party_codex_entry(
 
 def deepseek_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
     """Return DeepSeek V4.1 Flash metadata on top of the frozen Sol profile."""
+    # DeepSeek documents the model as 1M context, while upstream Pi/OpenCode use
+    # exactly 1,000,000. PA1 normalizes all harnesses to that value instead of
+    # inheriting Fireworks' provider-specific 1,048,576-token route metadata.
     return third_party_codex_entry(
         sol_profile,
         slug="deepseek-v4p1-flash",
         display_name="DeepSeek V4.1 Flash",
         description="DeepSeek V4.1 Flash",
-        context_window=1_048_576,
+        context_window=1_000_000,
         input_modalities=["text", "image"],
         default_reasoning_level="high",
         supported_reasoning_levels=[

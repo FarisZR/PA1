@@ -75,6 +75,9 @@ agents:
                   maxTokensField: max_tokens
                   requiresReasoningContentOnAssistantMessages: true
                   thinkingFormat: openai
+                # PA1 normalizes DeepSeek to 1,000,000 tokens across harnesses:
+                # DeepSeek documents a 1M window and Pi/OpenCode use 1,000,000.
+                # Fireworks' larger route metadata is deliberately not used here.
                 contextWindow: 1000000
                 maxTokens: 384000
 
@@ -84,7 +87,7 @@ agents:
       ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
       ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
       ANTHROPIC_DEFAULT_FABLE_MODEL: deepseek-v4p1-flash[1m]
-      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1048576"
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1000000"
       API_FORCE_IDLE_TIMEOUT: "0"
       CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
       DISABLE_AUTOUPDATER: "1"
