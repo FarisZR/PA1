@@ -21,13 +21,14 @@ models:
     context_limit: 272000
     source: https://developers.openai.com/api/docs/models
 
-  # DeepSeek official off-peak pricing, USD per 1M tokens.
-  deepseek-v4-flash:
+  # DeepSeek official off-peak pricing, USD per 1M tokens. DeepSeek documents a
+  # 1M context window, so PA1 normalizes all DeepSeek harnesses to 1,000,000.
+  deepseek-v4p1-flash:
     provider: deepseek
-    input: 0.22
-    cached_input: 0.007
-    output: 0.66
-    context_limit: 1048576
+    input: 0.15
+    cached_input: 0.003
+    output: 0.60
+    context_limit: 1000000
     source: https://api-docs.deepseek.com/quick_start/pricing/
 
   kimi-k3:

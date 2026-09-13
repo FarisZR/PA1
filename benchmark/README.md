@@ -15,8 +15,8 @@ Run these steps in this order:
 5. `benchmark/generated/kimi-k3.yaml` — **highest-priority primary job**
 6. one-task GLM-5.3-Flash gateway acceptance run using `benchmark/generated/glm-5.3-flash.yaml`
 7. `benchmark/generated/glm-5.3-flash.yaml`
-8. one-task DeepSeek gateway acceptance run using `benchmark/generated/deepseek-v4-flash.yaml`
-9. `benchmark/generated/deepseek-v4-flash.yaml`
+8. one-task DeepSeek V4.1 Flash gateway acceptance run using `benchmark/generated/deepseek-v4p1-flash.yaml`
+9. `benchmark/generated/deepseek-v4p1-flash.yaml`
 10. `benchmark/generated/luna.yaml`
 
 The primary files under `benchmark/configs/` are source templates. Do not launch
@@ -78,8 +78,15 @@ used for the run.
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
 | GLM-5.3-Flash | max | Existing LiteLLM gateway | Fireworks 1,048,576 context; Pi native entry uses 1,000,000 |
-| DeepSeek V4 Flash 0731 | max | Existing LiteLLM gateway | Native 1,048,576 context; Claude Code compacts at 1,048,576 |
+| DeepSeek V4.1 Flash | max | Existing LiteLLM gateway | Normalized to exactly 1,000,000 across Pi, Claude Code, Codex, and deferred OpenCode |
 | GPT-5.6 Luna | max | Existing LiteLLM gateway | 272,000-token benchmark window |
+
+DeepSeek is deliberately normalized to exactly **1,000,000 tokens** across all
+harnesses. DeepSeek documents the model as having a 1M context window, and the
+upstream Pi and OpenCode/models.dev profiles both encode that as 1,000,000.
+Fireworks advertises a larger 1,048,576-token route limit, but PA1 does not use
+that provider-specific ceiling because doing so would create harness-specific
+context differences for the same benchmark model.
 
 The smoke test is intentionally different: it runs Luna at **low** reasoning to
 validate the environment cheaply before primary spending.
@@ -122,7 +129,7 @@ This preserves the rest of the current-release Sol behavior, including
 `tool_mode: "code_mode_only"`, parallel tool calls,
 the Sol system/profile instructions, and `auto_compact_token_limit: null`.
 DeepSeek keeps the Codex compaction field and explicitly sets Claude Code
-`CLAUDE_CODE_AUTO_COMPACT_WINDOW=1048576`.
+`CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000`.
 
 #### Codex compatibility bridge
 
@@ -162,12 +169,11 @@ call in a trial remains on the model being benchmarked.
 
 The third-party `[1m]` aliases are retained for DeepSeek/Kimi/GLM compatibility.
 Luna also uses `[1m]`, then explicitly lowers its compaction window to 272,000.
-Kimi and DeepSeek both explicitly use a 1,048,576 Claude Code auto-compaction
-window, stated as each model's literal native context so the value matches
-`pricing.yaml` and the generated Codex catalog. Claude Code caps the window at
-the one it assumes for the model ID, which is 1,000,000 for an unrecognized
-`[1m]` alias, so the effective threshold is 1,000,000 and the declared value is
-the model's context rather than the reachable ceiling.
+Kimi keeps its 1,048,576 declared context. DeepSeek instead explicitly sets a
+1,000,000-token Claude Code auto-compaction window so it matches Pi, Codex, and
+the deferred OpenCode profile under the DeepSeek normalization policy above.
+For unrecognized `[1m]` aliases Claude Code itself assumes a 1,000,000-token
+window, so DeepSeek's declared and effective limits now match.
 
 Every Claude Code cell also sets two timeout variables that only matter because
 the requests are routed through a gateway rather than directly to Anthropic:
@@ -192,7 +198,7 @@ not a requirement of the models or their official Claude Code integrations.
 
 The model-level limits are substantially larger: [Kimi K3's API defaults
 `max_completion_tokens` to 131,072](https://www.kimi.ai/help/kimi-api/api-troubleshooting),
-while [DeepSeek V4 Flash 0731 documents a 384K maximum output](https://api-docs.deepseek.com/quick_start/pricing/).
+while [DeepSeek V4.1 Flash documents a 384K maximum output](https://api-docs.deepseek.com/quick_start/pricing/).
 Their official Claude Code setup instructions do not set
 `CLAUDE_CODE_MAX_OUTPUT_TOKENS`; they configure model routing, reasoning and
 context behavior and leave Claude Code's output policy intact. See
@@ -228,7 +234,7 @@ pricing metadata remain intact:
 
 ```text
 moonshotai/kimi-k3
-deepseek/deepseek-v4-flash
+deepseek/deepseek-v4p1-flash
 zai/glm-5p3-flash
 openai/gpt-5.6-luna
 ```
@@ -244,23 +250,20 @@ Code's declared compaction window, and cost normalization.
 Pi has no native subagent system in this benchmark setup. Pier launches the
 selected provider/model explicitly in non-interactive print mode.
 
-DeepSeek needs one compatibility override. Pi's bundled `deepseek-v4-flash`
-entry declares `compat.thinkingFormat: "deepseek"`, and that request builder
-sends `thinking: {type: "enabled"}` *and* `reasoning_effort` together; the
-gateway's Fireworks route rejects that pair with HTTP 400 before the first
-turn. `benchmark/configs/deepseek-v4-flash.yaml` therefore sets
-`thinkingFormat: openai` for that one model through `modelOverrides`, which is
-the same format Pi's bundled Kimi K3 entry uses: a single `reasoning_effort`,
-mapped from `--thinking` by the bundled `thinkingLevelMap` (`max` -> `"max"`).
-`modelOverrides` is the topmost `models.json` layer and merges `compat`, so the
-bundled cost/context metadata and DeepSeek's required reasoning-content echo
-are preserved. Verified against pi 0.84.4: the request carries only
-`reasoning_effort: "max"` afterwards.
+DeepSeek V4.1 Flash is newer than the frozen Pi 0.84.4 catalog, so
+`benchmark/configs/deepseek-v4p1-flash.yaml` declares its model explicitly. The
+entry preserves DeepSeek's required reasoning-content echo, adds native image
+input, uses the normalized 1,000,000-token context window, and uses the same
+`thinkingFormat: openai` compatibility path as Pi's bundled Kimi K3 entry: a
+single `reasoning_effort`, mapped from `--thinking` by the declared
+`thinkingLevelMap` (`max` -> `"max"`). The gateway's Fireworks route rejects the
+alternative `thinking: {type: "enabled"}` plus `reasoning_effort` pair with HTTP
+400 before the first turn.
 
 The underlying rule is a property of the gateway's Fireworks route, not of one
 model: it rejects `thinking` and `reasoning_effort` together, and accepts either
 one alone. Both Fireworks-backed aliases were probed directly against the
-gateway, and both behave identically — `deepseek-v4-flash` and `kimi-k3` each
+gateway, and both behave identically — `deepseek-v4p1-flash` and `kimi-k3` each
 return HTTP 200 for `reasoning_effort` alone and HTTP 400 for the pair. Any
 further Fireworks model added to Pi must therefore be checked for a bundled
 `thinkingFormat` that emits two controls.
@@ -274,7 +277,7 @@ Fireworks restriction does not apply to it.
 Reasoning is also confirmed to be genuinely on at `max` for both Fireworks
 models: sampled against the gateway, `reasoning_effort: "max"` returns non-empty
 `reasoning_content` and non-zero `reasoning_tokens` for `kimi-k3` and
-`deepseek-v4-flash` alike, while `"none"` returns none. `--thinking max` is
+`deepseek-v4p1-flash` alike, while `"none"` returns none. `--thinking max` is
 therefore a real setting on this route rather than a silently ignored one.
 
 Pi's own provider entries are kept and patched per model rather than replaced by
@@ -307,19 +310,19 @@ Anthropic-compatible surface.
 
 ```text
 gpt-5.6-luna
-deepseek-v4-flash
+deepseek-v4p1-flash
 kimi-k3
 glm-5p3-flash
 ```
 
-`deepseek-v4-flash` is the stable DeepSeek model ID used by all three harnesses.
-The gateway maps it to the V4 Flash 0731 checkpoint.
+`deepseek-v4p1-flash` is the stable DeepSeek model ID used by all three
+harnesses. The gateway maps it to the DeepSeek V4.1 Flash checkpoint.
 
 ### Claude Code aliases
 
 ```text
 gpt-5.6-luna[1m]
-deepseek-v4-flash[1m]
+deepseek-v4p1-flash[1m]
 kimi-k3[1m]
 glm-5p3-flash[1m]
 ```
@@ -454,7 +457,7 @@ This writes ignored deployment-specific files:
 
 ```text
 benchmark/generated/kimi-k3.yaml
-benchmark/generated/deepseek-v4-flash.yaml
+benchmark/generated/deepseek-v4p1-flash.yaml
 benchmark/generated/glm-5.3-flash.yaml
 benchmark/generated/luna.yaml
 benchmark/generated/codex-cliproxy.toml        # Codex -> compatibility bridge
@@ -585,7 +588,7 @@ DeepSeek uses a different gateway alias from Kimi. Before its 30-trial batch,
 run the same pilot-task override:
 
 ```bash
-$PIER job start -c benchmark/generated/deepseek-v4-flash.yaml \
+$PIER job start -c benchmark/generated/deepseek-v4p1-flash.yaml \
   --env-file benchmark/env.local \
   --path ../DeepSWE/tasks \
   --include-task-name anko-default-function-arguments \
@@ -594,10 +597,10 @@ $PIER job start -c benchmark/generated/deepseek-v4-flash.yaml \
 
 If all three trials complete, start the primary DeepSeek job.
 
-### 11. Run DeepSeek V4 Flash 0731
+### 11. Run DeepSeek V4.1 Flash
 
 ```bash
-$PIER job start -c benchmark/generated/deepseek-v4-flash.yaml \
+$PIER job start -c benchmark/generated/deepseek-v4p1-flash.yaml \
   --env-file benchmark/env.local
 ```
 

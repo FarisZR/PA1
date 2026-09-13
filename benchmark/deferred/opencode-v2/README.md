@@ -5,7 +5,7 @@ current run. Its staged jobs are split per model so the same model-priority
 ordering can be used when the adapter is ready:
 
 1. `kimi-k3.yaml`
-2. `deepseek-v4-flash.yaml`
+2. `deepseek-v4p1-flash.yaml`
 3. `glm-5.3-flash.yaml`
 4. `luna.yaml`
 5. `opus.yaml` (also subject to the separate Opus deferral)
