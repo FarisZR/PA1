@@ -9,7 +9,7 @@ which only handled Anthropic.
 ```text
 Codex 0.151.0
   -> OpenAI Responses            (http://<bridge>/v1/responses)
-CLIProxyAPI v7.2.158
+CLIProxyAPI v7.2.146
   -> OpenAI Chat Completions     -> existing LiteLLM gateway -> Fireworks
   -> Anthropic Messages          -> api.anthropic.com        (deferred Opus)
 ```
@@ -38,14 +38,14 @@ own chain of thought on the next tool turn. CLIProxyAPI does both.
 
 | Component | Pin |
 | --- | --- |
-| Image | `eceasy/cli-proxy-api:v7.2.158` |
-| Digest | `sha256:58178ab00cd1e54aa8520c35a62feca30b8ec2a227facb04b0fd765b96df0691` |
+| Image | `eceasy/cli-proxy-api:v7.2.146` |
+| Digest | `sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163` |
 
 `compose.yaml` pins the digest, so the tag is only a human-readable label and
-cannot silently move between jobs. Version `v7.2.158` includes the upstream
-fix that processes reasoning deltas before content in the Responses stream
-(`c8ecb4f3`), which is required for DeepSeek V4.1 Flash's mixed reasoning/text
-stream chunks. Do not downgrade.
+cannot silently move between jobs. The Responses translator in `v7.2.146` is
+byte-identical to the reviewed upstream tree (`git diff v7.2.146 81e1b537 --
+internal/translator/openai/openai/responses/` is empty), and earlier releases
+had different reasoning-replay behavior. Do not downgrade.
 
 ## Configuration
 

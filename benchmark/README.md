@@ -65,7 +65,7 @@ update these revisions between jobs in the primary batch.
 | Claude Code | `2.1.251` |
 | Pi | `0.84.4` |
 | Codex model catalog | `rust-v0.151.0` vendored at `benchmark/references/codex-rust-v0.151.0-models.json` |
-| Codex compatibility bridge | CLIProxyAPI `v7.2.158`, digest `sha256:58178ab00cd1e54aa8520c35a62feca30b8ec2a227facb04b0fd765b96df0691` |
+| Codex compatibility bridge | CLIProxyAPI `v7.2.146`, digest `sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163` |
 
 The DeepSWE revision includes the upstream 10,800-second task timeout. Claude
 Code runs with its updater disabled. Pier writes `lock.json` into each job
