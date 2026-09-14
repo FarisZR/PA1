@@ -9,7 +9,7 @@ which only handled Anthropic.
 ```text
 Codex 0.151.0
   -> OpenAI Responses            (http://<bridge>/v1/responses)
-CLIProxyAPI v7.2.146
+CLIProxyAPI v7.2.146 + upstream #5659 backport
   -> OpenAI Chat Completions     -> existing LiteLLM gateway -> Fireworks
   -> Anthropic Messages          -> api.anthropic.com        (deferred Opus)
 ```
@@ -38,14 +38,26 @@ own chain of thought on the next tool turn. CLIProxyAPI does both.
 
 | Component | Pin |
 | --- | --- |
-| Image | `eceasy/cli-proxy-api:v7.2.146` |
-| Digest | `sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163` |
+| Source fork | `FZR-forks/CLIProxyAPI`, branch `pa1/v7.2.146-5659` |
+| Base | upstream `v7.2.146` (`d31b15916d15b550bbf388fd6da4a47d4d864109`) |
+| Behavioral backport | upstream `c8ecb4f3c972664aae802e21c6a6743d5f6bd80a`, cherry-picked as `bf3c396d` |
+| Image | `ghcr.io/fzr-forks/cliproxyapi:7.2.146-pa1-5659` |
+| Digest | `sha256:26de0755cf37765291e149590e13ee354010c8caa7b25ec3981827f2d606d6dc` |
 
 `compose.yaml` pins the digest, so the tag is only a human-readable label and
-cannot silently move between jobs. The Responses translator in `v7.2.146` is
-byte-identical to the reviewed upstream tree (`git diff v7.2.146 81e1b537 --
-internal/translator/openai/openai/responses/` is empty), and earlier releases
-had different reasoning-replay behavior. Do not downgrade.
+cannot silently move between jobs. The fork is deliberately based on the exact
+`v7.2.146` revision used for the initial benchmark and contains one upstream
+behavioral fix: `c8ecb4f3`, which handles `reasoning_content` before `content`
+when both fields are non-empty in the same streamed Chat Completions delta.
+The fork also contains a CI-only commit that builds this source into GHCR; it
+does not change the binary's runtime behavior.
+
+This narrow backport is intentional. Upgrading to the first upstream release
+that contains the fix (`v7.2.158`) would also import 184 intervening commits,
+including unrelated Codex/OpenAI-compatibility translation changes. Keeping
+the old base and backporting only the known fix minimizes the experimental
+change. See [`BACKPORT-5659.md`](BACKPORT-5659.md) for the trigger, historical
+Kimi check, expected benchmark impact, and verification record.
 
 ## Configuration
 
@@ -149,6 +161,18 @@ The trial containers are unaffected and keep using the tracked bundle through
 `PIER_EXTRA_CA_CERTS`.
 
 ## Acceptance tests
+
+### Mixed reasoning/content regression
+
+```bash
+python3 benchmark/bridges/codex-cliproxy/tests/test_mixed_reasoning_content.py
+```
+
+Runs the original `v7.2.146` image and the patched image against the same mock
+Chat Completions stream. The mock deliberately emits one delta containing both
+non-empty `reasoning_content` and `content`. The test passes only if the
+unpatched image reproduces issue #5659 and the patched image emits exactly one
+reasoning item before the message while preserving both complete texts.
 
 ### Translation contract (offline, deterministic)
 
