@@ -39,6 +39,56 @@ We've decided to use the same limited context window 272k window in other harnes
 We are only running stock harnesses here, pi can support remote compaction through plugins, but plugins are out of scope.
 Opencode V2 has native remote compaction support.
 
+### Compatibility interventions and controlled patches
+
+The benchmark compares agent harness behavior rather than failures caused by
+protocol incompatibilities between a harness and the shared model endpoint.
+Compatibility interventions were therefore permitted when they were required to
+make a harness use the intended model and provider path. These interventions
+were kept as small as possible, pinned to exact revisions or container-image
+digests, and verified with dedicated acceptance tests. They were not used to add
+new harness capabilities or to change the benchmark prompt or tool set.
+
+#### CLIProxyAPI backport between Codex runs
+
+Codex 0.151.0 uses the OpenAI Responses protocol, while the third-party models
+in this benchmark are routed through LiteLLM to Fireworks using Chat
+Completions. CLIProxyAPI v7.2.146 was therefore used as a protocol bridge for
+the Codex runs.
+
+During the benchmark period, an upstream CLIProxyAPI defect was identified in
+this translation path [@cliproxyIssue5659]. If one streamed Chat Completions
+delta contained both non-empty `reasoning_content` and non-empty `content`, the
+translator processed the visible content first and then opened a new reasoning
+item. This produced an invalid Responses item order. In the upstream
+reproduction, Codex displayed a truncated assistant message even though the
+complete generated message was retained in the Codex session file.
+
+The completed Kimi K3 run had already used the unmodified v7.2.146 bridge. Its
+CLIProxyAPI request logs were therefore checked retrospectively for the exact
+trigger condition. No streamed delta containing both non-empty `content` and
+`reasoning_content` was found, so the defect's triggering condition was absent
+from that run.
+
+For subsequent third-party Codex runs, the bridge was not upgraded to a newer
+CLIProxyAPI release because that would also have introduced unrelated protocol
+translation changes. Instead, the benchmark uses a fork based on the exact
+v7.2.146 source revision with only the upstream fix for this defect backported
+[@cliproxyFix5659]. The fix changes the processing order so that reasoning is
+handled before visible content when both occur in the same upstream chunk. For
+chunks containing only reasoning, only content, or reasoning followed by a tool
+call, the relevant translation behavior is unchanged.
+
+This creates one documented infrastructure difference between the completed
+Kimi K3 run and later third-party Codex runs. The change was chosen because it
+removes a known malformed Responses sequence while minimizing the experimental
+delta. The demonstrated upstream failure was a streaming/client-display defect,
+not loss of generated model text; however, malformed Responses item ordering
+could in principle affect client state during an agentic tool loop. Applying the
+narrow backport avoids that uncertainty without adopting unrelated proxy
+changes. The fork revision, image digest, regression test, and acceptance tests
+are recorded in `benchmark/bridges/codex-cliproxy/BACKPORT-5659.md`.
+
 #### Codex
 For non-native models, Codex's minimal unknown-model fallback metadata was replaced by a standardized metadata profile derived from GPT-5.6 Sol in the pinned Codex version. This prevents model-recognition status from changing the Codex harness capability set. Model-specific capabilities were adjusted to the respective model, while backend-dependent features that could not be supported uniformly were disabled.
 
