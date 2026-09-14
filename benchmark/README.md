@@ -65,12 +65,26 @@ update these revisions between jobs in the primary batch.
 | Claude Code | `2.1.251` |
 | Pi | `0.84.4` |
 | Codex model catalog | `rust-v0.151.0` vendored at `benchmark/references/codex-rust-v0.151.0-models.json` |
-| Codex compatibility bridge | CLIProxyAPI `v7.2.146`, digest `sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163` |
+| Codex compatibility bridge | CLIProxyAPI `v7.2.146` + upstream #5659 backport; GHCR digest `sha256:26de0755cf37765291e149590e13ee354010c8caa7b25ec3981827f2d606d6dc` |
 
 The DeepSWE revision includes the upstream 10,800-second task timeout. Claude
 Code runs with its updater disabled. Pier writes `lock.json` into each job
 result directory; keep it with the benchmark results and record the PA1 commit
 used for the run.
+
+The bridge has one documented post-Kimi exception to the original freeze. The
+completed Kimi K3 run used the unmodified upstream `v7.2.146` image
+(`sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163`).
+Before the DeepSeek V4.1 run, upstream issue CLIProxyAPI #5659 was identified:
+if one streamed Chat Completions delta contains both non-empty `content` and
+`reasoning_content`, `v7.2.146` emits the corresponding Responses items in the
+wrong order. The Kimi CLIProxy request logs were checked and contained zero
+such mixed deltas, so the triggering condition was absent from the completed
+Kimi run. Rather than adopt the 184 unrelated commits in upstream `v7.2.158`,
+PA1 keeps the `v7.2.146` base and backports only upstream fix `c8ecb4f3`. The
+patched image above is used for subsequent third-party Codex runs. Full scope
+and verification are recorded in
+[`benchmark/bridges/codex-cliproxy/BACKPORT-5659.md`](bridges/codex-cliproxy/BACKPORT-5659.md).
 
 ## Current model policy
 
