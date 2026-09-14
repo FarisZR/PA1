@@ -1,8 +1,8 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `0de3cd8bc0fdefd3a01f52f630b5150b20757c24` (base
+Revisions: Pier `b37d67d94f8c3ab5bc845fc22d74046f7f070a21` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 implementation
-`0b1331aa7aad37de430615580ebfd78670f680cf` (base
+`c43fe59796da237bed83aa20c35709cf75e49d7a` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
 `v2.0.3` at `d44b52ca66b6bf69626c0384626d1a9cd9555977`. The frozen
 `@opencode/cli-linux-x64@2.0.3` archive SHA-256 is
@@ -25,8 +25,10 @@ repair task earned reward 1 with one unique child and three delegation calls,
 including resume of that child. Its reconciled tree used 61,141 prompt, 504
 completion, 43,008 cached, 8 reasoning, and 0 cache-write tokens; normalized
 cost was $0.00426219. Across all three cycles the ledger recorded 24 forwarded
-requests, no outstanding reservation, and $0.0244688 estimated spend under the
-$2 cap.
+requests, no outstanding reservation, and a historical $0.0244688 estimate.
+That estimate used the published input/output rates before the final verifier
+required an explicit cache-creation rate, so it is not accepted as proof of the
+$2 budget gate.
 
 Cycle 1 failed recorder URL wiring before forwarding anything. Cycle 2 passed
 14 assertions but its 256-cap response stopped naturally at 97 tokens rather
@@ -40,6 +42,9 @@ covered by deterministic regressions instead.
 
 Remaining gates are explicit. The gateway does not publish the route's
 131,072-token output ceiling, so only the 8,192-token acceptance cap is proven.
+It also omits a cache-creation rate. The final verifier therefore blocks before
+creating a ledger cycle or forwarding a request instead of assuming the
+surcharge is zero; the required live budget assertion remains blocked.
 Per-response route IDs establish Fireworks routing, but available metadata does
 not independently prove that hidden gateway retries/fallbacks are disabled.
 OpenCode 2.0.3 also collapses absent provider usage into an all-zero normalized
