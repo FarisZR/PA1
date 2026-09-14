@@ -20,7 +20,9 @@ CURRENT_MODEL_CONFIGS = {
     "deepseek-v4p1-flash.yaml": 1,
     "glm-5.3-flash.yaml": 1,
     "luna.yaml": 0,
+    "opencode-v2/glm-5.3-flash-acceptance.yaml": 1,
 }
+OPENCODE_V2_ACCEPTANCE_CONFIG = "opencode-v2/glm-5.3-flash-acceptance.yaml"
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
 CLAUDE_OUTPUT_OVERRIDE = "CLAUDE_CODE_MAX_OUTPUT_TOKENS"
 
@@ -283,9 +285,7 @@ def validate_bridge_url(url: str) -> str:
             "on 443."
         )
     if not parsed.path.rstrip("/").endswith("/v1"):
-        raise SystemExit(
-            f"CODEX_CLIPROXY_BASE_URL should end in /v1, got {url!r}"
-        )
+        raise SystemExit(f"CODEX_CLIPROXY_BASE_URL should end in /v1, got {url!r}")
     return url.rstrip("/")
 
 
@@ -453,6 +453,41 @@ def render_model_config(path: Path, base_url: str, expected_sentinels: int) -> s
     return rendered
 
 
+def validate_opencode_v2_config(path: Path, rendered: str) -> None:
+    """Validate the acceptance-only OpenCode V2 profile at generation time.
+
+    OpenCode's JSON schema accepts both ``limit.output`` metadata and a model
+    request ``body``.  The former alone did not put an output cap on the wire
+    in the frozen 2.0.3 executable (PA1 #40), so silently dropping this body
+    override would turn a generated acceptance job into an unbounded probe.
+    Keep this check text-based to preserve the generator's zero-runtime-
+    dependency contract and to catch conflicting reasoning controls before any
+    deployment files are written.
+    """
+    if path.as_posix().endswith(OPENCODE_V2_ACCEPTANCE_CONFIG):
+        required = (
+            "name: opencode-v2",
+            "model_name: litellm/glm-5p3-flash#low",
+            "restrict_model: true",
+            "maxTokensField: max_tokens",
+            "max_tokens: 8192",
+            "reasoningField: reasoning_content",
+            "reasoningEffort: low",
+            "baseURL: ",
+        )
+        missing = [needle for needle in required if needle not in rendered]
+        if missing:
+            raise SystemExit(
+                f"{path}: OpenCode V2 acceptance profile is missing "
+                + ", ".join(repr(item) for item in missing)
+            )
+        if "thinking:" in rendered:
+            raise SystemExit(
+                f"{path}: GLM low must use reasoningEffort alone; "
+                "do not add a conflicting thinking control"
+            )
+
+
 def validate_claude_output_policy() -> None:
     """Keep Claude Code on its native per-model output-token behavior."""
     offenders = [
@@ -499,10 +534,13 @@ def main() -> None:
     for name, expected_sentinels in CURRENT_MODEL_CONFIGS.items():
         source = CONFIG_DIR / name
         destination = GENERATED_DIR / name
+        rendered = render_model_config(source, litellm_url, expected_sentinels)
+        if name.startswith("opencode-v2/"):
+            validate_opencode_v2_config(source, rendered)
         rendered_models.append(
             (
                 destination,
-                render_model_config(source, litellm_url, expected_sentinels),
+                rendered,
             )
         )
 
@@ -552,6 +590,7 @@ def main() -> None:
         (GENERATED_DIR / obsolete).unlink(missing_ok=True)
 
     for path, contents in rendered_models:
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(contents)
         print(f"Wrote {path}")
 

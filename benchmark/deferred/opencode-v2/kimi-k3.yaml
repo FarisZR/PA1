@@ -1,4 +1,5 @@
-# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+# STAGED OpenCode V2 primary profile. Launch only after the per-model gate in
+# benchmark/README.md; this remains outside the current primary batch.
 job_name: opencode-v2-kimi-k3
 jobs_dir: benchmark/runs
 n_attempts: 1
@@ -33,18 +34,22 @@ datasets:
   - boa-hierarchical-evaluation-cancellation
   - koota-composite-trait-aspects
 agents:
-- name: opencode
-  model_name: litellm/kimi-k3
+- name: opencode-v2
+  model_name: litellm/kimi-k3#max
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
   kwargs:
-    version: 0.0.0-beta-18684
-    variant: max
-    opencode_config:
-      autoupdate: false
+    version: "2.0.3"
+    restrict_model: true
+    opencode_v2_config:
+      update: disable
+      share: disabled
+      model: litellm/kimi-k3#max
+      default_agent: build
       providers:
         litellm:
+          canonical: moonshotai
           name: LiteLLM
           env:
           - LITELLM_API_KEY
@@ -58,7 +63,23 @@ agents:
               limit:
                 context: 1048576
                 output: 131072
+              body:
+                max_output_tokens: 131072
+              cost:
+                input: 3.0
+                output: 15.0
+                cache:
+                  read: 0.3
+                  write: 0.0
               variants:
               - id: max
                 settings:
                   reasoningEffort: max
+      agents:
+        build: {model: litellm/kimi-k3#max}
+        plan: {model: litellm/kimi-k3#max}
+        general: {model: litellm/kimi-k3#max}
+        explore: {model: litellm/kimi-k3#max}
+        title: {model: litellm/kimi-k3#max}
+        summary: {model: litellm/kimi-k3#max}
+        compaction: {model: litellm/kimi-k3#max}

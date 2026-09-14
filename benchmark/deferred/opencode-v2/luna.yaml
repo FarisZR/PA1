@@ -1,4 +1,5 @@
-# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+# STAGED OpenCode V2 primary profile. Launch only after the per-model gate in
+# benchmark/README.md; this remains outside the current primary batch.
 job_name: opencode-v2-luna
 jobs_dir: benchmark/runs
 n_attempts: 1
@@ -33,16 +34,19 @@ datasets:
   - boa-hierarchical-evaluation-cancellation
   - koota-composite-trait-aspects
 agents:
-- name: opencode
-  model_name: litellm/gpt-5.6-luna
+- name: opencode-v2
+  model_name: litellm/gpt-5.6-luna#max
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
   kwargs:
-    version: 0.0.0-beta-18684
-    variant: max
-    opencode_config:
-      autoupdate: false
+    version: "2.0.3"
+    restrict_model: true
+    opencode_v2_config:
+      update: disable
+      share: disabled
+      model: litellm/gpt-5.6-luna#max
+      default_agent: build
       providers:
         litellm:
           name: LiteLLM
@@ -58,7 +62,17 @@ agents:
               limit:
                 context: 272000
                 output: 128000
+              body:
+                max_output_tokens: 128000
               variants:
               - id: max
                 settings:
                   reasoningEffort: max
+      agents:
+        build: {model: litellm/gpt-5.6-luna#max}
+        plan: {model: litellm/gpt-5.6-luna#max}
+        general: {model: litellm/gpt-5.6-luna#max}
+        explore: {model: litellm/gpt-5.6-luna#max}
+        title: {model: litellm/gpt-5.6-luna#max}
+        summary: {model: litellm/gpt-5.6-luna#max}
+        compaction: {model: litellm/gpt-5.6-luna#max}

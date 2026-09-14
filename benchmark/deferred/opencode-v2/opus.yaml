@@ -1,4 +1,5 @@
-# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+# STAGED OpenCode V2 primary profile. Launch only after the per-model gate in
+# benchmark/README.md; this remains outside the current primary batch.
 job_name: opencode-v2-opus
 jobs_dir: benchmark/runs
 n_attempts: 1
@@ -33,15 +34,18 @@ datasets:
   - boa-hierarchical-evaluation-cancellation
   - koota-composite-trait-aspects
 agents:
-- name: opencode
-  model_name: anthropic/claude-opus-5
+- name: opencode-v2
+  model_name: anthropic/claude-opus-5#medium
   env:
     ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
   kwargs:
-    version: 0.0.0-beta-18684
-    variant: medium
-    opencode_config:
-      autoupdate: false
+    version: "2.0.3"
+    restrict_model: true
+    opencode_v2_config:
+      update: disable
+      share: disabled
+      model: anthropic/claude-opus-5#medium
+      default_agent: build
       providers:
         anthropic:
           models:
@@ -55,3 +59,11 @@ agents:
                   thinking:
                     type: adaptive
                   effort: medium
+      agents:
+        build: {model: anthropic/claude-opus-5#medium}
+        plan: {model: anthropic/claude-opus-5#medium}
+        general: {model: anthropic/claude-opus-5#medium}
+        explore: {model: anthropic/claude-opus-5#medium}
+        title: {model: anthropic/claude-opus-5#medium}
+        summary: {model: anthropic/claude-opus-5#medium}
+        compaction: {model: anthropic/claude-opus-5#medium}
