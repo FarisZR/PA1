@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-14T20:29:19Z",
+  "revisions": {
+    "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
+    "pier_implementation": "99327bd04f95e7dc618cb764f422ac8ee8b24816",
+    "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
+    "pa1_implementation": "a914a71b4726809f9e42dcfb3575e12669b29dc9",
+    "opencode_source_tag": "v2.0.3",
+    "opencode_source_commit": "d44b52ca66b6bf69626c0384626d1a9cd9555977",
+    "binary_package": "@opencode/cli-linux-x64@2.0.3",
+    "binary_sha256": "4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d"
+  },
+  "offline": {
+    "status": "pass",
+    "artifact_sha256": "a5d820465fb81440fa2cd20bdc03c2ffcd476dcd84ac7680d368106250a3b757",
+    "pier_revision": "99327bd04f95e7dc618cb764f422ac8ee8b24816",
+    "passed_count": 34,
+    "failed_count": 0,
+    "blocked_count": 0,
+    "assertions": [
+      "PASS: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
+      "PASS: focused Pier collector/converter fault matrix passes (65 tests)",
+      "PASS: actual-binary limit-only control result is recorded",
+      "PASS: adapter run reaches a step_finish on the happy path",
+      "PASS: fake provider received at least one request",
+      "PASS: every request carries the pinned transport model id",
+      "PASS: GLM low requests carry reasoning_effort=low",
+      "PASS: GLM low requests carry no conflicting thinking control",
+      "PASS: Chat Completions bodies carry exactly max_tokens=8192",
+      "PASS: no competing max_completion_tokens field is sent",
+      "PASS: limit.output=54321 remains metadata in the control",
+      "PASS: model body override is exactly max_tokens=8192",
+      "PASS: trajectory contains a step_finish",
+      "PASS: usage metadata is present on the happy path",
+      "PASS: native compact operation completes and the same session continues",
+      "PASS: pre-compaction messages remain collectible",
+      "PASS: one authoritative compaction record is persisted",
+      "PASS: converter includes compaction usage exactly once",
+      "PASS: root, compaction, and continuation keep one model identity",
+      "PASS: compaction request preserves low effort and output-body policy",
+      "PASS: native 429 retries recover",
+      "PASS: native 503 retries recover",
+      "PASS: a partial stream fails or recovers instead of hanging",
+      "PASS: capture-only missing usage is classified explicitly",
+      "PASS: truncated output is visible in the trajectory",
+      "PASS: server death fails or recovers instead of hanging",
+      "PASS: native retry honors Retry-After before recovery",
+      "PASS: a permanent 401 surfaces as an error",
+      "PASS: a permanent 401 is not retried for minutes",
+      "PASS: a silent stream survives the deliberate quiet interval",
+      "PASS: tiny cap 256 probe completes or fails explicitly",
+      "PASS: large cap 8192 with a >2048-token response completes or fails explicitly",
+      "PASS: conflicting custom subagent resolves to the restricted selection",
+      "PASS: two simultaneous trials use disjoint session identities"
+    ],
+    "limit_only_control": {
+      "metadata_limit_output": 54321,
+      "observed_output_cap_fields": [{}]
+    },
+    "body_override": {
+      "max_tokens": 8192,
+      "reasoning_effort": "low",
+      "thinking": null
+    },
+    "native_retry_observations_seconds": {
+      "429": [2.529, 3.603],
+      "503": [2.045, 3.604],
+      "retry_after": [2.077]
+    }
+  },
+  "live": {
+    "status": "pass_on_retained_pre_review_runtime",
+    "artifact_sha256": "e105d46e155b54c690e694f7d63d84439489b56d262c7c096ea6f6c1d3e0f57a",
+    "runner_sha256": "46aee595fa7086980ecfba7ffea19cc03b747465d336b11932d64f6aafb56e62",
+    "passed_count": 15,
+    "failed_count": 0,
+    "blocked_count": 0,
+    "assertions": [
+      "PASS: sibling offline acceptance report is green",
+      "PASS: acceptance runs only gateway alias glm-5p3-flash",
+      "PASS: acceptance variant is low",
+      "PASS: authenticated gateway metadata resolves the exact Fireworks route",
+      "PASS: route exposes positive input/output rates before forwarding",
+      "PASS: max_tokens=256 is forwarded and provider usage is <=256",
+      "PASS: the 256-token response terminates with finish reason length",
+      "PASS: small-cap wire and persisted records retain GLM low identity",
+      "PASS: one max_tokens=8192 provider response reports 8192 completion tokens",
+      "PASS: large-cap requests retain exact body and GLM low identity",
+      "PASS: root repairs the function, verifier returns reward=1, and nonce returns",
+      "PASS: one real child is invoked three times and resumed with one session ID",
+      "PASS: delegation tree is complete and locked to GLM low",
+      "PASS: provider usage, persisted usage, ATIF, AgentContext, and normalized cost reconcile",
+      "PASS: every captured response identifies the authorized gateway route"
+    ],
+    "provider": {
+      "gateway_model": "glm-5p3-flash",
+      "provider": "fireworks_ai",
+      "upstream_model": "accounts/fireworks/models/glm-5p3-flash",
+      "route_id": "e2aac8e9-ef0b-449e-83b8-7a042005365b",
+      "max_input_tokens": 1048576,
+      "max_output_tokens_reported_by_gateway": null,
+      "input_usd_per_token": 1.5e-7,
+      "output_usd_per_token": 5e-7,
+      "cached_input_usd_per_token": 2.9e-8
+    },
+    "final_cycle": {
+      "forwarded_requests": 12,
+      "provider_prompt_tokens": 61982,
+      "provider_completion_tokens": 8952,
+      "small_response_completion_tokens": 256,
+      "large_response_completion_tokens": 8192
+    },
+    "delegation": {
+      "root_session_id": "ses_f5e76c087fferYLnICCpoWpdbr",
+      "child_session_id": "ses_f5e76ba29ffe9nQYb57GD644V6",
+      "unique_children": 1,
+      "subagent_invocations": 3,
+      "prompt_tokens": 61141,
+      "completion_tokens": 504,
+      "cached_tokens": 43008,
+      "reasoning_tokens": 8,
+      "cache_write_tokens": 0,
+      "normalized_cost_usd": 0.00426219,
+      "tree_metrics_complete": true,
+      "tree_cost_complete": true
+    },
+    "budget_ledger": {
+      "cycles": 3,
+      "forwarded_requests": 24,
+      "estimated_operational_spend_usd": 0.0244688,
+      "outstanding_reservations": 0,
+      "approved_cap_usd": 2.0
+    }
+  },
+  "retained_failures": [
+    "Cycle 1: recorder URL sentinel wiring failed before forwarding any request.",
+    "Cycle 2: 14 assertions passed; the small-cap response stopped naturally at 97 tokens, so the required truncation assertion failed.",
+    "Both failed cycles remain in the external evidence directory and consumed the shared three-cycle allowance."
+  ],
+  "final_review": {
+    "reviewer": "GPT-5.6 Luna xhigh",
+    "addressed": [
+      "settlement timeout now interrupts the discovered tree",
+      "server shutdown kills the owned process group even after leader exit",
+      "pagination deduplicates repeated sessions",
+      "preflight evidence redacts arbitrary credential and URL fields",
+      "request reconciliation requires a unique timestamp, usage, session, and message mapping",
+      "Kimi and DeepSeek preserve their staged Responses transports",
+      "the 256-cap rejection path records the smallest observed supported cap",
+      "acceptance budgeting supports no output cap above the live-proven 8192"
+    ]
+  },
+  "limitations": [
+    "BLOCKED: the final live suite was not rerun after review-only lifecycle, redaction, canonical-profile, and one-to-one request-mapping hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 405-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
+    "BLOCKED FOR PRIMARY READINESS: gateway metadata does not publish the GLM route's 131072 output ceiling. Acceptance proves 8192 only.",
+    "BLOCKED FOR GATEWAY POLICY: authenticated metadata and per-response route IDs prove the selected Fireworks route, but the gateway does not expose enough configuration to prove that hidden retries/fallbacks are disabled.",
+    "INCOMPLETE COVERAGE: OpenCode 2.0.3 turns missing provider usage into an all-zero normalized usage object, so production collection cannot distinguish missing usage from a reported zero without recorder evidence.",
+    "POLICY GAP: observed native retry delays are seconds, not the approximately three-minute PA1 #37 goal.",
+    "GLM live acceptance does not establish live readiness for Anthropic, Kimi, DeepSeek, or Luna transports."
+  ],
+  "overall": {
+    "pier_offline_acceptance": "pass",
+    "glm_live_acceptance_retained_runtime": "pass",
+    "final_diff_live_freshness": "blocked_by_three_cycle_limit",
+    "all_primary_models_ready": false
+  }
+}
