@@ -92,6 +92,11 @@ The selected approach keeps the experimental delta narrow and auditable:
 - `go test ./internal/translator/openai/openai/responses` passed on the patched
   source. The upstream commit includes regression tests for a chunk containing
   both fields and checks strict `reasoning -> message` output ordering.
+- A PA1 end-to-end A/B regression test runs the original pinned `v7.2.146`
+  image and the patched image against the same simulated mixed chunk. The
+  original image reproduced the defect by opening a second reasoning item after
+  the message had started; the patched image emitted one reasoning item followed
+  by one message item and preserved the complete reasoning and message text.
 - GitHub Actions built and pushed the patched source as
   `ghcr.io/fzr-forks/cliproxyapi:7.2.146-pa1-5659`.
 - The image is pinned in `compose.yaml` by OCI digest, so later rebuilds cannot

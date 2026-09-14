@@ -162,6 +162,18 @@ The trial containers are unaffected and keep using the tracked bundle through
 
 ## Acceptance tests
 
+### Mixed reasoning/content regression
+
+```bash
+python3 benchmark/bridges/codex-cliproxy/tests/test_mixed_reasoning_content.py
+```
+
+Runs the original `v7.2.146` image and the patched image against the same mock
+Chat Completions stream. The mock deliberately emits one delta containing both
+non-empty `reasoning_content` and `content`. The test passes only if the
+unpatched image reproduces issue #5659 and the patched image emits exactly one
+reasoning item before the message while preserving both complete texts.
+
 ### Translation contract (offline, deterministic)
 
 ```bash
