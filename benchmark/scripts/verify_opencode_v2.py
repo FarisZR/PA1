@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import signal
 import socket
@@ -78,16 +79,19 @@ FAKE_PROVIDER_SOURCE = r'''
 Serves every scenario the verifier needs, records every request body it sees,
 and never talks to the network.
 """
+import fcntl
 import json
 import os
 import signal
 import time
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 RECORD_DIR = Path(os.environ["PA1_FAKE_RECORD_DIR"])
 SCENARIO_FILE = Path(os.environ["PA1_FAKE_SCENARIO_FILE"])
 STATE_FILE = Path(os.environ["PA1_FAKE_STATE_FILE"])
+STATE_LOCK = STATE_FILE.with_suffix(".lock")
 IDLE_FILE = Path(os.environ["PA1_FAKE_IDLE_FILE"])
 
 
@@ -96,9 +100,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def _record(self, body: dict) -> None:
         RECORD_DIR.mkdir(parents=True, exist_ok=True)
-        n = len(list(RECORD_DIR.glob("*.json")))
-        path = RECORD_DIR / f"req-{n:04d}.json"
+        request_id = uuid.uuid4().hex
+        path = RECORD_DIR / f"req-{request_id}.json"
         path.write_text(json.dumps({
+            "request_id": request_id,
             "t": time.time(),
             "scenario": SCENARIO_FILE.read_text().strip(),
             "body": body,
@@ -113,10 +118,13 @@ class Handler(BaseHTTPRequestHandler):
             body = {"unparseable": raw.decode(errors="replace")}
         self._record(body)
         scenario = SCENARIO_FILE.read_text().strip()
-        state = json.loads(STATE_FILE.read_text()) if STATE_FILE.exists() else {}
-        count = state.get(scenario, 0) + 1
-        state[scenario] = count
-        STATE_FILE.write_text(json.dumps(state))
+        STATE_LOCK.touch(exist_ok=True)
+        with STATE_LOCK.open("r+") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            state = json.loads(STATE_FILE.read_text()) if STATE_FILE.exists() else {}
+            count = state.get(scenario, 0) + 1
+            state[scenario] = count
+            STATE_FILE.write_text(json.dumps(state))
 
         if scenario == "http-401":
             self._plain(401, {"error": {"message": "bad key", "type": "auth"}})
@@ -272,7 +280,9 @@ class FakeProvider:
         out = []
         for path in sorted(self.record_dir.glob("*.json")):
             out.append(json.loads(path.read_text()))
-        return out
+        return sorted(
+            out, key=lambda item: (item.get("t", 0), item.get("request_id", ""))
+        )
 
     def stop(self):
         if self.proc.poll() is None:
@@ -1708,6 +1718,15 @@ class TransparentRecorder:
                     return request_id, reservation
 
                 def reconcile(request_id, usage):
+                    usage_complete = (
+                        isinstance(usage, dict)
+                        and all(
+                            isinstance(usage.get(key), int)
+                            and not isinstance(usage.get(key), bool)
+                            and usage[key] >= 0
+                            for key in ("prompt_tokens", "completion_tokens")
+                        )
+                    )
                     def apply(state):
                         found = next(
                             (item for item in state["reservations"] if item["id"] == request_id),
@@ -1716,7 +1735,7 @@ class TransparentRecorder:
                         if found is None:
                             return
                         state["reservations"].remove(found)
-                        if usage is None:
+                        if not usage_complete:
                             actual = float(found["usd"])
                         else:
                             actual = (
@@ -1851,6 +1870,15 @@ class TransparentRecorder:
                             "response_bytes": len(payload),
                             "response_headers": response_headers,
                             "usage": usage,
+                            "usage_complete": (
+                                isinstance(usage, dict)
+                                and all(
+                                    isinstance(usage.get(key), int)
+                                    and not isinstance(usage.get(key), bool)
+                                    and usage[key] >= 0
+                                    for key in ("prompt_tokens", "completion_tokens")
+                                )
+                            ),
                             "finish_reasons": finishes,
                         }
                         (RECORD_DIR / f"req-{request_id}.json").write_text(
@@ -2075,18 +2103,44 @@ def _reconcile_records(
     Token equality is only a consistency check. The persisted session/message
     identity and a unique request time window are required; ambiguity fails.
     """
-    pending = {
-        str(record.get("request_id")): record
-        for record in result.get("records") or []
-        if record.get("request_id") and isinstance(record.get("usage"), dict)
-    }
+
+    def nonnegative_int(value: Any) -> bool:
+        return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+    records = result.get("records") or []
+    pending: dict[str, dict[str, Any]] = {}
+    for record in records:
+        request_id = record.get("request_id")
+        usage = record.get("usage")
+        if (
+            not request_id
+            or not isinstance(usage, dict)
+            or not all(
+                nonnegative_int(usage.get(key))
+                for key in ("prompt_tokens", "completion_tokens")
+            )
+        ):
+            return False, []
+        pending[str(request_id)] = record
+    if len(pending) != len(records):
+        return False, []
     persisted: list[tuple[str, str, dict[str, Any]]] = []
     for inspection in result.get("sessions") or []:
         session_id = str((inspection.get("session") or {}).get("id") or "")
         for message in inspection.get("messages") or []:
             if message.get("type") not in {"assistant", "compaction"}:
                 continue
-            if not isinstance(message.get("tokens"), dict):
+            tokens = message.get("tokens")
+            cache = tokens.get("cache") if isinstance(tokens, dict) else None
+            if (
+                not isinstance(tokens, dict)
+                or not isinstance(cache, dict)
+                or not all(
+                    nonnegative_int(tokens.get(key))
+                    for key in ("input", "output", "reasoning")
+                )
+                or not all(nonnegative_int(cache.get(key)) for key in ("read", "write"))
+            ):
                 return False, []
             persisted.append((session_id, str(message.get("id") or ""), message))
     persisted.sort(
@@ -2095,13 +2149,9 @@ def _reconcile_records(
     mappings: list[dict[str, str]] = []
     for session_id, message_id, message in persisted:
         tokens = message["tokens"]
-        cache = tokens.get("cache") or {}
-        prompt = (
-            int(tokens.get("input") or 0)
-            + int(cache.get("read") or 0)
-            + int(cache.get("write") or 0)
-        )
-        completion = int(tokens.get("output") or 0) + int(tokens.get("reasoning") or 0)
+        cache = tokens["cache"]
+        prompt = tokens["input"] + cache["read"] + cache["write"]
+        completion = tokens["output"] + tokens["reasoning"]
         created = float((message.get("time") or {}).get("created") or 0) / 1000
         completed = float((message.get("time") or {}).get("completed") or 0) / 1000
         candidates = []
@@ -2110,8 +2160,8 @@ def _reconcile_records(
             started = float(record.get("started_at") or 0)
             finished = float(record.get("finished_at") or record.get("t") or 0)
             if (
-                int(usage.get("prompt_tokens") or 0) == prompt
-                and int(usage.get("completion_tokens") or 0) == completion
+                usage["prompt_tokens"] == prompt
+                and usage["completion_tokens"] == completion
                 and started <= completed + 1
                 and finished >= created - 1
             ):
@@ -2139,6 +2189,8 @@ def live_mode(
     max_cost_usd: float,
 ) -> int:
     """Live gateway acceptance under a persisted ledger and hard caps."""
+    if not math.isfinite(max_cost_usd) or max_cost_usd <= 0 or max_cost_usd > 2.0:
+        raise SystemExit("live: --max-cost-usd must be finite, positive, and <= 2")
     env_values = load_live_env(env_file)
     print("\n=== live: preflight ===")
     offline_report_path = output_dir.parent / "offline" / "verification.json"
@@ -2520,20 +2572,23 @@ def live_mode(
 
         all_records = [item for result in live_results for item in result["records"]]
         route_id = metadata.get("route_id")
-        per_request_route = bool(all_records) and all(
-            item.get("status") == 200
-            and (
-                not route_id
-                or item.get("response_headers", {}).get("x-litellm-model-id")
+        per_request_route = (
+            bool(route_id)
+            and bool(all_records)
+            and all(
+                item.get("status") == 200
+                and item.get("response_headers", {}).get("x-litellm-model-id")
                 == route_id
-                or any(
-                    "fireworks" in str(value).lower()
-                    for value in item.get("response_headers", {}).values()
-                )
+                for item in all_records
             )
-            for item in all_records
         )
-        if route_id and not per_request_route:
+        if not route_id:
+            block(
+                "live: every captured request has actual Fireworks route provenance",
+                "The gateway metadata omitted its route ID, so HTTP 200 responses "
+                "cannot establish per-request upstream provenance.",
+            )
+        elif not per_request_route:
             block(
                 "live: every captured request has actual Fireworks route provenance",
                 "Authenticated model metadata identified Fireworks, but response "
@@ -2569,6 +2624,17 @@ def live_mode(
 # ---------------------------------------------------------------------------
 
 
+def approved_max_cost(value: str) -> float:
+    """Argparse validator for the immutable live operational ceiling."""
+    try:
+        parsed = float(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("must be a number") from error
+    if not math.isfinite(parsed) or parsed <= 0 or parsed > 2.0:
+        raise argparse.ArgumentTypeError("must be finite, positive, and <= 2")
+    return parsed
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pier-root", type=Path, required=True)
@@ -2577,7 +2643,7 @@ def main() -> int:
     parser.add_argument("--env-file", type=Path)
     parser.add_argument("--model", default="glm-5p3-flash")
     parser.add_argument("--variant", default="low")
-    parser.add_argument("--max-cost-usd", type=float, default=2.00)
+    parser.add_argument("--max-cost-usd", type=approved_max_cost, default=2.00)
     args = parser.parse_args()
 
     if not args.pier_root.exists():

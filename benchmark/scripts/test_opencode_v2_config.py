@@ -6,6 +6,7 @@ These tests only render temporary deployment files.  They never read
 
 from __future__ import annotations
 
+import argparse
 import importlib
 import json
 import os
@@ -25,6 +26,15 @@ verify_opencode_v2 = importlib.import_module("verify_opencode_v2")
 
 
 class OpenCodeV2ConfigTests(unittest.TestCase):
+    def test_live_budget_cap_rejects_nonfinite_nonpositive_and_above_two(self) -> None:
+        self.assertEqual(verify_opencode_v2.approved_max_cost("2"), 2.0)
+        for value in ("nan", "inf", "0", "-1", "2.000001"):
+            with (
+                self.subTest(value=value),
+                self.assertRaises(argparse.ArgumentTypeError),
+            ):
+                verify_opencode_v2.approved_max_cost(value)
+
     def test_acceptance_template_has_explicit_chat_output_override(self) -> None:
         source = BENCHMARK / "configs" / "opencode-v2" / "glm-5.3-flash-acceptance.yaml"
         rendered = prepare_configs.render_model_config(
@@ -131,6 +141,51 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                 recorder.stop()
                 provider.stop()
 
+    def test_transparent_recorder_keeps_full_reservation_for_missing_usage(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(prefix="pa1-opencode-recorder-") as tmp:
+            root = Path(tmp)
+            fake_dir = root / "fake"
+            fake_dir.mkdir()
+            provider = verify_opencode_v2.FakeProvider(fake_dir)
+            provider.scenario("usage-missing")
+            ledger = verify_opencode_v2.SpendLedger(root / "ledger.json", 2.0)
+            recorder = verify_opencode_v2.TransparentRecorder(
+                upstream=f"http://127.0.0.1:{provider.port}",
+                api_key="fake-key",
+                ca_file="",
+                record_dir=root / "records",
+                ledger=ledger,
+                context_limit=100,
+                route_output_limit=1000,
+                input_rate=1e-7,
+                output_rate=5e-7,
+            )
+            try:
+                request = urllib.request.Request(
+                    f"http://127.0.0.1:{recorder.port}/v1/chat/completions",
+                    data=json.dumps(
+                        {
+                            "model": "glm-5p3-flash",
+                            "reasoning_effort": "low",
+                            "max_tokens": 128,
+                            "stream": True,
+                        }
+                    ).encode(),
+                    headers={"content-type": "application/json"},
+                    method="POST",
+                )
+                with urllib.request.urlopen(request, timeout=10) as response:
+                    response.read()
+                state = ledger.snapshot()
+                expected = 100 * 1e-7 + 128 * 5e-7
+                self.assertAlmostEqual(state["spent_usd"], expected)
+                self.assertFalse(recorder.records()[0]["usage_complete"])
+            finally:
+                recorder.stop()
+                provider.stop()
+
     def test_request_reconciliation_requires_unique_time_and_usage_match(self) -> None:
         result = {
             "records": [
@@ -184,9 +239,22 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
             [("msg-1", "req-1"), ("msg-2", "req-2")],
         )
 
+        incomplete = json.loads(json.dumps(result))
+        incomplete["records"][0]["usage"] = {}
+        reconciled, _ = verify_opencode_v2._reconcile_records(incomplete)
+        self.assertFalse(reconciled)
+
         result["records"].append(dict(result["records"][0], request_id="req-ambiguous"))
         reconciled, _ = verify_opencode_v2._reconcile_records(result)
         self.assertFalse(reconciled)
+
+    def test_luna_profile_keeps_canonical_and_normalized_cost(self) -> None:
+        contents = (BENCHMARK / "deferred" / "opencode-v2" / "luna.yaml").read_text()
+        self.assertIn("canonical: openai", contents)
+        self.assertIn("input: 0.2", contents)
+        self.assertIn("output: 1.2", contents)
+        self.assertIn("read: 0.02", contents)
+        self.assertIn("write: 0.25", contents)
 
 
 if __name__ == "__main__":

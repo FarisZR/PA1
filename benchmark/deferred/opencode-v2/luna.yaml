@@ -49,6 +49,7 @@ agents:
       default_agent: build
       providers:
         litellm:
+          canonical: openai
           name: LiteLLM
           env:
           - LITELLM_API_KEY
@@ -64,6 +65,12 @@ agents:
                 output: 128000
               body:
                 max_output_tokens: 128000
+              cost:
+                input: 0.2
+                output: 1.2
+                cache:
+                  read: 0.02
+                  write: 0.25
               variants:
               - id: max
                 settings:
