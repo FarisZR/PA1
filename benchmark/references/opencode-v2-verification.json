@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-14T20:29:19Z",
+  "generated_at": "2026-09-14T20:43:23Z",
   "revisions": {
     "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
-    "pier_implementation": "99327bd04f95e7dc618cb764f422ac8ee8b24816",
+    "pier_implementation": "0de3cd8bc0fdefd3a01f52f630b5150b20757c24",
     "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
-    "pa1_implementation": "a914a71b4726809f9e42dcfb3575e12669b29dc9",
+    "pa1_implementation": "0b1331aa7aad37de430615580ebfd78670f680cf",
     "opencode_source_tag": "v2.0.3",
     "opencode_source_commit": "d44b52ca66b6bf69626c0384626d1a9cd9555977",
     "binary_package": "@opencode/cli-linux-x64@2.0.3",
@@ -13,14 +13,14 @@
   },
   "offline": {
     "status": "pass",
-    "artifact_sha256": "a5d820465fb81440fa2cd20bdc03c2ffcd476dcd84ac7680d368106250a3b757",
-    "pier_revision": "99327bd04f95e7dc618cb764f422ac8ee8b24816",
+    "artifact_sha256": "234343b226252c22f682816ab9ebcaa244fdea1c705442af39789b2f09e3caff",
+    "pier_revision": "0de3cd8bc0fdefd3a01f52f630b5150b20757c24",
     "passed_count": 34,
     "failed_count": 0,
     "blocked_count": 0,
     "assertions": [
       "PASS: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
-      "PASS: focused Pier collector/converter fault matrix passes (65 tests)",
+      "PASS: focused Pier collector/converter fault matrix passes (69 tests)",
       "PASS: actual-binary limit-only control result is recorded",
       "PASS: adapter run reaches a step_finish on the happy path",
       "PASS: fake provider received at least one request",
@@ -148,11 +148,19 @@
       "request reconciliation requires a unique timestamp, usage, session, and message mapping",
       "Kimi and DeepSeek preserve their staged Responses transports",
       "the 256-cap rejection path records the smallest observed supported cap",
-      "acceptance budgeting supports no output cap above the live-proven 8192"
+      "acceptance budgeting supports no output cap above the live-proven 8192",
+      "the requested live budget must be finite, positive, and no greater than $2",
+      "missing recorder usage retains its full reservation and cannot reconcile",
+      "env-template provider URLs are resolved into the egress allowlist",
+      "Luna retains OpenAI canonical inheritance and PA1 normalized costs",
+      "the concurrent fake provider uses locked state and collision-free request IDs",
+      "surviving process groups become explicit collection failures",
+      "missing per-request route IDs block provider provenance",
+      "the server password is generated inside the runner and never enters Pier exec logging"
     ]
   },
   "limitations": [
-    "BLOCKED: the final live suite was not rerun after review-only lifecycle, redaction, canonical-profile, and one-to-one request-mapping hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 405-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
+    "BLOCKED: the final live suite was not rerun after lifecycle, redaction, canonical-profile, one-to-one request-mapping, budget, and provenance hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 409-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
     "BLOCKED FOR PRIMARY READINESS: gateway metadata does not publish the GLM route's 131072 output ceiling. Acceptance proves 8192 only.",
     "BLOCKED FOR GATEWAY POLICY: authenticated metadata and per-response route IDs prove the selected Fireworks route, but the gateway does not expose enough configuration to prove that hidden retries/fallbacks are disabled.",
     "INCOMPLETE COVERAGE: OpenCode 2.0.3 turns missing provider usage into an all-zero normalized usage object, so production collection cannot distinguish missing usage from a reported zero without recorder evidence.",

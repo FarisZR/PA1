@@ -1,16 +1,17 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `99327bd04f95e7dc618cb764f422ac8ee8b24816` (base
+Revisions: Pier `0de3cd8bc0fdefd3a01f52f630b5150b20757c24` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 implementation
-`a914a71b4726809f9e42dcfb3575e12669b29dc9` (base
+`0b1331aa7aad37de430615580ebfd78670f680cf` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
 `v2.0.3` at `d44b52ca66b6bf69626c0384626d1a9cd9555977`. The frozen
 `@opencode/cli-linux-x64@2.0.3` archive SHA-256 is
 `4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d`.
 
-The final Pier revision passed 34/34 offline executable assertions, 65 focused
-adapter tests, 127 required existing regressions, and the complete 405-test
-Pier suite. The actual-binary control confirmed that `limit.output: 54321`
+The final Pier revision passed 34/34 offline executable assertions, 69 focused
+adapter tests, 127 required existing regressions, and the complete 409-test
+Pier suite. The actual-binary control
+confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
 `max_tokens: 8192`, `reasoning_effort: low`, and no `thinking` field. Native
 compaction, retry/failure retention, slow streaming, nested/background trees,
@@ -33,8 +34,9 @@ than truncating. Both failures are retained. The successful third cycle used
 the pre-review runner SHA
 `46aee595fa7086980ecfba7ffea19cc03b747465d336b11932d64f6aafb56e62`.
 The final diff was not submitted to a fourth paid cycle because the required
-shared three-cycle cap had been reached; final lifecycle and cleanup changes
-were rerun offline instead.
+shared three-cycle cap had been reached; final lifecycle, cleanup, budget,
+usage-completeness, egress, and route-provenance changes were rerun offline or
+covered by deterministic regressions instead.
 
 Remaining gates are explicit. The gateway does not publish the route's
 131,072-token output ceiling, so only the 8,192-token acceptance cap is proven.
