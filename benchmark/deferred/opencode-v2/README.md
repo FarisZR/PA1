@@ -11,8 +11,8 @@ not change benchmark selection or start spending. The staged order is:
 4. `luna.yaml`
 5. `opus.yaml` (also subject to the separate Opus deferral)
 
-All current primary profiles use the `max` variant through the model selection
-(`provider/model#max`), including GLM. The acceptance-only profile in
+Kimi, DeepSeek, GLM, and Luna use the `max` variant through the model selection
+(`provider/model#max`); direct-Anthropic Opus remains `medium`. The acceptance-only profile in
 `benchmark/configs/opencode-v2/glm-5.3-flash-acceptance.yaml` is the sole
 `low` configuration. It is intentionally separate from the primary jobs.
 

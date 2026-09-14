@@ -22,6 +22,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import math
 import os
@@ -200,6 +201,7 @@ class Handler(BaseHTTPRequestHandler):
         if not usage_missing:
             final["usage"] = {"prompt_tokens": 12, "completion_tokens": 34,
                               "total_tokens": 46,
+                              "prompt_tokens_details": {"cached_tokens": 2},
                               "completion_tokens_details": {"reasoning_tokens": 5}}
         self.wfile.write(b"data: " + json.dumps(final).encode() + b"\n\n")
         self.wfile.write(b"data: [DONE]\n\n")
@@ -1580,33 +1582,40 @@ class SpendLedger:
         self.path = path
         self.max_cost_usd = max_cost_usd
         path.parent.mkdir(parents=True, exist_ok=True)
-        if path.exists():
-            state = json.loads(path.read_text())
-        else:
-            state = {
-                "started_at": time.time(),
-                "cycles": 0,
-                "spent_usd": 0.0,
-                "reservations": [],
-                "forwarded": 0,
-            }
-        if (
-            time.time() - float(state.get("started_at", 0))
-            > LIVE_WALL_CLOCK_CAP_SECONDS
-        ):
-            raise SystemExit(
-                "live: persisted 15-minute budget window has expired; retain the "
-                "ledger as evidence and obtain approval before starting a new window"
-            )
-        state["cycles"] = int(state.get("cycles", 0)) + 1
-        if state["cycles"] > LIVE_FIX_RERUN_CYCLES_CAP:
-            raise SystemExit(
-                "live: three shared fix-and-rerun cycles are already recorded"
-            )
-        if float(state.get("max_cost_usd", max_cost_usd)) != max_cost_usd:
-            raise SystemExit("live: persisted ledger has a different approved cost cap")
-        state["max_cost_usd"] = max_cost_usd
-        self._atomic_write(state)
+        lock_path = path.with_suffix(".lock")
+        lock_path.touch(exist_ok=True)
+        with lock_path.open("r+") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            if path.exists():
+                state = json.loads(path.read_text())
+            else:
+                state = {
+                    "started_at": time.time(),
+                    "cycles": 0,
+                    "spent_usd": 0.0,
+                    "reservations": [],
+                    "forwarded": 0,
+                }
+            if (
+                time.time() - float(state.get("started_at", 0))
+                > LIVE_WALL_CLOCK_CAP_SECONDS
+            ):
+                raise SystemExit(
+                    "live: persisted 15-minute budget window has expired; retain "
+                    "the ledger as evidence and obtain approval before starting "
+                    "a new window"
+                )
+            state["cycles"] = int(state.get("cycles", 0)) + 1
+            if state["cycles"] > LIVE_FIX_RERUN_CYCLES_CAP:
+                raise SystemExit(
+                    "live: three shared fix-and-rerun cycles are already recorded"
+                )
+            if float(state.get("max_cost_usd", max_cost_usd)) != max_cost_usd:
+                raise SystemExit(
+                    "live: persisted ledger has a different approved cost cap"
+                )
+            state["max_cost_usd"] = max_cost_usd
+            self._atomic_write(state)
         self.state = state
 
     def _atomic_write(self, state: dict) -> None:
@@ -1645,6 +1654,8 @@ class TransparentRecorder:
         route_output_limit: int,
         input_rate: float,
         output_rate: float,
+        cache_read_rate: float,
+        cache_creation_rate: float,
         port: int = 0,
     ):
         # The client addresses the recorder as .../v1. Strip that suffix from
@@ -1671,6 +1682,8 @@ class TransparentRecorder:
                 ROUTE_OUTPUT_LIMIT = int(os.environ["RECORDER_OUTPUT_LIMIT"])
                 INPUT_RATE = float(os.environ["RECORDER_INPUT_RATE"])
                 OUTPUT_RATE = float(os.environ["RECORDER_OUTPUT_RATE"])
+                CACHE_READ_RATE = float(os.environ["RECORDER_CACHE_READ_RATE"])
+                CACHE_CREATION_RATE = float(os.environ["RECORDER_CACHE_CREATION_RATE"])
                 MAX_COST = float(os.environ["RECORDER_MAX_COST"])
                 CA_FILE = os.environ.get("RECORDER_CA_FILE", "")
 
@@ -1738,9 +1751,21 @@ class TransparentRecorder:
                         if not usage_complete:
                             actual = float(found["usd"])
                         else:
+                            prompt = int(usage["prompt_tokens"])
+                            details = usage.get("prompt_tokens_details") or {}
+                            cached = details.get("cached_tokens")
+                            if (
+                                not isinstance(cached, int)
+                                or isinstance(cached, bool)
+                                or cached < 0
+                                or cached > prompt
+                            ):
+                                cached = 0
+                            uncached_rate = max(INPUT_RATE, CACHE_CREATION_RATE)
                             actual = (
-                                int(usage.get("prompt_tokens") or 0) * INPUT_RATE
-                                + int(usage.get("completion_tokens") or 0) * OUTPUT_RATE
+                                (prompt - cached) * uncached_rate
+                                + cached * CACHE_READ_RATE
+                                + int(usage["completion_tokens"]) * OUTPUT_RATE
                             )
                         state["spent_usd"] = float(state["spent_usd"]) + actual
                         state["forwarded"] = int(state["forwarded"]) + 1
@@ -1911,6 +1936,8 @@ class TransparentRecorder:
             RECORDER_OUTPUT_LIMIT=str(route_output_limit),
             RECORDER_INPUT_RATE=str(input_rate),
             RECORDER_OUTPUT_RATE=str(output_rate),
+            RECORDER_CACHE_READ_RATE=str(cache_read_rate),
+            RECORDER_CACHE_CREATION_RATE=str(cache_creation_rate),
             RECORDER_MAX_COST=str(ledger.max_cost_usd),
             RECORDER_CA_FILE=ca_file,
         )
@@ -2251,13 +2278,34 @@ def live_mode(
     # 8192-token cap. This is not evidence that the primary profile's 131072
     # ceiling is provider-ready.
     acceptance_output_limit = 8192
+    cache_read_rate = metadata.get("cache_read_input_token_cost")
     cache_creation_rate = metadata.get("cache_creation_input_token_cost")
+    cache_rates_known = (
+        isinstance(cache_read_rate, (int, float))
+        and not isinstance(cache_read_rate, bool)
+        and cache_read_rate >= 0
+        and isinstance(cache_creation_rate, (int, float))
+        and not isinstance(cache_creation_rate, bool)
+        and cache_creation_rate >= 0
+    )
+    if not cache_rates_known:
+        evidence["budget_assumptions"] = {
+            "context_limit": 1048576,
+            "acceptance_output_limit": acceptance_output_limit,
+            "cache_read_rate": cache_read_rate,
+            "cache_creation_rate": cache_creation_rate,
+            "budget_enforcement": "blocked before ledger creation or forwarding",
+        }
+        block(
+            "live: route exposes cache-read and cache-creation rates before forwarding",
+            "The authenticated route metadata does not identify every applicable "
+            "cache charge, so the operational budget cannot be enforced without "
+            "assuming a missing surcharge.",
+        )
+        return 1
     reservation_input_rate = max(
         float(input_rate),
-        float(cache_creation_rate)
-        if isinstance(cache_creation_rate, (int, float))
-        and not isinstance(cache_creation_rate, bool)
-        else 0.0,
+        float(cache_creation_rate),
     )
     evidence["budget_assumptions"] = {
         "context_limit": 1048576,
@@ -2291,6 +2339,8 @@ def live_mode(
         route_output_limit=acceptance_output_limit,
         input_rate=reservation_input_rate,
         output_rate=float(output_rate),
+        cache_read_rate=float(cache_read_rate),
+        cache_creation_rate=float(cache_creation_rate),
     )
     live_results: list[dict[str, Any]] = []
     try:

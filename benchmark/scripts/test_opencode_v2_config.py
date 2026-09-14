@@ -7,6 +7,7 @@ These tests only render temporary deployment files.  They never read
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import importlib
 import json
 import os
@@ -104,6 +105,8 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                 route_output_limit=1000,
                 input_rate=1e-7,
                 output_rate=5e-7,
+                cache_read_rate=1e-8,
+                cache_creation_rate=0.0,
             )
             try:
                 missing_cap = urllib.request.Request(
@@ -135,11 +138,27 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                 state = ledger.snapshot()
                 self.assertEqual(state["forwarded"], 1)
                 self.assertEqual(state["reservations"], [])
+                expected = 10 * 1e-7 + 2 * 1e-8 + 34 * 5e-7
+                self.assertAlmostEqual(state["spent_usd"], expected)
                 self.assertEqual(len(recorder.records()), 1)
                 self.assertEqual(len(provider.requests()), 1)
             finally:
                 recorder.stop()
                 provider.stop()
+
+    def test_spend_ledger_cycle_initialization_is_cross_process_locked(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="pa1-opencode-ledger-") as tmp:
+            path = Path(tmp) / "ledger.json"
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+                ledgers = list(
+                    pool.map(
+                        lambda _index: verify_opencode_v2.SpendLedger(path, 2.0),
+                        range(2),
+                    )
+                )
+            state = ledgers[-1].snapshot()
+            self.assertEqual(state["cycles"], 2)
+            self.assertEqual(state["forwarded"], 0)
 
     def test_transparent_recorder_keeps_full_reservation_for_missing_usage(
         self,
@@ -161,6 +180,8 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                 route_output_limit=1000,
                 input_rate=1e-7,
                 output_rate=5e-7,
+                cache_read_rate=1e-8,
+                cache_creation_rate=0.0,
             )
             try:
                 request = urllib.request.Request(
