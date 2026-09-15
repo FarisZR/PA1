@@ -1,6 +1,6 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `e08e0d99e41eb87044d12b08e567a473666f3089` (base
+Revisions: Pier `19b553771e2004f9532ceeea744b4d95f1826fee` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 configuration fix
 `b561f2602bbe1c2c0a8b7bbc76d211e33cda8dd7` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
@@ -10,8 +10,8 @@ Revisions: Pier `e08e0d99e41eb87044d12b08e567a473666f3089` (base
 the arm64 archive SHA-256 is
 `bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693`.
 
-The final Pier revision passed 37/37 offline executable assertions, 103 focused
-adapter tests, 127 required existing regressions, and the complete 443-test
+The final Pier revision passed 37/37 offline executable assertions, 108 focused
+adapter tests, 127 required existing regressions, and the complete 448-test
 Pier suite. The actual-binary control
 confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
@@ -41,9 +41,9 @@ allowlisting now follows every enabled agent model, while restricted trials
 derive that set only after model pinning; a regression proves a conflicting
 child provider cannot widen a restricted trial. The
 final offline artifact SHA-256 is
-`189803435ae294b80091163a60532dc97aa9a39168dd4a8bc7d79c911bc30c74`;
+`be6d866ee9569d9104b86e277a043ca3bd8442135c41c858133e900788cac78b`;
 the runner SHA-256 is
-`2cb20108c8f51efe8a9b05c8b2c4a29fbde3314c54b53d58b098c62d630bcf2d`.
+`74e2de580153bb84fc098b178375f868c36870b513d4f79c70e4162f5efd260c`.
 
 The configuration review found that the three staged Responses profiles named
 an entrypoint absent from OpenCode 2.0.3 and that Luna inherited a contradictory
@@ -57,6 +57,12 @@ The follow-up review also covered inherited top-level model providers in the
 egress allowlist and repeated session/message cursors. The former now includes
 the top-level provider even when an enabled agent omits its own model; the latter
 raises a collection error instead of silently truncating a looping page stream.
+
+The Copilot review hardening additionally deduplicates provenance checks before
+restriction validation, rejects provider URLs without hostnames, requires an
+explicitly true collection manifest, bounds CLI output capture, batches active
+session checks per snapshot, transfers config JSON outside logged shell commands,
+and excludes credential stores and symlinks from preserved private state.
 
 A separate tiny Pier task passed end to end through the configured gateway on
 both acceptance-only Low profiles: GLM-5.3-Flash used 18,059 input, 8,192 cached,
