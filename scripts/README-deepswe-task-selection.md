@@ -6,9 +6,12 @@ procedure used for the PA1 harness comparison.
 ## Selection rule
 
 The script uses public DeepSWE v1.1 `mini-swe-agent` rollouts. Errored trials
-and the four models evaluated by PA1 (`claude-opus-5`, `gpt-5-6-luna`,
-`deepseek-v4-flash`, and `kimi-k3`) are excluded from the reference panel used
-for task selection.
+are excluded. The reference panel also excludes `claude-opus-5`,
+`gpt-5-6-luna`, `deepseek-v4-flash`, and `kimi-k3`, because these were the four
+model configurations considered benchmark targets when the sample was frozen on
+2026-08-18. PA1's final model matrix changed later; this exclusion set is part
+of the frozen sampling procedure and should not be read as the final evaluated
+model list.
 
 For each programming language independently, tasks are sorted from lowest to
 highest solve rate. The hardest task receives difficulty percentile 100 and the
@@ -22,8 +25,8 @@ Within each language and stratum, the task with the highest **median historical
 total token count** (`n_input_tokens + n_output_tokens`) is selected. This
 secondary criterion deliberately selects token-intensive tasks because PA1 is
 testing how different harnesses handle demanding workloads. It does not use
-results from any of the four evaluated models. A remaining tie is resolved by
-task ID.
+results from the four model configurations excluded when the sample was frozen.
+A remaining tie is resolved by task ID.
 
 ## Frozen reproduction
 
@@ -44,6 +47,10 @@ The selected tasks and the same source hashes are committed in:
 ```text
 data/deepswe_task_selection_v1.1.json
 ```
+
+These hashes freeze the public sampling artifacts. They do not identify the
+DeepSWE Git checkout used later to execute the selected tasks; the runnable
+checkout is pinned separately in `benchmark/README.md` and in the run metadata.
 
 The underlying selection script can still be run directly for development or
 against explicitly supplied local artifacts, but such a run is not the frozen
