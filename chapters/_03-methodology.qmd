@@ -26,6 +26,14 @@ GPT-5.6 Luna supports a larger API context window, but the first-party Codex 0.1
 
 Web access is disabled for benchmark agents. Each trial is evaluated only against the repository and tools supplied by the benchmark environment.
 
+### Model profiles
+
+Built-in model profiles are retained whenever the harness already knows the selected model. The benchmark does not replace native metadata merely to redirect traffic through the experimental provider path. In Codex, GPT-5.6 Luna therefore remains the stock `openai/gpt-5.6-luna` model; only the endpoint and authentication path are redirected. This preserves the model-specific instructions, tool mode, compaction behavior, and other defaults shipped with the pinned Codex release [@codex0151ModelCatalog].
+
+The same approach is not possible for third-party models that Codex does not recognize. Codex 0.151.0 assigns unknown models a deliberately minimal fallback descriptor: it has no configured multi-agent mode or tool mode, no model-specific reasoning levels, and omits several model-profile features used by recognized models [@codex0151FallbackMetadata]. Running third-party models through this fallback would therefore change Codex behavior simply because the model is unknown to the client.
+
+To avoid that confound, Kimi K3, DeepSeek V4.1 Flash, and GLM-5.3-Flash use profiles derived from the frozen GPT-5.6 Sol profile in Codex 0.151.0. Only model-specific identity, context, modality, and reasoning metadata are changed, together with compatibility fields required by the third-party route. In particular, these profiles use Multi-Agent V1 and disable Responses Lite, while retaining the remaining Sol behavior. The purpose is not to emulate GPT-5.6 Sol, but to prevent Codex's unknown-model fallback from becoming an additional experimental variable.
+
 ### Model routing
 
 All non-Anthropic model traffic is routed through AiOrbit, the internal LiteLLM proxy used by the organization. The open-weight models are served through Fireworks behind this proxy. Anthropic models are the exception and call the Anthropic API directly. This routing path is kept constant for a given model across harnesses.
@@ -34,9 +42,19 @@ AiOrbit and Fireworks are infrastructure outside the experimental manipulation. 
 
 ## Benchmark infrastructure
 
-DeepSWE is executed through a fork of Pier. The fork is used because the upstream runner did not support all selected harnesses and did not expose all usage required for a fair cost comparison. The modifications are limited to experimental instrumentation and compatibility: additional harness adapters, model isolation, recursive usage accounting, and preservation of relevant cache and token fields. They do not alter the benchmark task, verifier, or repository presented to the agent.
+The experiment does not use upstream Pier unchanged. It uses the project-specific `FZR-forks/pier` fork, which has diverged materially from the upstream runner used by DeepSWE [@pierUpstream; @pierFzrFork]. The fork became necessary because the selected model--harness matrix required additional adapters, stricter model isolation, and more complete usage accounting than upstream Pier exposed at the time of the experiment.
 
-For Claude Code and Codex, delegated-agent usage is included in the final token totals. Claude Code subagents are explicitly pinned to the benchmark model. Codex delegation remains available, but spawn-time model overrides are disabled so child agents inherit the tested model. OpenCode V2 is run through a dedicated adapter that collects root, delegated, and compaction sessions and enforces the configured model where required.
+The fork adds Pi and OpenCode V2 support, complete delegated-session accounting for Claude Code and Codex, hard same-model enforcement for delegated calls, corrections for Codex cumulative token snapshots and inherited child history, cache-write-aware token and cost accounting, support for the internal CA required to reach AiOrbit, and preservation of failed retry-attempt evidence. Some Claude Code trajectory changes were selectively backported from Harbor; other changes are specific to this experiment. As a result, the PA1 runner is substantially more capable for this benchmark matrix than the upstream Pier checkout and must be treated as a distinct, versioned part of the experimental apparatus rather than as stock Pier.
+
+These changes were kept outside the benchmark task itself. They affect agent installation, routing, model enforcement, trajectory conversion, and measurement, but do not modify the DeepSWE task description, repository, verifier, or reward calculation presented to the agent.
+
+### Pier revisions across benchmark runs
+
+The Pier checkout is not identical across all runs. The initial Kimi K3 trial runs on 2026-08-31 used fork revision `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`, which already contained the Pi adapter, Claude Code and Codex subagent accounting, model pinning, cache-write accounting, internal-CA support, and retry-attempt preservation. It did not contain OpenCode V2 support.
+
+OpenCode V2 was intentionally deferred from that initial batch because its V2 interface and request behavior were not yet stable enough for the required adapter to be validated reliably. After V2 had stabilized sufficiently, OpenCode V2 support was added as a separate Pier adapter. OpenCode-inclusive runs therefore use a later Pier checkout. The functional addition relevant to the experiment is the new `opencode-v2` adapter and its recursive session collection and model enforcement; the existing Pi, Claude Code, and Codex adapters were left unchanged by that addition. The exact Pier revision is recorded with each benchmark run instead of implying that all runs used one runner binary.
+
+For Claude Code and Codex, delegated-agent usage is included in the final token totals. Claude Code subagents are explicitly pinned to the benchmark model. Codex delegation remains available, but spawn-time model overrides are disabled so child agents inherit the tested model. OpenCode V2 is run through its dedicated adapter, which collects root, delegated, and compaction sessions and enforces the configured model where required.
 
 ## Compatibility interventions
 
@@ -64,4 +82,4 @@ If a trial is discarded and repeated because of a transport or gateway failure, 
 
 ## Reproducibility
 
-Benchmark components are pinned for the experiment. The primary frozen environment uses DeepSWE revision `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`, Codex CLI 0.151.0, Claude Code 2.1.251, and Pi 0.84.4. OpenCode V2 is pinned independently to version 2.0.3. The Pier revision, compatibility-bridge image digest, model profiles, pricing table, generated configurations, and task-selection audit data are stored with the benchmark setup. Pier additionally records a `lock.json` in each result directory so that a run can be traced to the exact configuration used.
+Benchmark components are pinned for the experiment. The initial 2026-08-31 batch uses DeepSWE revision `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`, Pier revision `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`, Codex CLI 0.151.0, Claude Code 2.1.251, and Pi 0.84.4. OpenCode V2 is pinned independently to version 2.0.3 and uses the later Pier revision containing its adapter. The compatibility-bridge image digest, model profiles, pricing table, generated configurations, task-selection audit data, and Pier revision for each batch are stored with the benchmark setup. Pier additionally records a `lock.json` in each result directory so that every run can be traced to the exact configuration used.
