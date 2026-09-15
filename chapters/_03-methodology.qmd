@@ -4,9 +4,11 @@ This study evaluates coding-agent harnesses as part of a complete model--harness
 
 ## Benchmark and task selection
 
-DeepSWE v1.1 was selected as the evaluation benchmark. It contains original, long-horizon software-engineering tasks with dedicated verifiers and publishes the benchmark artifacts and evaluation trajectories required for reproducible analysis [@huang2026deepswe]. This makes it suitable for comparing autonomous coding agents without constructing and validating a new internal task set.
+DeepSWE v1.1 was selected during planning in July--August 2026 because it was a current public benchmark explicitly designed to distinguish frontier coding agents on original, long-horizon software-engineering tasks. Its grading also fits this study: submissions are evaluated by isolated functional verifiers with a binary pass/fail reward rather than by an LLM judge [@huang2026deepswe]. This provides a reproducible success criterion without constructing and validating a new internal task set.
 
-Running the complete benchmark across all model--harness combinations was outside the available budget. A deterministic subset of ten tasks was therefore selected from the public DeepSWE v1.1 results. For each programming language, one hard and one medium task was selected. Difficulty is derived from the solve rate of valid historical `mini-swe-agent` runs, excluding the models evaluated in this study. Hard tasks occupy the 75th--100th difficulty percentile and medium tasks the 50th--75th percentile. Within each language and difficulty stratum, the task with the highest median historical token usage is selected. This deliberately favors demanding tasks on which differences in context handling and token efficiency are more likely to become visible. The complete selection procedure is implemented in `scripts/select_deepswe_tasks.py`, and its inputs and resulting audit data are stored in `data/deepswe_task_selection_v1.1.json`.
+Running the complete benchmark across all model--harness combinations was outside the available budget. A deterministic subset of ten tasks was therefore selected from the public DeepSWE v1.1 results. For each programming language, one hard and one medium task was selected. Difficulty is derived from the solve rate of valid historical `mini-swe-agent` runs, excluding the models evaluated in this study. Hard tasks occupy the 75th--100th difficulty percentile and medium tasks the 50th--75th percentile. Within each language and difficulty stratum, the task with the highest median historical token usage is selected. This deliberately favors demanding tasks on which differences in context handling and token efficiency are more likely to become visible.
+
+The selection was run and fixed on 2026-08-18. `data/deepswe_task_selection_v1.1.json` records the selected task IDs together with SHA-256 hashes of the DeepSWE task, trial, and release artifacts used for the selection. The benchmark configurations use this committed task set; later changes to the public DeepSWE artifacts therefore cannot silently redefine the experiment. The complete selection procedure is implemented in `scripts/select_deepswe_tasks.py`.
 
 ## Model and harness selection
 
@@ -20,9 +22,15 @@ Each trial evaluates exactly one model through one harness. Harness-native deleg
 
 Provider-specific harness optimizations are otherwise retained. For example, a harness may use its native compaction or caching behavior when the selected model supports it. Equivalent features are not recreated through custom plugins in competing harnesses, because the objective is to evaluate the harnesses as practical systems rather than force their internal implementations to be identical.
 
-A limited normalization is applied where configuration would directly distort cost comparison. GPT-5.6 Luna is restricted to a 272,000-token context window in every harness. OpenAI applies different pricing beyond this threshold [@openaiGpt56Luna]; allowing some harnesses to use the larger context while others remain below the threshold would make the measured cost depend on inconsistent context limits rather than harness efficiency. The same benchmark window is therefore enforced across all Luna runs.
+GPT-5.6 Luna supports a larger API context window, but the first-party Codex 0.151.0 model profile uses 272,000 tokens as its default context window and requires an explicit override to use more [@codex0151ModelCatalog]. OpenAI also applies higher pricing when a request exceeds 272,000 input tokens [@openaiGpt56Luna]. The experiment therefore uses this first-party default/recommended operating window in every harness. Allowing only some harnesses to use the larger window would make cost depend on inconsistent context configuration and could move one harness into a different pricing tier.
 
 Web access is disabled for benchmark agents. Each trial is evaluated only against the repository and tools supplied by the benchmark environment.
+
+### Model routing
+
+All non-Anthropic model traffic is routed through AiOrbit, the internal LiteLLM proxy used by the organization. The open-weight models are served through Fireworks behind this proxy. Anthropic models are the exception and call the Anthropic API directly. This routing path is kept constant for a given model across harnesses.
+
+AiOrbit and Fireworks are infrastructure outside the experimental manipulation. Either may transform requests or introduce provider-side failures that the study cannot control. The results therefore characterize the harnesses under this fixed deployment path rather than an abstract provider-independent environment.
 
 ## Benchmark infrastructure
 
@@ -36,13 +44,13 @@ Compatibility changes are permitted only when they are required to make a harnes
 
 ### Codex with third-party models
 
-Codex 0.151.0 uses the OpenAI Responses protocol, while the Fireworks-backed models are reached through a LiteLLM Chat Completions route. Direct translation through the existing gateway was not sufficient for Codex's request and reasoning semantics. A pinned CLIProxyAPI instance is therefore used as a protocol bridge:
+Codex 0.151.0 uses the OpenAI Responses protocol, while the Fireworks-backed models are reached through AiOrbit using Chat Completions. Direct translation through the LiteLLM gateway was not sufficient for Codex's request and reasoning semantics. A pinned CLIProxyAPI instance is therefore used as a protocol bridge:
 
-`Codex -> Responses -> CLIProxyAPI -> Chat Completions -> LiteLLM -> Fireworks`.
+`Codex -> Responses -> CLIProxyAPI -> Chat Completions -> AiOrbit -> Fireworks`.
 
 The bridge performs protocol translation only. Its own retries, credential cooldowns, and model fallbacks are disabled so it cannot improve the measured harness behavior.
 
-During the benchmark period, an upstream CLIProxyAPI defect was identified in which a streamed chunk containing both `reasoning_content` and visible `content` could produce an invalid Responses item order [@cliproxyIssue5659]. Rather than upgrade the complete bridge and introduce unrelated changes, the benchmark keeps the frozen v7.2.146 base and backports only the upstream fix [@cliproxyFix5659]. Logs from the already completed Kimi K3 run showed that the defect's triggering condition did not occur in that run, so it was retained.
+During the benchmark period, an upstream CLIProxyAPI defect was identified in which a streamed chunk containing both `reasoning_content` and visible `content` could produce an invalid Responses item order [@cliproxyIssue5659]. Rather than upgrade the complete bridge and introduce unrelated changes, the benchmark keeps the frozen v7.2.146 base and backports only the upstream fix [@cliproxyFix5659]. Logs from the completed 2026-08-31 Kimi K3 trial runs showed that the defect's triggering condition did not occur, so those runs were retained.
 
 ### OpenCode V2 output limit
 
