@@ -1,6 +1,6 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `30529d614162e937e84b0da22dc86a28e46fe92f` (base
+Revisions: Pier `e08e0d99e41eb87044d12b08e567a473666f3089` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 configuration fix
 `b561f2602bbe1c2c0a8b7bbc76d211e33cda8dd7` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
@@ -10,8 +10,8 @@ Revisions: Pier `30529d614162e937e84b0da22dc86a28e46fe92f` (base
 the arm64 archive SHA-256 is
 `bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693`.
 
-The final Pier revision passed 37/37 offline executable assertions, 100 focused
-adapter tests, 127 required existing regressions, and the complete 440-test
+The final Pier revision passed 37/37 offline executable assertions, 103 focused
+adapter tests, 127 required existing regressions, and the complete 443-test
 Pier suite. The actual-binary control
 confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
@@ -41,9 +41,9 @@ allowlisting now follows every enabled agent model, while restricted trials
 derive that set only after model pinning; a regression proves a conflicting
 child provider cannot widen a restricted trial. The
 final offline artifact SHA-256 is
-`dc70117a7fb0e740c82acf1d97167852b29f34e782d61b7356dd3c8cccf4e83c`;
+`189803435ae294b80091163a60532dc97aa9a39168dd4a8bc7d79c911bc30c74`;
 the runner SHA-256 is
-`ec08b1563498dc44c1659a0078c6965c335e300142d2c0c99d998e152a5d5a80`.
+`2cb20108c8f51efe8a9b05c8b2c4a29fbde3314c54b53d58b098c62d630bcf2d`.
 
 The configuration review found that the three staged Responses profiles named
 an entrypoint absent from OpenCode 2.0.3 and that Luna inherited a contradictory
@@ -52,6 +52,11 @@ an entrypoint absent from OpenCode 2.0.3 and that Luna inherited a contradictory
 to context/input/output limits of 272,000/144,000/128,000. The offline verifier's
 shared binary cache is now locked, atomically populated, and checked against the
 frozen executable digest on every use.
+
+The follow-up review also covered inherited top-level model providers in the
+egress allowlist and repeated session/message cursors. The former now includes
+the top-level provider even when an enabled agent omits its own model; the latter
+raises a collection error instead of silently truncating a looping page stream.
 
 A separate tiny Pier task passed end to end through the configured gateway on
 both acceptance-only Low profiles: GLM-5.3-Flash used 18,059 input, 8,192 cached,

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-15T11:27:43Z",
+  "generated_at": "2026-09-15T11:39:00Z",
   "revisions": {
     "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
-    "pier_implementation": "30529d614162e937e84b0da22dc86a28e46fe92f",
+    "pier_implementation": "e08e0d99e41eb87044d12b08e567a473666f3089",
     "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
     "pa1_implementation": "b561f2602bbe1c2c0a8b7bbc76d211e33cda8dd7",
     "opencode_source_tag": "v2.0.3",
@@ -16,9 +16,9 @@
   },
   "offline": {
     "status": "pass",
-    "artifact_sha256": "dc70117a7fb0e740c82acf1d97167852b29f34e782d61b7356dd3c8cccf4e83c",
-    "runner_sha256": "ec08b1563498dc44c1659a0078c6965c335e300142d2c0c99d998e152a5d5a80",
-    "pier_revision": "30529d614162e937e84b0da22dc86a28e46fe92f",
+    "artifact_sha256": "189803435ae294b80091163a60532dc97aa9a39168dd4a8bc7d79c911bc30c74",
+    "runner_sha256": "2cb20108c8f51efe8a9b05c8b2c4a29fbde3314c54b53d58b098c62d630bcf2d",
+    "pier_revision": "e08e0d99e41eb87044d12b08e567a473666f3089",
     "passed_count": 37,
     "failed_count": 0,
     "blocked_count": 0,
@@ -241,6 +241,8 @@
       "config-referenced credentials are redacted from debug metadata without changing the process environment",
       "unpinned latest installs use per-trial cache identities while pinned installs remain stable",
       "provider allowlisting follows enabled agent models without widening restricted model isolation",
+      "top-level inherited model providers are included in the network allowlist",
+      "repeated session and message cursors fail collection instead of truncating",
       "staged Responses profiles use the entrypoint built into OpenCode 2.0.3",
       "Luna has explicit coherent context, input, and output limits",
       "resolved contradictory model limits fail preflight",
