@@ -513,15 +513,17 @@ def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:
     if model_index is None:
         raise SystemExit(f"OpenCode V2 profile is missing model {model_id!r}")
     model_indent = len(lines[model_index]) - len(lines[model_index].lstrip())
-    limit_index = next(
-        (
-            index
-            for index in range(model_index + 1, len(lines))
-            if lines[index].strip() == "limit:"
-            and len(lines[index]) - len(lines[index].lstrip()) > model_indent
-        ),
-        None,
-    )
+    limit_index = None
+    for index in range(model_index + 1, len(lines)):
+        stripped = lines[index].strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(lines[index]) - len(lines[index].lstrip())
+        if indent <= model_indent:
+            break
+        if stripped == "limit:":
+            limit_index = index
+            break
     if limit_index is None:
         raise SystemExit(f"OpenCode V2 model {model_id!r} is missing limit")
     limit_indent = len(lines[limit_index]) - len(lines[limit_index].lstrip())

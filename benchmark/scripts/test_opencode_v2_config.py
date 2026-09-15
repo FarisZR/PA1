@@ -102,6 +102,21 @@ providers:
                 require_input=True,
             )
 
+    def test_model_limits_do_not_fall_through_to_sibling_model(self) -> None:
+        rendered = """
+providers:
+  litellm:
+    models:
+      selected-model:
+        name: Selected
+      sibling-model:
+        limit:
+          context: 1000
+          output: 100
+"""
+        with self.assertRaisesRegex(SystemExit, "selected-model.*missing limit"):
+            prepare_configs._model_limit_values(rendered, "selected-model")
+
     def test_live_budget_cap_rejects_nonfinite_nonpositive_and_above_two(self) -> None:
         self.assertEqual(verify_opencode_v2.approved_max_cost("2"), 2.0)
         for value in ("nan", "inf", "0", "-1", "2.000001"):
