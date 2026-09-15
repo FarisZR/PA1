@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-15T09:38:21Z",
+  "generated_at": "2026-09-15T09:48:13Z",
   "revisions": {
     "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
-    "pier_implementation": "3c062526f03ed9c1df83326e32399739e0a604c0",
+    "pier_implementation": "aeebce7fa9017c305fb10b740bffe307b11db796",
     "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
     "pa1_implementation": "614dbaa7f02cec3e50e36a99b75be33a3312ca1c",
     "opencode_source_tag": "v2.0.3",
@@ -16,16 +16,16 @@
   },
   "offline": {
     "status": "pass",
-    "artifact_sha256": "0cbf5540bdd2d12963823b07368a0ed5d838ac234b72475ac07f56058db8797e",
+    "artifact_sha256": "4ff94ee92ae91c2687f00f325326976a856e6bf71579a2ddee1cefad7ac4d2ba",
     "runner_sha256": "0c5b782ee4de11b06aecf4fd6fb2e26c8268345d0f4f446eeb6c630ba38d1483",
-    "pier_revision": "3c062526f03ed9c1df83326e32399739e0a604c0",
+    "pier_revision": "aeebce7fa9017c305fb10b740bffe307b11db796",
     "passed_count": 34,
     "failed_count": 0,
     "blocked_count": 0,
     "forwarded_requests": 31,
     "assertions": [
       "PASS: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
-      "PASS: focused Pier collector/converter fault matrix passes (91 tests)",
+      "PASS: focused Pier collector/converter fault matrix passes (93 tests)",
       "PASS: actual-binary limit-only control result is recorded",
       "PASS: adapter run reaches a step_finish on the happy path",
       "PASS: fake provider received at least one request",
@@ -69,9 +69,9 @@
       "thinking": null
     },
     "native_retry_observations_seconds": {
-      "429": [1.746, 3.858],
-      "503": [2.118, 4.028],
-      "retry_after": [2.373]
+      "429": [1.982, 4.754],
+      "503": [2.127, 4.115],
+      "retry_after": [2.367]
     }
   },
   "live": {
@@ -181,11 +181,13 @@
       "unrestricted agents are preflighted against their own configured models",
       "model-level transport bodies are preserved without adapter synthesis",
       "restricted missing or mismatched provenance hard-fails after preserving diagnostics",
-      "live ledger cycle initialization is exercised by separate test processes"
+      "live ledger cycle initialization is exercised by separate test processes",
+      "temporary Bedrock credentials forward AWS_SESSION_TOKEN",
+      "config-referenced credentials are redacted from debug metadata without changing the process environment"
     ]
   },
   "limitations": [
-    "BLOCKED: the final live suite was not rerun after lifecycle, redaction, canonical-profile, one-to-one request-mapping, budget, provenance, and review-comment hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 431-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
+    "BLOCKED: the final live suite was not rerun after lifecycle, redaction, canonical-profile, one-to-one request-mapping, budget, provenance, and review-comment hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 433-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
     "BLOCKED FOR PRIMARY READINESS: gateway metadata does not publish the GLM route's 131072 output ceiling. Acceptance proves 8192 only.",
     "BLOCKED FOR LIVE BUDGET ACCEPTANCE: gateway metadata reports no cache-creation rate. The final verifier now stops before ledger creation or forwarding instead of assuming that surcharge is zero.",
     "BLOCKED FOR GATEWAY POLICY: authenticated metadata and per-response route IDs prove the selected Fireworks route, but the gateway does not expose enough configuration to prove that hidden retries/fallbacks are disabled.",

@@ -1,6 +1,6 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `3c062526f03ed9c1df83326e32399739e0a604c0` (base
+Revisions: Pier `aeebce7fa9017c305fb10b740bffe307b11db796` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 implementation
 `614dbaa7f02cec3e50e36a99b75be33a3312ca1c` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
@@ -10,8 +10,8 @@ Revisions: Pier `3c062526f03ed9c1df83326e32399739e0a604c0` (base
 the arm64 archive SHA-256 is
 `bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693`.
 
-The final Pier revision passed 34/34 offline executable assertions, 91 focused
-adapter tests, 127 required existing regressions, and the complete 431-test
+The final Pier revision passed 34/34 offline executable assertions, 93 focused
+adapter tests, 127 required existing regressions, and the complete 433-test
 Pier suite. The actual-binary control
 confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
@@ -30,8 +30,10 @@ root-only completeness marker. The latest review moved the release and
 target-specific checksums into PA1 configuration, preserved explicit
 model-level transport bodies, made unrestricted per-agent models usable, and
 made restricted provenance mismatches hard failures while retaining raw usage
-evidence. The final offline artifact SHA-256 is
-`0cbf5540bdd2d12963823b07368a0ed5d838ac234b72475ac07f56058db8797e`;
+evidence. It also forwards temporary Bedrock session credentials and redacts
+config-referenced credential values from Pier debug metadata without changing
+the child process environment. The final offline artifact SHA-256 is
+`4ff94ee92ae91c2687f00f325326976a856e6bf71579a2ddee1cefad7ac4d2ba`;
 the runner SHA-256 is
 `0c5b782ee4de11b06aecf4fd6fb2e26c8268345d0f4f446eeb6c630ba38d1483`.
 
