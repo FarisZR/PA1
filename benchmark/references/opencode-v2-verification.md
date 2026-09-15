@@ -1,6 +1,6 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `b37d67d94f8c3ab5bc845fc22d74046f7f070a21` (base
+Revisions: Pier `9af0d613563690d88f7065c5e648ca1467538070` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 implementation
 `c43fe59796da237bed83aa20c35709cf75e49d7a` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
@@ -8,14 +8,26 @@ Revisions: Pier `b37d67d94f8c3ab5bc845fc22d74046f7f070a21` (base
 `@opencode/cli-linux-x64@2.0.3` archive SHA-256 is
 `4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d`.
 
-The final Pier revision passed 34/34 offline executable assertions, 69 focused
-adapter tests, 127 required existing regressions, and the complete 409-test
+The final Pier revision passed 34/34 offline executable assertions, 84 focused
+adapter tests, 127 required existing regressions, and the complete 424-test
 Pier suite. The actual-binary control
 confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
 `max_tokens: 8192`, `reasoning_effort: low`, and no `thinking` field. Native
 compaction, retry/failure retention, slow streaming, nested/background trees,
-server death, and simultaneous isolated trials are covered offline.
+server death, and simultaneous isolated trials are covered across 31 offline
+fake-provider requests.
+
+The review-response revision additionally shell-quotes install URLs, creates
+the prebuilt runtime directory as root, includes remote MCP hosts in filtered
+egress, forwards ambient config templates and missing Google/Llama variables,
+rejects cleartext remote provider URLs, bounds raw polling evidence by count
+and bytes, rejects unexpected server death as complete collection, filters
+malformed session records, and prevents incomplete children from inheriting a
+root-only completeness marker. The final offline artifact SHA-256 is
+`582219ea0a905adb87acb7d62680a742a4dbc1ebf68ffe430b27109f70a82e87`;
+the runner SHA-256 is
+`8a94947b8cd25402cf9195aa1d7cf9d9f95376fae085a52f31ed36c5c2ad20dc`.
 
 The retained final live cycle passed 15/15 assertions through the authenticated
 PA1 gateway route `accounts/fireworks/models/glm-5p3-flash`. It forwarded 12

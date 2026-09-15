@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-14T20:50:00Z",
+  "generated_at": "2026-09-15T00:33:27Z",
   "revisions": {
     "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
-    "pier_implementation": "b37d67d94f8c3ab5bc845fc22d74046f7f070a21",
+    "pier_implementation": "9af0d613563690d88f7065c5e648ca1467538070",
     "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
     "pa1_implementation": "c43fe59796da237bed83aa20c35709cf75e49d7a",
     "opencode_source_tag": "v2.0.3",
@@ -13,14 +13,16 @@
   },
   "offline": {
     "status": "pass",
-    "artifact_sha256": "32c7270cd4968dfcf7f4392571f9b276ff3fe08cef7def2e0638b7e91d6c3afa",
-    "pier_revision": "b37d67d94f8c3ab5bc845fc22d74046f7f070a21",
+    "artifact_sha256": "582219ea0a905adb87acb7d62680a742a4dbc1ebf68ffe430b27109f70a82e87",
+    "runner_sha256": "8a94947b8cd25402cf9195aa1d7cf9d9f95376fae085a52f31ed36c5c2ad20dc",
+    "pier_revision": "9af0d613563690d88f7065c5e648ca1467538070",
     "passed_count": 34,
     "failed_count": 0,
     "blocked_count": 0,
+    "forwarded_requests": 31,
     "assertions": [
       "PASS: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
-      "PASS: focused Pier collector/converter fault matrix passes (69 tests)",
+      "PASS: focused Pier collector/converter fault matrix passes (84 tests)",
       "PASS: actual-binary limit-only control result is recorded",
       "PASS: adapter run reaches a step_finish on the happy path",
       "PASS: fake provider received at least one request",
@@ -64,9 +66,9 @@
       "thinking": null
     },
     "native_retry_observations_seconds": {
-      "429": [2.529, 3.603],
-      "503": [2.045, 3.604],
-      "retry_after": [2.077]
+      "429": [2.157, 3.754],
+      "503": [2.258, 3.817],
+      "retry_after": [1.896]
     }
   },
   "live": {
@@ -164,11 +166,18 @@
       "missing per-request route IDs block provider provenance",
       "the server password is generated inside the runner and never enters Pier exec logging",
       "live ledger cycle initialization uses the same cross-process lock as reservations",
-      "live forwarding blocks when cache-read or cache-creation pricing is unknown"
+      "live forwarding blocks when cache-read or cache-creation pricing is unknown",
+      "installation shell-quotes release URLs and creates the root-owned runtime directory",
+      "remote MCP hosts and resolved provider URL templates enter the egress allowlist",
+      "cleartext provider URLs are rejected except for explicit loopback tests",
+      "ambient config templates and Google/Llama provider credentials are forwarded",
+      "raw polling pages are deduplicated and bounded by count and bytes",
+      "unexpected server exit and incomplete child metrics cannot report complete collection",
+      "malformed session JSONL records cannot become synthetic root candidates"
     ]
   },
   "limitations": [
-    "BLOCKED: the final live suite was not rerun after lifecycle, redaction, canonical-profile, one-to-one request-mapping, budget, and provenance hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 409-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
+    "BLOCKED: the final live suite was not rerun after lifecycle, redaction, canonical-profile, one-to-one request-mapping, budget, provenance, and review-comment hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 424-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
     "BLOCKED FOR PRIMARY READINESS: gateway metadata does not publish the GLM route's 131072 output ceiling. Acceptance proves 8192 only.",
     "BLOCKED FOR LIVE BUDGET ACCEPTANCE: gateway metadata reports no cache-creation rate. The final verifier now stops before ledger creation or forwarding instead of assuming that surcharge is zero.",
     "BLOCKED FOR GATEWAY POLICY: authenticated metadata and per-response route IDs prove the selected Fireworks route, but the gateway does not expose enough configuration to prove that hidden retries/fallbacks are disabled.",
