@@ -42,3 +42,6 @@ __pycache__/
 benchmark/env.local
 benchmark/generated/
 benchmark/runs/
+# The 2.0.3 executable is a local verification cache; provenance and SHA-256
+# are reviewable in benchmark/references/opencode-v2-glm-5.3-flash.json.
+benchmark/references/opencode-cli-linux-x64-2.0.3.tgz

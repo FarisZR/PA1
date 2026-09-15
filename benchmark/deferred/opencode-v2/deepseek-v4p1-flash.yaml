@@ -1,4 +1,5 @@
-# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+# STAGED OpenCode V2 primary profile. Launch only after the per-model gate in
+# benchmark/README.md; this remains outside the current primary batch.
 job_name: opencode-v2-deepseek-v4p1-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
@@ -33,34 +34,34 @@ datasets:
   - boa-hierarchical-evaluation-cancellation
   - koota-composite-trait-aspects
 agents:
-- name: opencode
-  model_name: litellm/deepseek-v4p1-flash
+- name: opencode-v2
+  model_name: deepseek/deepseek-v4p1-flash
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
   kwargs:
-    version: 0.0.0-beta-18684
     variant: max
-    opencode_config:
-      autoupdate: false
+    version: "2.0.3"
+    opencode_v2_checksums:
+      linux-x64: 4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d
+      linux-arm64: bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693
+    restrict_model: true
+    opencode_v2_config:
+      update: disable
+      share: disabled
+      model: deepseek/deepseek-v4p1-flash
+      default_agent: build
       providers:
-        litellm:
-          name: LiteLLM
+        deepseek:
           env:
           - LITELLM_API_KEY
-          package: '@opencode-ai/ai/providers/openai-compatible/responses'
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
-          models:
-            deepseek-v4p1-flash:
-              modelID: deepseek-v4p1-flash
-              name: DeepSeek V4.1 Flash
-              limit:
-                # Match DeepSeek's documented 1M window and the upstream
-                # OpenCode/models.dev DeepSeek profile used for this harness.
-                context: 1000000
-                output: 384000
-              variants:
-              - id: max
-                settings:
-                  reasoningEffort: max
+      agents:
+        build: {model: deepseek/deepseek-v4p1-flash}
+        plan: {model: deepseek/deepseek-v4p1-flash}
+        general: {model: deepseek/deepseek-v4p1-flash}
+        explore: {model: deepseek/deepseek-v4p1-flash}
+        title: {model: deepseek/deepseek-v4p1-flash}
+        summary: {model: deepseek/deepseek-v4p1-flash}
+        compaction: {model: deepseek/deepseek-v4p1-flash}

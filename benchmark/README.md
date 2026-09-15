@@ -26,6 +26,71 @@ primary jobs for one consistent workflow.
 
 Claude Opus 5 and OpenCode 2 are deferred and are not part of the commands above.
 
+## OpenCode V2 acceptance and staged profiles
+
+Pier's `opencode-v2` adapter is exercised separately from the current Pi /
+Claude Code / Codex primary jobs. The acceptance job is
+`benchmark/configs/opencode-v2/glm-5.3-flash-acceptance.yaml`: it uses only GLM
+5.3 Flash with the gateway alias `glm-5p3-flash` and the `low` variant. It has
+zero automatic whole-trial retries. The existing primary jobs retain their
+current reasoning settings; `low` must not be copied into a primary config.
+
+Run the deterministic verifier before any gateway call:
+
+```bash
+python3 benchmark/scripts/verify_opencode_v2.py \
+  --pier-root /absolute/path/to/pier \
+  --mode offline \
+  --output-dir /absolute/path/to/evidence/offline
+python3 benchmark/scripts/verify_opencode_v2.py \
+  --pier-root /absolute/path/to/pier \
+  --mode live \
+  --env-file benchmark/env.local \
+  --model glm-5p3-flash --variant low --max-cost-usd 2 \
+  --output-dir /absolute/path/to/evidence/live
+```
+
+The verifier uses a disposable loopback fake provider and the pinned
+`@opencode/cli-linux-x64` 2.0.3 bytes. It never reads `benchmark/env.local` in
+offline mode. Live mode accepts credentials only from an explicitly supplied
+env file and must retain Fireworks route provenance; missing provenance is
+reported as blocked, never as a provider pass. Do not launch a full DeepSWE
+job for this gate.
+
+For a cheap real-task check of both supported transports, generate and run the
+dedicated two-trial smoke job. It uses GLM-5.3-Flash Low over Chat Completions
+and GPT-5.6 Luna Low over the frozen binary's built-in OpenAI Responses
+provider; each edits one file in `benchmark/tasks/opencode-v2-smoke`, with
+8192-token request caps and no whole-trial retries:
+
+```bash
+python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local
+/absolute/path/to/pier/.venv/bin/pier run \
+  -c benchmark/generated/opencode-v2/smoke.yaml \
+  --env-file benchmark/env.local --yes
+```
+
+This low-effort smoke does not change the staged primary profiles' reasoning
+levels or task selection.
+
+The per-model staged profiles are under
+[`benchmark/deferred/opencode-v2/`](deferred/opencode-v2/). They are not
+selected by the current benchmark generator and do not alter scoring or
+pricing. Use `benchmark/references/opencode-v2-glm-5.3-flash.json` to verify the
+frozen binary/profile provenance and `benchmark/pricing.yaml` for PA1's existing
+normalized cost policy.
+
+Tracked decisions and regressions for this gate:
+[PA1 #41](https://github.com/FarisZR/PA1/issues/41) (OpenCode V2 adapter
+implementation, including the built-in websearch that must stay disabled),
+[#40](https://github.com/FarisZR/PA1/issues/40) (V2 does not set max output
+tokens; the acceptance wire control is `limit.output` metadata plus an explicit
+Chat Completions `max_tokens` model body),
+[#37](https://github.com/FarisZR/PA1/issues/37) (per-harness transport-retry
+policy; the acceptance job runs with retries disabled so adapter faults stay
+visible), and [#9](https://github.com/FarisZR/PA1/issues/9) (V1 vs V2
+decision: V2, npm scope `@opencode`, pinned `2.0.3`).
+
 Each primary model job contains:
 
 - Pi

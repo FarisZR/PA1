@@ -1,4 +1,5 @@
-# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+# STAGED OpenCode V2 primary profile. Launch only after the per-model gate in
+# benchmark/README.md; this remains outside the current primary batch.
 job_name: opencode-v2-glm-5.3-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
@@ -33,30 +34,62 @@ datasets:
   - boa-hierarchical-evaluation-cancellation
   - koota-composite-trait-aspects
 agents:
-- name: opencode
-  model_name: zai/glm-5p3-flash
+- name: opencode-v2
+  model_name: litellm/glm-5p3-flash
   env:
-    ZHIPU_API_KEY: ${LITELLM_API_KEY}
+    LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
   kwargs:
-    version: 0.0.0-beta-18684
     variant: max
-    opencode_config:
-      autoupdate: false
+    version: "2.0.3"
+    opencode_v2_checksums:
+      linux-x64: 4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d
+      linux-arm64: bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693
+    restrict_model: true
+    opencode_v2_config:
+      update: disable
+      share: disabled
+      model: litellm/glm-5p3-flash#max
+      default_agent: build
       providers:
-        zai:
+        litellm:
+          canonical: openai
+          name: LiteLLM
+          env:
+          - LITELLM_API_KEY
+          package: 'aisdk:@ai-sdk/openai-compatible'
           settings:
-            # Keep OpenCode's built-in zai/GLM-5.3-Flash profile and only
-            # redirect its upstream API to the benchmark gateway.
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
           models:
             glm-5p3-flash:
               modelID: glm-5p3-flash
               name: GLM-5.3-Flash
               limit:
-                context: 1000000
+                context: 1048576
                 output: 131072
+              # GLM-5.3-Flash is absent from the frozen 2.0.3 models.dev
+              # catalogue; this explicit profile is covered by the provenance
+              # manifest in benchmark/references/.
+              body:
+                max_tokens: 131072
+              cost:
+                input: 0.15
+                output: 0.5
+                cache:
+                  read: 0.03
+                  write: 0.0
+              compatibility:
+                maxTokensField: max_tokens
+                reasoningField: reasoning_content
               variants:
               - id: max
                 settings:
                   reasoningEffort: max
+      agents:
+        build: {model: litellm/glm-5p3-flash#max}
+        plan: {model: litellm/glm-5p3-flash#max}
+        general: {model: litellm/glm-5p3-flash#max}
+        explore: {model: litellm/glm-5p3-flash#max}
+        title: {model: litellm/glm-5p3-flash#max}
+        summary: {model: litellm/glm-5p3-flash#max}
+        compaction: {model: litellm/glm-5p3-flash#max}
