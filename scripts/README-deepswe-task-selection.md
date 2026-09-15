@@ -25,29 +25,39 @@ testing how different harnesses handle demanding workloads. It does not use
 results from any of the four evaluated models. A remaining tie is resolved by
 task ID.
 
-## Run it
+## Frozen reproduction
 
-From the repository root:
+The PA1 task set was selected on 2026-08-18. For reproducibility, use:
 
 ```bash
-python3 scripts/select_deepswe_tasks.py
+python3 scripts/select_deepswe_tasks_frozen.py
 ```
 
-The script downloads these frozen-version public artifacts directly:
+The wrapper downloads the DeepSWE v1.1 task, trial, and release artifacts and
+verifies their SHA-256 hashes against the exact inputs used for PA1 before
+running `select_deepswe_tasks.py`. If an upstream artifact changes, it fails
+instead of silently selecting a different task set. Verified inputs are cached
+under `.cache/deepswe-selection-v1.1` by default.
 
-```text
-https://deepswe.datacurve.ai/artifacts/v1.1/tasks.json
-https://deepswe.datacurve.ai/artifacts/v1.1/trials.json
-```
-
-It writes the selected tasks, input SHA-256 hashes, selection audit data, the
-trajectory hashes used for cache-aware repricing, and the cost projection to:
+The selected tasks and the same source hashes are committed in:
 
 ```text
 data/deepswe_task_selection_v1.1.json
 ```
 
-To reproduce the calculation from local copies instead of downloading them:
+The underlying selection script can still be run directly for development or
+against explicitly supplied local artifacts, but such a run is not the frozen
+PA1 reproduction path.
+
+## Direct/scripted use
+
+To run the selection logic against the current public v1.1 endpoints:
+
+```bash
+python3 scripts/select_deepswe_tasks.py
+```
+
+To run it against local copies:
 
 ```bash
 python3 scripts/select_deepswe_tasks.py \
@@ -56,9 +66,13 @@ python3 scripts/select_deepswe_tasks.py \
   --release-json /path/to/release.json
 ```
 
+The script writes the selected tasks, input SHA-256 hashes, selection audit data,
+the trajectory hashes used for cache-aware repricing, and the cost projection to
+`data/deepswe_task_selection_v1.1.json`.
+
 Use `--harnesses N` to change the projected number of harnesses. PA1 currently
-uses four. `--trajectory-cache-dir PATH` controls the local cache for immutable
-public trajectory JSON files used by the cache-aware cost calculation.
+uses four. `--trajectory-cache-dir PATH` controls the local cache for public
+trajectory JSON files used by the cache-aware cost calculation.
 
 ## Cost estimate
 
