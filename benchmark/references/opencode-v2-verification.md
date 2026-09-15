@@ -1,8 +1,8 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `508669348321a72c391db1cc7076c4217be505b5` (base
-`13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 implementation
-`614dbaa7f02cec3e50e36a99b75be33a3312ca1c` (base
+Revisions: Pier `30529d69c8e65ff2a21e4c70758c53177badd977` (base
+`13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 configuration fix
+`b561f26c78673ec19d8080d439142222696d77ae` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
 `v2.0.3` at `d44b52ca66b6bf69626c0384626d1a9cd9555977`. The frozen
 `@opencode/cli-linux-x64@2.0.3` archive SHA-256 is
@@ -10,15 +10,17 @@ Revisions: Pier `508669348321a72c391db1cc7076c4217be505b5` (base
 the arm64 archive SHA-256 is
 `bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693`.
 
-The final Pier revision passed 34/34 offline executable assertions, 99 focused
-adapter tests, 127 required existing regressions, and the complete 439-test
+The final Pier revision passed 37/37 offline executable assertions, 100 focused
+adapter tests, 127 required existing regressions, and the complete 440-test
 Pier suite. The actual-binary control
 confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
 `max_tokens: 8192`, `reasoning_effort: low`, and no `thinking` field. Native
 compaction, retry/failure retention, slow streaming, nested/background trees,
-server death, and simultaneous isolated trials are covered across 31 offline
-fake-provider requests.
+server death, and simultaneous isolated trials are covered across 34 offline
+fake-provider requests. Actual-binary Responses probes also passed for the
+staged Kimi K3, DeepSeek V4.1 Flash, and GPT-5.6 Luna profiles with their
+primary `max` reasoning setting and configured output ceilings.
 
 The review-response revision additionally shell-quotes install URLs, creates
 the prebuilt runtime directory as root, includes remote MCP hosts in filtered
@@ -32,16 +34,33 @@ model-level transport bodies, made unrestricted per-agent models usable, and
 made restricted provenance mismatches hard failures while retaining raw usage
 evidence. It also forwards temporary Bedrock session credentials and redacts
 config-referenced credential values from Pier debug metadata without changing
-the child process environment, and prevents floating `latest` installs from
-the child process environment, and prevents floating `latest` installs from
-reusing a stale Docker image while keeping pinned cache identity stable. Provider
+the child process environment, prevents floating `latest` installs from
+reusing a stale Docker image while keeping pinned cache identity stable, and
+installs Python for the packaged runner in minimal task images. Provider
 allowlisting now follows every enabled agent model, while restricted trials
 derive that set only after model pinning; a regression proves a conflicting
 child provider cannot widen a restricted trial. The
 final offline artifact SHA-256 is
-`44c718367dda86c9fbff9225cd338b60ddd49a21a996a4de3950f9f272d2cb84`;
+`dc70117a7fb0e740c82acf1d97167852b29f34e782d61b7356dd3c8cccf4e83c`;
 the runner SHA-256 is
-`0c5b782ee4de11b06aecf4fd6fb2e26c8268345d0f4f446eeb6c630ba38d1483`.
+`ec08b1563498dc44c1659a0078c6965c335e300142d2c0c99d998e152a5d5a80`.
+
+The configuration review found that the three staged Responses profiles named
+an entrypoint absent from OpenCode 2.0.3 and that Luna inherited a contradictory
+922,000-token input limit. They now use the frozen binary's built-in
+`@opencode-ai/ai/providers/openai/responses` entrypoint; Luna explicitly resolves
+to context/input/output limits of 272,000/144,000/128,000. The offline verifier's
+shared binary cache is now locked, atomically populated, and checked against the
+frozen executable digest on every use.
+
+A separate tiny Pier task passed end to end through the configured gateway on
+both acceptance-only Low profiles: GLM-5.3-Flash used 18,059 input, 8,192 cached,
+and 85 output tokens at normalized cost $0.00176831; GPT-5.6 Luna used 11,162
+input, 5,510 cached, and 136 output tokens at normalized cost $0.00168610. Both
+earned reward 1, completed collection without errors, and left no owned server
+or container. This direct-gateway smoke validates the two runtime transports;
+it did not add independent per-request upstream provenance beyond the retained
+GLM recorder acceptance below.
 
 The retained final live cycle passed 15/15 assertions through the authenticated
 PA1 gateway route `accounts/fireworks/models/glm-5p3-flash`. It forwarded 12

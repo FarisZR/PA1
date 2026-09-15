@@ -3,9 +3,9 @@
   "generated_at": "2026-09-15T10:09:07Z",
   "revisions": {
     "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
-    "pier_implementation": "508669348321a72c391db1cc7076c4217be505b5",
+    "pier_implementation": "30529d69c8e65ff2a21e4c70758c53177badd977",
     "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
-    "pa1_implementation": "614dbaa7f02cec3e50e36a99b75be33a3312ca1c",
+    "pa1_implementation": "b561f26c78673ec19d8080d439142222696d77ae",
     "opencode_source_tag": "v2.0.3",
     "opencode_source_commit": "d44b52ca66b6bf69626c0384626d1a9cd9555977",
     "binary_package": "@opencode/cli-<target>@2.0.3",
@@ -16,13 +16,13 @@
   },
   "offline": {
     "status": "pass",
-    "artifact_sha256": "44c718367dda86c9fbff9225cd338b60ddd49a21a996a4de3950f9f272d2cb84",
-    "runner_sha256": "0c5b782ee4de11b06aecf4fd6fb2e26c8268345d0f4f446eeb6c630ba38d1483",
-    "pier_revision": "508669348321a72c391db1cc7076c4217be505b5",
-    "passed_count": 34,
+    "artifact_sha256": "dc70117a7fb0e740c82acf1d97167852b29f34e782d61b7356dd3c8cccf4e83c",
+    "runner_sha256": "ec08b1563498dc44c1659a0078c6965c335e300142d2c0c99d998e152a5d5a80",
+    "pier_revision": "30529d69c8e65ff2a21e4c70758c53177badd977",
+    "passed_count": 37,
     "failed_count": 0,
     "blocked_count": 0,
-    "forwarded_requests": 31,
+    "forwarded_requests": 34,
     "assertions": [
       "PASS: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
       "PASS: focused Pier collector/converter fault matrix passes (99 tests)",
@@ -38,6 +38,9 @@
       "PASS: model body override is exactly max_tokens=8192",
       "PASS: trajectory contains a step_finish",
       "PASS: usage metadata is present on the happy path",
+      "PASS: staged kimi-k3 Responses profile executes",
+      "PASS: staged deepseek-v4p1-flash Responses profile executes",
+      "PASS: staged gpt-5.6-luna Responses profile executes",
       "PASS: native compact operation completes and the same session continues",
       "PASS: pre-compaction messages remain collectible",
       "PASS: one authoritative compaction record is persisted",
@@ -68,11 +71,61 @@
       "reasoning_effort": "low",
       "thinking": null
     },
+    "primary_responses_profiles": {
+      "kimi-k3": {
+        "path": "/v1/responses",
+        "max_output_tokens": 131072,
+        "reasoning_effort": "max"
+      },
+      "deepseek-v4p1-flash": {
+        "path": "/v1/responses",
+        "max_output_tokens": 384000,
+        "reasoning_effort": "max"
+      },
+      "gpt-5.6-luna": {
+        "path": "/v1/responses",
+        "max_output_tokens": 128000,
+        "reasoning_effort": "max",
+        "resolved_limits": {
+          "context": 272000,
+          "input": 144000,
+          "output": 128000
+        }
+      }
+    },
     "native_retry_observations_seconds": {
-      "429": [2.319, 4.2],
-      "503": [2.307, 4.73],
-      "retry_after": [2.093]
+      "429": [2.457, 4.706],
+      "503": [2.404, 4.115],
+      "retry_after": [1.967]
     }
+  },
+  "smoke": {
+    "status": "pass",
+    "task": "benchmark/tasks/opencode-v2-smoke",
+    "job": "benchmark/configs/opencode-v2/smoke.yaml",
+    "n_completed_trials": 2,
+    "n_errored_trials": 0,
+    "n_retries": 0,
+    "normalized_cost_usd": 0.00345441,
+    "models": {
+      "glm-5p3-flash#low": {
+        "reward": 1,
+        "input_tokens": 18059,
+        "cached_tokens": 8192,
+        "output_tokens": 85,
+        "normalized_cost_usd": 0.00176831,
+        "collection_complete": true
+      },
+      "gpt-5.6-luna#low": {
+        "reward": 1,
+        "input_tokens": 11162,
+        "cached_tokens": 5510,
+        "output_tokens": 136,
+        "normalized_cost_usd": 0.0016861,
+        "collection_complete": true
+      }
+    },
+    "provider_provenance": "not independently captured by this direct-gateway smoke"
   },
   "live": {
     "status": "wire_provider_task_pass_budget_gate_blocked",
@@ -147,7 +200,9 @@
   "retained_failures": [
     "Cycle 1: recorder URL sentinel wiring failed before forwarding any request.",
     "Cycle 2: 14 assertions passed; the small-cap response stopped naturally at 97 tokens, so the required truncation assertion failed.",
-    "Both failed cycles remain in the external evidence directory and consumed the shared three-cycle allowance."
+    "Both failed cycles remain in the external evidence directory and consumed the shared three-cycle allowance.",
+    "Tiny-smoke attempt 1 failed while Docker wrote host temporary metadata because the host temporary filesystem was full; no model request was sent.",
+    "Tiny-smoke attempt 2 reached the task container but failed before server start because the minimal image lacked Python; no model request was sent. Pier now installs the runner prerequisite."
   ],
   "final_review": {
     "reviewer": "GPT-5.6 Luna xhigh",
@@ -185,7 +240,13 @@
       "temporary Bedrock credentials forward AWS_SESSION_TOKEN",
       "config-referenced credentials are redacted from debug metadata without changing the process environment",
       "unpinned latest installs use per-trial cache identities while pinned installs remain stable",
-      "provider allowlisting follows enabled agent models without widening restricted model isolation"
+      "provider allowlisting follows enabled agent models without widening restricted model isolation",
+      "staged Responses profiles use the entrypoint built into OpenCode 2.0.3",
+      "Luna has explicit coherent context, input, and output limits",
+      "resolved contradictory model limits fail preflight",
+      "minimal task images install Python for the packaged runner",
+      "offline binary staging is locked, atomic, and revalidates cached executable bytes",
+      "the tiny task verifier compares the exact answer bytes including its trailing newline"
     ]
   },
   "limitations": [
