@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-15T09:55:19Z",
+  "generated_at": "2026-09-15T10:09:07Z",
   "revisions": {
     "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
-    "pier_implementation": "7717bc3f1a28eb07be1e3df8a7a210d5c8762991",
+    "pier_implementation": "508669348321a72c391db1cc7076c4217be505b5",
     "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
     "pa1_implementation": "614dbaa7f02cec3e50e36a99b75be33a3312ca1c",
     "opencode_source_tag": "v2.0.3",
@@ -16,16 +16,16 @@
   },
   "offline": {
     "status": "pass",
-    "artifact_sha256": "f08d983361ef586ce7934269da8906252074732b173acb324dbdb930e0fa397a",
+    "artifact_sha256": "44c718367dda86c9fbff9225cd338b60ddd49a21a996a4de3950f9f272d2cb84",
     "runner_sha256": "0c5b782ee4de11b06aecf4fd6fb2e26c8268345d0f4f446eeb6c630ba38d1483",
-    "pier_revision": "7717bc3f1a28eb07be1e3df8a7a210d5c8762991",
+    "pier_revision": "508669348321a72c391db1cc7076c4217be505b5",
     "passed_count": 34,
     "failed_count": 0,
     "blocked_count": 0,
     "forwarded_requests": 31,
     "assertions": [
       "PASS: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
-      "PASS: focused Pier collector/converter fault matrix passes (95 tests)",
+      "PASS: focused Pier collector/converter fault matrix passes (99 tests)",
       "PASS: actual-binary limit-only control result is recorded",
       "PASS: adapter run reaches a step_finish on the happy path",
       "PASS: fake provider received at least one request",
@@ -69,9 +69,9 @@
       "thinking": null
     },
     "native_retry_observations_seconds": {
-      "429": [1.803, 3.752],
-      "503": [1.856, 3.593],
-      "retry_after": [2.142]
+      "429": [2.319, 4.2],
+      "503": [2.307, 4.73],
+      "retry_after": [2.093]
     }
   },
   "live": {
@@ -184,11 +184,12 @@
       "live ledger cycle initialization is exercised by separate test processes",
       "temporary Bedrock credentials forward AWS_SESSION_TOKEN",
       "config-referenced credentials are redacted from debug metadata without changing the process environment",
-      "unpinned latest installs use per-trial cache identities while pinned installs remain stable"
+      "unpinned latest installs use per-trial cache identities while pinned installs remain stable",
+      "provider allowlisting follows enabled agent models without widening restricted model isolation"
     ]
   },
   "limitations": [
-    "BLOCKED: the final live suite was not rerun after lifecycle, redaction, canonical-profile, one-to-one request-mapping, budget, provenance, and review-comment hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 435-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
+    "BLOCKED: the final live suite was not rerun after lifecycle, redaction, canonical-profile, one-to-one request-mapping, budget, provenance, and review-comment hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 439-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
     "BLOCKED FOR PRIMARY READINESS: gateway metadata does not publish the GLM route's 131072 output ceiling. Acceptance proves 8192 only.",
     "BLOCKED FOR LIVE BUDGET ACCEPTANCE: gateway metadata reports no cache-creation rate. The final verifier now stops before ledger creation or forwarding instead of assuming that surcharge is zero.",
     "BLOCKED FOR GATEWAY POLICY: authenticated metadata and per-response route IDs prove the selected Fireworks route, but the gateway does not expose enough configuration to prove that hidden retries/fallbacks are disabled.",
