@@ -1,134 +1,59 @@
 # Methodology {#sec-methodology}
 
-> **Placeholder section:** Document the planned method without adding
-> experimental claims or results.
+This study evaluates coding-agent harnesses as part of a complete model--harness system. The central experimental principle is to preserve behavior that belongs to the harness while controlling external differences that would otherwise distort the comparison. Native capabilities such as delegation and provider-specific compaction therefore remain enabled where supported, whereas routing, context limits, model selection, and usage accounting are constrained when necessary to keep measurements comparable.
 
-## Benchmark/task selection
+## Benchmark and task selection
 
-Tests were selected as hard (75-100th percentile) and medium (75th-50th precentile) with the second criteria being maximum token usage to make potential differences more visible.
+DeepSWE v1.1 was selected as the evaluation benchmark. It contains original, long-horizon software-engineering tasks with dedicated verifiers and publishes the benchmark artifacts and evaluation trajectories required for reproducible analysis [@huang2026deepswe]. This makes it suitable for comparing autonomous coding agents without constructing and validating a new internal task set.
 
-- TODO: Define the benchmark and task-selection process.
+Running the complete benchmark across all model--harness combinations was outside the available budget. A deterministic subset of ten tasks was therefore selected from the public DeepSWE v1.1 results. For each programming language, one hard and one medium task was selected. Difficulty is derived from the solve rate of valid historical `mini-swe-agent` runs, excluding the models evaluated in this study. Hard tasks occupy the 75th--100th difficulty percentile and medium tasks the 50th--75th percentile. Within each language and difficulty stratum, the task with the highest median historical token usage is selected. This deliberately favors demanding tasks on which differences in context handling and token efficiency are more likely to become visible. The complete selection procedure is implemented in `scripts/select_deepswe_tasks.py`, and its inputs and resulting audit data are stored in `data/deepswe_task_selection_v1.1.json`.
 
-## Models and agent harnesses
+## Model and harness selection
 
-### Model Selection
-The goal when selecting our models is to cover as many model families as possible, to see if a harness is better overall.
+The harness set consists of Claude Code, OpenAI Codex CLI, Pi, and OpenCode V2. Claude Code and Codex represent first-party coding agents from major model providers. OpenCode was the second-most common first-choice harness in the internal survey described in @sec-current-state, while Pi provides a comparatively lightweight alternative. OpenCode V2 was selected instead of V1 because it is the current major redesign and is more representative of the tool's future development.
 
-Confirmed models: Kimi K3 Max, GLM 5.3 Flash
-Upcoming models to test: Opus 5 medium
-Depends on the budget: GPT 5.6 LUNA vs GPT 5.6 Sol high.
+The model set spans several providers and price classes: Claude Opus 5, GPT-5.6 Luna, Kimi K3, DeepSeek V4.1 Flash, and GLM-5.3-Flash. The purpose is not to identify the strongest model in isolation, but to determine whether harness behavior remains effective across different model families.
 
-### Harness selection
-We have chose to Test OpenAI Codex and Claude code, the first party agent harnesses from the frontier ai labs.
-Opencode is the second most popular ai harness in the company, and Pi is very known in the community for being efficient.
+## Experimental controls
 
-To make sure the results stay relevant over a longer time, we elected to test opencode V2, the upcoming major rewrite of opencode.
+Each trial evaluates exactly one model through one harness. Harness-native delegation remains enabled because subagent orchestration is part of the behavior under study. However, delegated calls are constrained to the same benchmark model as the parent session. This prevents a nominally single-model trial from becoming a multi-model ensemble. The Pier adapters aggregate usage across the complete parent/child session tree while retaining the root session as the main trajectory.
 
-## Experimental setup
+Provider-specific harness optimizations are otherwise retained. For example, a harness may use its native compaction or caching behavior when the selected model supports it. Equivalent features are not recreated through custom plugins in competing harnesses, because the objective is to evaluate the harnesses as practical systems rather than force their internal implementations to be identical.
 
-- TODO: Describe the experimental setup and controlled variables.
+A limited normalization is applied where configuration would directly distort cost comparison. GPT-5.6 Luna is restricted to a 272,000-token context window in every harness. OpenAI applies different pricing beyond this threshold [@openaiGpt56Luna]; allowing some harnesses to use the larger context while others remain below the threshold would make the measured cost depend on inconsistent context limits rather than harness efficiency. The same benchmark window is therefore enforced across all Luna runs.
 
-We are sticking to the upstream provider setup.
-if a harness has specific upstream provider optimizations, such as remote compaction in codex or tool call behavior in claude code, these are left turned on, we are testing how harnesses behave across models in a real world scenario.
+Web access is disabled for benchmark agents. Each trial is evaluated only against the repository and tools supplied by the benchmark environment.
 
-### Setup decisions.
-- GPT models have increased pricing past 272k context window, codex cli ignores the full 1m context window and will use 272k unless overriden.
-We've decided to use the same limited context window 272k window in other harnesses for the sake of comparison and not let the price difference due to the used context affect the results, and it's only a config option compared to remote compaction.
+## Benchmark infrastructure
 
-- Remote compaction. GPT models use a remote compaction endpoint for compacting chat history.
-We are only running stock harnesses here, pi can support remote compaction through plugins, but plugins are out of scope.
-Opencode V2 has native remote compaction support.
+DeepSWE is executed through a fork of Pier. The fork is used because the upstream runner did not support all selected harnesses and did not expose all usage required for a fair cost comparison. The modifications are limited to experimental instrumentation and compatibility: additional harness adapters, model isolation, recursive usage accounting, and preservation of relevant cache and token fields. They do not alter the benchmark task, verifier, or repository presented to the agent.
 
-### Compatibility interventions and controlled patches
+For Claude Code and Codex, delegated-agent usage is included in the final token totals. Claude Code subagents are explicitly pinned to the benchmark model. Codex delegation remains available, but spawn-time model overrides are disabled so child agents inherit the tested model. OpenCode V2 is run through a dedicated adapter that collects root, delegated, and compaction sessions and enforces the configured model where required.
 
-The benchmark compares agent harness behavior rather than failures caused by
-protocol incompatibilities between a harness and the shared model endpoint.
-Compatibility interventions were therefore permitted when they were required to
-make a harness use the intended model and provider path. These interventions
-were kept as small as possible, pinned to exact revisions or container-image
-digests, and verified with dedicated acceptance tests. They were not used to add
-new harness capabilities or to change the benchmark prompt or tool set.
+## Compatibility interventions
 
-#### CLIProxyAPI backport between Codex runs
+Compatibility changes are permitted only when they are required to make a harness communicate correctly with the intended model endpoint. Such changes are kept narrowly scoped and are not used to add capabilities to a harness.
 
-Codex 0.151.0 uses the OpenAI Responses protocol, while the third-party models
-in this benchmark are routed through LiteLLM to Fireworks using Chat
-Completions. CLIProxyAPI v7.2.146 was therefore used as a protocol bridge for
-the Codex runs.
+### Codex with third-party models
 
-During the benchmark period, an upstream CLIProxyAPI defect was identified in
-this translation path [@cliproxyIssue5659]. If one streamed Chat Completions
-delta contained both non-empty `reasoning_content` and non-empty `content`, the
-translator processed the visible content first and then opened a new reasoning
-item. This produced an invalid Responses item order. In the upstream
-reproduction, Codex displayed a truncated assistant message even though the
-complete generated message was retained in the Codex session file.
+Codex 0.151.0 uses the OpenAI Responses protocol, while the Fireworks-backed models are reached through a LiteLLM Chat Completions route. Direct translation through the existing gateway was not sufficient for Codex's request and reasoning semantics. A pinned CLIProxyAPI instance is therefore used as a protocol bridge:
 
-The completed Kimi K3 run had already used the unmodified v7.2.146 bridge. Its
-CLIProxyAPI request logs were therefore checked retrospectively for the exact
-trigger condition. No streamed delta containing both non-empty `content` and
-`reasoning_content` was found, so the defect's triggering condition was absent
-from that run.
+`Codex -> Responses -> CLIProxyAPI -> Chat Completions -> LiteLLM -> Fireworks`.
 
-For subsequent third-party Codex runs, the bridge was not upgraded to a newer
-CLIProxyAPI release because that would also have introduced unrelated protocol
-translation changes. Instead, the benchmark uses a fork based on the exact
-v7.2.146 source revision with only the upstream fix for this defect backported
-[@cliproxyFix5659]. The fix changes the processing order so that reasoning is
-handled before visible content when both occur in the same upstream chunk. For
-chunks containing only reasoning, only content, or reasoning followed by a tool
-call, the relevant translation behavior is unchanged.
+The bridge performs protocol translation only. Its own retries, credential cooldowns, and model fallbacks are disabled so it cannot improve the measured harness behavior.
 
-This creates one documented infrastructure difference between the completed
-Kimi K3 run and later third-party Codex runs. The change was chosen because it
-removes a known malformed Responses sequence while minimizing the experimental
-delta. The demonstrated upstream failure was a streaming/client-display defect,
-not loss of generated model text; however, malformed Responses item ordering
-could in principle affect client state during an agentic tool loop. Applying the
-narrow backport avoids that uncertainty without adopting unrelated proxy
-changes. The fork revision, image digest, regression test, and acceptance tests
-are recorded in `benchmark/bridges/codex-cliproxy/BACKPORT-5659.md`.
+During the benchmark period, an upstream CLIProxyAPI defect was identified in which a streamed chunk containing both `reasoning_content` and visible `content` could produce an invalid Responses item order [@cliproxyIssue5659]. Rather than upgrade the complete bridge and introduce unrelated changes, the benchmark keeps the frozen v7.2.146 base and backports only the upstream fix [@cliproxyFix5659]. Logs from the already completed Kimi K3 run showed that the defect's triggering condition did not occur in that run, so it was retained.
 
-#### Codex
-For non-native models, Codex's minimal unknown-model fallback metadata was replaced by a standardized metadata profile derived from GPT-5.6 Sol in the pinned Codex version. This prevents model-recognition status from changing the Codex harness capability set. Model-specific capabilities were adjusted to the respective model, while backend-dependent features that could not be supported uniformly were disabled.
+### OpenCode V2 output limit
 
-Disabled features for non-gpt models: multi_agents v2 and responses lite. 
-GPT use the built in model configuration shipped in the forzen release.
+OpenCode V2.0.3 did not propagate its configured output limit into requests sent through `@ai-sdk/openai-compatible`; the upstream provider could therefore apply its own default completion limit [@opencodeIssue47398]. The benchmark configuration explicitly injects the model's output limit into the request body. This restores the intended model configuration without changing OpenCode's agent policy or tool behavior.
 
+## Cost accounting
 
-#### Opencode V2
+Cross-harness cost is calculated from recorded token and cache usage using a frozen pricing table in `benchmark/pricing.yaml`. Official model API prices are used rather than the invoice price of the underlying proxy or inference host. This separates model and harness efficiency from provider-specific discounts or surcharges.
 
-At the time of testing. opencode v2 is still in beta, with some bugs particularly effecting setting the maximum output tokens for the upstream provider.
-Our upstream provider for Kimi k3, Deepseek v4/v4.1 flash and GLM 5.3 flash is Fireworks ai. and the default for unset values is [2k maximum completion tokens](https://docs.fireworks.ai/faq/models/inference/limitations-controls).
-Due to this issue we had to modify the config file to explicitly define the max completion token amount in the body config to workaround the bug [#47398](https://github.com/anomalyco/opencode/issues/47398)
-
-## Evaluation metrics
-
-- TODO: Define the evaluation metrics and how they will be calculated.
+If a trial is discarded and repeated because of a transport or gateway failure, tokens consumed by the discarded attempt remain part of the reported cost. Removing them would systematically favor configurations that fail more often. In contrast, benchmark task timeouts are treated as outcomes of the evaluated system rather than infrastructure failures and are not automatically rerun.
 
 ## Reproducibility
 
-- TODO: Record versions, configuration, seeds, and execution instructions.
-
-August run:
-Claude Code 2.1.251
-Codex 0.151.0
-pi 0.84.4
-
-opencode v2: not included
-
-## Setup demonstration {.unnumbered}
-
-This section is setup/demo content only. It is not research data, a finding, or a
-benchmark result. The placeholder image in @fig-setup-demo and the placeholder
-values in @tbl-setup-demo verify figure/table captions, numbering,
-cross-references, and the generated lists.
-
-![Setup demonstration figure — not a research result.](figures/demo-placeholder.svg){#fig-setup-demo}
-
-| Element | Purpose |
-|---|---|
-| Placeholder figure | Verify caption, numbering, and cross-reference |
-| Placeholder table | Verify caption, numbering, and cross-reference |
-
-: **Setup demonstration only — not research data or a result.** {#tbl-setup-demo}
+Benchmark components are pinned for the experiment. The primary frozen environment uses DeepSWE revision `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`, Codex CLI 0.151.0, Claude Code 2.1.251, and Pi 0.84.4. OpenCode V2 is pinned independently to version 2.0.3. The Pier revision, compatibility-bridge image digest, model profiles, pricing table, generated configurations, and task-selection audit data are stored with the benchmark setup. Pier additionally records a `lock.json` in each result directory so that a run can be traced to the exact configuration used.
