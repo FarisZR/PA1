@@ -14,16 +14,20 @@ not change benchmark selection or start spending. The staged order is:
 Kimi, DeepSeek, GLM, and Luna use the `max` variant through the model selection
 (`provider/model#max`); direct-Anthropic Opus remains `medium`. The acceptance-only profile in
 `benchmark/configs/opencode-v2/glm-5.3-flash-acceptance.yaml` is the sole
-`low` configuration. It is intentionally separate from the primary jobs.
+`low` acceptance configuration. The tiny GLM/Luna smoke under
+`benchmark/configs/opencode-v2/smoke.yaml` also uses `low`; both are
+intentionally separate from the primary jobs.
 
-Kimi and DeepSeek retain their staged OpenAI-compatible Responses transport
-and use `max_output_tokens`; GLM uses Chat Completions with `max_tokens`.
+Kimi and DeepSeek retain their staged OpenAI Responses transport and use
+`max_output_tokens`; GLM uses Chat Completions with `max_tokens`.
 Every profile keeps a single `reasoningEffort` and an explicit model-body
 output cap. GLM is absent from the frozen 2.0.3 models.dev catalogue, so its
 committed profile and provenance are in
 `benchmark/references/opencode-v2-glm-5.3-flash.json`. Luna retains the
-OpenAI-compatible Responses route. Opus has no gateway base URL and remains on
-the direct Anthropic API route.
+built-in OpenAI Responses route. The 272k Luna context policy explicitly sets
+`limit.input: 144000` beside its 128k output ceiling so canonical inheritance
+cannot retain the incompatible 922k input value. Opus has no gateway base URL
+and remains on the direct Anthropic API route.
 
 Do not run a staged job until `benchmark/scripts/verify_opencode_v2.py` has
 passed its offline checks and the per-model live/provider gate is recorded.

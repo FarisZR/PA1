@@ -57,6 +57,22 @@ env file and must retain Fireworks route provenance; missing provenance is
 reported as blocked, never as a provider pass. Do not launch a full DeepSWE
 job for this gate.
 
+For a cheap real-task check of both supported transports, generate and run the
+dedicated two-trial smoke job. It uses GLM-5.3-Flash Low over Chat Completions
+and GPT-5.6 Luna Low over the frozen binary's built-in OpenAI Responses
+provider; each edits one file in `benchmark/tasks/opencode-v2-smoke`, with
+8192-token request caps and no whole-trial retries:
+
+```bash
+python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local
+/absolute/path/to/pier/.venv/bin/pier run \
+  -c benchmark/generated/opencode-v2/smoke.yaml \
+  --env-file benchmark/env.local --yes
+```
+
+This low-effort smoke does not change the staged primary profiles' reasoning
+levels or task selection.
+
 The per-model staged profiles are under
 [`benchmark/deferred/opencode-v2/`](deferred/opencode-v2/). They are not
 selected by the current benchmark generator and do not alter scoring or

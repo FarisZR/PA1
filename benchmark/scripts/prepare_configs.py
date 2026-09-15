@@ -21,8 +21,15 @@ CURRENT_MODEL_CONFIGS = {
     "glm-5.3-flash.yaml": 1,
     "luna.yaml": 0,
     "opencode-v2/glm-5.3-flash-acceptance.yaml": 1,
+    "opencode-v2/smoke.yaml": 2,
 }
 OPENCODE_V2_ACCEPTANCE_CONFIG = "opencode-v2/glm-5.3-flash-acceptance.yaml"
+OPENCODE_V2_RESPONSES_PACKAGE = "@opencode-ai/ai/providers/openai/responses"
+STAGED_OPENCODE_V2_MODELS = {
+    "deepseek-v4p1-flash.yaml": "deepseek-v4p1-flash",
+    "kimi-k3.yaml": "kimi-k3",
+    "luna.yaml": "gpt-5.6-luna",
+}
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
 CLAUDE_OUTPUT_OVERRIDE = "CLAUDE_CODE_MAX_OUTPUT_TOKENS"
 
@@ -492,6 +499,89 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
             )
 
 
+def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:
+    """Read one model's integer limit block without adding a YAML dependency."""
+    lines = rendered.splitlines()
+    model_index = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.strip() == f"{model_id}:"
+        ),
+        None,
+    )
+    if model_index is None:
+        raise SystemExit(f"OpenCode V2 profile is missing model {model_id!r}")
+    model_indent = len(lines[model_index]) - len(lines[model_index].lstrip())
+    limit_index = next(
+        (
+            index
+            for index in range(model_index + 1, len(lines))
+            if lines[index].strip() == "limit:"
+            and len(lines[index]) - len(lines[index].lstrip()) > model_indent
+        ),
+        None,
+    )
+    if limit_index is None:
+        raise SystemExit(f"OpenCode V2 model {model_id!r} is missing limit")
+    limit_indent = len(lines[limit_index]) - len(lines[limit_index].lstrip())
+    values: dict[str, int] = {}
+    for line in lines[limit_index + 1 :]:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip())
+        if indent <= limit_indent:
+            break
+        match = re.fullmatch(r"(context|input|output):\s*([0-9]+)", stripped)
+        if match:
+            values[match.group(1)] = int(match.group(2))
+    return values
+
+
+def validate_staged_opencode_v2_profile(
+    path: Path, rendered: str, model_id: str, *, require_input: bool = False
+) -> None:
+    """Reject one package/limit overlay unsupported by frozen V2.0.3."""
+    package_line = f"package: '{OPENCODE_V2_RESPONSES_PACKAGE}'"
+    if package_line not in rendered:
+        raise SystemExit(
+            f"{path}: {model_id} must use the Responses provider built into "
+            f"OpenCode 2.0.3 ({OPENCODE_V2_RESPONSES_PACKAGE})"
+        )
+    limits = _model_limit_values(rendered, model_id)
+    context = limits.get("context")
+    output = limits.get("output")
+    input_limit = limits.get("input")
+    if require_input and input_limit is None:
+        raise SystemExit(
+            f"{path}: {model_id} must override limit.input so canonical profile "
+            "inheritance cannot retain an incompatible input limit"
+        )
+    if (
+        context is not None
+        and input_limit is not None
+        and output is not None
+        and input_limit + output > context
+    ):
+        raise SystemExit(
+            f"{path}: contradictory limits for {model_id}: input "
+            f"({input_limit}) + output ({output}) exceeds context ({context})"
+        )
+
+
+def validate_staged_opencode_v2_profiles() -> None:
+    """Validate all staged primary profiles before generating deployment files."""
+    for filename, model_id in STAGED_OPENCODE_V2_MODELS.items():
+        path = BENCHMARK_DIR / "deferred" / "opencode-v2" / filename
+        validate_staged_opencode_v2_profile(
+            path,
+            path.read_text(),
+            model_id,
+            require_input=filename == "luna.yaml",
+        )
+
+
 def validate_claude_output_policy() -> None:
     """Keep Claude Code on its native per-model output-token behavior."""
     offenders = [
@@ -521,6 +611,7 @@ def main() -> None:
         load_env_file(args.env_file)
 
     validate_claude_output_policy()
+    validate_staged_opencode_v2_profiles()
 
     litellm_url = require("LITELLM_OPENAI_BASE_URL")
     litellm_api_key = require("LITELLM_API_KEY")

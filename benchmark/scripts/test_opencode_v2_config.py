@@ -8,15 +8,19 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import hashlib
 import importlib
+import io
 import json
 import os
 import sys
+import tarfile
 import tempfile
 import unittest
 import urllib.error
 import urllib.request
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPTS = Path(__file__).resolve().parent
@@ -31,6 +35,73 @@ def _initialize_spend_ledger(path: str) -> dict:
 
 
 class OpenCodeV2ConfigTests(unittest.TestCase):
+    def test_binary_stage_is_atomic_and_repairs_a_corrupt_cache(self) -> None:
+        payload = b"pinned-opencode-test-binary"
+        with tempfile.TemporaryDirectory(prefix="pa1-opencode-binary-") as tmp:
+            root = Path(tmp)
+            tarball = root / "opencode.tgz"
+            member = tarfile.TarInfo("package/bin/opencode")
+            member.size = len(payload)
+            with tarfile.open(tarball, "w:gz") as archive:
+                archive.addfile(member, io.BytesIO(payload))
+
+            with (
+                mock.patch.object(
+                    verify_opencode_v2,
+                    "OFFLINE_CLI_TARBALL_SHA256",
+                    hashlib.sha256(tarball.read_bytes()).hexdigest(),
+                ),
+                mock.patch.object(
+                    verify_opencode_v2,
+                    "OFFLINE_CLI_BINARY_SHA256",
+                    hashlib.sha256(payload).hexdigest(),
+                ),
+                mock.patch.object(
+                    verify_opencode_v2, "find_pinned_tarball", return_value=tarball
+                ),
+            ):
+                with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+                    list(pool.map(lambda _: verify_opencode_v2.stage_binary(root), range(4)))
+                binary = root / "opencode-v2-bin"
+                self.assertEqual(binary.read_bytes(), payload)
+
+                binary.write_bytes(b"corrupt")
+                verify_opencode_v2.stage_binary(root)
+                self.assertEqual(binary.read_bytes(), payload)
+
+    def test_staged_responses_profiles_match_frozen_binary(self) -> None:
+        prepare_configs.validate_staged_opencode_v2_profiles()
+        luna = (
+            BENCHMARK / "deferred" / "opencode-v2" / "luna.yaml"
+        ).read_text()
+        self.assertIn(
+            "package: '@opencode-ai/ai/providers/openai/responses'", luna
+        )
+        self.assertEqual(
+            prepare_configs._model_limit_values(luna, "gpt-5.6-luna"),
+            {"context": 272000, "input": 144000, "output": 128000},
+        )
+
+    def test_staged_profile_rejects_contradictory_inherited_limits(self) -> None:
+        rendered = """
+providers:
+  litellm:
+    package: '@opencode-ai/ai/providers/openai/responses'
+    models:
+      gpt-5.6-luna:
+        limit:
+          context: 272000
+          input: 922000
+          output: 128000
+"""
+        with self.assertRaisesRegex(SystemExit, "contradictory limits"):
+            prepare_configs.validate_staged_opencode_v2_profile(
+                Path("luna.yaml"),
+                rendered,
+                "gpt-5.6-luna",
+                require_input=True,
+            )
+
     def test_live_budget_cap_rejects_nonfinite_nonpositive_and_above_two(self) -> None:
         self.assertEqual(verify_opencode_v2.approved_max_cost("2"), 2.0)
         for value in ("nan", "inf", "0", "-1", "2.000001"):
@@ -94,6 +165,18 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                 self.assertIn("restrict_model: true", contents)
                 self.assertIn("opencode_v2_checksums:", contents)
                 self.assertNotIn("thinking:", contents)
+                smoke = target / "opencode-v2" / "smoke.yaml"
+                self.assertTrue(smoke.exists())
+                smoke_contents = smoke.read_text()
+                self.assertIn("litellm/glm-5p3-flash#low", smoke_contents)
+                self.assertIn("litellm/gpt-5.6-luna#low", smoke_contents)
+                self.assertIn(
+                    'package: "@opencode-ai/ai/providers/openai/responses"',
+                    smoke_contents,
+                )
+                self.assertIn("input: 0.15", smoke_contents)
+                self.assertIn("input: 0.2", smoke_contents)
+                self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", smoke_contents)
         finally:
             prepare_configs.GENERATED_DIR = old_generated
             sys.argv = old_argv

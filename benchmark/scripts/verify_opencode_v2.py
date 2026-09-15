@@ -44,6 +44,9 @@ BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 OFFLINE_CLI_TARBALL_SHA256 = (
     "4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d"
 )
+OFFLINE_CLI_BINARY_SHA256 = (
+    "86fde5351c6417a9aea047f7ec9f5d11c2835bba2446fa178a0904bb15bba19c"
+)
 OFFLINE_CLI_VERSION = "2.0.3"
 OFFLINE_CLI_TARBALL_NAME = "opencode-cli-linux-x64-2.0.3.tgz"
 LIVE_ENV_KEYS = ("LITELLM_API_KEY", "LITELLM_OPENAI_BASE_URL", "PIER_EXTRA_CA_CERTS")
@@ -108,6 +111,7 @@ class Handler(BaseHTTPRequestHandler):
             "request_id": request_id,
             "t": time.time(),
             "scenario": SCENARIO_FILE.read_text().strip(),
+            "path": self.path,
             "body": body,
         }, indent=1))
 
@@ -149,6 +153,9 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         model = body.get("model", "unknown")
+        if self.path.rstrip("/").endswith("/responses"):
+            self._responses(model)
+            return
         if scenario == "partial-stream" and count < 2:
             # One content frame, then cut the connection mid-stream.
             self.send_response(200)
@@ -206,6 +213,115 @@ class Handler(BaseHTTPRequestHandler):
                               "completion_tokens_details": {"reasoning_tokens": 5}}
         self.wfile.write(b"data: " + json.dumps(final).encode() + b"\n\n")
         self.wfile.write(b"data: [DONE]\n\n")
+        self.wfile.flush()
+
+    def _responses(self, model: str) -> None:
+        """Return one complete OpenAI Responses SSE turn."""
+        response_id = "resp_pa1_offline"
+        item_id = "msg_pa1_offline"
+        text = "Hello from the PA1 fake Responses provider."
+        events = [
+            {
+                "type": "response.created",
+                "sequence_number": 0,
+                "response": {
+                    "id": response_id,
+                    "object": "response",
+                    "status": "in_progress",
+                    "model": model,
+                    "output": [],
+                },
+            },
+            {
+                "type": "response.output_item.added",
+                "sequence_number": 1,
+                "output_index": 0,
+                "item": {
+                    "id": item_id,
+                    "type": "message",
+                    "role": "assistant",
+                    "status": "in_progress",
+                    "content": [],
+                },
+            },
+            {
+                "type": "response.content_part.added",
+                "sequence_number": 2,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": item_id,
+                "part": {"type": "output_text", "text": "", "annotations": []},
+            },
+            {
+                "type": "response.output_text.delta",
+                "sequence_number": 3,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": item_id,
+                "delta": text,
+            },
+            {
+                "type": "response.output_text.done",
+                "sequence_number": 4,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": item_id,
+                "text": text,
+            },
+            {
+                "type": "response.output_item.done",
+                "sequence_number": 5,
+                "output_index": 0,
+                "item": {
+                    "id": item_id,
+                    "type": "message",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": [
+                        {"type": "output_text", "text": text, "annotations": []}
+                    ],
+                },
+            },
+            {
+                "type": "response.completed",
+                "sequence_number": 6,
+                "response": {
+                    "id": response_id,
+                    "object": "response",
+                    "status": "completed",
+                    "model": model,
+                    "output": [
+                        {
+                            "id": item_id,
+                            "type": "message",
+                            "role": "assistant",
+                            "status": "completed",
+                            "content": [
+                                {
+                                    "type": "output_text",
+                                    "text": text,
+                                    "annotations": [],
+                                }
+                            ],
+                        }
+                    ],
+                    "usage": {
+                        "input_tokens": 12,
+                        "output_tokens": 34,
+                        "total_tokens": 46,
+                        "input_tokens_details": {"cached_tokens": 2},
+                        "output_tokens_details": {"reasoning_tokens": 5},
+                    },
+                },
+            },
+        ]
+        self.send_response(200)
+        self.send_header("content-type", "text/event-stream")
+        self.end_headers()
+        for event in events:
+            payload = json.dumps(event).encode()
+            self.wfile.write(b"event: " + event["type"].encode() + b"\n")
+            self.wfile.write(b"data: " + payload + b"\n\n")
         self.wfile.flush()
 
     def _plain(self, code: int, payload: dict, headers: dict | None = None):
@@ -317,28 +433,49 @@ def stage_binary(installed_agent_dir: Path) -> None:
     import hashlib
     import tarfile
 
+    def file_sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
     binary = installed_agent_dir / "opencode-v2-bin"
-    if binary.exists():
-        return
-    tarball = find_pinned_tarball()
-    if tarball is None:
-        raise SystemExit(
-            "Pinned OpenCode binary tarball missing. Place the verified bytes at "
-            f"benchmark/references/{OFFLINE_CLI_TARBALL_NAME} or set "
-            "OPENCODE_V2_BINARY_CACHE to a local cache file."
-        )
-    digest = hashlib.sha256(tarball.read_bytes()).hexdigest()
-    if digest != OFFLINE_CLI_TARBALL_SHA256:
-        raise SystemExit(
-            f"Pinned OpenCode tarball changed: expected "
-            f"{OFFLINE_CLI_TARBALL_SHA256}, got {digest}"
-        )
-    with tarfile.open(tarball) as archive:
-        member = archive.extractfile("package/bin/opencode")
-        if member is None:
-            raise SystemExit("pinned tarball has no package/bin/opencode")
-        binary.write_bytes(member.read())
-    binary.chmod(0o755)
+    lock_path = installed_agent_dir / "opencode-v2-bin.lock"
+    with lock_path.open("a+b") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if binary.exists() and file_sha256(binary) == OFFLINE_CLI_BINARY_SHA256:
+            return
+
+        tarball = find_pinned_tarball()
+        if tarball is None:
+            raise SystemExit(
+                "Pinned OpenCode binary tarball missing. Place the verified bytes at "
+                f"benchmark/references/{OFFLINE_CLI_TARBALL_NAME} or set "
+                "OPENCODE_V2_BINARY_CACHE to a local cache file."
+            )
+        digest = file_sha256(tarball)
+        if digest != OFFLINE_CLI_TARBALL_SHA256:
+            raise SystemExit(
+                f"Pinned OpenCode tarball changed: expected "
+                f"{OFFLINE_CLI_TARBALL_SHA256}, got {digest}"
+            )
+
+        temporary = installed_agent_dir / f".opencode-v2-bin.{uuid.uuid4().hex}"
+        try:
+            with tarfile.open(tarball) as archive:
+                member = archive.extractfile("package/bin/opencode")
+                if member is None:
+                    raise SystemExit("pinned tarball has no package/bin/opencode")
+                with temporary.open("wb") as stream:
+                    for chunk in iter(lambda: member.read(1024 * 1024), b""):
+                        stream.write(chunk)
+            if file_sha256(temporary) != OFFLINE_CLI_BINARY_SHA256:
+                raise SystemExit("extracted OpenCode binary checksum does not match")
+            temporary.chmod(0o755)
+            os.replace(temporary, binary)
+        finally:
+            temporary.unlink(missing_ok=True)
 
 
 def run_pier_agent(
@@ -386,9 +523,19 @@ def run_pier_agent(
         destination = sandbox / "work" / target
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(content)
-    # Stage the pinned binary from the verified reference tarball. The adapter
-    # runs the exact bytes the provenance check verified.
-    stage_binary(sandbox / "installed-agent")
+    # Extract the pinned binary once per acceptance output directory. Each
+    # disposable trial gets a hard link to the same verified bytes so the
+    # fault matrix does not consume hundreds of megabytes per probe.
+    stage_binary(workdir)
+    cached_binary = workdir / "opencode-v2-bin"
+    trial_binary = sandbox / "installed-agent" / "opencode-v2-bin"
+    if not trial_binary.exists():
+        try:
+            os.link(cached_binary, trial_binary)
+        except OSError:
+            import shutil
+
+            shutil.copy2(cached_binary, trial_binary)
     driver = output_dir / "driver.py"
     driver.write_text(
         textwrap.dedent(
@@ -422,7 +569,10 @@ def run_pier_agent(
                 # verifies the pinned binary separately.
                 agent_install_spec = None
                 def agent_process_env(self, env):
-                    return env
+                    return {{
+                        key: rewrite(value) if isinstance(value, str) else value
+                        for key, value in env.items()
+                    }}
                 async def exec(self, *, command, user=None, env=None, **kwargs):
                     import getpass
                     run_as = []
@@ -430,7 +580,13 @@ def run_pier_agent(
                         run_as = ["sudo", "-n"]
                     completed = subprocess.run(
                         run_as + ["bash", "-c", rewrite(command)],
-                        env={{**os.environ, **(env or {{}})}},
+                        env={{
+                            **os.environ,
+                            **{{
+                                key: rewrite(value) if isinstance(value, str) else value
+                                for key, value in (env or {{}}).items()
+                            }},
+                        }},
                         capture_output=True, text=True,
                         cwd=rewrite(str(kwargs.get("cwd") or TASK_WORKDIR)),
                         timeout={timeout},
@@ -1036,6 +1192,7 @@ def offline_mode(pier_root: Path, output_dir: Path) -> int:
     provider = FakeProvider(output_dir)
     try:
         offline_contract(pier_root, provider, output_dir)
+        offline_primary_responses_profiles(pier_root, provider, output_dir)
         offline_compaction(pier_root, provider, output_dir)
         offline_faults(pier_root, provider, output_dir)
         offline_isolation(pier_root, provider, output_dir)
@@ -1220,6 +1377,79 @@ def offline_contract(pier_root: Path, provider: FakeProvider, root: Path) -> Non
             tokens.get("input", 0) or tokens.get("output", 0),
             "offline: usage metadata present on the happy path",
             json.dumps(tokens),
+        )
+
+
+def offline_primary_responses_profiles(
+    pier_root: Path, provider: FakeProvider, root: Path
+) -> None:
+    """Run every staged OpenAI Responses profile on the pinned executable."""
+    cases = (
+        ("kimi-k3", 1048576, None, 131072),
+        ("deepseek-v4p1-flash", 1000000, None, 384000),
+        ("gpt-5.6-luna", 272000, 144000, 128000),
+    )
+    evidence["offline_primary_responses"] = {}
+    for model_id, context_limit, input_limit, output_limit in cases:
+        limit = {"context": context_limit, "output": output_limit}
+        if input_limit is not None:
+            limit["input"] = input_limit
+        config = {
+            "providers": {
+                "litellm": {
+                    "name": "LiteLLM",
+                    "canonical": "openai",
+                    "env": ["LITELLM_API_KEY"],
+                    "package": "@opencode-ai/ai/providers/openai/responses",
+                    "settings": {"baseURL": "__BASE_URL__"},
+                    "models": {
+                        model_id: {
+                            "modelID": model_id,
+                            "limit": limit,
+                            "body": {"max_output_tokens": output_limit},
+                            "variants": [
+                                {
+                                    "id": "max",
+                                    "settings": {"reasoningEffort": "max"},
+                                }
+                            ],
+                        }
+                    },
+                }
+            }
+        }
+        provider.scenario("ok")
+        result = offline_probe(
+            pier_root,
+            provider,
+            root,
+            model_name=f"litellm/{model_id}#max",
+            restrict_model=f"litellm/{model_id}",
+            opencode_config=config,
+        )
+        request = result["request_records"][0] if result["request_records"] else {}
+        body = request.get("body") or {}
+        details = {
+            "returncode": result["returncode"],
+            "request_count": len(result["request_records"]),
+            "path": request.get("path"),
+            "model": body.get("model"),
+            "max_output_tokens": body.get("max_output_tokens"),
+            "reasoning": body.get("reasoning"),
+            "errors": find_errors(result["events"]),
+        }
+        evidence["offline_primary_responses"][model_id] = details
+        check(
+            result["returncode"] == 0
+            and details["request_count"] == 1
+            and details["path"] == "/v1/responses"
+            and details["model"] == model_id
+            and details["max_output_tokens"] == output_limit
+            and (details["reasoning"] or {}).get("effort") == "max"
+            and set(details["reasoning"] or {}) <= {"effort", "summary"}
+            and not details["errors"],
+            f"offline: staged {model_id} Responses profile executes",
+            json.dumps(details),
         )
 
 

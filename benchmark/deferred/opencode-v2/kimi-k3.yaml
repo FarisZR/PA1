@@ -56,7 +56,7 @@ agents:
           name: LiteLLM
           env:
           - LITELLM_API_KEY
-          package: '@opencode-ai/ai/providers/openai-compatible/responses'
+          package: '@opencode-ai/ai/providers/openai/responses'
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
           models:

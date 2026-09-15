@@ -56,7 +56,9 @@ agents:
           name: LiteLLM
           env:
           - LITELLM_API_KEY
-          package: '@opencode-ai/ai/providers/openai-compatible/responses'
+          # Built into the frozen 2.0.3 executable. The generic
+          # openai-compatible Responses path does not exist in that release.
+          package: '@opencode-ai/ai/providers/openai/responses'
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
           models:
@@ -65,6 +67,10 @@ agents:
               name: GPT-5.6 Luna
               limit:
                 context: 272000
+                # PA1 intentionally uses the 272k Luna window. Reserve the
+                # 128k output ceiling explicitly so the inherited canonical
+                # 922k input limit cannot survive the config merge.
+                input: 144000
                 output: 128000
               body:
                 max_output_tokens: 128000
