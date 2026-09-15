@@ -1,28 +1,31 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-15T00:33:27Z",
+  "generated_at": "2026-09-15T09:38:21Z",
   "revisions": {
     "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
-    "pier_implementation": "9af0d613563690d88f7065c5e648ca1467538070",
+    "pier_implementation": "3c062526f03ed9c1df83326e32399739e0a604c0",
     "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
-    "pa1_implementation": "c43fe59796da237bed83aa20c35709cf75e49d7a",
+    "pa1_implementation": "614dbaa7f02cec3e50e36a99b75be33a3312ca1c",
     "opencode_source_tag": "v2.0.3",
     "opencode_source_commit": "d44b52ca66b6bf69626c0384626d1a9cd9555977",
-    "binary_package": "@opencode/cli-linux-x64@2.0.3",
-    "binary_sha256": "4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d"
+    "binary_package": "@opencode/cli-<target>@2.0.3",
+    "binary_sha256_by_target": {
+      "linux-x64": "4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d",
+      "linux-arm64": "bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693"
+    }
   },
   "offline": {
     "status": "pass",
-    "artifact_sha256": "582219ea0a905adb87acb7d62680a742a4dbc1ebf68ffe430b27109f70a82e87",
-    "runner_sha256": "8a94947b8cd25402cf9195aa1d7cf9d9f95376fae085a52f31ed36c5c2ad20dc",
-    "pier_revision": "9af0d613563690d88f7065c5e648ca1467538070",
+    "artifact_sha256": "0cbf5540bdd2d12963823b07368a0ed5d838ac234b72475ac07f56058db8797e",
+    "runner_sha256": "0c5b782ee4de11b06aecf4fd6fb2e26c8268345d0f4f446eeb6c630ba38d1483",
+    "pier_revision": "3c062526f03ed9c1df83326e32399739e0a604c0",
     "passed_count": 34,
     "failed_count": 0,
     "blocked_count": 0,
     "forwarded_requests": 31,
     "assertions": [
       "PASS: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
-      "PASS: focused Pier collector/converter fault matrix passes (84 tests)",
+      "PASS: focused Pier collector/converter fault matrix passes (91 tests)",
       "PASS: actual-binary limit-only control result is recorded",
       "PASS: adapter run reaches a step_finish on the happy path",
       "PASS: fake provider received at least one request",
@@ -66,9 +69,9 @@
       "thinking": null
     },
     "native_retry_observations_seconds": {
-      "429": [2.157, 3.754],
-      "503": [2.258, 3.817],
-      "retry_after": [1.896]
+      "429": [1.746, 3.858],
+      "503": [2.118, 4.028],
+      "retry_after": [2.373]
     }
   },
   "live": {
@@ -173,11 +176,16 @@
       "ambient config templates and Google/Llama provider credentials are forwarded",
       "raw polling pages are deduplicated and bounded by count and bytes",
       "unexpected server exit and incomplete child metrics cannot report complete collection",
-      "malformed session JSONL records cannot become synthetic root candidates"
+      "malformed session JSONL records cannot become synthetic root candidates",
+      "the configured version and target-specific checksums own the frozen release",
+      "unrestricted agents are preflighted against their own configured models",
+      "model-level transport bodies are preserved without adapter synthesis",
+      "restricted missing or mismatched provenance hard-fails after preserving diagnostics",
+      "live ledger cycle initialization is exercised by separate test processes"
     ]
   },
   "limitations": [
-    "BLOCKED: the final live suite was not rerun after lifecycle, redaction, canonical-profile, one-to-one request-mapping, budget, provenance, and review-comment hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 424-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
+    "BLOCKED: the final live suite was not rerun after lifecycle, redaction, canonical-profile, one-to-one request-mapping, budget, provenance, and review-comment hardening because the persisted three-cycle limit was reached. The final Pier runtime is covered by the final 34/34 offline suite and 431-test regression suite; live wire/provider/task results are retained from the preceding runtime hash.",
     "BLOCKED FOR PRIMARY READINESS: gateway metadata does not publish the GLM route's 131072 output ceiling. Acceptance proves 8192 only.",
     "BLOCKED FOR LIVE BUDGET ACCEPTANCE: gateway metadata reports no cache-creation rate. The final verifier now stops before ledger creation or forwarding instead of assuming that surcharge is zero.",
     "BLOCKED FOR GATEWAY POLICY: authenticated metadata and per-response route IDs prove the selected Fireworks route, but the gateway does not expose enough configuration to prove that hidden retries/fallbacks are disabled.",

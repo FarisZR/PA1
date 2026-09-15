@@ -1,15 +1,17 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `9af0d613563690d88f7065c5e648ca1467538070` (base
+Revisions: Pier `3c062526f03ed9c1df83326e32399739e0a604c0` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 implementation
-`c43fe59796da237bed83aa20c35709cf75e49d7a` (base
+`614dbaa7f02cec3e50e36a99b75be33a3312ca1c` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
 `v2.0.3` at `d44b52ca66b6bf69626c0384626d1a9cd9555977`. The frozen
 `@opencode/cli-linux-x64@2.0.3` archive SHA-256 is
-`4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d`.
+`4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d`;
+the arm64 archive SHA-256 is
+`bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693`.
 
-The final Pier revision passed 34/34 offline executable assertions, 84 focused
-adapter tests, 127 required existing regressions, and the complete 424-test
+The final Pier revision passed 34/34 offline executable assertions, 91 focused
+adapter tests, 127 required existing regressions, and the complete 431-test
 Pier suite. The actual-binary control
 confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
@@ -24,10 +26,14 @@ egress, forwards ambient config templates and missing Google/Llama variables,
 rejects cleartext remote provider URLs, bounds raw polling evidence by count
 and bytes, rejects unexpected server death as complete collection, filters
 malformed session records, and prevents incomplete children from inheriting a
-root-only completeness marker. The final offline artifact SHA-256 is
-`582219ea0a905adb87acb7d62680a742a4dbc1ebf68ffe430b27109f70a82e87`;
+root-only completeness marker. The latest review moved the release and
+target-specific checksums into PA1 configuration, preserved explicit
+model-level transport bodies, made unrestricted per-agent models usable, and
+made restricted provenance mismatches hard failures while retaining raw usage
+evidence. The final offline artifact SHA-256 is
+`0cbf5540bdd2d12963823b07368a0ed5d838ac234b72475ac07f56058db8797e`;
 the runner SHA-256 is
-`8a94947b8cd25402cf9195aa1d7cf9d9f95376fae085a52f31ed36c5c2ad20dc`.
+`0c5b782ee4de11b06aecf4fd6fb2e26c8268345d0f4f446eeb6c630ba38d1483`.
 
 The retained final live cycle passed 15/15 assertions through the authenticated
 PA1 gateway route `accounts/fireworks/models/glm-5p3-flash`. It forwarded 12
