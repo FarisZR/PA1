@@ -598,8 +598,14 @@ def run_pier_agent(
                         stderr=completed.stderr,
                     )
                 async def upload_file(self, source, target):
-                    dest = SANDBOX / "installed-agent" / Path(target).name
-                    dest.write_bytes(Path(source).read_bytes())
+                    target = str(target)
+                    for remote, local in BINDS.items():
+                        if target.startswith(remote):
+                            dest = Path(f"{{local}}{{target[len(remote):]}}")
+                            dest.parent.mkdir(parents=True, exist_ok=True)
+                            dest.write_bytes(Path(source).read_bytes())
+                            return
+                    raise FileNotFoundError(target)
                 async def download_file(self, source, target):
                     source = str(source)
                     for remote, local in BINDS.items():
