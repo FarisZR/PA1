@@ -8,11 +8,11 @@ procedure used for the PA1 harness comparison.
 The script uses public DeepSWE v1.1 `mini-swe-agent` rollouts. Errored trials
 are excluded. The reference panel also excludes `claude-opus-5`,
 `gpt-5-6-luna`, `deepseek-v4-flash`, and `kimi-k3`, because these were the four
-model configurations considered benchmark targets when the sample was frozen on
-2026-08-18. Their own DeepSWE results therefore do not contribute to the solve
+model configurations considered benchmark targets when the sample was selected
+on 2026-08-18. Their own DeepSWE results therefore do not contribute to the solve
 rates or token medians used to select tasks. PA1's final model matrix changed
-later; this exclusion set is part of the frozen sampling procedure and should
-not be read as the final evaluated model list.
+later; this exclusion set is part of the historical sampling procedure and
+should not be read as the final evaluated model list.
 
 For each programming language independently, tasks are sorted from lowest to
 highest solve rate. The hardest task receives difficulty percentile 100 and the
@@ -26,40 +26,34 @@ Within each language and stratum, the task with the highest **median historical
 total token count** (`n_input_tokens + n_output_tokens`) is selected. This
 secondary criterion deliberately selects token-intensive tasks because PA1 is
 testing how different harnesses handle demanding workloads. It does not use
-results from the four model configurations excluded when the sample was frozen.
-A remaining tie is resolved by task ID.
+results from the four model configurations excluded when the sample was
+selected. A remaining tie is resolved by task ID.
 
-## Frozen reproduction
+## Recorded selection
 
-The PA1 task set was selected on 2026-08-18. For reproducibility, use:
+The PA1 task set was selected on 2026-08-18 by running
+`select_deepswe_tasks.py` against the then-current public DeepSWE v1.1 API
+artifacts.
 
-```bash
-python3 scripts/select_deepswe_tasks_frozen.py
-```
-
-The wrapper downloads the DeepSWE v1.1 task, trial, and release artifacts and
-verifies their SHA-256 hashes against the exact inputs used for PA1 before
-running `select_deepswe_tasks.py`. If an upstream artifact changes, it fails
-instead of silently selecting a different task set. Verified inputs are cached
-under `.cache/deepswe-selection-v1.1` by default.
-
-The selected tasks and the same source hashes are committed in:
+The resulting fixed task set is committed in:
 
 ```text
 data/deepswe_task_selection_v1.1.json
 ```
 
-These hashes freeze the public sampling artifacts. They do not identify the
-DeepSWE Git checkout used later to execute the selected tasks; the runnable
-checkout is pinned separately in `benchmark/README.md` and in the run metadata.
+That file also records SHA-256 hashes of the exact `tasks.json`, `trials.json`,
+and `release.json` responses used at selection time. These hashes are retained
+as provenance for the historical sampling inputs. Reproducing the PA1 benchmark
+should use the committed task IDs rather than rerun selection against mutable
+public API data.
 
-The underlying selection script can still be run directly for development or
-against explicitly supplied local artifacts, but such a run is not the frozen
-PA1 reproduction path.
+The API-response hashes are independent of the DeepSWE Git revision used later
+to execute the selected tasks. The runnable checkout is pinned separately in
+`benchmark/README.md` and in the run metadata.
 
-## Direct/scripted use
+## Scripted use
 
-To run the selection logic against the current public v1.1 endpoints:
+To run the same selection logic against the current public v1.1 endpoints:
 
 ```bash
 python3 scripts/select_deepswe_tasks.py
@@ -73,6 +67,10 @@ python3 scripts/select_deepswe_tasks.py \
   --trials-json /path/to/trials.json \
   --release-json /path/to/release.json
 ```
+
+Because the public API data can change, a new run is not expected to reproduce
+the historical 2026-08-18 task set unless the same source artifacts are supplied.
+The committed JSON remains the authoritative task selection for PA1.
 
 The script writes the selected tasks, input SHA-256 hashes, selection audit data,
 the trajectory hashes used for cache-aware repricing, and the cost projection to
