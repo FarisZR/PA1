@@ -1,8 +1,8 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `30529d69c8e65ff2a21e4c70758c53177badd977` (base
+Revisions: Pier `30529d614162e937e84b0da22dc86a28e46fe92f` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 configuration fix
-`b561f26c78673ec19d8080d439142222696d77ae` (base
+`b561f2602bbe1c2c0a8b7bbc76d211e33cda8dd7` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
 `v2.0.3` at `d44b52ca66b6bf69626c0384626d1a9cd9555977`. The frozen
 `@opencode/cli-linux-x64@2.0.3` archive SHA-256 is
