@@ -468,6 +468,10 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
         required = (
             "name: opencode-v2",
             "model_name: litellm/glm-5p3-flash#low",
+            'version: "2.0.3"',
+            "opencode_v2_checksums:",
+            "linux-x64: 4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d",
+            "linux-arm64: bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693",
             "restrict_model: true",
             "maxTokensField: max_tokens",
             "max_tokens: 8192",

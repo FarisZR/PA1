@@ -26,6 +26,10 @@ prepare_configs = importlib.import_module("prepare_configs")
 verify_opencode_v2 = importlib.import_module("verify_opencode_v2")
 
 
+def _initialize_spend_ledger(path: str) -> dict:
+    return verify_opencode_v2.SpendLedger(Path(path), 2.0).snapshot()
+
+
 class OpenCodeV2ConfigTests(unittest.TestCase):
     def test_live_budget_cap_rejects_nonfinite_nonpositive_and_above_two(self) -> None:
         self.assertEqual(verify_opencode_v2.approved_max_cost("2"), 2.0)
@@ -45,6 +49,13 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
         self.assertIn("limit:\n                  context: 1048576", rendered)
         self.assertIn("reasoningEffort: low", rendered)
         self.assertIn("body:\n                  max_tokens: 8192", rendered)
+        self.assertIn('version: "2.0.3"', rendered)
+        self.assertIn("opencode_v2_checksums:", rendered)
+        self.assertIn(
+            "linux-arm64: bc35547e678c68aaec1b2aa1623d1d77"
+            "ec2585db6204574724826e40f20a7693",
+            rendered,
+        )
         self.assertIn("input: 0.15", rendered)
         self.assertNotIn("thinking:", rendered)
         self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", rendered)
@@ -81,6 +92,7 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                 self.assertIn("baseURL: https://gateway.example/v1", contents)
                 self.assertIn("reasoningEffort: low", contents)
                 self.assertIn("restrict_model: true", contents)
+                self.assertIn("opencode_v2_checksums:", contents)
                 self.assertNotIn("thinking:", contents)
         finally:
             prepare_configs.GENERATED_DIR = old_generated
@@ -149,16 +161,12 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
     def test_spend_ledger_cycle_initialization_is_cross_process_locked(self) -> None:
         with tempfile.TemporaryDirectory(prefix="pa1-opencode-ledger-") as tmp:
             path = Path(tmp) / "ledger.json"
-            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-                ledgers = list(
-                    pool.map(
-                        lambda _index: verify_opencode_v2.SpendLedger(path, 2.0),
-                        range(2),
-                    )
-                )
-            state = ledgers[-1].snapshot()
+            with concurrent.futures.ProcessPoolExecutor(max_workers=2) as pool:
+                states = list(pool.map(_initialize_spend_ledger, [str(path)] * 2))
+            state = json.loads(path.read_text())
             self.assertEqual(state["cycles"], 2)
             self.assertEqual(state["forwarded"], 0)
+            self.assertEqual(max(item["cycles"] for item in states), 2)
 
     def test_transparent_recorder_keeps_full_reservation_for_missing_usage(
         self,

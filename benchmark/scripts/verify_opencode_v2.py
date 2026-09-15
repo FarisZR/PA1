@@ -44,6 +44,7 @@ BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 OFFLINE_CLI_TARBALL_SHA256 = (
     "4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d"
 )
+OFFLINE_CLI_VERSION = "2.0.3"
 OFFLINE_CLI_TARBALL_NAME = "opencode-cli-linux-x64-2.0.3.tgz"
 LIVE_ENV_KEYS = ("LITELLM_API_KEY", "LITELLM_OPENAI_BASE_URL", "PIER_EXTRA_CA_CERTS")
 
@@ -467,6 +468,7 @@ def run_pier_agent(
             agent = OpenCodeV2(
                 logs_dir=PIER_LOGS,
                 model_name={model_name!r},
+                version={OFFLINE_CLI_VERSION!r},
                 restrict_model=True,
                 opencode_v2_config={opencode_config!r},
             )
@@ -761,7 +763,10 @@ def run_native_compaction(
             try:
                 server.start()
                 preflight = runner.preflight_runtime(
-                    server, model_spec=selection, config_file=config_path
+                    server,
+                    model_spec=selection,
+                    config_file=config_path,
+                    restrict_model=True,
                 )
                 first, first_events = run_cli("Create a short checkpoint source message.")
                 sessions = server.collect_sessions()
@@ -805,6 +810,7 @@ def run_native_compaction(
             agent = OpenCodeV2(
                 logs_dir=host_logs,
                 model_name=selection,
+                version={OFFLINE_CLI_VERSION!r},
                 restrict_model=True,
                 opencode_v2_config={config!r},
             )
