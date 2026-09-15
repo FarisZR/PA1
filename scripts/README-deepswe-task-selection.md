@@ -6,9 +6,13 @@ procedure used for the PA1 harness comparison.
 ## Selection rule
 
 The script uses public DeepSWE v1.1 `mini-swe-agent` rollouts. Errored trials
-and the four models evaluated by PA1 (`claude-opus-5`, `gpt-5-6-luna`,
-`deepseek-v4-flash`, and `kimi-k3`) are excluded from the reference panel used
-for task selection.
+are excluded. The reference panel also excludes `claude-opus-5`,
+`gpt-5-6-luna`, `deepseek-v4-flash`, and `kimi-k3`, because these were the four
+model configurations considered benchmark targets when the sample was selected
+on 2026-08-18. Their own DeepSWE results therefore do not contribute to the solve
+rates or token medians used to select tasks. PA1's final model matrix changed
+later; this exclusion set is part of the historical sampling procedure and
+should not be read as the final evaluated model list.
 
 For each programming language independently, tasks are sorted from lowest to
 highest solve rate. The hardest task receives difficulty percentile 100 and the
@@ -22,32 +26,40 @@ Within each language and stratum, the task with the highest **median historical
 total token count** (`n_input_tokens + n_output_tokens`) is selected. This
 secondary criterion deliberately selects token-intensive tasks because PA1 is
 testing how different harnesses handle demanding workloads. It does not use
-results from any of the four evaluated models. A remaining tie is resolved by
-task ID.
+results from the four model configurations excluded when the sample was
+selected. A remaining tie is resolved by task ID.
 
-## Run it
+## Recorded selection
 
-From the repository root:
+The PA1 task set was selected on 2026-08-18 by running
+`select_deepswe_tasks.py` against the then-current public DeepSWE v1.1 API
+artifacts.
 
-```bash
-python3 scripts/select_deepswe_tasks.py
-```
-
-The script downloads these frozen-version public artifacts directly:
-
-```text
-https://deepswe.datacurve.ai/artifacts/v1.1/tasks.json
-https://deepswe.datacurve.ai/artifacts/v1.1/trials.json
-```
-
-It writes the selected tasks, input SHA-256 hashes, selection audit data, the
-trajectory hashes used for cache-aware repricing, and the cost projection to:
+The resulting fixed task set is committed in:
 
 ```text
 data/deepswe_task_selection_v1.1.json
 ```
 
-To reproduce the calculation from local copies instead of downloading them:
+That file also records SHA-256 hashes of the exact `tasks.json`, `trials.json`,
+and `release.json` responses used at selection time. These hashes are retained
+as provenance for the historical sampling inputs. Reproducing the PA1 benchmark
+should use the committed task IDs rather than rerun selection against mutable
+public API data.
+
+The API-response hashes are independent of the DeepSWE Git revision used later
+to execute the selected tasks. The runnable checkout is pinned separately in
+`benchmark/README.md` and in the run metadata.
+
+## Scripted use
+
+To run the same selection logic against the current public v1.1 endpoints:
+
+```bash
+python3 scripts/select_deepswe_tasks.py
+```
+
+To run it against local copies:
 
 ```bash
 python3 scripts/select_deepswe_tasks.py \
@@ -56,9 +68,17 @@ python3 scripts/select_deepswe_tasks.py \
   --release-json /path/to/release.json
 ```
 
+Because the public API data can change, a new run is not expected to reproduce
+the historical 2026-08-18 task set unless the same source artifacts are supplied.
+The committed JSON remains the authoritative task selection for PA1.
+
+The script writes the selected tasks, input SHA-256 hashes, selection audit data,
+the trajectory hashes used for cache-aware repricing, and the cost projection to
+`data/deepswe_task_selection_v1.1.json`.
+
 Use `--harnesses N` to change the projected number of harnesses. PA1 currently
-uses four. `--trajectory-cache-dir PATH` controls the local cache for immutable
-public trajectory JSON files used by the cache-aware cost calculation.
+uses four. `--trajectory-cache-dir PATH` controls the local cache for public
+trajectory JSON files used by the cache-aware cost calculation.
 
 ## Cost estimate
 
