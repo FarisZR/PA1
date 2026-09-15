@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-15T12:58:52Z",
+  "generated_at": "2026-09-15T15:09:31Z",
   "revisions": {
     "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
-    "pier_implementation": "19b553771e2004f9532ceeea744b4d95f1826fee",
+    "pier_implementation": "20109956fe75e9f64569dca6bcb5203dad25dd23",
     "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
     "pa1_implementation": "b561f2602bbe1c2c0a8b7bbc76d211e33cda8dd7",
     "opencode_source_tag": "v2.0.3",
@@ -16,16 +16,16 @@
   },
   "offline": {
     "status": "pass",
-    "artifact_sha256": "be6d866ee9569d9104b86e277a043ca3bd8442135c41c858133e900788cac78b",
-    "runner_sha256": "74e2de580153bb84fc098b178375f868c36870b513d4f79c70e4162f5efd260c",
-    "pier_revision": "19b553771e2004f9532ceeea744b4d95f1826fee",
+    "artifact_sha256": "b04d4b7cf9a25c6ebdadc1549ed7bdd54f1d942a01777802c490820d0e139d99",
+    "runner_sha256": "6200a4bd7c97d3708c4df43e87a11c0d9036aa5432fdde3e3fe5dbc92587a46b",
+    "pier_revision": "20109956fe75e9f64569dca6bcb5203dad25dd23",
     "passed_count": 37,
     "failed_count": 0,
     "blocked_count": 0,
     "forwarded_requests": 34,
     "assertions": [
       "PASS: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
-      "PASS: focused Pier collector/converter fault matrix passes (99 tests)",
+      "PASS: focused Pier collector/converter fault matrix passes (119 tests)",
       "PASS: actual-binary limit-only control result is recorded",
       "PASS: adapter run reaches a step_finish on the happy path",
       "PASS: fake provider received at least one request",
@@ -106,22 +106,23 @@
     "n_completed_trials": 2,
     "n_errored_trials": 0,
     "n_retries": 0,
-    "normalized_cost_usd": 0.00345441,
+    "normalized_cost_usd": 0.00391318,
     "models": {
       "glm-5p3-flash#low": {
         "reward": 1,
-        "input_tokens": 18059,
-        "cached_tokens": 8192,
-        "output_tokens": 85,
-        "normalized_cost_usd": 0.00176831,
+        "input_tokens": 24233,
+        "cached_tokens": 12288,
+        "output_tokens": 124,
+        "normalized_cost_usd": 0.00222239,
         "collection_complete": true
       },
       "gpt-5.6-luna#low": {
         "reward": 1,
-        "input_tokens": 11162,
-        "cached_tokens": 5510,
-        "output_tokens": 136,
-        "normalized_cost_usd": 0.0016861,
+        "input_tokens": 11154,
+        "cached_tokens": 5507,
+        "output_tokens": 141,
+        "reasoning_tokens": 18,
+        "normalized_cost_usd": 0.00169079,
         "collection_complete": true
       }
     },

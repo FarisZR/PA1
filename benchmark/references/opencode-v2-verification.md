@@ -1,6 +1,6 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `19b553771e2004f9532ceeea744b4d95f1826fee` (base
+Revisions: Pier `20109956fe75e9f64569dca6bcb5203dad25dd23` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 configuration fix
 `b561f2602bbe1c2c0a8b7bbc76d211e33cda8dd7` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
@@ -10,8 +10,8 @@ Revisions: Pier `19b553771e2004f9532ceeea744b4d95f1826fee` (base
 the arm64 archive SHA-256 is
 `bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693`.
 
-The final Pier revision passed 37/37 offline executable assertions, 108 focused
-adapter tests, 127 required existing regressions, and the complete 448-test
+The final Pier revision passed 37/37 offline executable assertions, 119 focused
+adapter tests, 127 required existing regressions, and the complete 459-test
 Pier suite. The actual-binary control
 confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
@@ -41,9 +41,9 @@ allowlisting now follows every enabled agent model, while restricted trials
 derive that set only after model pinning; a regression proves a conflicting
 child provider cannot widen a restricted trial. The
 final offline artifact SHA-256 is
-`be6d866ee9569d9104b86e277a043ca3bd8442135c41c858133e900788cac78b`;
+`b04d4b7cf9a25c6ebdadc1549ed7bdd54f1d942a01777802c490820d0e139d99`;
 the runner SHA-256 is
-`74e2de580153bb84fc098b178375f868c36870b513d4f79c70e4162f5efd260c`.
+`6200a4bd7c97d3708c4df43e87a11c0d9036aa5432fdde3e3fe5dbc92587a46b`.
 
 The configuration review found that the three staged Responses profiles named
 an entrypoint absent from OpenCode 2.0.3 and that Luna inherited a contradictory
@@ -64,10 +64,22 @@ explicitly true collection manifest, bounds CLI output capture, batches active
 session checks per snapshot, transfers config JSON outside logged shell commands,
 and excludes credential stores and symlinks from preserved private state.
 
+The Opus review follow-up keeps the frozen V2 accounting contract (`output` is
+visible output and reasoning is separate), while fixing the verified lifecycle
+and configuration defects. Collection gaps now retain a successful paid run but
+withhold complete aggregates; settlement is bounded and backed off; retained CLI
+IDs participate in server-validated root selection; missing provenance remains
+unknown while observed contamination still fails. Skills use the isolated V2
+config directory, list-contained environment templates are forwarded/redacted,
+partial URL templates are rejected, and runner stdin/tee cleanup is deterministic.
+Additional regressions cover malformed API records, missing variants, stale root
+candidates, and readiness errors whose process cleanup also fails.
+
 A separate tiny Pier task passed end to end through the configured gateway on
-both acceptance-only Low profiles: GLM-5.3-Flash used 18,059 input, 8,192 cached,
-and 85 output tokens at normalized cost $0.00176831; GPT-5.6 Luna used 11,162
-input, 5,510 cached, and 136 output tokens at normalized cost $0.00168610. Both
+both acceptance-only Low profiles on Pier `2010995`: GLM-5.3-Flash used 24,233
+prompt, 12,288 cached, and 124 completion tokens at normalized cost $0.00222239;
+GPT-5.6 Luna used 11,154 prompt, 5,507 cached, and 141 completion tokens (including
+18 separately reported reasoning tokens) at normalized cost $0.00169079. Both
 earned reward 1, completed collection without errors, and left no owned server
 or container. This direct-gateway smoke validates the two runtime transports;
 it did not add independent per-request upstream provenance beyond the retained
