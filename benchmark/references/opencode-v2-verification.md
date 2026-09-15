@@ -1,6 +1,6 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `20109956fe75e9f64569dca6bcb5203dad25dd23` (base
+Revisions: Pier `635593f6d832176fb2a9def75cc04a266f751f9c` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 configuration fix
 `b561f2602bbe1c2c0a8b7bbc76d211e33cda8dd7` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
@@ -10,8 +10,8 @@ Revisions: Pier `20109956fe75e9f64569dca6bcb5203dad25dd23` (base
 the arm64 archive SHA-256 is
 `bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693`.
 
-The final Pier revision passed 37/37 offline executable assertions, 119 focused
-adapter tests, 127 required existing regressions, and the complete 459-test
+The final Pier revision passed 38/38 offline executable assertions, 120 focused
+adapter tests, 127 required existing regressions, and the complete 460-test
 Pier suite. The actual-binary control
 confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
@@ -41,9 +41,9 @@ allowlisting now follows every enabled agent model, while restricted trials
 derive that set only after model pinning; a regression proves a conflicting
 child provider cannot widen a restricted trial. The
 final offline artifact SHA-256 is
-`b04d4b7cf9a25c6ebdadc1549ed7bdd54f1d942a01777802c490820d0e139d99`;
+`6c33a27d8185974d51000f8b6110c78329924866547aa18e42aaa7223f24edf0`;
 the runner SHA-256 is
-`6200a4bd7c97d3708c4df43e87a11c0d9036aa5432fdde3e3fe5dbc92587a46b`.
+`80cffb2334e7bba6529bea495dc2f6b58a82196570ebe346a82f9525a9c08f97`.
 
 The configuration review found that the three staged Responses profiles named
 an entrypoint absent from OpenCode 2.0.3 and that Luna inherited a contradictory
@@ -75,11 +75,20 @@ partial URL templates are rejected, and runner stdin/tee cleanup is deterministi
 Additional regressions cover malformed API records, missing variants, stale root
 candidates, and readiness errors whose process cleanup also fails.
 
+The pinned-binary usage reconciliation now records the disputed token contract
+directly. The fake provider reports `completion_tokens: 34` with 5 reasoning
+tokens; OpenCode 2.0.3 persists 29 visible-output tokens plus 5 reasoning tokens;
+Pier emits exactly 34 ATIF completion tokens. Thus adding the two persisted,
+mutually exclusive categories reconstructs the provider total once. Empty
+collection now also writes an error-level, metrics-incomplete stub trajectory
+with retained collection diagnostics, and withheld usage remains null in
+`AgentContext` instead of being coerced to zero.
+
 A separate tiny Pier task passed end to end through the configured gateway on
-both acceptance-only Low profiles on Pier `2010995`: GLM-5.3-Flash used 24,233
-prompt, 12,288 cached, and 124 completion tokens at normalized cost $0.00222239;
-GPT-5.6 Luna used 11,154 prompt, 5,507 cached, and 141 completion tokens (including
-18 separately reported reasoning tokens) at normalized cost $0.00169079. Both
+both acceptance-only Low profiles on Pier `635593f`: GLM-5.3-Flash used 18,065
+prompt, 8,192 cached, and 100 completion tokens at normalized cost $0.00177671;
+GPT-5.6 Luna used 11,169 prompt, 5,508 cached, and 150 completion tokens at
+normalized cost $0.00170511. Both
 earned reward 1, completed collection without errors, and left no owned server
 or container. This direct-gateway smoke validates the two runtime transports;
 it did not add independent per-request upstream provenance beyond the retained

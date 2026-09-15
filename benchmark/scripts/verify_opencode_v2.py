@@ -1384,6 +1384,30 @@ def offline_contract(pier_root: Path, provider: FakeProvider, root: Path) -> Non
             "offline: usage metadata present on the happy path",
             json.dumps(tokens),
         )
+        agent_steps = [
+            step
+            for step in (result.get("trajectory") or {}).get("steps", [])
+            if step.get("source") == "agent"
+        ]
+        atif_completion = (
+            (agent_steps[0].get("metrics") or {}).get("completion_tokens")
+            if agent_steps
+            else None
+        )
+        evidence["normalized_usage_contract"] = {
+            "provider_completion_tokens": 34,
+            "provider_reasoning_tokens": 5,
+            "persisted_visible_output_tokens": tokens.get("output"),
+            "persisted_reasoning_tokens": tokens.get("reasoning"),
+            "atif_completion_tokens": atif_completion,
+        }
+        check(
+            tokens.get("output") == 29
+            and tokens.get("reasoning") == 5
+            and atif_completion == 34,
+            "offline: provider completion is split into visible output plus reasoning and reconstructed once",
+            json.dumps(evidence["normalized_usage_contract"], sort_keys=True),
+        )
 
 
 def offline_primary_responses_profiles(

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-15T15:13:07Z",
+  "generated_at": "2026-09-15T15:40:16Z",
   "revisions": {
     "pier_base": "13db00f92a4d02a92d7dea17df5dc5e5ef074b30",
-    "pier_implementation": "20109956fe75e9f64569dca6bcb5203dad25dd23",
+    "pier_implementation": "635593f6d832176fb2a9def75cc04a266f751f9c",
     "pa1_base": "329241b6ac4d71c1681c2e968895451cf9e5794c",
     "pa1_implementation": "b561f2602bbe1c2c0a8b7bbc76d211e33cda8dd7",
     "opencode_source_tag": "v2.0.3",
@@ -16,16 +16,16 @@
   },
   "offline": {
     "status": "pass",
-    "artifact_sha256": "b04d4b7cf9a25c6ebdadc1549ed7bdd54f1d942a01777802c490820d0e139d99",
-    "runner_sha256": "6200a4bd7c97d3708c4df43e87a11c0d9036aa5432fdde3e3fe5dbc92587a46b",
-    "pier_revision": "20109956fe75e9f64569dca6bcb5203dad25dd23",
-    "passed_count": 37,
+    "artifact_sha256": "6c33a27d8185974d51000f8b6110c78329924866547aa18e42aaa7223f24edf0",
+    "runner_sha256": "80cffb2334e7bba6529bea495dc2f6b58a82196570ebe346a82f9525a9c08f97",
+    "pier_revision": "635593f6d832176fb2a9def75cc04a266f751f9c",
+    "passed_count": 38,
     "failed_count": 0,
     "blocked_count": 0,
     "forwarded_requests": 34,
     "assertions": [
       "PASS: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
-      "PASS: focused Pier collector/converter fault matrix passes (119 tests)",
+      "PASS: focused Pier collector/converter fault matrix passes (120 tests)",
       "PASS: actual-binary limit-only control result is recorded",
       "PASS: adapter run reaches a step_finish on the happy path",
       "PASS: fake provider received at least one request",
@@ -38,6 +38,7 @@
       "PASS: model body override is exactly max_tokens=8192",
       "PASS: trajectory contains a step_finish",
       "PASS: usage metadata is present on the happy path",
+      "PASS: provider completion is split into visible output plus reasoning and reconstructed once",
       "PASS: staged kimi-k3 Responses profile executes",
       "PASS: staged deepseek-v4p1-flash Responses profile executes",
       "PASS: staged gpt-5.6-luna Responses profile executes",
@@ -70,6 +71,13 @@
       "max_tokens": 8192,
       "reasoning_effort": "low",
       "thinking": null
+    },
+    "normalized_usage_contract": {
+      "provider_completion_tokens": 34,
+      "provider_reasoning_tokens": 5,
+      "persisted_visible_output_tokens": 29,
+      "persisted_reasoning_tokens": 5,
+      "atif_completion_tokens": 34
     },
     "primary_responses_profiles": {
       "kimi-k3": {
@@ -106,23 +114,22 @@
     "n_completed_trials": 2,
     "n_errored_trials": 0,
     "n_retries": 0,
-    "normalized_cost_usd": 0.00391318,
+    "normalized_cost_usd": 0.00348182,
     "models": {
       "glm-5p3-flash#low": {
         "reward": 1,
-        "input_tokens": 24233,
-        "cached_tokens": 12288,
-        "output_tokens": 124,
-        "normalized_cost_usd": 0.00222239,
+        "input_tokens": 18065,
+        "cached_tokens": 8192,
+        "output_tokens": 100,
+        "normalized_cost_usd": 0.00177671,
         "collection_complete": true
       },
       "gpt-5.6-luna#low": {
         "reward": 1,
-        "input_tokens": 11154,
-        "cached_tokens": 5507,
-        "output_tokens": 141,
-        "reasoning_tokens": 18,
-        "normalized_cost_usd": 0.00169079,
+        "input_tokens": 11169,
+        "cached_tokens": 5508,
+        "output_tokens": 150,
+        "normalized_cost_usd": 0.00170511,
         "collection_complete": true
       }
     },
