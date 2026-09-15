@@ -9,9 +9,10 @@ The script uses public DeepSWE v1.1 `mini-swe-agent` rollouts. Errored trials
 are excluded. The reference panel also excludes `claude-opus-5`,
 `gpt-5-6-luna`, `deepseek-v4-flash`, and `kimi-k3`, because these were the four
 model configurations considered benchmark targets when the sample was frozen on
-2026-08-18. PA1's final model matrix changed later; this exclusion set is part
-of the frozen sampling procedure and should not be read as the final evaluated
-model list.
+2026-08-18. Their own DeepSWE results therefore do not contribute to the solve
+rates or token medians used to select tasks. PA1's final model matrix changed
+later; this exclusion set is part of the frozen sampling procedure and should
+not be read as the final evaluated model list.
 
 For each programming language independently, tasks are sorted from lowest to
 highest solve rate. The hardest task receives difficulty percentile 100 and the
