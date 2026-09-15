@@ -35,10 +35,11 @@ datasets:
   - koota-composite-trait-aspects
 agents:
 - name: opencode-v2
-  model_name: anthropic/claude-opus-5#medium
+  model_name: anthropic/claude-opus-5
   env:
     ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
   kwargs:
+    variant: medium
     version: "2.0.3"
     opencode_v2_checksums:
       linux-x64: 4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d
@@ -47,26 +48,13 @@ agents:
     opencode_v2_config:
       update: disable
       share: disabled
-      model: anthropic/claude-opus-5#medium
+      model: anthropic/claude-opus-5
       default_agent: build
-      providers:
-        anthropic:
-          models:
-            claude-opus-5:
-              limit:
-                context: 1000000
-                output: 128000
-              variants:
-              - id: medium
-                settings:
-                  thinking:
-                    type: adaptive
-                  effort: medium
       agents:
-        build: {model: anthropic/claude-opus-5#medium}
-        plan: {model: anthropic/claude-opus-5#medium}
-        general: {model: anthropic/claude-opus-5#medium}
-        explore: {model: anthropic/claude-opus-5#medium}
-        title: {model: anthropic/claude-opus-5#medium}
-        summary: {model: anthropic/claude-opus-5#medium}
-        compaction: {model: anthropic/claude-opus-5#medium}
+        build: {model: anthropic/claude-opus-5}
+        plan: {model: anthropic/claude-opus-5}
+        general: {model: anthropic/claude-opus-5}
+        explore: {model: anthropic/claude-opus-5}
+        title: {model: anthropic/claude-opus-5}
+        summary: {model: anthropic/claude-opus-5}
+        compaction: {model: anthropic/claude-opus-5}

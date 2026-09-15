@@ -26,9 +26,9 @@ CURRENT_MODEL_CONFIGS = {
 OPENCODE_V2_ACCEPTANCE_CONFIG = "opencode-v2/glm-5.3-flash-acceptance.yaml"
 OPENCODE_V2_RESPONSES_PACKAGE = "@opencode-ai/ai/providers/openai/responses"
 STAGED_OPENCODE_V2_MODELS = {
-    "deepseek-v4p1-flash.yaml": "deepseek-v4p1-flash",
-    "kimi-k3.yaml": "kimi-k3",
-    "luna.yaml": "gpt-5.6-luna",
+    "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
+    "kimi-k3.yaml": "moonshotai/kimi-k3",
+    "luna.yaml": "openai/gpt-5.6-luna",
 }
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
 CLAUDE_OUTPUT_OVERRIDE = "CLAUDE_CODE_MAX_OUTPUT_TOKENS"
@@ -474,7 +474,8 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
     if path.as_posix().endswith(OPENCODE_V2_ACCEPTANCE_CONFIG):
         required = (
             "name: opencode-v2",
-            "model_name: litellm/glm-5p3-flash#low",
+            "model_name: litellm/glm-5p3-flash",
+            "variant: low",
             'version: "2.0.3"',
             "opencode_v2_checksums:",
             "linux-x64: 4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d",
@@ -542,33 +543,31 @@ def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:
 
 
 def validate_staged_opencode_v2_profile(
-    path: Path, rendered: str, model_id: str, *, require_input: bool = False
+    path: Path, rendered: str, model_ref: str, *, require_input: bool = False
 ) -> None:
-    """Reject one package/limit overlay unsupported by frozen V2.0.3."""
-    package_line = f"package: '{OPENCODE_V2_RESPONSES_PACKAGE}'"
-    if package_line not in rendered:
+    """Require a built-in model profile with only provider transport overrides."""
+    if f"model_name: {model_ref}" not in rendered or "#" in rendered.split(
+        "model_name:", 1
+    )[1].splitlines()[0]:
         raise SystemExit(
-            f"{path}: {model_id} must use the Responses provider built into "
-            f"OpenCode 2.0.3 ({OPENCODE_V2_RESPONSES_PACKAGE})"
+            f"{path}: OpenCode V2 model_name must be the built-in {model_ref} "
+            "reference with variant supplied separately in kwargs"
         )
-    limits = _model_limit_values(rendered, model_id)
-    context = limits.get("context")
-    output = limits.get("output")
-    input_limit = limits.get("input")
-    if require_input and input_limit is None:
+    if "variant: max" not in rendered:
         raise SystemExit(
-            f"{path}: {model_id} must override limit.input so canonical profile "
-            "inheritance cannot retain an incompatible input limit"
+            f"{path}: {model_ref} must set kwargs.variant: max"
         )
-    if (
-        context is not None
-        and input_limit is not None
-        and output is not None
-        and input_limit + output > context
-    ):
+    provider, _ = model_ref.split("/", 1)
+    provider_block = f"        {provider}:"
+    if provider_block not in rendered:
         raise SystemExit(
-            f"{path}: contradictory limits for {model_id}: input "
-            f"({input_limit}) + output ({output}) exceeds context ({context})"
+            f"{path}: {model_ref} must override the built-in {provider} "
+            "provider transport settings"
+        )
+    if "models:" in rendered:
+        raise SystemExit(
+            f"{path}: {model_ref} must keep the built-in model profile; "
+            "do not define a custom models block"
         )
 
 

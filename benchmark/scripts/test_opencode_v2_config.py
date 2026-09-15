@@ -69,18 +69,15 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                 verify_opencode_v2.stage_binary(root)
                 self.assertEqual(binary.read_bytes(), payload)
 
-    def test_staged_responses_profiles_match_frozen_binary(self) -> None:
+    def test_staged_profiles_use_builtin_models_with_transport_overrides(self) -> None:
         prepare_configs.validate_staged_opencode_v2_profiles()
         luna = (
             BENCHMARK / "deferred" / "opencode-v2" / "luna.yaml"
         ).read_text()
-        self.assertIn(
-            "package: '@opencode-ai/ai/providers/openai/responses'", luna
-        )
-        self.assertEqual(
-            prepare_configs._model_limit_values(luna, "gpt-5.6-luna"),
-            {"context": 272000, "input": 144000, "output": 128000},
-        )
+        self.assertIn("model_name: openai/gpt-5.6-luna", luna)
+        self.assertIn("variant: max", luna)
+        self.assertIn("baseURL: '{env:LITELLM_OPENAI_BASE_URL}'", luna)
+        self.assertNotIn("models:", luna)
 
     def test_staged_profile_rejects_contradictory_inherited_limits(self) -> None:
         rendered = """
@@ -94,11 +91,11 @@ providers:
           input: 922000
           output: 128000
 """
-        with self.assertRaisesRegex(SystemExit, "contradictory limits"):
+        with self.assertRaisesRegex(SystemExit, "built-in openai/gpt-5.6-luna"):
             prepare_configs.validate_staged_opencode_v2_profile(
                 Path("luna.yaml"),
                 rendered,
-                "gpt-5.6-luna",
+                "openai/gpt-5.6-luna",
                 require_input=True,
             )
 
@@ -183,14 +180,10 @@ providers:
                 smoke = target / "opencode-v2" / "smoke.yaml"
                 self.assertTrue(smoke.exists())
                 smoke_contents = smoke.read_text()
-                self.assertIn("litellm/glm-5p3-flash#low", smoke_contents)
-                self.assertIn("litellm/gpt-5.6-luna#low", smoke_contents)
-                self.assertIn(
-                    'package: "@opencode-ai/ai/providers/openai/responses"',
-                    smoke_contents,
-                )
-                self.assertIn("input: 0.15", smoke_contents)
-                self.assertIn("input: 0.2", smoke_contents)
+                self.assertIn("model_name: litellm/glm-5p3-flash", smoke_contents)
+                self.assertIn("model_name: openai/gpt-5.6-luna", smoke_contents)
+                self.assertIn("variant: low", smoke_contents)
+                self.assertNotIn("gpt-5.6-luna:\n", smoke_contents)
                 self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", smoke_contents)
         finally:
             prepare_configs.GENERATED_DIR = old_generated
@@ -375,13 +368,12 @@ providers:
         reconciled, _ = verify_opencode_v2._reconcile_records(result)
         self.assertFalse(reconciled)
 
-    def test_luna_profile_keeps_canonical_and_normalized_cost(self) -> None:
+    def test_luna_profile_keeps_builtin_identity_and_gateway_override(self) -> None:
         contents = (BENCHMARK / "deferred" / "opencode-v2" / "luna.yaml").read_text()
-        self.assertIn("canonical: openai", contents)
-        self.assertIn("input: 0.2", contents)
-        self.assertIn("output: 1.2", contents)
-        self.assertIn("read: 0.02", contents)
-        self.assertIn("write: 0.25", contents)
+        self.assertIn("model_name: openai/gpt-5.6-luna", contents)
+        self.assertIn("env:\n          - LITELLM_API_KEY", contents)
+        self.assertIn("baseURL: '{env:LITELLM_OPENAI_BASE_URL}'", contents)
+        self.assertNotIn("models:", contents)
 
 
 if __name__ == "__main__":

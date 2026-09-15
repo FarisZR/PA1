@@ -632,6 +632,7 @@ def run_pier_agent(
                 model_name={model_name!r},
                 version={OFFLINE_CLI_VERSION!r},
                 restrict_model=True,
+                variant={variant!r},
                 opencode_v2_config={opencode_config!r},
             )
             agent._extra_env.update(
@@ -768,7 +769,7 @@ def run_limit_only_control(
     stage_binary(installed)
     instruction = output_dir / "instruction.txt"
     instruction.write_text("Say hello for the output-limit control.")
-    selection = "litellm/glm-5p3-flash#low"
+    selection = "litellm/glm-5p3-flash"
     config = {
         "model": selection,
         "providers": {
@@ -869,7 +870,10 @@ def run_native_compaction(
     for path in (installed, logs, task, home, host_logs / "opencode-v2"):
         path.mkdir(parents=True, exist_ok=True)
     stage_binary(installed)
+    # Native OpenCode config uses the ``model#variant`` spelling.  The Pier
+    # adapter below still receives the base model and variant separately.
     selection = "litellm/glm-5p3-flash#low"
+    pier_model = "litellm/glm-5p3-flash"
     config = _cap_config(1048576, 8192)
     config["model"] = selection
     config["agents"] = {
@@ -971,9 +975,10 @@ def run_native_compaction(
                     (host_logs / "opencode-v2" / source.name).write_bytes(source.read_bytes())
             agent = OpenCodeV2(
                 logs_dir=host_logs,
-                model_name=selection,
+                model_name={pier_model!r},
                 version={OFFLINE_CLI_VERSION!r},
                 restrict_model=True,
+                variant="low",
                 opencode_v2_config={config!r},
             )
             context = AgentContext()
@@ -1094,9 +1099,9 @@ def offline_probe(
     provider: FakeProvider,
     root: Path,
     *,
-    model_name: str = "litellm/glm-5p3-flash#low",
+    model_name: str = "litellm/glm-5p3-flash",
     restrict_model: str = "litellm/glm-5p3-flash",
-    variant: str | None = None,
+    variant: str | None = "low",
     opencode_config: dict | None = None,
     instruction: str = "Say hello.",
     max_output_tokens: int = 131072,
@@ -1104,8 +1109,6 @@ def offline_probe(
 ) -> dict:
     """One adapter run against one scenario; returns driver + wire capture."""
     selected_model = model_name
-    if variant and "#" not in selected_model:
-        selected_model = f"{selected_model}#{variant}"
     output_dir = root / f"probe-{uuid.uuid4().hex[:8]}"
     output_dir.mkdir(parents=True)
     config = opencode_config or {
@@ -1453,8 +1456,9 @@ def offline_primary_responses_profiles(
             pier_root,
             provider,
             root,
-            model_name=f"litellm/{model_id}#max",
+            model_name=f"litellm/{model_id}",
             restrict_model=f"litellm/{model_id}",
+            variant="max",
             opencode_config=config,
         )
         request = result["request_records"][0] if result["request_records"] else {}
@@ -2338,7 +2342,7 @@ def _live_case(
         pier_root,
         workdir=output_dir,
         output_dir=case_dir,
-        model_name="litellm/glm-5p3-flash#low",
+        model_name="litellm/glm-5p3-flash",
         restrict_model="litellm/glm-5p3-flash",
         variant="low",
         opencode_config=config,

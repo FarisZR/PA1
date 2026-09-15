@@ -7,6 +7,14 @@
     "source": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.3",
     "fetch_disabled": true,
     "model_present": false,
+    "live_models_dev_check": {
+      "source": "https://models.dev/api.json",
+      "checked": "2026-09-15",
+      "model_present": true,
+      "canonical_provider": "zai",
+      "model_id": "glm-5.3-flash",
+      "not_used_by_pinned_binary": true
+    },
     "canonical_provider": "openai",
     "profile": {
       "provider": "litellm",

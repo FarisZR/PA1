@@ -35,11 +35,12 @@ datasets:
   - koota-composite-trait-aspects
 agents:
 - name: opencode-v2
-  model_name: litellm/glm-5p3-flash#max
+  model_name: litellm/glm-5p3-flash
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
   kwargs:
+    variant: max
     version: "2.0.3"
     opencode_v2_checksums:
       linux-x64: 4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d

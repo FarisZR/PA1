@@ -11,8 +11,10 @@ not change benchmark selection or start spending. The staged order is:
 4. `luna.yaml`
 5. `opus.yaml` (also subject to the separate Opus deferral)
 
-Kimi, DeepSeek, GLM, and Luna use the `max` variant through the model selection
-(`provider/model#max`); direct-Anthropic Opus remains `medium`. The acceptance-only profile in
+Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
+`kwargs.variant: max`; the adapter emits OpenCode's native
+`provider/model#max` selection internally. Direct-Anthropic Opus remains
+`medium`. The acceptance-only profile in
 `benchmark/configs/opencode-v2/glm-5.3-flash-acceptance.yaml` is the sole
 `low` acceptance configuration. The tiny GLM/Luna smoke under
 `benchmark/configs/opencode-v2/smoke.yaml` also uses `low`; both are
@@ -21,8 +23,11 @@ intentionally separate from the primary jobs.
 Kimi and DeepSeek retain their staged OpenAI Responses transport and use
 `max_output_tokens`; GLM uses Chat Completions with `max_tokens`.
 Every profile keeps a single `reasoningEffort` and an explicit model-body
-output cap. GLM is absent from the frozen 2.0.3 models.dev catalogue, so its
-committed profile and provenance are in
+output cap. Although the current live models.dev catalogue now lists
+`zai/glm-5.3-flash`, the pinned OpenCode 2.0.3 binary still embeds the older
+catalogue and runs with model fetching disabled. GLM therefore retains one
+explicit gateway profile and provenance rather than silently changing the
+frozen binary's model identity; its committed profile and provenance are in
 `benchmark/references/opencode-v2-glm-5.3-flash.json`. Luna retains the
 built-in OpenAI Responses route. The 272k Luna context policy explicitly sets
 `limit.input: 144000` beside its 128k output ceiling so canonical inheritance
