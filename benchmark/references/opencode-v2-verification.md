@@ -1,6 +1,6 @@
 # OpenCode V2 verification report
 
-Revisions: Pier `aeebce7fa9017c305fb10b740bffe307b11db796` (base
+Revisions: Pier `7717bc3f1a28eb07be1e3df8a7a210d5c8762991` (base
 `13db00f92a4d02a92d7dea17df5dc5e5ef074b30`), PA1 implementation
 `614dbaa7f02cec3e50e36a99b75be33a3312ca1c` (base
 `329241b6ac4d71c1681c2e968895451cf9e5794c`), and OpenCode source tag
@@ -10,8 +10,8 @@ Revisions: Pier `aeebce7fa9017c305fb10b740bffe307b11db796` (base
 the arm64 archive SHA-256 is
 `bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693`.
 
-The final Pier revision passed 34/34 offline executable assertions, 93 focused
-adapter tests, 127 required existing regressions, and the complete 433-test
+The final Pier revision passed 34/34 offline executable assertions, 95 focused
+adapter tests, 127 required existing regressions, and the complete 435-test
 Pier suite. The actual-binary control
 confirmed that `limit.output: 54321`
 alone emitted no output-cap field. The model-body override emitted exactly
@@ -32,8 +32,10 @@ model-level transport bodies, made unrestricted per-agent models usable, and
 made restricted provenance mismatches hard failures while retaining raw usage
 evidence. It also forwards temporary Bedrock session credentials and redacts
 config-referenced credential values from Pier debug metadata without changing
-the child process environment. The final offline artifact SHA-256 is
-`4ff94ee92ae91c2687f00f325326976a856e6bf71579a2ddee1cefad7ac4d2ba`;
+the child process environment, and prevents floating `latest` installs from
+reusing a stale Docker image while keeping pinned cache identity stable. The
+final offline artifact SHA-256 is
+`f08d983361ef586ce7934269da8906252074732b173acb324dbdb930e0fa397a`;
 the runner SHA-256 is
 `0c5b782ee4de11b06aecf4fd6fb2e26c8268345d0f4f446eeb6c630ba38d1483`.
 
