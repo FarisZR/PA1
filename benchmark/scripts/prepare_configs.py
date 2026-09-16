@@ -100,24 +100,31 @@ def load_codex_sol_profile() -> dict[str, object]:
     return profile
 
 
-def provider_toml(provider_id: str, name: str, base_url: str, env_key: str) -> str:
+def provider_toml(
+    provider_id: str,
+    name: str,
+    base_url: str,
+    env_key: str,
+    *,
+    disable_web_search: bool = False,
+) -> str:
     """Render a minimal Codex Responses provider for a deployment URL."""
-    return "\n".join(
-        [
-            'preferred_auth_method = "apikey"',
-            'forced_login_method = "api"',
-            f"model_provider = {json.dumps(provider_id)}",
-            "",
-            f"[model_providers.{provider_id}]",
-            f"name = {json.dumps(name)}",
-            f"base_url = {json.dumps(base_url.rstrip('/'))}",
-            'wire_api = "responses"',
-            f"env_key = {json.dumps(env_key)}",
-            "requires_openai_auth = false",
-            "supports_websockets = false",
-            "",
-        ]
-    )
+    lines = [
+        'preferred_auth_method = "apikey"',
+        'forced_login_method = "api"',
+        f"model_provider = {json.dumps(provider_id)}",
+        "",
+        f"[model_providers.{provider_id}]",
+        f"name = {json.dumps(name)}",
+        f"base_url = {json.dumps(base_url.rstrip('/'))}",
+        'wire_api = "responses"',
+        f"env_key = {json.dumps(env_key)}",
+        "requires_openai_auth = false",
+        "supports_websockets = false",
+    ]
+    if disable_web_search:
+        lines.extend(["", "[features]", "web_search_request = false"])
+    return "\n".join(lines) + "\n"
 
 
 def third_party_codex_entry(
@@ -131,6 +138,7 @@ def third_party_codex_entry(
     default_reasoning_level: str,
     supported_reasoning_levels: list[dict[str, str]],
     supports_image_detail_original: bool,
+    supports_search_tool: bool = False,
 ) -> dict[str, object]:
     """Clone Sol and change only third-party identity/model metadata."""
     entry = copy.deepcopy(sol_profile)
@@ -149,6 +157,15 @@ def third_party_codex_entry(
             # Multi-Agent V2 and Responses Lite are OpenAI-only compatibility paths.
             "multi_agent_version": "v1",
             "use_responses_lite": False,
+            # Search is a separate hosted tool, not part of the benchmark task
+            # environment. Individual model jobs opt in only where required for
+            # historical comparability (currently Kimi K3).
+            "supports_search_tool": supports_search_tool,
+            "web_search_tool_type": (
+                sol_profile.get("web_search_tool_type")
+                if supports_search_tool
+                else None
+            ),
         }
     )
     return entry
@@ -210,6 +227,7 @@ def kimi_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
             },
         ],
         supports_image_detail_original=True,
+        supports_search_tool=True,
     )
 
 
@@ -517,9 +535,23 @@ def main() -> None:
     # Retained as the control for issue #31: this is the direct corporate-gateway
     # Codex route that Fireworks rejects. No current job references it.
     litellm_toml = provider_toml("litellm", "LiteLLM", litellm_url, "LITELLM_API_KEY")
+    litellm_no_web_search_toml = provider_toml(
+        "litellm",
+        "LiteLLM",
+        litellm_url,
+        "LITELLM_API_KEY",
+        disable_web_search=True,
+    )
     # The route every third-party Codex job actually uses.
     bridge_toml = provider_toml(
         "cliproxy", "CLIProxyAPI", bridge_url, "CODEX_CLIPROXY_API_KEY"
+    )
+    bridge_no_web_search_toml = provider_toml(
+        "cliproxy",
+        "CLIProxyAPI",
+        bridge_url,
+        "CODEX_CLIPROXY_API_KEY",
+        disable_web_search=True,
     )
 
     opus_entry = opus_codex_entry(sol_profile) if args.include_opus else None
@@ -557,7 +589,9 @@ def main() -> None:
 
     for name, contents in (
         ("codex-litellm.toml", litellm_toml),
+        ("codex-litellm-no-web-search.toml", litellm_no_web_search_toml),
         ("codex-cliproxy.toml", bridge_toml),
+        ("codex-cliproxy-no-web-search.toml", bridge_no_web_search_toml),
         ("codex-thirdparty-models.json", catalog_json),
     ):
         path = GENERATED_DIR / name

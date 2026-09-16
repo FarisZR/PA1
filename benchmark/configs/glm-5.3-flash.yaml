@@ -92,6 +92,7 @@ agents:
     kwargs:
       version: "2.1.251"
       reasoning_effort: max
+      disallowed_tools: "EnterPlanMode,WebSearch"
 
   - name: codex
     model_name: zai/glm-5p3-flash
@@ -103,4 +104,4 @@ agents:
       reasoning_effort: max
       restrict_model_catalog: true
       model_catalog_file: benchmark/generated/codex-thirdparty-models.json
-      config_toml_file: benchmark/generated/codex-cliproxy.toml
+      config_toml_file: benchmark/generated/codex-cliproxy-no-web-search.toml

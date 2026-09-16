@@ -53,6 +53,7 @@ agents:
     kwargs:
       version: "2.1.251"
       reasoning_effort: low
+      disallowed_tools: "EnterPlanMode,WebSearch"
 
   - name: codex
     model_name: openai/gpt-5.6-luna
@@ -63,3 +64,4 @@ agents:
       version: "0.151.0"
       reasoning_effort: low
       restrict_model_catalog: true
+      config_toml_file: benchmark/generated/codex-litellm-no-web-search.toml

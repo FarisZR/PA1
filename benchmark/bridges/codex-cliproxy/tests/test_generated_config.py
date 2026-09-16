@@ -154,6 +154,39 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
         f"{label}: Codex provider TOML points at the bridge",
         toml,
     )
+    no_web_search_toml = (target / "codex-cliproxy-no-web-search.toml").read_text()
+    check(
+        "web_search_request = false" in no_web_search_toml,
+        f"{label}: non-Kimi Codex TOML disables web search",
+        no_web_search_toml,
+    )
+    check(
+        "web_search_request = false" not in toml,
+        f"{label}: Kimi Codex TOML keeps its existing web-search policy",
+        toml,
+    )
+    litellm_no_web_search_toml = (
+        target / "codex-litellm-no-web-search.toml"
+    ).read_text()
+    check(
+        "web_search_request = false" in litellm_no_web_search_toml,
+        f"{label}: Luna Codex TOML disables web search",
+        litellm_no_web_search_toml,
+    )
+
+    catalog = json.loads((target / "codex-thirdparty-models.json").read_text())
+    search_support = {
+        model["slug"]: model["supports_search_tool"] for model in catalog["models"]
+    }
+    check(
+        search_support == {
+            "deepseek-v4p1-flash": False,
+            "kimi-k3": True,
+            "glm-5p3-flash": False,
+        },
+        f"{label}: only Kimi retains Codex search support",
+        str(search_support),
+    )
 
     if include_opus:
         check("claude-api-key:" in config, "opus: Anthropic route present")
