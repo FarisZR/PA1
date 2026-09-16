@@ -165,13 +165,13 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
         f"{label}: Kimi Codex TOML keeps its existing web-search policy",
         toml,
     )
-    litellm_no_web_search_toml = (
-        target / "codex-litellm-no-web-search.toml"
+    openai_no_web_search_toml = (
+        target / "codex-openai-no-web-search.toml"
     ).read_text()
     check(
-        'web_search = "disabled"' in litellm_no_web_search_toml,
-        f"{label}: Luna Codex TOML disables web search globally",
-        litellm_no_web_search_toml,
+        openai_no_web_search_toml == 'web_search = "disabled"\n',
+        f"{label}: Luna keeps the built-in OpenAI provider",
+        openai_no_web_search_toml,
     )
 
     catalog = json.loads((target / "codex-thirdparty-models.json").read_text())
