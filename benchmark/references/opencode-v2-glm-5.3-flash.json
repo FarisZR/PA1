@@ -1,10 +1,10 @@
 {
   "component": "@opencode/cli-linux-x64",
-  "version": "2.0.3",
-  "source": "https://registry.npmjs.org/@opencode/cli-linux-x64/-/cli-linux-x64-2.0.3.tgz",
-  "sha256": "4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d",
+  "version": "2.0.4",
+  "source": "https://registry.npmjs.org/@opencode/cli-linux-x64/-/cli-linux-x64-2.0.4.tgz",
+  "sha256": "ba4580e6d79df45f600def921cd2b3d1d873bb36bc8755cfc299d4890a2dc20f",
   "catalog": {
-    "source": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.3",
+    "source": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.4",
     "fetch_disabled": true,
     "model_present": false,
     "live_models_dev_check": {
@@ -22,13 +22,21 @@
       "model_id": "glm-5p3-flash",
       "context": 1048576,
       "output": 131072,
-      "reasoning": ["low", "high", "max"],
+      "reasoning": [
+        "low",
+        "high",
+        "max"
+      ],
       "reasoning_field": "reasoning_content",
       "max_tokens_field": "max_tokens",
       "acceptance_variant": "low",
       "acceptance_reasoning_effort": "low",
-      "primary_body_override": {"max_tokens": 131072},
-      "acceptance_body_override": {"max_tokens": 8192},
+      "primary_body_override": {
+        "max_tokens": 131072
+      },
+      "acceptance_body_override": {
+        "max_tokens": 8192
+      },
       "offline_wire_control": {
         "metadata_limit_output": 54321,
         "model_body_max_tokens": 8192,
@@ -46,5 +54,7 @@
     ],
     "issue": "PA1 #41",
     "output_limit_regression": "PA1 #40"
-  }
+  },
+  "binary_sha256": "994363c2e152c0d1783fe4650674ecf184633fb7fbd6f8b11c0f4dace26e6e40",
+  "source_commit": "7c3c50bac23da715543a7327adc3981cdaf851e9"
 }

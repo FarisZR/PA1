@@ -42,14 +42,46 @@ from typing import Any
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 
-OFFLINE_CLI_TARBALL_SHA256 = (
-    "4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d"
-)
-OFFLINE_CLI_BINARY_SHA256 = (
-    "86fde5351c6417a9aea047f7ec9f5d11c2835bba2446fa178a0904bb15bba19c"
-)
-OFFLINE_CLI_VERSION = "2.0.3"
-OFFLINE_CLI_TARBALL_NAME = "opencode-cli-linux-x64-2.0.3.tgz"
+
+def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
+    """Read release selection from committed jobs and verify recorded provenance."""
+    import yaml
+
+    acceptance = benchmark_dir / "configs/opencode-v2/glm-5.3-flash-acceptance.yaml"
+    job = yaml.safe_load(acceptance.read_text())
+    kwargs = job["agents"][0]["kwargs"]
+    version = str(kwargs["version"])
+    checksums = kwargs["opencode_v2_checksums"]
+    reference = json.loads(
+        (benchmark_dir / "references/opencode-v2-glm-5.3-flash.json").read_text()
+    )
+    if reference["version"] != version or reference["sha256"] != checksums["linux-x64"]:
+        raise ValueError("OpenCode release provenance does not match the acceptance config")
+    for path in (
+        *sorted((benchmark_dir / "configs/opencode-v2").glob("*.yaml")),
+        *sorted((benchmark_dir / "deferred/opencode-v2").glob("*.yaml")),
+    ):
+        for agent in (yaml.safe_load(path.read_text()) or {}).get("agents", []):
+            if agent.get("name") != "opencode-v2":
+                continue
+            selected = agent.get("kwargs") or {}
+            if (
+                str(selected.get("version")) != version
+                or selected.get("opencode_v2_checksums") != checksums
+            ):
+                raise ValueError(f"{path}: release pin differs from the acceptance config")
+    return {
+        "version": version,
+        "tarball_sha256": checksums["linux-x64"],
+        "binary_sha256": reference["binary_sha256"],
+    }
+
+
+CLI_PIN = load_cli_pin()
+OFFLINE_CLI_VERSION = CLI_PIN["version"]
+OFFLINE_CLI_TARBALL_SHA256 = CLI_PIN["tarball_sha256"]
+OFFLINE_CLI_BINARY_SHA256 = CLI_PIN["binary_sha256"]
+OFFLINE_CLI_TARBALL_NAME = f"opencode-cli-linux-x64-{OFFLINE_CLI_VERSION}.tgz"
 LIVE_ENV_KEYS = ("LITELLM_API_KEY", "LITELLM_OPENAI_BASE_URL", "PIER_EXTRA_CA_CERTS")
 
 failures: list[str] = []
@@ -1152,7 +1184,7 @@ def offline_probe(
                             "context": 1048576,
                             "output": metadata_output_tokens or max_output_tokens,
                         },
-                        # V2.0.3 does not reliably turn limit.output into a
+                        # V2 does not reliably turn limit.output into a
                         # Chat Completions output field. Keep metadata and the
                         # transport override explicit (PA1 #40).
                         "body": {"max_tokens": max_output_tokens},
@@ -1252,7 +1284,7 @@ def offline_mode(pier_root: Path, output_dir: Path) -> int:
 
 
 def verify_offline_provenance(output_dir: Path) -> bool:
-    """Verify the pinned @opencode/cli 2.0.3 binary without network fetches.
+    """Verify the config-pinned @opencode/cli binary without network fetches.
 
     The verifier accepts the linux-x64 package tarball at
     ``benchmark/references/`` or an explicit local cache path with a known
@@ -1263,7 +1295,7 @@ def verify_offline_provenance(output_dir: Path) -> bool:
     expected = OFFLINE_CLI_TARBALL_SHA256
     if tarball is None:
         block(
-            "offline: pinned @opencode/cli 2.0.3 tarball present",
+            f"offline: pinned @opencode/cli {OFFLINE_CLI_VERSION} tarball present",
             "provide the verified local reference file or set "
             "OPENCODE_V2_BINARY_CACHE; no network fetch is attempted by offline mode.",
         )
@@ -1273,7 +1305,7 @@ def verify_offline_provenance(output_dir: Path) -> bool:
     digest = hashlib.sha256(tarball.read_bytes()).hexdigest()
     return check(
         digest == expected,
-        "offline: pinned @opencode/cli 2.0.3 tarball SHA-256 matches",
+        f"offline: pinned @opencode/cli {OFFLINE_CLI_VERSION} tarball SHA-256 matches",
         f"expected {expected}, got {digest}",
     )
 
@@ -1713,10 +1745,10 @@ def offline_faults(pier_root: Path, provider: FakeProvider, root: Path) -> None:
         json.dumps(evidence["retry_after"]),
     )
     # PA1 #37 target (~3 minutes of transport tolerance) is not configurable
-    # in the frozen 2.0.3 executable; recorded as a gap with the observed
+    # in the pinned executable; recorded as a gap with the observed
     # native schedule rather than silently claimed as met.
     evidence["retry_policy_gap"] = (
-        "Frozen OpenCode 2.0.3 exposes no retry-schedule configuration; its "
+        f"Frozen OpenCode {OFFLINE_CLI_VERSION} exposes no retry-schedule configuration; its "
         "native short exponential allowance was observed above. PA1 #37's "
         "approximately three-minute goal is NOT established by this run and "
         "needs either an upstream configuration surface or a tracked harness "

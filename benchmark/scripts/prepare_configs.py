@@ -476,10 +476,7 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
             "name: opencode-v2",
             "model_name: litellm/glm-5p3-flash",
             "variant: low",
-            'version: "2.0.3"',
             "opencode_v2_checksums:",
-            "linux-x64: 4b8c2cad67297c715adff18a569c8808b22fe23c7197fd1775bc11cbfa04022d",
-            "linux-arm64: bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693",
             "restrict_model: true",
             "maxTokensField: max_tokens",
             "max_tokens: 8192",
@@ -498,6 +495,24 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
                 f"{path}: GLM low must use reasoningEffort alone; "
                 "do not add a conflicting thinking control"
             )
+    if "opencode_v2_config:" in rendered:
+        # Release selection belongs to each job, not this generator.
+        versions = re.findall(
+            r'^\s*version:\s*["\']?([^\s"\']+)["\']?\s*$',
+            rendered,
+            re.MULTILINE,
+        )
+        if not versions or any(
+            not re.fullmatch(r"\d+\.\d+\.\d+(?:-[\w.-]+)?", version)
+            for version in versions
+        ):
+            raise SystemExit(f"{path}: OpenCode V2 requires an exact version pin")
+        for target in ("linux-x64", "linux-arm64"):
+            hashes = re.findall(
+                rf"^\s*{target}:\s*([0-9a-f]{{64}})\s*$", rendered, re.MULTILINE
+            )
+            if len(hashes) != len(versions):
+                raise SystemExit(f"{path}: OpenCode V2 requires a SHA-256 for {target}")
     if "opencode_v2_config:" in rendered and "websearch:" not in rendered:
         raise SystemExit(
             f"{path}: every OpenCode V2 config must declare its web-search policy"

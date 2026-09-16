@@ -35,6 +35,58 @@ def _initialize_spend_ledger(path: str) -> dict:
 
 
 class OpenCodeV2ConfigTests(unittest.TestCase):
+    def test_release_pin_comes_from_configs_and_rejects_stale_provenance(self) -> None:
+        import yaml
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            configs = root / "configs/opencode-v2"
+            refs = root / "references"
+            configs.mkdir(parents=True)
+            refs.mkdir()
+            path = configs / "glm-5.3-flash-acceptance.yaml"
+            job = {
+                "agents": [{
+                    "name": "opencode-v2",
+                    "kwargs": {
+                        "version": "2.9.9",
+                        "opencode_v2_checksums": {
+                            "linux-x64": "a" * 64,
+                            "linux-arm64": "b" * 64,
+                        },
+                    },
+                }],
+            }
+            path.write_text(yaml.safe_dump(job))
+            ref = refs / "opencode-v2-glm-5.3-flash.json"
+            provenance = {"version": "2.9.9", "sha256": "a" * 64, "binary_sha256": "c" * 64}
+            ref.write_text(json.dumps(provenance))
+            self.assertEqual(verify_opencode_v2.load_cli_pin(root)["version"], "2.9.9")
+            job["agents"][0]["kwargs"]["version"] = "2.9.8"
+            (configs / "smoke.yaml").write_text(yaml.safe_dump(job))
+            with self.assertRaisesRegex(ValueError, "release pin differs"):
+                verify_opencode_v2.load_cli_pin(root)
+            (configs / "smoke.yaml").unlink()
+            provenance["version"] = "2.9.8"
+            ref.write_text(json.dumps(provenance))
+            with self.assertRaisesRegex(ValueError, "provenance"):
+                verify_opencode_v2.load_cli_pin(root)
+
+    def test_generator_accepts_new_exact_versions_without_source_changes(self) -> None:
+        source = BENCHMARK / "configs/opencode-v2/glm-5.3-flash-acceptance.yaml"
+        rendered = source.read_text().replace(
+            f'version: "{verify_opencode_v2.OFFLINE_CLI_VERSION}"', 'version: "2.9.9"'
+        )
+        prepare_configs.validate_opencode_v2_config(source, rendered)
+        with self.assertRaisesRegex(SystemExit, "exact version"):
+            prepare_configs.validate_opencode_v2_config(
+                source, rendered.replace('version: "2.9.9"', 'version: "latest"')
+            )
+        with self.assertRaisesRegex(SystemExit, "SHA-256"):
+            prepare_configs.validate_opencode_v2_config(
+                source, rendered.replace("linux-arm64:", "missing-arm64:")
+            )
+
     def test_binary_stage_is_atomic_and_repairs_a_corrupt_cache(self) -> None:
         payload = b"pinned-opencode-test-binary"
         with tempfile.TemporaryDirectory(prefix="pa1-opencode-binary-") as tmp:
@@ -138,11 +190,10 @@ providers:
         self.assertIn("limit:\n                  context: 1048576", rendered)
         self.assertIn("reasoningEffort: low", rendered)
         self.assertIn("body:\n                  max_tokens: 8192", rendered)
-        self.assertIn('version: "2.0.3"', rendered)
+        self.assertIn(f'version: "{verify_opencode_v2.OFFLINE_CLI_VERSION}"', rendered)
         self.assertIn("opencode_v2_checksums:", rendered)
         self.assertIn(
-            "linux-arm64: bc35547e678c68aaec1b2aa1623d1d77"
-            "ec2585db6204574724826e40f20a7693",
+            "linux-arm64: 13417a0f61176b6812e54c9e90fb905e3424204190edc85d8fa60daf96fd0610",
             rendered,
         )
         self.assertIn("input: 0.15", rendered)

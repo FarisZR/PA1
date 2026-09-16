@@ -27,7 +27,7 @@ the built-in OpenAI Responses profile. Each has only a small inherited
 profile keeps a single `reasoningEffort` and an explicit model-body output cap.
 Luna's inherited limits are `context: 1050000`, `input: 922000`, and
 `output: 128000`, matching the current models.dev profile. Although the live
-models.dev catalogue now lists `zai/glm-5.3-flash`, the pinned OpenCode 2.0.3
+models.dev catalogue now lists `zai/glm-5.3-flash`, the pinned OpenCode 2.0.4
 binary still embeds the older catalogue and runs with model fetching disabled.
 GLM therefore retains one explicit gateway profile and provenance rather than
 silently changing the frozen binary's model identity; its committed profile
