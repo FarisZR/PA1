@@ -113,17 +113,21 @@ def provider_toml(
         'preferred_auth_method = "apikey"',
         'forced_login_method = "api"',
         f"model_provider = {json.dumps(provider_id)}",
-        "",
-        f"[model_providers.{provider_id}]",
-        f"name = {json.dumps(name)}",
-        f"base_url = {json.dumps(base_url.rstrip('/'))}",
-        'wire_api = "responses"',
-        f"env_key = {json.dumps(env_key)}",
-        "requires_openai_auth = false",
-        "supports_websockets = false",
     ]
     if disable_web_search:
-        lines.extend(["", 'web_search = "disabled"'])
+        lines.append('web_search = "disabled"')
+    lines.extend(
+        [
+            "",
+            f"[model_providers.{provider_id}]",
+            f"name = {json.dumps(name)}",
+            f"base_url = {json.dumps(base_url.rstrip('/'))}",
+            'wire_api = "responses"',
+            f"env_key = {json.dumps(env_key)}",
+            "requires_openai_auth = false",
+            "supports_websockets = false",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -138,7 +142,6 @@ def third_party_codex_entry(
     default_reasoning_level: str,
     supported_reasoning_levels: list[dict[str, str]],
     supports_image_detail_original: bool,
-    supports_search_tool: bool = False,
 ) -> dict[str, object]:
     """Clone Sol and change only third-party identity/model metadata."""
     entry = copy.deepcopy(sol_profile)
@@ -157,15 +160,6 @@ def third_party_codex_entry(
             # Multi-Agent V2 and Responses Lite are OpenAI-only compatibility paths.
             "multi_agent_version": "v1",
             "use_responses_lite": False,
-            # Search is a separate hosted tool, not part of the benchmark task
-            # environment. Individual model jobs opt in only where required for
-            # historical comparability (currently Kimi K3).
-            "supports_search_tool": supports_search_tool,
-            "web_search_tool_type": (
-                sol_profile.get("web_search_tool_type")
-                if supports_search_tool
-                else None
-            ),
         }
     )
     return entry
@@ -227,7 +221,6 @@ def kimi_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
             },
         ],
         supports_image_detail_original=True,
-        supports_search_tool=True,
     )
 
 

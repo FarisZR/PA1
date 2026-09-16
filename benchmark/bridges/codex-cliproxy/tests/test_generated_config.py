@@ -23,6 +23,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import time
 import urllib.error
 import urllib.request
@@ -155,13 +156,20 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
         toml,
     )
     no_web_search_toml = (target / "codex-cliproxy-no-web-search.toml").read_text()
+    no_web_search_config = tomllib.loads(no_web_search_toml)
     check(
-        'web_search = "disabled"' in no_web_search_toml,
+        no_web_search_config.get("web_search") == "disabled",
         f"{label}: non-Kimi Codex TOML disables web search globally",
         no_web_search_toml,
     )
     check(
-        'web_search = "disabled"' not in toml,
+        "web_search"
+        not in no_web_search_config.get("model_providers", {}).get("cliproxy", {}),
+        f"{label}: web-search policy is not nested inside the provider table",
+        no_web_search_toml,
+    )
+    check(
+        "web_search" not in tomllib.loads(toml),
         f"{label}: Kimi Codex TOML keeps its existing web-search policy",
         toml,
     )
@@ -174,19 +182,6 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
         openai_no_web_search_toml,
     )
 
-    catalog = json.loads((target / "codex-thirdparty-models.json").read_text())
-    search_support = {
-        model["slug"]: model["supports_search_tool"] for model in catalog["models"]
-    }
-    check(
-        search_support == {
-            "deepseek-v4p1-flash": False,
-            "kimi-k3": True,
-            "glm-5p3-flash": False,
-        },
-        f"{label}: only Kimi retains Codex search support",
-        str(search_support),
-    )
 
     if include_opus:
         check("claude-api-key:" in config, "opus: Anthropic route present")
