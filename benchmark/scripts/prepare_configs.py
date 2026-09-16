@@ -100,13 +100,24 @@ def load_codex_sol_profile() -> dict[str, object]:
     return profile
 
 
-def provider_toml(provider_id: str, name: str, base_url: str, env_key: str) -> str:
+def provider_toml(
+    provider_id: str,
+    name: str,
+    base_url: str,
+    env_key: str,
+    *,
+    disable_web_search: bool = False,
+) -> str:
     """Render a minimal Codex Responses provider for a deployment URL."""
-    return "\n".join(
+    lines = [
+        'preferred_auth_method = "apikey"',
+        'forced_login_method = "api"',
+        f"model_provider = {json.dumps(provider_id)}",
+    ]
+    if disable_web_search:
+        lines.append('web_search = "disabled"')
+    lines.extend(
         [
-            'preferred_auth_method = "apikey"',
-            'forced_login_method = "api"',
-            f"model_provider = {json.dumps(provider_id)}",
             "",
             f"[model_providers.{provider_id}]",
             f"name = {json.dumps(name)}",
@@ -115,9 +126,9 @@ def provider_toml(provider_id: str, name: str, base_url: str, env_key: str) -> s
             f"env_key = {json.dumps(env_key)}",
             "requires_openai_auth = false",
             "supports_websockets = false",
-            "",
         ]
     )
+    return "\n".join(lines) + "\n"
 
 
 def third_party_codex_entry(
@@ -517,9 +528,20 @@ def main() -> None:
     # Retained as the control for issue #31: this is the direct corporate-gateway
     # Codex route that Fireworks rejects. No current job references it.
     litellm_toml = provider_toml("litellm", "LiteLLM", litellm_url, "LITELLM_API_KEY")
+    # Luna keeps Codex's built-in OpenAI model/provider. This file intentionally
+    # contains only the global policy override; Pier supplies openai_base_url as
+    # a CLI override from OPENAI_BASE_URL.
+    openai_no_web_search_toml = 'web_search = "disabled"\n'
     # The route every third-party Codex job actually uses.
     bridge_toml = provider_toml(
         "cliproxy", "CLIProxyAPI", bridge_url, "CODEX_CLIPROXY_API_KEY"
+    )
+    bridge_no_web_search_toml = provider_toml(
+        "cliproxy",
+        "CLIProxyAPI",
+        bridge_url,
+        "CODEX_CLIPROXY_API_KEY",
+        disable_web_search=True,
     )
 
     opus_entry = opus_codex_entry(sol_profile) if args.include_opus else None
@@ -557,7 +579,9 @@ def main() -> None:
 
     for name, contents in (
         ("codex-litellm.toml", litellm_toml),
+        ("codex-openai-no-web-search.toml", openai_no_web_search_toml),
         ("codex-cliproxy.toml", bridge_toml),
+        ("codex-cliproxy-no-web-search.toml", bridge_no_web_search_toml),
         ("codex-thirdparty-models.json", catalog_json),
     ):
         path = GENERATED_DIR / name

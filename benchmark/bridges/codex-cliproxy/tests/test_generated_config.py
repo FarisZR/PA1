@@ -23,6 +23,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import time
 import urllib.error
 import urllib.request
@@ -154,6 +155,33 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
         f"{label}: Codex provider TOML points at the bridge",
         toml,
     )
+    no_web_search_toml = (target / "codex-cliproxy-no-web-search.toml").read_text()
+    no_web_search_config = tomllib.loads(no_web_search_toml)
+    check(
+        no_web_search_config.get("web_search") == "disabled",
+        f"{label}: non-Kimi Codex TOML disables web search globally",
+        no_web_search_toml,
+    )
+    check(
+        "web_search"
+        not in no_web_search_config.get("model_providers", {}).get("cliproxy", {}),
+        f"{label}: web-search policy is not nested inside the provider table",
+        no_web_search_toml,
+    )
+    check(
+        "web_search" not in tomllib.loads(toml),
+        f"{label}: Kimi Codex TOML keeps its existing web-search policy",
+        toml,
+    )
+    openai_no_web_search_toml = (
+        target / "codex-openai-no-web-search.toml"
+    ).read_text()
+    check(
+        openai_no_web_search_toml == 'web_search = "disabled"\n',
+        f"{label}: Luna keeps the built-in OpenAI provider",
+        openai_no_web_search_toml,
+    )
+
 
     if include_opus:
         check("claude-api-key:" in config, "opus: Anthropic route present")
