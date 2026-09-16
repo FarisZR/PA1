@@ -48,6 +48,7 @@ agents:
     opencode_v2_config:
       update: disable
       share: disabled
+      websearch: false
       model: anthropic/claude-opus-5
       default_agent: build
       agents:

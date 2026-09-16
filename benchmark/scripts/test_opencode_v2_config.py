@@ -77,21 +77,27 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
         self.assertIn("model_name: openai/gpt-5.6-luna", luna)
         self.assertIn("variant: max", luna)
         self.assertIn("baseURL: '{env:LITELLM_OPENAI_BASE_URL}'", luna)
-        self.assertNotIn("models:", luna)
+        self.assertIn("models:\n            gpt-5.6-luna:", luna)
+        self.assertIn("max_output_tokens: 128000", luna)
+        self.assertIn("websearch: false", luna)
 
     def test_staged_profile_rejects_contradictory_inherited_limits(self) -> None:
         rendered = """
+model_name: openai/gpt-5.6-luna
+variant: max
+websearch: false
 providers:
-  litellm:
-    package: '@opencode-ai/ai/providers/openai/responses'
-    models:
-      gpt-5.6-luna:
-        limit:
-          context: 272000
-          input: 922000
-          output: 128000
+        openai:
+          models:
+            gpt-5.6-luna:
+              limit:
+                context: 272000
+                input: 922000
+                output: 128000
+              body:
+                max_output_tokens: 128000
 """
-        with self.assertRaisesRegex(SystemExit, "built-in openai/gpt-5.6-luna"):
+        with self.assertRaisesRegex(SystemExit, "input limit 922000 exceeds context"):
             prepare_configs.validate_staged_opencode_v2_profile(
                 Path("luna.yaml"),
                 rendered,
@@ -373,7 +379,8 @@ providers:
         self.assertIn("model_name: openai/gpt-5.6-luna", contents)
         self.assertIn("env:\n          - LITELLM_API_KEY", contents)
         self.assertIn("baseURL: '{env:LITELLM_OPENAI_BASE_URL}'", contents)
-        self.assertNotIn("models:", contents)
+        self.assertIn("models:\n            gpt-5.6-luna:", contents)
+        self.assertIn("max_output_tokens: 128000", contents)
 
 
 if __name__ == "__main__":

@@ -20,24 +20,29 @@ Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 `benchmark/configs/opencode-v2/smoke.yaml` also uses `low`; both are
 intentionally separate from the primary jobs.
 
-Kimi and DeepSeek retain their staged OpenAI Responses transport and use
-`max_output_tokens`; GLM uses Chat Completions with `max_tokens`.
-Every profile keeps a single `reasoningEffort` and an explicit model-body
-output cap. Although the current live models.dev catalogue now lists
-`zai/glm-5.3-flash`, the pinned OpenCode 2.0.3 binary still embeds the older
-catalogue and runs with model fetching disabled. GLM therefore retains one
-explicit gateway profile and provenance rather than silently changing the
-frozen binary's model identity; its committed profile and provenance are in
-`benchmark/references/opencode-v2-glm-5.3-flash.json`. Luna retains the
-built-in OpenAI Responses route. The 272k Luna context policy explicitly sets
-`limit.input: 144000` beside its 128k output ceiling so canonical inheritance
-cannot retain the incompatible 922k input value. Opus has no gateway base URL
-and remains on the direct Anthropic API route.
+Kimi and DeepSeek use their built-in Chat Completions profiles; Luna retains
+the built-in OpenAI Responses profile. Each has only a small inherited
+`models:` overlay for the route-specific output field (and DeepSeek's missing
+`max` variant), so the canonical catalogue identity is not replaced. Every
+profile keeps a single `reasoningEffort` and an explicit model-body output cap.
+Luna's inherited limits are `context: 1050000`, `input: 922000`, and
+`output: 128000`, matching the current models.dev profile. Although the live
+models.dev catalogue now lists `zai/glm-5.3-flash`, the pinned OpenCode 2.0.3
+binary still embeds the older catalogue and runs with model fetching disabled.
+GLM therefore retains one explicit gateway profile and provenance rather than
+silently changing the frozen binary's model identity; its committed profile
+and provenance are in `benchmark/references/opencode-v2-glm-5.3-flash.json`.
+Opus has no gateway base URL and remains on the direct Anthropic API route.
+
+Web search is disabled in every staged and acceptance OpenCode V2 profile
+except Kimi K3, which explicitly selects the native `random` web-search
+provider. This policy is tracked in [#48](https://github.com/FarisZR/PA1/issues/48).
 
 Do not run a staged job until `benchmark/scripts/verify_opencode_v2.py` has
 passed its offline checks and the per-model live/provider gate is recorded.
 
 Issue links: [#41](https://github.com/FarisZR/PA1/issues/41) adapter
-implementation and websearch disable, [#40](https://github.com/FarisZR/PA1/issues/40)
+implementation, [#48](https://github.com/FarisZR/PA1/issues/48) web-search
+policy, [#40](https://github.com/FarisZR/PA1/issues/40)
 max-output regression (explicit model-body override), [#37](https://github.com/FarisZR/PA1/issues/37)
 transport-retry policy, [#9](https://github.com/FarisZR/PA1/issues/9) V2 decision.

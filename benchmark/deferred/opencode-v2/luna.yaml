@@ -49,6 +49,7 @@ agents:
     opencode_v2_config:
       update: disable
       share: disabled
+      websearch: false
       model: openai/gpt-5.6-luna
       default_agent: build
       providers:
@@ -57,6 +58,16 @@ agents:
           - LITELLM_API_KEY
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
+          # Preserve the built-in Responses profile while making its output
+          # ceiling explicit on the gateway wire.
+          models:
+            gpt-5.6-luna:
+              limit:
+                context: 1050000
+                input: 922000
+                output: 128000
+              body:
+                max_output_tokens: 128000
       agents:
         build: {model: openai/gpt-5.6-luna}
         plan: {model: openai/gpt-5.6-luna}

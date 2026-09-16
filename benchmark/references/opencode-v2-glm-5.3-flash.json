@@ -9,7 +9,7 @@
     "model_present": false,
     "live_models_dev_check": {
       "source": "https://models.dev/api.json",
-      "checked": "2026-09-15",
+      "checked": "2026-09-16",
       "model_present": true,
       "canonical_provider": "zai",
       "model_id": "glm-5.3-flash",

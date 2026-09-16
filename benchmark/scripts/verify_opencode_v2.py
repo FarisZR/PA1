@@ -22,6 +22,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import copy
 import fcntl
 import json
 import math
@@ -103,7 +104,7 @@ IDLE_FILE = Path(os.environ["PA1_FAKE_IDLE_FILE"])
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
-    def _record(self, body: dict) -> None:
+    def _record(self, body: dict, response_usage: dict | None = None) -> None:
         RECORD_DIR.mkdir(parents=True, exist_ok=True)
         request_id = uuid.uuid4().hex
         path = RECORD_DIR / f"req-{request_id}.json"
@@ -113,6 +114,7 @@ class Handler(BaseHTTPRequestHandler):
             "scenario": SCENARIO_FILE.read_text().strip(),
             "path": self.path,
             "body": body,
+            "response_usage": response_usage,
         }, indent=1))
 
     def do_POST(self):
@@ -122,7 +124,6 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(raw or b"{}")
         except json.JSONDecodeError:
             body = {"unparseable": raw.decode(errors="replace")}
-        self._record(body)
         scenario = SCENARIO_FILE.read_text().strip()
         STATE_LOCK.touch(exist_ok=True)
         with STATE_LOCK.open("r+") as lock:
@@ -131,6 +132,30 @@ class Handler(BaseHTTPRequestHandler):
             count = state.get(scenario, 0) + 1
             state[scenario] = count
             STATE_FILE.write_text(json.dumps(state))
+
+        failed_attempt = (
+            scenario in {"http-401", "server-death"}
+            or scenario in {"http-429", "http-503"} and count < 3
+            or scenario == "http-429-retry-after" and count < 2
+            or scenario == "partial-stream" and count < 2
+        )
+        response_usage = None
+        if not failed_attempt and scenario != "usage-missing":
+            if self.path.rstrip("/").endswith("/responses"):
+                response_usage = {
+                    "input_tokens": 12,
+                    "output_tokens": 34,
+                    "input_tokens_details": {"cached_tokens": 2},
+                    "output_tokens_details": {"reasoning_tokens": 5},
+                }
+            else:
+                response_usage = {
+                    "prompt_tokens": 12,
+                    "completion_tokens": 34,
+                    "prompt_tokens_details": {"cached_tokens": 2},
+                    "completion_tokens_details": {"reasoning_tokens": 5},
+                }
+        self._record(body, response_usage=response_usage)
 
         if scenario == "http-401":
             self._plain(401, {"error": {"message": "bad key", "type": "auth"}})
@@ -1397,17 +1422,37 @@ def offline_contract(pier_root: Path, provider: FakeProvider, root: Path) -> Non
             if agent_steps
             else None
         )
+        provider_record = next(
+            (
+                record
+                for record in result.get("request_records", [])
+                if record.get("response_usage")
+            ),
+            {},
+        )
+        provider_usage = provider_record.get("response_usage") or {}
+        provider_completion_tokens = provider_usage.get("completion_tokens")
+        if provider_completion_tokens is None:
+            provider_completion_tokens = provider_usage.get("output_tokens")
+        completion_details = provider_usage.get("completion_tokens_details") or {}
+        if not completion_details:
+            completion_details = provider_usage.get("output_tokens_details") or {}
+        provider_reasoning_tokens = completion_details.get("reasoning_tokens")
         evidence["normalized_usage_contract"] = {
-            "provider_completion_tokens": 34,
-            "provider_reasoning_tokens": 5,
+            "provider_usage": provider_usage,
+            "provider_completion_tokens": provider_completion_tokens,
+            "provider_reasoning_tokens": provider_reasoning_tokens,
             "persisted_visible_output_tokens": tokens.get("output"),
             "persisted_reasoning_tokens": tokens.get("reasoning"),
             "atif_completion_tokens": atif_completion,
         }
         check(
-            tokens.get("output") == 29
-            and tokens.get("reasoning") == 5
-            and atif_completion == 34,
+            provider_completion_tokens is not None
+            and provider_reasoning_tokens is not None
+            and tokens.get("output")
+            == provider_completion_tokens - provider_reasoning_tokens
+            and tokens.get("reasoning") == provider_reasoning_tokens
+            and atif_completion == provider_completion_tokens,
             "offline: provider completion is split into visible output plus reasoning and reconstructed once",
             json.dumps(evidence["normalized_usage_contract"], sort_keys=True),
         )
@@ -1416,49 +1461,81 @@ def offline_contract(pier_root: Path, provider: FakeProvider, root: Path) -> Non
 def offline_primary_responses_profiles(
     pier_root: Path, provider: FakeProvider, root: Path
 ) -> None:
-    """Run every staged OpenAI Responses profile on the pinned executable."""
+    """Execute the committed staged primary profiles on the pinned executable."""
+    try:
+        import yaml
+    except ImportError as error:  # pragma: no cover - environment prerequisite
+        raise SystemExit(
+            "offline staged-profile verification requires PyYAML to read committed YAML"
+        ) from error
+
+    staged_dir = BENCHMARK_DIR / "deferred" / "opencode-v2"
     cases = (
-        ("kimi-k3", 1048576, None, 131072),
-        ("deepseek-v4p1-flash", 1000000, None, 384000),
-        ("gpt-5.6-luna", 272000, 144000, 128000),
+        ("kimi-k3.yaml", "/v1/chat/completions", "max_tokens", 131072, {}),
+        (
+            "deepseek-v4p1-flash.yaml",
+            "/v1/chat/completions",
+            "max_tokens",
+            384000,
+            {"context": 1000000, "output": 384000},
+        ),
+        (
+            "luna.yaml",
+            "/v1/responses",
+            "max_output_tokens",
+            128000,
+            {"context": 1050000, "input": 922000, "output": 128000},
+        ),
     )
     evidence["offline_primary_responses"] = {}
-    for model_id, context_limit, input_limit, output_limit in cases:
-        limit = {"context": context_limit, "output": output_limit}
-        if input_limit is not None:
-            limit["input"] = input_limit
-        config = {
-            "providers": {
-                "litellm": {
-                    "name": "LiteLLM",
-                    "canonical": "openai",
-                    "env": ["LITELLM_API_KEY"],
-                    "package": "@opencode-ai/ai/providers/openai/responses",
-                    "settings": {"baseURL": "__BASE_URL__"},
-                    "models": {
-                        model_id: {
-                            "modelID": model_id,
-                            "limit": limit,
-                            "body": {"max_output_tokens": output_limit},
-                            "variants": [
-                                {
-                                    "id": "max",
-                                    "settings": {"reasoningEffort": "max"},
-                                }
-                            ],
-                        }
-                    },
-                }
-            }
-        }
+    for filename, expected_path, cap_field, cap_value, expected_limits in cases:
+        document = yaml.safe_load((staged_dir / filename).read_text()) or {}
+        agent = (document.get("agents") or [{}])[0]
+        kwargs = agent.get("kwargs") or {}
+        model_name = agent.get("model_name")
+        variant = kwargs.get("variant")
+        config = copy.deepcopy(kwargs.get("opencode_v2_config") or {})
+        model_id = model_name.split("/", 1)[1] if "/" in model_name else model_name
+        provider_name = model_name.split("/", 1)[0]
+        provider_config = (config.get("providers") or {}).get(provider_name) or {}
+        configured_model = config.get("model")
+        model_config = (provider_config.get("models") or {}).get(model_id) or {}
+        expected_websearch = (
+            {"provider": "random"} if filename == "kimi-k3.yaml" else False
+        )
+        check(
+            configured_model == model_name,
+            f"offline: staged {filename} keeps the configured built-in model identity",
+            json.dumps({"model_name": model_name, "config_model": configured_model}),
+        )
+        check(
+            config.get("websearch") == expected_websearch,
+            f"offline: staged {filename} has the expected web-search policy",
+            json.dumps(config.get("websearch")),
+        )
+        check(
+            (model_config.get("body") or {}).get(cap_field) == cap_value,
+            f"offline: staged {filename} declares its transport output cap",
+            json.dumps(model_config),
+        )
+        check(
+            (model_config.get("limit") or {}) == expected_limits,
+            f"offline: staged {filename} carries the committed limit overlay",
+            json.dumps(model_config.get("limit") or {}),
+        )
+        check(
+            provider_config.get("package") is None,
+            f"offline: staged {filename} inherits the built-in provider package",
+            json.dumps(provider_config),
+        )
         provider.scenario("ok")
         result = offline_probe(
             pier_root,
             provider,
             root,
-            model_name=f"litellm/{model_id}",
-            restrict_model=f"litellm/{model_id}",
-            variant="max",
+            model_name=model_name,
+            restrict_model=model_name,
+            variant=variant,
             opencode_config=config,
         )
         request = result["request_records"][0] if result["request_records"] else {}
@@ -1468,21 +1545,30 @@ def offline_primary_responses_profiles(
             "request_count": len(result["request_records"]),
             "path": request.get("path"),
             "model": body.get("model"),
-            "max_output_tokens": body.get("max_output_tokens"),
+            "configured_model": configured_model,
+            "variant": variant,
+            "package": provider_config.get("package"),
+            "limits": model_config.get("limit") or {},
+            "output_cap": body.get(cap_field),
+            "reasoning_effort": body.get("reasoning_effort"),
             "reasoning": body.get("reasoning"),
             "errors": find_errors(result["events"]),
         }
-        evidence["offline_primary_responses"][model_id] = details
+        evidence["offline_primary_responses"][filename] = details
         check(
             result["returncode"] == 0
             and details["request_count"] == 1
-            and details["path"] == "/v1/responses"
+            and details["path"] == expected_path
             and details["model"] == model_id
-            and details["max_output_tokens"] == output_limit
-            and (details["reasoning"] or {}).get("effort") == "max"
-            and set(details["reasoning"] or {}) <= {"effort", "summary"}
+            and details["output_cap"] == cap_value
+            and (
+                details["reasoning_effort"] == "max"
+                if expected_path == "/v1/chat/completions"
+                else (details["reasoning"] or {}).get("effort") == "max"
+                and set(details["reasoning"] or {}) <= {"effort", "summary"}
+            )
             and not details["errors"],
-            f"offline: staged {model_id} Responses profile executes",
+            f"offline: staged {filename} executes",
             json.dumps(details),
         )
 

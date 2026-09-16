@@ -28,6 +28,7 @@ agents:
         linux-arm64: bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693
       restrict_model: true
       opencode_v2_config:
+        websearch: false
         providers:
           litellm:
             name: LiteLLM
@@ -72,6 +73,7 @@ agents:
         linux-arm64: bc35547e678c68aaec1b2aa1623d1d77ec2585db6204574724826e40f20a7693
       restrict_model: true
       opencode_v2_config:
+        websearch: false
         providers:
           openai:
             env: [LITELLM_API_KEY]

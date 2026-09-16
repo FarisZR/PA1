@@ -49,6 +49,8 @@ agents:
     opencode_v2_config:
       update: disable
       share: disabled
+      websearch:
+        provider: random
       model: moonshotai/kimi-k3
       default_agent: build
       providers:
@@ -57,6 +59,12 @@ agents:
           - LITELLM_API_KEY
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
+          # Preserve the built-in profile while restoring the Chat
+          # Completions output cap required by the benchmark route.
+          models:
+            kimi-k3:
+              body:
+                max_tokens: 131072
       agents:
         build: {model: moonshotai/kimi-k3}
         plan: {model: moonshotai/kimi-k3}

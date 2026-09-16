@@ -49,6 +49,7 @@ agents:
     opencode_v2_config:
       update: disable
       share: disabled
+      websearch: false
       model: litellm/glm-5p3-flash#max
       default_agent: build
       providers:

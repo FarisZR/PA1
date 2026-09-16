@@ -498,6 +498,10 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
                 f"{path}: GLM low must use reasoningEffort alone; "
                 "do not add a conflicting thinking control"
             )
+    if "opencode_v2_config:" in rendered and "websearch:" not in rendered:
+        raise SystemExit(
+            f"{path}: every OpenCode V2 config must declare its web-search policy"
+        )
 
 
 def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:
@@ -545,7 +549,7 @@ def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:
 def validate_staged_opencode_v2_profile(
     path: Path, rendered: str, model_ref: str, *, require_input: bool = False
 ) -> None:
-    """Require a built-in model profile with only provider transport overrides."""
+    """Validate a staged built-in profile and its minimal route overrides."""
     if f"model_name: {model_ref}" not in rendered or "#" in rendered.split(
         "model_name:", 1
     )[1].splitlines()[0]:
@@ -564,11 +568,79 @@ def validate_staged_opencode_v2_profile(
             f"{path}: {model_ref} must override the built-in {provider} "
             "provider transport settings"
         )
-    if "models:" in rendered:
-        raise SystemExit(
-            f"{path}: {model_ref} must keep the built-in model profile; "
-            "do not define a custom models block"
+    if model_ref == "moonshotai/kimi-k3":
+        required = (
+            "websearch:\n        provider: random",
+            "models:\n            kimi-k3:",
+            "max_tokens: 131072",
         )
+    elif model_ref == "deepseek/deepseek-v4p1-flash":
+        required = (
+            "websearch: false",
+            "models:\n            deepseek-v4p1-flash:",
+            "context: 1000000",
+            "output: 384000",
+            "max_tokens: 384000",
+            "reasoningEffort: max",
+        )
+    elif model_ref == "openai/gpt-5.6-luna":
+        required = (
+            "websearch: false",
+            "models:\n            gpt-5.6-luna:",
+            "max_output_tokens: 128000",
+        )
+    else:
+        raise SystemExit(f"{path}: unsupported staged OpenCode V2 model {model_ref!r}")
+    missing = [needle for needle in required if needle not in rendered]
+    if missing:
+        raise SystemExit(
+            f"{path}: {model_ref} is missing inherited-profile override(s): "
+            + ", ".join(repr(item) for item in missing)
+        )
+
+    if require_input:
+        limits = _model_limit_values(rendered, model_ref.rsplit("/", 1)[1])
+        input_limit = limits.get("input")
+        context_limit = limits.get("context")
+        if input_limit is None or context_limit is None:
+            raise SystemExit(
+                f"{path}: {model_ref} must declare both input and context limits"
+            )
+        if input_limit > context_limit:
+            raise SystemExit(
+                f"{path}: {model_ref} input limit {input_limit} exceeds "
+                f"context limit {context_limit}"
+            )
+
+
+def _validate_staged_explicit_profile(
+    path: Path, rendered: str, model_ref: str, variant: str
+) -> None:
+    """Validate the explicit frozen-catalogue exception or direct Anthropic profile."""
+    required = (
+        f"model_name: {model_ref}",
+        f"variant: {variant}",
+        "websearch: false",
+    )
+    missing = [needle for needle in required if needle not in rendered]
+    if missing:
+        raise SystemExit(
+            f"{path}: staged profile is missing "
+            + ", ".join(repr(item) for item in missing)
+        )
+    if model_ref == "litellm/glm-5p3-flash":
+        required_glm = (
+            "models:\n            glm-5p3-flash:",
+            "modelID: glm-5p3-flash",
+            "max_tokens: 131072",
+            "reasoningEffort: max",
+        )
+        missing_glm = [needle for needle in required_glm if needle not in rendered]
+        if missing_glm:
+            raise SystemExit(
+                f"{path}: GLM explicit profile is missing "
+                + ", ".join(repr(item) for item in missing_glm)
+            )
 
 
 def validate_staged_opencode_v2_profiles() -> None:
@@ -581,6 +653,13 @@ def validate_staged_opencode_v2_profiles() -> None:
             model_id,
             require_input=filename == "luna.yaml",
         )
+    explicit_profiles = {
+        "glm-5.3-flash.yaml": ("litellm/glm-5p3-flash", "max"),
+        "opus.yaml": ("anthropic/claude-opus-5", "medium"),
+    }
+    for filename, (model_ref, variant) in explicit_profiles.items():
+        path = BENCHMARK_DIR / "deferred" / "opencode-v2" / filename
+        _validate_staged_explicit_profile(path, path.read_text(), model_ref, variant)
 
 
 def validate_claude_output_policy() -> None:
