@@ -11,9 +11,10 @@ Pier uses GET /api/status and POST /api/experimental/session/{id}/wait
 directly. There is no legacy endpoint fallback or release pin in the adapter.
 The current web-search policy and explicit output-body overrides are preserved.
 
-The review's 37 targeted actual-binary checks passed after these endpoint
-changes, including GLM, Kimi, DeepSeek, Luna, normalized usage and native
-compaction. The updated PA1 config and budget tests also pass (14 tests).
+Final verification passed 53/53 actual-binary offline assertions, 131 focused
+Pier tests and 14 PA1 config/budget tests. Coverage includes GLM, Kimi, DeepSeek,
+Luna, normalized usage, native compaction, retry and failure handling, output
+caps, model restriction and simultaneous trial isolation.
 No paid requests were made; the direct Anthropic route was not exercised.
 The existing live-budget and retry-policy limitations below remain unresolved.
 
