@@ -26,14 +26,14 @@ primary jobs for one consistent workflow.
 
 Claude Opus 5 and OpenCode 2 are deferred and are not part of the commands above.
 
-## OpenCode V2 acceptance and staged profiles
+## OpenCode V2 verification, smoke tests, and staged profiles
 
 Pier's `opencode-v2` adapter is exercised separately from the current Pi /
-Claude Code / Codex primary jobs. The acceptance job is
-`benchmark/configs/opencode-v2/glm-5.3-flash-acceptance.yaml`: it uses only GLM
-5.3 Flash with the gateway alias `glm-5p3-flash` and the `low` variant. It has
-zero automatic whole-trial retries. The existing primary jobs retain their
-current reasoning settings; `low` must not be copied into a primary config.
+Claude Code / Codex primary jobs. There are two small jobs under
+`benchmark/configs/opencode-v2/`: `smoke.yaml` covers GLM and Luna, while
+`delegation-smoke.yaml` requires a real GLM native subagent. Both use `low`,
+have zero automatic whole-trial retries, and leave primary reasoning settings
+unchanged.
 
 Run the deterministic verifier before any gateway call:
 
@@ -50,8 +50,8 @@ python3 benchmark/scripts/verify_opencode_v2.py \
   --output-dir /absolute/path/to/evidence/live
 ```
 
-The verifier reads the release version and archive checksum from the acceptance
-YAML and checks them against the reference provenance and other OpenCode job
+The verifier reads the release version and archive checksum from the smoke YAML
+and checks them against the reference provenance and other OpenCode job
 configs. It uses a disposable loopback fake provider and the pinned
 `@opencode/cli-linux-x64` 2.0.4 bytes. It never reads `benchmark/env.local` in
 offline mode. Live mode accepts credentials only from an explicitly supplied
@@ -86,10 +86,10 @@ Tracked decisions and regressions for this gate:
 [PA1 #41](https://github.com/FarisZR/PA1/issues/41) (OpenCode V2 adapter
 implementation; web search is disabled except for Kimi K3 to preserve the 2026-08-31 configuration),
 [#40](https://github.com/FarisZR/PA1/issues/40) (V2 does not set max output
-tokens; the acceptance wire control is `limit.output` metadata plus an explicit
+tokens; the smoke wire control is `limit.output` metadata plus an explicit
 Chat Completions `max_tokens` model body),
 [#37](https://github.com/FarisZR/PA1/issues/37) (per-harness transport-retry
-policy; the acceptance job runs with retries disabled so adapter faults stay
+policy; the smoke jobs run with retries disabled so adapter faults stay
 visible), and [#9](https://github.com/FarisZR/PA1/issues/9) (V1 vs V2
 decision: V2, npm scope `@opencode`, pinned `2.0.4`).
 

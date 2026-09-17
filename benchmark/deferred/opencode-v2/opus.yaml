@@ -49,13 +49,3 @@ agents:
       update: disable
       share: disabled
       websearch: false
-      model: anthropic/claude-opus-5
-      default_agent: build
-      agents:
-        build: {model: anthropic/claude-opus-5}
-        plan: {model: anthropic/claude-opus-5}
-        general: {model: anthropic/claude-opus-5}
-        explore: {model: anthropic/claude-opus-5}
-        title: {model: anthropic/claude-opus-5}
-        summary: {model: anthropic/claude-opus-5}
-        compaction: {model: anthropic/claude-opus-5}

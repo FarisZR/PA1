@@ -51,8 +51,6 @@ agents:
       share: disabled
       websearch:
         provider: random
-      model: moonshotai/kimi-k3
-      default_agent: build
       providers:
         moonshotai:
           env:
@@ -65,11 +63,3 @@ agents:
             kimi-k3:
               body:
                 max_tokens: 131072
-      agents:
-        build: {model: moonshotai/kimi-k3}
-        plan: {model: moonshotai/kimi-k3}
-        general: {model: moonshotai/kimi-k3}
-        explore: {model: moonshotai/kimi-k3}
-        title: {model: moonshotai/kimi-k3}
-        summary: {model: moonshotai/kimi-k3}
-        compaction: {model: moonshotai/kimi-k3}

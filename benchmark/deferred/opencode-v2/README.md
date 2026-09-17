@@ -14,11 +14,9 @@ not change benchmark selection or start spending. The staged order is:
 Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 `kwargs.variant: max`; the adapter emits OpenCode's native
 `provider/model#max` selection internally. Direct-Anthropic Opus remains
-`medium`. The acceptance-only profile in
-`benchmark/configs/opencode-v2/glm-5.3-flash-acceptance.yaml` is the sole
-`low` acceptance configuration. The tiny GLM/Luna smoke under
-`benchmark/configs/opencode-v2/smoke.yaml` also uses `low`; both are
-intentionally separate from the primary jobs.
+`medium`. The tiny GLM/Luna smoke and dedicated GLM delegation smoke under
+`benchmark/configs/opencode-v2/` use `low`; both are intentionally separate
+from the primary jobs.
 
 Kimi and DeepSeek use their built-in Chat Completions profiles; Luna retains
 the built-in OpenAI Responses profile. Each has only a small inherited
@@ -34,7 +32,7 @@ silently changing the frozen binary's model identity; its committed profile
 and provenance are in `benchmark/references/opencode-v2-glm-5.3-flash.json`.
 Opus has no gateway base URL and remains on the direct Anthropic API route.
 
-Web search is disabled in every staged and acceptance OpenCode V2 profile
+Web search is disabled in every staged and smoke OpenCode V2 profile
 except Kimi K3, which explicitly selects the native `random` web-search
 provider. This policy is tracked in [#48](https://github.com/FarisZR/PA1/issues/48).
 

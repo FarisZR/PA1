@@ -50,8 +50,6 @@ agents:
       update: disable
       share: disabled
       websearch: false
-      model: litellm/glm-5p3-flash#max
-      default_agent: build
       providers:
         litellm:
           canonical: openai
@@ -86,11 +84,3 @@ agents:
               - id: max
                 settings:
                   reasoningEffort: max
-      agents:
-        build: {model: litellm/glm-5p3-flash#max}
-        plan: {model: litellm/glm-5p3-flash#max}
-        general: {model: litellm/glm-5p3-flash#max}
-        explore: {model: litellm/glm-5p3-flash#max}
-        title: {model: litellm/glm-5p3-flash#max}
-        summary: {model: litellm/glm-5p3-flash#max}
-        compaction: {model: litellm/glm-5p3-flash#max}

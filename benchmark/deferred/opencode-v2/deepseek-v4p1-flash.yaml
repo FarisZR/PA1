@@ -50,8 +50,6 @@ agents:
       update: disable
       share: disabled
       websearch: false
-      model: deepseek/deepseek-v4p1-flash
-      default_agent: build
       providers:
         deepseek:
           env:
@@ -71,11 +69,3 @@ agents:
               - id: max
                 settings:
                   reasoningEffort: max
-      agents:
-        build: {model: deepseek/deepseek-v4p1-flash}
-        plan: {model: deepseek/deepseek-v4p1-flash}
-        general: {model: deepseek/deepseek-v4p1-flash}
-        explore: {model: deepseek/deepseek-v4p1-flash}
-        title: {model: deepseek/deepseek-v4p1-flash}
-        summary: {model: deepseek/deepseek-v4p1-flash}
-        compaction: {model: deepseek/deepseek-v4p1-flash}

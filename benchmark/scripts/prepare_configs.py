@@ -20,11 +20,10 @@ CURRENT_MODEL_CONFIGS = {
     "deepseek-v4p1-flash.yaml": 1,
     "glm-5.3-flash.yaml": 1,
     "luna.yaml": 0,
-    "opencode-v2/glm-5.3-flash-acceptance.yaml": 1,
     "opencode-v2/smoke.yaml": 2,
     "opencode-v2/delegation-smoke.yaml": 1,
 }
-OPENCODE_V2_ACCEPTANCE_CONFIG = "opencode-v2/glm-5.3-flash-acceptance.yaml"
+OPENCODE_V2_SMOKE_CONFIG = "opencode-v2/smoke.yaml"
 OPENCODE_V2_RESPONSES_PACKAGE = "@opencode-ai/ai/providers/openai/responses"
 STAGED_OPENCODE_V2_MODELS = {
     "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
@@ -462,17 +461,17 @@ def render_model_config(path: Path, base_url: str, expected_sentinels: int) -> s
 
 
 def validate_opencode_v2_config(path: Path, rendered: str) -> None:
-    """Validate the acceptance-only OpenCode V2 profile at generation time.
+    """Validate an OpenCode V2 smoke profile at generation time.
 
     OpenCode's JSON schema accepts both ``limit.output`` metadata and a model
     request ``body``.  The former alone did not put an output cap on the wire
     in the frozen 2.0.3 executable (PA1 #40), so silently dropping this body
-    override would turn a generated acceptance job into an unbounded probe.
+    override would turn a generated smoke job into an unbounded probe.
     Keep this check text-based to preserve the generator's zero-runtime-
     dependency contract and to catch conflicting reasoning controls before any
     deployment files are written.
     """
-    if path.as_posix().endswith(OPENCODE_V2_ACCEPTANCE_CONFIG):
+    if path.as_posix().endswith(OPENCODE_V2_SMOKE_CONFIG):
         required = (
             "name: opencode-v2",
             "model_name: litellm/glm-5p3-flash",
@@ -488,7 +487,7 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
         missing = [needle for needle in required if needle not in rendered]
         if missing:
             raise SystemExit(
-                f"{path}: OpenCode V2 acceptance profile is missing "
+                f"{path}: OpenCode V2 GLM smoke profile is missing "
                 + ", ".join(repr(item) for item in missing)
             )
         if "thinking:" in rendered:

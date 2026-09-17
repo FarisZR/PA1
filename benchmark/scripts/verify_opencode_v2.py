@@ -47,8 +47,8 @@ def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
     """Read release selection from committed jobs and verify recorded provenance."""
     import yaml
 
-    acceptance = benchmark_dir / "configs/opencode-v2/glm-5.3-flash-acceptance.yaml"
-    job = yaml.safe_load(acceptance.read_text())
+    smoke = benchmark_dir / "configs/opencode-v2/smoke.yaml"
+    job = yaml.safe_load(smoke.read_text())
     kwargs = job["agents"][0]["kwargs"]
     version = str(kwargs["version"])
     checksums = kwargs["opencode_v2_checksums"]
@@ -56,7 +56,7 @@ def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
         (benchmark_dir / "references/opencode-v2-glm-5.3-flash.json").read_text()
     )
     if reference["version"] != version or reference["sha256"] != checksums["linux-x64"]:
-        raise ValueError("OpenCode release provenance does not match the acceptance config")
+        raise ValueError("OpenCode release provenance does not match the smoke config")
     for path in (
         *sorted((benchmark_dir / "configs/opencode-v2").glob("*.yaml")),
         *sorted((benchmark_dir / "deferred/opencode-v2").glob("*.yaml")),
@@ -69,7 +69,7 @@ def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
                 str(selected.get("version")) != version
                 or selected.get("opencode_v2_checksums") != checksums
             ):
-                raise ValueError(f"{path}: release pin differs from the acceptance config")
+                raise ValueError(f"{path}: release pin differs from the smoke config")
     return {
         "version": version,
         "tarball_sha256": checksums["linux-x64"],
@@ -1536,8 +1536,8 @@ def offline_primary_responses_profiles(
             {"provider": "random"} if filename == "kimi-k3.yaml" else False
         )
         check(
-            configured_model == model_name,
-            f"offline: staged {filename} keeps the configured built-in model identity",
+            configured_model is None,
+            f"offline: staged {filename} leaves model pinning to adapter kwargs",
             json.dumps({"model_name": model_name, "config_model": configured_model}),
         )
         check(

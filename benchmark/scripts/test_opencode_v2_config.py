@@ -44,7 +44,7 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
             refs = root / "references"
             configs.mkdir(parents=True)
             refs.mkdir()
-            path = configs / "glm-5.3-flash-acceptance.yaml"
+            path = configs / "smoke.yaml"
             job = {
                 "agents": [{
                     "name": "opencode-v2",
@@ -63,17 +63,17 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
             ref.write_text(json.dumps(provenance))
             self.assertEqual(verify_opencode_v2.load_cli_pin(root)["version"], "2.9.9")
             job["agents"][0]["kwargs"]["version"] = "2.9.8"
-            (configs / "smoke.yaml").write_text(yaml.safe_dump(job))
+            (configs / "delegation-smoke.yaml").write_text(yaml.safe_dump(job))
             with self.assertRaisesRegex(ValueError, "release pin differs"):
                 verify_opencode_v2.load_cli_pin(root)
-            (configs / "smoke.yaml").unlink()
+            (configs / "delegation-smoke.yaml").unlink()
             provenance["version"] = "2.9.8"
             ref.write_text(json.dumps(provenance))
             with self.assertRaisesRegex(ValueError, "provenance"):
                 verify_opencode_v2.load_cli_pin(root)
 
     def test_generator_accepts_new_exact_versions_without_source_changes(self) -> None:
-        source = BENCHMARK / "configs/opencode-v2/glm-5.3-flash-acceptance.yaml"
+        source = BENCHMARK / "configs/opencode-v2/smoke.yaml"
         rendered = source.read_text().replace(
             f'version: "{verify_opencode_v2.OFFLINE_CLI_VERSION}"', 'version: "2.9.9"'
         )
@@ -181,10 +181,10 @@ providers:
             ):
                 verify_opencode_v2.approved_max_cost(value)
 
-    def test_acceptance_template_has_explicit_chat_output_override(self) -> None:
-        source = BENCHMARK / "configs" / "opencode-v2" / "glm-5.3-flash-acceptance.yaml"
+    def test_smoke_template_has_explicit_chat_output_override(self) -> None:
+        source = BENCHMARK / "configs" / "opencode-v2" / "smoke.yaml"
         rendered = prepare_configs.render_model_config(
-            source, "https://gateway.example/v1", expected_sentinels=1
+            source, "https://gateway.example/v1", expected_sentinels=2
         )
         prepare_configs.validate_opencode_v2_config(source, rendered)
         self.assertIn("limit:\n                  context: 1048576", rendered)
@@ -226,7 +226,7 @@ providers:
                     str(env_file),
                 ]
                 prepare_configs.main()
-                generated = target / "opencode-v2" / "glm-5.3-flash-acceptance.yaml"
+                generated = target / "opencode-v2" / "delegation-smoke.yaml"
                 self.assertTrue(generated.exists())
                 contents = generated.read_text()
                 self.assertIn("baseURL: https://gateway.example/v1", contents)
