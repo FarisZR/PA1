@@ -1,7 +1,7 @@
-# Tiny real-task smoke for the OpenCode V2 adapter. This is intentionally
-# separate from primary benchmark jobs: both models run at low effort, output
-# is capped at 8192, retries are disabled, and only one trivial task is used.
-job_name: opencode-v2-glm-luna-low-smoke
+# Small OpenCode V2 delegation smoke. This deliberately uses only GLM low and
+# requires one native general-subagent call so the collected session tree can
+# be compared with the official OpenCode V2 session/message records.
+job_name: opencode-v2-glm-delegation-smoke
 jobs_dir: benchmark/runs
 n_attempts: 1
 n_concurrent_trials: 1
@@ -12,7 +12,7 @@ environment:
   type: docker
 
 tasks:
-  - path: benchmark/tasks/opencode-v2-smoke
+  - path: benchmark/tasks/opencode-v2-delegation-smoke
 
 agents:
   - name: opencode-v2
@@ -59,23 +59,3 @@ agents:
                   - id: low
                     settings:
                       reasoningEffort: low
-
-  - name: opencode-v2
-    model_name: openai/gpt-5.6-luna
-    env:
-      LITELLM_API_KEY: ${LITELLM_API_KEY}
-      LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
-    kwargs:
-      variant: low
-      version: "2.0.4"
-      opencode_v2_checksums:
-        linux-x64: ba4580e6d79df45f600def921cd2b3d1d873bb36bc8755cfc299d4890a2dc20f
-        linux-arm64: 13417a0f61176b6812e54c9e90fb905e3424204190edc85d8fa60daf96fd0610
-      restrict_model: true
-      opencode_v2_config:
-        websearch: false
-        providers:
-          openai:
-            env: [LITELLM_API_KEY]
-            settings:
-              baseURL: __LITELLM_OPENAI_BASE_URL__

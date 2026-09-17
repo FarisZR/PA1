@@ -22,6 +22,7 @@ CURRENT_MODEL_CONFIGS = {
     "luna.yaml": 0,
     "opencode-v2/glm-5.3-flash-acceptance.yaml": 1,
     "opencode-v2/smoke.yaml": 2,
+    "opencode-v2/delegation-smoke.yaml": 1,
 }
 OPENCODE_V2_ACCEPTANCE_CONFIG = "opencode-v2/glm-5.3-flash-acceptance.yaml"
 OPENCODE_V2_RESPONSES_PACKAGE = "@opencode-ai/ai/providers/openai/responses"
