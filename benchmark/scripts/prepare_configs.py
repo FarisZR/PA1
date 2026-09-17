@@ -497,11 +497,21 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
             )
     if "opencode_v2_config:" in rendered:
         # Release selection belongs to each job, not this generator.
-        versions = re.findall(
-            r'^\s*version:\s*["\']?([^\s"\']+)["\']?\s*$',
+        # A smoke profile may also include a Codex agent, whose independent
+        # `version` kwarg must not be counted as an OpenCode release pin.
+        opencode_blocks = re.findall(
+            r"(?ms)^  - name: opencode-v2\b.*?(?=^  - name:|\Z)",
             rendered,
-            re.MULTILINE,
         )
+        versions = [
+            version
+            for block in opencode_blocks
+            for version in re.findall(
+                r'^\s*version:\s*["\']?([^\s"\']+)["\']?\s*$',
+                block,
+                re.MULTILINE,
+            )
+        ]
         if not versions or any(
             not re.fullmatch(r"\d+\.\d+\.\d+(?:-[\w.-]+)?", version)
             for version in versions
