@@ -1,10 +1,12 @@
 {
   "component": "@opencode/cli-linux-x64",
-  "version": "2.0.4",
-  "source": "https://registry.npmjs.org/@opencode/cli-linux-x64/-/cli-linux-x64-2.0.4.tgz",
-  "sha256": "ba4580e6d79df45f600def921cd2b3d1d873bb36bc8755cfc299d4890a2dc20f",
+  "version": "2.0.6",
+  "source": "https://registry.npmjs.org/@opencode/cli-linux-x64/-/cli-linux-x64-2.0.6.tgz",
+  "sha256": "6f999433a2b44be2cd690387e2451b99b6c3a8426e7dc6eff54f4b3ced90fef3",
   "catalog": {
-    "source": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.4",
+    "source": "benchmark/references/opencode-v2-model-catalog-2.0.6.json",
+    "sha256": "1b2ceeb94bbdc65757498cdc62d6f0fefde5dc8d898f28a95ed932db4a175574",
+    "base": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.6 plus the recorded models.dev GLM and DeepSeek entries",
     "fetch_disabled": true,
     "model_present": false,
     "live_models_dev_check": {
@@ -14,7 +16,7 @@
       "canonical_provider": "zai",
       "model_id": "glm-5.3-flash",
       "selected_profile_sha256": "e4fb524094822262ea86ef524fdfdfeba5d13d0443499a5289adc4361f0a5637",
-      "not_used_by_pinned_binary": true
+      "copied_into_frozen_catalog": true
     },
     "canonical_provider": "zai",
     "profile": {
@@ -82,7 +84,7 @@
     "issue": "PA1 #41",
     "output_limit_regression": "PA1 #40"
   },
-  "binary_sha256": "994363c2e152c0d1783fe4650674ecf184633fb7fbd6f8b11c0f4dace26e6e40",
-  "source_tag": "v2.0.4",
-  "source_commit": "466b3e594d3df396a57340249590a70c5c358c8a"
+  "binary_sha256": "d0ed32790fd6f76998f6172e84cb8c4646bf6f322ead7d4ada71a01bdcbe8b32",
+  "source_tag": "v2.0.6",
+  "source_commit": "b084acc55ea2cdb50e9c2ec49a8d9ab3608d43ad"
 }

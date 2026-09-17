@@ -1,18 +1,25 @@
 # OpenCode V2 verification report
 
-## OpenCode 2.0.4 update (2026-09-16)
+## OpenCode 2.0.6 update (2026-09-17)
 
-The active job configs now pin npm release 2.0.4. Version selection and archive
+The active job configs now pin npm release 2.0.6. Version selection and archive
 checksums stay in PA1 YAML; the verifier reads that selection and checks the
 reference provenance and every OpenCode job for stale pins. The generator
 validates exact release pins without hardcoding a particular version.
 
-Pier uses GET /api/status and POST /api/experimental/session/{id}/wait
+Pier uses GET /api/info and POST /api/experimental/session/{id}/wait
 directly. There is no legacy endpoint fallback or release pin in the adapter.
 The current web-search policy and explicit output-body overrides are preserved.
+Because 2.0.6 lets the subagent tool select a model, each restricted run also
+loads a one-model, one-variant catalog and verifies that exact catalog through
+the live model API before execution.
 
-Final verification passed 53/53 actual-binary offline assertions, 131 focused
-Pier tests and 14 PA1 config/budget tests. Coverage includes GLM, Kimi, DeepSeek,
+The current machine-readable evidence is
+[`opencode-v2-verification-2.0.6.json`](opencode-v2-verification-2.0.6.json).
+The older JSON report remains as historical 2.0.3 acceptance evidence.
+
+Final verification passed 53/53 actual-binary offline assertions, 137 focused
+Pier tests, all 477 Pier tests, and 14 PA1 config/budget tests. Coverage includes GLM, Kimi, DeepSeek,
 Luna, normalized usage, native compaction, retry and failure handling, output
 caps, model restriction and simultaneous trial isolation.
 No paid requests were made; the direct Anthropic route was not exercised.

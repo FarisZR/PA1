@@ -478,6 +478,7 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
             "variant: low",
             "opencode_v2_checksums:",
             "restrict_model: true",
+            "model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.6.json",
             "models:\n              glm-5.3-flash:",
             "modelID: glm-5p3-flash",
             "family: glm-flash",
@@ -531,6 +532,14 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
             )
             if len(hashes) != len(versions):
                 raise SystemExit(f"{path}: OpenCode V2 requires a SHA-256 for {target}")
+        if rendered.count(
+            "model_catalog_file: benchmark/references/"
+            "opencode-v2-model-catalog-2.0.6.json"
+        ) != len(versions):
+            raise SystemExit(
+                f"{path}: every restricted OpenCode V2 agent requires the frozen "
+                "2.0.6 model catalog"
+            )
     if "opencode_v2_config:" in rendered and "websearch:" not in rendered:
         raise SystemExit(
             f"{path}: every OpenCode V2 config must declare its web-search policy"

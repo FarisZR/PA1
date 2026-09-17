@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-17T14:59:45Z",
+  "release": {
+    "version": "2.0.6",
+    "source_tag": "v2.0.6",
+    "source_commit": "b084acc55ea2cdb50e9c2ec49a8d9ab3608d43ad",
+    "linux_x64_tarball_sha256": "6f999433a2b44be2cd690387e2451b99b6c3a8426e7dc6eff54f4b3ced90fef3",
+    "linux_arm64_tarball_sha256": "cdb2ed114a00c8aeb438735ac6bef9003277a452b432b512c4af670da9950f53",
+    "linux_x64_binary_sha256": "d0ed32790fd6f76998f6172e84cb8c4646bf6f322ead7d4ada71a01bdcbe8b32"
+  },
+  "catalog": {
+    "path": "benchmark/references/opencode-v2-model-catalog-2.0.6.json",
+    "sha256": "1b2ceeb94bbdc65757498cdc62d6f0fefde5dc8d898f28a95ed932db4a175574",
+    "restriction": "one selected provider/model and one reasoning variant per trial",
+    "preflight_requires_exact_catalog": true
+  },
+  "offline": {
+    "status": "pass",
+    "passed": 53,
+    "failed": 0,
+    "blocked": 0,
+    "actual_binary": true,
+    "coverage": [
+      "GET /api/info readiness",
+      "one-model and one-variant catalog restriction",
+      "root and configured-agent identity",
+      "Chat Completions output cap",
+      "Responses serialization",
+      "native compaction and continuation",
+      "retry and failure evidence",
+      "slow and malformed streams",
+      "concurrent trial isolation"
+    ]
+  },
+  "luna_high_delegation_smoke": {
+    "status": "pass",
+    "binary_version": "opencode v2.0.6",
+    "model": "openai/gpt-5.6-luna",
+    "variant": "high",
+    "reward": 1,
+    "collection_complete": true,
+    "collection_errors": [],
+    "session_count": 2,
+    "message_count": 10,
+    "unique_child_count": 1,
+    "subagent_requested_model": "openai/gpt-5.6-luna#high",
+    "resolved_catalog_models": ["openai/gpt-5.6-luna"],
+    "resolved_catalog_variants": ["high"],
+    "persisted_model_identities": ["openai/gpt-5.6-luna#high"],
+    "usage_reconciliation": {
+      "official_prompt_tokens": 33141,
+      "atif_prompt_tokens": 33141,
+      "official_completion_tokens": 337,
+      "atif_completion_tokens": 337,
+      "official_cached_tokens": 22158,
+      "atif_cached_tokens": 22158,
+      "official_cache_write_tokens": 10965,
+      "atif_cache_write_tokens": 10965,
+      "official_reasoning_tokens": 132,
+      "atif_reasoning_tokens": 132
+    },
+    "opencode_reported_cost_usd": 0.00359241,
+    "owned_server_or_child_process_leaked": false
+  },
+  "limitations": [
+    "The Luna smoke used the configured PA1 gateway but did not independently capture its upstream provider route.",
+    "This live smoke establishes OpenCode V2 Luna High behavior only; the other staged providers remain separate launch gates."
+  ]
+}

@@ -40,11 +40,12 @@ agents:
     ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
   kwargs:
     variant: medium
-    version: "2.0.4"
+    version: "2.0.6"
     opencode_v2_checksums:
-      linux-x64: ba4580e6d79df45f600def921cd2b3d1d873bb36bc8755cfc299d4890a2dc20f
-      linux-arm64: 13417a0f61176b6812e54c9e90fb905e3424204190edc85d8fa60daf96fd0610
+      linux-x64: 6f999433a2b44be2cd690387e2451b99b6c3a8426e7dc6eff54f4b3ced90fef3
+      linux-arm64: cdb2ed114a00c8aeb438735ac6bef9003277a452b432b512c4af670da9950f53
     restrict_model: true
+    model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.6.json
     opencode_v2_config:
       update: disable
       share: disabled

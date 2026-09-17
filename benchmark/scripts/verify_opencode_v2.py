@@ -45,6 +45,8 @@ BENCHMARK_DIR = Path(__file__).resolve().parents[1]
 
 def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
     """Read release selection from committed jobs and verify recorded provenance."""
+    import hashlib
+
     import yaml
 
     smoke = benchmark_dir / "configs/opencode-v2/smoke.yaml"
@@ -57,6 +59,10 @@ def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
     )
     if reference["version"] != version or reference["sha256"] != checksums["linux-x64"]:
         raise ValueError("OpenCode release provenance does not match the smoke config")
+    catalog_path = benchmark_dir / "references/opencode-v2-model-catalog-2.0.6.json"
+    catalog_sha256 = hashlib.sha256(catalog_path.read_bytes()).hexdigest()
+    if catalog_sha256 != reference["catalog"]["sha256"]:
+        raise ValueError("OpenCode model catalog provenance does not match its bytes")
     for path in (
         *sorted((benchmark_dir / "configs/opencode-v2").glob("*.yaml")),
         *sorted((benchmark_dir / "deferred/opencode-v2").glob("*.yaml")),
@@ -68,6 +74,8 @@ def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
             if (
                 str(selected.get("version")) != version
                 or selected.get("opencode_v2_checksums") != checksums
+                or selected.get("model_catalog_file")
+                != "benchmark/references/opencode-v2-model-catalog-2.0.6.json"
             ):
                 raise ValueError(f"{path}: release pin differs from the smoke config")
     return {
@@ -535,6 +543,77 @@ def stage_binary(installed_agent_dir: Path) -> None:
             temporary.unlink(missing_ok=True)
 
 
+def write_restricted_catalog(
+    output_dir: Path,
+    model_name: str,
+    variant: str | None,
+    opencode_config: dict,
+) -> Path:
+    """Create the frozen one-model source used by disposable verifier runs."""
+    source = BENCHMARK_DIR / "references/opencode-v2-model-catalog-2.0.6.json"
+    catalog = json.loads(source.read_text())
+    provider_id, model_id = model_name.split("/", 1)
+    provider = catalog.get(provider_id)
+    if not isinstance(provider, dict) or model_id not in (provider.get("models") or {}):
+        configured_provider = (opencode_config.get("providers") or {}).get(
+            provider_id, {}
+        )
+        configured_model = (configured_provider.get("models") or {}).get(model_id, {})
+        package = str(configured_provider.get("package") or "@ai-sdk/openai-compatible")
+        package = package.removeprefix("aisdk:")
+        capabilities = configured_model.get("capabilities") or {}
+        compatibility = configured_model.get("compatibility") or {}
+        variants = [
+            str(item.get("id"))
+            for item in configured_model.get("variants") or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        if variant and variant not in variants:
+            variants.append(variant)
+        limits = configured_model.get("limit") or {}
+        raw_model: dict[str, Any] = {
+            "id": model_id,
+            "name": str(configured_model.get("name") or model_id),
+            "family": str(configured_model.get("family") or model_id),
+            "attachment": any(
+                item != "text" for item in capabilities.get("input") or []
+            ),
+            "reasoning": bool(variants),
+            "reasoning_options": [{"type": "effort", "values": variants}],
+            "tool_call": bool(capabilities.get("tools", True)),
+            "release_date": "2026-01-01",
+            "modalities": {
+                "input": list(capabilities.get("input") or ["text"]),
+                "output": list(capabilities.get("output") or ["text"]),
+            },
+            "limit": {
+                "context": int(limits.get("context") or 1048576),
+                "output": int(limits.get("output") or 131072),
+            },
+        }
+        if field := compatibility.get("reasoningField"):
+            raw_model["interleaved"] = {"field": field}
+        catalog[provider_id] = {
+            "id": provider_id,
+            "name": str(configured_provider.get("name") or provider_id),
+            "env": list(configured_provider.get("env") or []),
+            "npm": package,
+            "models": {model_id: raw_model},
+        }
+    selected_provider = copy.deepcopy(catalog[provider_id])
+    selected_model = copy.deepcopy(selected_provider["models"][model_id])
+    selected_model.pop("experimental", None)
+    if variant:
+        selected_model["reasoning_options"] = [
+            {"type": "effort", "values": [variant]}
+        ]
+    selected_provider["models"] = {model_id: selected_model}
+    catalog = {provider_id: selected_provider}
+    path = output_dir / "models.json"
+    path.write_text(json.dumps(catalog, separators=(",", ":")))
+    return path
+
+
 def run_pier_agent(
     pier_root: Path,
     *,
@@ -563,6 +642,9 @@ def run_pier_agent(
     """
     python = _pier_python(pier_root)
     output_dir.mkdir(parents=True, exist_ok=True)
+    model_catalog_file = write_restricted_catalog(
+        output_dir, model_name, variant, opencode_config
+    )
     sandbox = output_dir / "sandbox"
     pier_logs = output_dir / "pier-logs"
     # The adapter hardcodes container paths (/logs/agent, /installed-agent);
@@ -689,6 +771,7 @@ def run_pier_agent(
                 model_name={model_name!r},
                 version={OFFLINE_CLI_VERSION!r},
                 restrict_model=True,
+                model_catalog_file={str(model_catalog_file)!r},
                 variant={variant!r},
                 opencode_v2_config={opencode_config!r},
             )
@@ -945,6 +1028,9 @@ def run_native_compaction(
     config["providers"]["litellm"]["settings"]["apiKey"] = "offline-test-key"
     config_path = output_dir / "opencode.json"
     config_path.write_text(json.dumps(config, indent=2))
+    model_catalog_file = write_restricted_catalog(
+        output_dir, pier_model, "low", config
+    )
     controller = output_dir / "controller.py"
     controller.write_text(
         textwrap.dedent(
@@ -1035,6 +1121,7 @@ def run_native_compaction(
                 model_name={pier_model!r},
                 version={OFFLINE_CLI_VERSION!r},
                 restrict_model=True,
+                model_catalog_file={str(model_catalog_file)!r},
                 variant="low",
                 opencode_v2_config={config!r},
             )
@@ -1073,6 +1160,7 @@ def run_native_compaction(
         XDG_DATA_HOME=str(home / "data"),
         XDG_STATE_HOME=str(home / "state"),
         OPENCODE_CONFIG=str(config_path),
+        OPENCODE_MODELS_PATH=str(model_catalog_file),
         OPENCODE_PASSWORD=uuid.uuid4().hex,
         OPENCODE_CONFIG_PROJECT_DISABLE="1",
         OPENCODE_DISABLE_MODELS_FETCH="1",

@@ -54,12 +54,20 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                             "linux-x64": "a" * 64,
                             "linux-arm64": "b" * 64,
                         },
+                        "model_catalog_file": "benchmark/references/opencode-v2-model-catalog-2.0.6.json",
                     },
                 }],
             }
             path.write_text(yaml.safe_dump(job))
             ref = refs / "opencode-v2-glm-5.3-flash.json"
-            provenance = {"version": "2.9.9", "sha256": "a" * 64, "binary_sha256": "c" * 64}
+            catalog = refs / "opencode-v2-model-catalog-2.0.6.json"
+            catalog.write_text("{}")
+            provenance = {
+                "version": "2.9.9",
+                "sha256": "a" * 64,
+                "binary_sha256": "c" * 64,
+                "catalog": {"sha256": hashlib.sha256(b"{}").hexdigest()},
+            }
             ref.write_text(json.dumps(provenance))
             self.assertEqual(verify_opencode_v2.load_cli_pin(root)["version"], "2.9.9")
             job["agents"][0]["kwargs"]["version"] = "2.9.8"
@@ -193,7 +201,7 @@ providers:
         self.assertIn(f'version: "{verify_opencode_v2.OFFLINE_CLI_VERSION}"', rendered)
         self.assertIn("opencode_v2_checksums:", rendered)
         self.assertIn(
-            "linux-arm64: 13417a0f61176b6812e54c9e90fb905e3424204190edc85d8fa60daf96fd0610",
+            "linux-arm64: cdb2ed114a00c8aeb438735ac6bef9003277a452b432b512c4af670da9950f53",
             rendered,
         )
         self.assertIn("input: 0.075", rendered)

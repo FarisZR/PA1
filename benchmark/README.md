@@ -53,7 +53,7 @@ python3 benchmark/scripts/verify_opencode_v2.py \
 The verifier reads the release version and archive checksum from the smoke YAML
 and checks them against the reference provenance and other OpenCode job
 configs. It uses a disposable loopback fake provider and the pinned
-`@opencode/cli-linux-x64` 2.0.4 bytes. It never reads `benchmark/env.local` in
+`@opencode/cli-linux-x64` 2.0.6 bytes. It never reads `benchmark/env.local` in
 offline mode. Live mode accepts credentials only from an explicitly supplied
 env file and must retain Fireworks route provenance; missing provenance is
 reported as blocked, never as a provider pass. Do not launch a full DeepSWE
@@ -91,7 +91,7 @@ Chat Completions `max_tokens` model body),
 [#37](https://github.com/FarisZR/PA1/issues/37) (per-harness transport-retry
 policy; the smoke jobs run with retries disabled so adapter faults stay
 visible), and [#9](https://github.com/FarisZR/PA1/issues/9) (V1 vs V2
-decision: V2, npm scope `@opencode`, pinned `2.0.4`).
+decision: V2, npm scope `@opencode`, pinned `2.0.6`).
 
 Each primary model job contains:
 
