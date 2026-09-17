@@ -9,19 +9,46 @@
     "model_present": false,
     "live_models_dev_check": {
       "source": "https://models.dev/api.json",
-      "checked": "2026-09-16",
+      "checked": "2026-09-17",
       "model_present": true,
       "canonical_provider": "zai",
       "model_id": "glm-5.3-flash",
+      "selected_profile_sha256": "e4fb524094822262ea86ef524fdfdfeba5d13d0443499a5289adc4361f0a5637",
       "not_used_by_pinned_binary": true
     },
-    "canonical_provider": "openai",
+    "canonical_provider": "zai",
     "profile": {
-      "provider": "litellm",
+      "provider": "zai",
       "transport": "openai-compatible-chat",
-      "model_id": "glm-5p3-flash",
-      "context": 1048576,
+      "model_id": "glm-5.3-flash",
+      "transport_model_id": "glm-5p3-flash",
+      "family": "glm-flash",
+      "release_date": "2026-08-26",
+      "last_updated": "2026-08-26",
+      "attachment": true,
+      "structured_output": true,
+      "temperature": true,
+      "open_weights": true,
+      "capabilities": {
+        "tools": true,
+        "input": [
+          "text",
+          "image",
+          "video",
+          "pdf"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "context": 1000000,
       "output": 131072,
+      "cost": {
+        "input": 0.075,
+        "output": 0.25,
+        "cache_read": 0.015,
+        "cache_write": 0.0
+      },
       "reasoning": [
         "low",
         "high",
@@ -29,12 +56,12 @@
       ],
       "reasoning_field": "reasoning_content",
       "max_tokens_field": "max_tokens",
-      "acceptance_variant": "low",
-      "acceptance_reasoning_effort": "low",
+      "smoke_variant": "low",
+      "smoke_reasoning_effort": "low",
       "primary_body_override": {
         "max_tokens": 131072
       },
-      "acceptance_body_override": {
+      "smoke_body_override": {
         "max_tokens": 8192
       },
       "offline_wire_control": {
@@ -49,12 +76,13 @@
     "gateway_alias": "glm-5p3-flash",
     "route": "existing PA1 LiteLLM Fireworks-backed route",
     "profile_sources": [
-      "benchmark/configs/glm-5.3-flash.yaml",
-      "benchmark/pricing.yaml"
+      "https://models.dev/api.json (zai/glm-5.3-flash, checked 2026-09-17)",
+      "benchmark/pricing.yaml (normalized benchmark cost only)"
     ],
     "issue": "PA1 #41",
     "output_limit_regression": "PA1 #40"
   },
   "binary_sha256": "994363c2e152c0d1783fe4650674ecf184633fb7fbd6f8b11c0f4dace26e6e40",
-  "source_commit": "7c3c50bac23da715543a7327adc3981cdaf851e9"
+  "source_tag": "v2.0.4",
+  "source_commit": "466b3e594d3df396a57340249590a70c5c358c8a"
 }

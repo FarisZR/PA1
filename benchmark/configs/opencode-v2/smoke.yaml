@@ -16,7 +16,7 @@ tasks:
 
 agents:
   - name: opencode-v2
-    model_name: litellm/glm-5p3-flash
+    model_name: zai/glm-5.3-flash
     env:
       LITELLM_API_KEY: ${LITELLM_API_KEY}
       LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
@@ -30,19 +30,21 @@ agents:
       opencode_v2_config:
         websearch: false
         providers:
-          litellm:
-            name: LiteLLM
-            canonical: openai
+          zai:
             env: [LITELLM_API_KEY]
-            package: "aisdk:@ai-sdk/openai-compatible"
             settings:
               baseURL: __LITELLM_OPENAI_BASE_URL__
             models:
-              glm-5p3-flash:
+              glm-5.3-flash:
                 modelID: glm-5p3-flash
                 name: GLM-5.3-Flash
+                family: glm-flash
+                capabilities:
+                  tools: true
+                  input: [text, image, video, pdf]
+                  output: [text]
                 limit:
-                  context: 1048576
+                  context: 1000000
                   output: 131072
                 body:
                   max_tokens: 8192
@@ -50,15 +52,21 @@ agents:
                   maxTokensField: max_tokens
                   reasoningField: reasoning_content
                 cost:
-                  input: 0.15
-                  output: 0.5
+                  input: 0.075
+                  output: 0.25
                   cache:
-                    read: 0.03
+                    read: 0.015
                     write: 0.0
                 variants:
                   - id: low
                     settings:
                       reasoningEffort: low
+                  - id: high
+                    settings:
+                      reasoningEffort: high
+                  - id: max
+                    settings:
+                      reasoningEffort: max
 
   - name: opencode-v2
     model_name: openai/gpt-5.6-luna

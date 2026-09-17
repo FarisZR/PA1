@@ -54,18 +54,42 @@ agents:
         deepseek:
           env:
           - LITELLM_API_KEY
+          package: 'aisdk:@ai-sdk/openai-compatible'
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
-          # Keep the frozen built-in identity and limits, adding only the
-          # benchmark route's missing max variant and output cap.
+          # DeepSeek V4.1 Flash is absent from OpenCode 2.0.4's frozen
+          # catalogue. This explicit profile follows the models.dev
+          # fireworks-ai entry while modelID selects PA1's gateway alias.
           models:
             deepseek-v4p1-flash:
+              modelID: deepseek-v4p1-flash
+              name: DeepSeek V4.1 Flash
+              family: deepseek-flash
+              capabilities:
+                tools: true
+                input: [text, image]
+                output: [text]
               limit:
                 context: 1000000
                 output: 384000
               body:
                 max_tokens: 384000
+              cost:
+                input: 0.22
+                output: 0.66
+                cache:
+                  read: 0.007
+                  write: 0.0
+              compatibility:
+                maxTokensField: max_tokens
+                reasoningField: reasoning_content
               variants:
+              - id: low
+                settings:
+                  reasoningEffort: low
+              - id: high
+                settings:
+                  reasoningEffort: high
               - id: max
                 settings:
                   reasoningEffort: max

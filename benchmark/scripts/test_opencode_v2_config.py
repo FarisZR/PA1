@@ -187,7 +187,7 @@ providers:
             source, "https://gateway.example/v1", expected_sentinels=2
         )
         prepare_configs.validate_opencode_v2_config(source, rendered)
-        self.assertIn("limit:\n                  context: 1048576", rendered)
+        self.assertIn("limit:\n                  context: 1000000", rendered)
         self.assertIn("reasoningEffort: low", rendered)
         self.assertIn("body:\n                  max_tokens: 8192", rendered)
         self.assertIn(f'version: "{verify_opencode_v2.OFFLINE_CLI_VERSION}"', rendered)
@@ -196,7 +196,7 @@ providers:
             "linux-arm64: 13417a0f61176b6812e54c9e90fb905e3424204190edc85d8fa60daf96fd0610",
             rendered,
         )
-        self.assertIn("input: 0.15", rendered)
+        self.assertIn("input: 0.075", rendered)
         self.assertNotIn("thinking:", rendered)
         self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", rendered)
 
@@ -237,7 +237,7 @@ providers:
                 smoke = target / "opencode-v2" / "smoke.yaml"
                 self.assertTrue(smoke.exists())
                 smoke_contents = smoke.read_text()
-                self.assertIn("model_name: litellm/glm-5p3-flash", smoke_contents)
+                self.assertIn("model_name: zai/glm-5.3-flash", smoke_contents)
                 self.assertIn("model_name: openai/gpt-5.6-luna", smoke_contents)
                 self.assertIn("variant: low", smoke_contents)
                 self.assertNotIn("gpt-5.6-luna:\n", smoke_contents)

@@ -474,10 +474,18 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
     if path.as_posix().endswith(OPENCODE_V2_SMOKE_CONFIG):
         required = (
             "name: opencode-v2",
-            "model_name: litellm/glm-5p3-flash",
+            "model_name: zai/glm-5.3-flash",
             "variant: low",
             "opencode_v2_checksums:",
             "restrict_model: true",
+            "models:\n              glm-5.3-flash:",
+            "modelID: glm-5p3-flash",
+            "family: glm-flash",
+            "input: [text, image, video, pdf]",
+            "context: 1000000",
+            "input: 0.075",
+            "output: 0.25",
+            "read: 0.015",
             "maxTokensField: max_tokens",
             "max_tokens: 8192",
             "reasoningField: reasoning_content",
@@ -602,9 +610,18 @@ def validate_staged_opencode_v2_profile(
     elif model_ref == "deepseek/deepseek-v4p1-flash":
         required = (
             "websearch: false",
+            "package: 'aisdk:@ai-sdk/openai-compatible'",
             "models:\n            deepseek-v4p1-flash:",
+            "modelID: deepseek-v4p1-flash",
+            "name: DeepSeek V4.1 Flash",
+            "family: deepseek-flash",
+            "input: [text, image]",
             "context: 1000000",
             "output: 384000",
+            "input: 0.22",
+            "output: 0.66",
+            "read: 0.007",
+            "reasoningField: reasoning_content",
             "max_tokens: 384000",
             "reasoningEffort: max",
         )
@@ -653,11 +670,20 @@ def _validate_staged_explicit_profile(
             f"{path}: staged profile is missing "
             + ", ".join(repr(item) for item in missing)
         )
-    if model_ref == "litellm/glm-5p3-flash":
+    if model_ref == "zai/glm-5.3-flash":
         required_glm = (
-            "models:\n            glm-5p3-flash:",
+            "models:\n            glm-5.3-flash:",
             "modelID: glm-5p3-flash",
+            "family: glm-flash",
+            "input: [text, image, video, pdf]",
+            "context: 1000000",
+            "input: 0.075",
+            "output: 0.25",
+            "read: 0.015",
+            "reasoningField: reasoning_content",
             "max_tokens: 131072",
+            "reasoningEffort: low",
+            "reasoningEffort: high",
             "reasoningEffort: max",
         )
         missing_glm = [needle for needle in required_glm if needle not in rendered]
@@ -679,7 +705,7 @@ def validate_staged_opencode_v2_profiles() -> None:
             require_input=filename == "luna.yaml",
         )
     explicit_profiles = {
-        "glm-5.3-flash.yaml": ("litellm/glm-5p3-flash", "max"),
+        "glm-5.3-flash.yaml": ("zai/glm-5.3-flash", "max"),
         "opus.yaml": ("anthropic/claude-opus-5", "medium"),
     }
     for filename, (model_ref, variant) in explicit_profiles.items():

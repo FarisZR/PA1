@@ -1503,13 +1503,14 @@ def offline_primary_responses_profiles(
 
     staged_dir = BENCHMARK_DIR / "deferred" / "opencode-v2"
     cases = (
-        ("kimi-k3.yaml", "/v1/chat/completions", "max_tokens", 131072, {}),
+        ("kimi-k3.yaml", "/v1/chat/completions", "max_tokens", 131072, {}, None),
         (
             "deepseek-v4p1-flash.yaml",
             "/v1/chat/completions",
             "max_tokens",
             384000,
             {"context": 1000000, "output": 384000},
+            "aisdk:@ai-sdk/openai-compatible",
         ),
         (
             "luna.yaml",
@@ -1517,10 +1518,18 @@ def offline_primary_responses_profiles(
             "max_output_tokens",
             128000,
             {"context": 1050000, "input": 922000, "output": 128000},
+            None,
         ),
     )
     evidence["offline_primary_responses"] = {}
-    for filename, expected_path, cap_field, cap_value, expected_limits in cases:
+    for (
+        filename,
+        expected_path,
+        cap_field,
+        cap_value,
+        expected_limits,
+        expected_package,
+    ) in cases:
         document = yaml.safe_load((staged_dir / filename).read_text()) or {}
         agent = (document.get("agents") or [{}])[0]
         kwargs = agent.get("kwargs") or {}
@@ -1556,8 +1565,8 @@ def offline_primary_responses_profiles(
             json.dumps(model_config.get("limit") or {}),
         )
         check(
-            provider_config.get("package") is None,
-            f"offline: staged {filename} inherits the built-in provider package",
+            provider_config.get("package") == expected_package,
+            f"offline: staged {filename} uses the expected provider package",
             json.dumps(provider_config),
         )
         provider.scenario("ok")

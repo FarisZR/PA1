@@ -18,17 +18,18 @@ Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 `benchmark/configs/opencode-v2/` use `low`; both are intentionally separate
 from the primary jobs.
 
-Kimi and DeepSeek use their built-in Chat Completions profiles; Luna retains
-the built-in OpenAI Responses profile. Each has only a small inherited
-`models:` overlay for the route-specific output field (and DeepSeek's missing
-`max` variant), so the canonical catalogue identity is not replaced. Every
-profile keeps a single `reasoningEffort` and an explicit model-body output cap.
+Kimi uses its built-in Chat Completions profile and Luna retains the built-in
+OpenAI Responses profile. OpenCode 2.0.4's frozen catalogue predates both the
+GLM 5.3 Flash and DeepSeek V4.1 Flash entries, so those profiles explicitly
+copy their current models.dev metadata while overriding only the gateway model
+ID, endpoint, key, and required output cap. Every profile keeps one effective
+`reasoningEffort` per variant and an explicit model-body output cap.
 Luna's inherited limits are `context: 1050000`, `input: 922000`, and
 `output: 128000`, matching the current models.dev profile. Although the live
 models.dev catalogue now lists `zai/glm-5.3-flash`, the pinned OpenCode 2.0.4
 binary still embeds the older catalogue and runs with model fetching disabled.
-GLM therefore retains one explicit gateway profile and provenance rather than
-silently changing the frozen binary's model identity; its committed profile
+GLM therefore uses the canonical `zai/glm-5.3-flash` identity with an explicit
+profile and provenance rather than inventing a LiteLLM identity; its profile
 and provenance are in `benchmark/references/opencode-v2-glm-5.3-flash.json`.
 Opus has no gateway base URL and remains on the direct Anthropic API route.
 
