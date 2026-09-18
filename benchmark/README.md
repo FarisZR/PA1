@@ -513,6 +513,17 @@ uv sync --python /usr/bin/python3.13
 
 Run the actual jobs from `~/PA1`, not from the Pier checkout.
 
+To reproduce the end-of-August runs instead of starting a new run, deliberately
+check out the historical Pier revision:
+
+```bash
+cd ~/pier
+git checkout ff65bae55c9a8ff15ddd3c2967c81a936713dd4d
+uv sync --python /usr/bin/python3.13
+```
+
+Do not use that historical checkout for OpenCode V2; it predates the adapter.
+
 ### 3. Configure LiteLLM
 
 ```bash
@@ -767,11 +778,17 @@ and `/v1/responses/compact` is unsupported. Run the Opus acceptance checks in
 [`bridges/codex-cliproxy/README.md`](bridges/codex-cliproxy/README.md) before
 treating Opus Codex numbers as comparable to anything.
 
-## Deferred OpenCode 2
+## OpenCode V2 primary profiles
 
-OpenCode 2 remains blocked on PA1 issue #9 / Pier V2 support. Its staged configs
-are under `benchmark/deferred/opencode-v2/` and are also split per model. They
-are not referenced by the current smoke or primary commands.
+OpenCode V2 is supported by the current pinned Pier revision. Its per-model
+profiles remain under `benchmark/deferred/opencode-v2/` because they are launched
+separately from the historical Pi / Claude Code / Codex jobs. The directory name
+is therefore organizational, not a Pier-support blocker.
+
+Before a primary OpenCode V2 run, execute the offline verifier and the relevant
+cheap live/provider gate described above, then launch the matching per-model
+profile. Issue #9 records the original V1/V2 decision; Pier support itself is no
+longer blocked.
 
 ## Upstream compatibility references
 
