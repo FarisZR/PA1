@@ -24,7 +24,7 @@ the Kimi or DeepSeek templates directly: their Pi endpoint placeholder is
 resolved only in `benchmark/generated/`. Use generated files for all three
 primary jobs for one consistent workflow.
 
-Claude Opus 5 and OpenCode 2 are deferred and are not part of the commands above.
+Claude Opus 5 remains deferred. OpenCode V2 is now supported by the pinned Pier revision below. Its per-model profiles remain separate from the legacy three-harness generated jobs so the already-completed August runs stay reproducible; run the corresponding `benchmark/deferred/opencode-v2/<model>.yaml` profile when adding the fourth harness for a model.
 
 ## OpenCode V2 verification, smoke tests, and staged profiles
 
@@ -93,20 +93,21 @@ policy; the smoke jobs run with retries disabled so adapter faults stay
 visible), and [#9](https://github.com/FarisZR/PA1/issues/9) (V1 vs V2
 decision: V2, npm scope `@opencode`, pinned `2.0.8`).
 
-Each primary model job contains:
+The legacy generated primary job for each model contains Pi, Claude Code, and
+Codex over the same 10 selected DeepSWE tasks. OpenCode V2 is represented by a
+separate per-model profile under `benchmark/deferred/opencode-v2/`. This split is
+intentional: it preserves the exact three-harness configuration used for the
+2026-08-31 runs while allowing the current benchmark setup to add OpenCode V2
+without rewriting historical job definitions.
 
-- Pi
-- Claude Code
-- Codex
-- 10 selected DeepSWE tasks
-- 1 attempt per task
-- 1 automatic retry, for transport/gateway faults only
-- `n_concurrent_trials: 30`
+For a model evaluated on all four harnesses, the complete wave is therefore
+**40 planned trials**: 30 from the legacy Pi / Claude Code / Codex job plus 10
+from the matching OpenCode V2 profile. Each profile uses 1 attempt per task,
+1 automatic retry for transport/gateway faults only, and
+`n_concurrent_trials: 30` for the primary profiles.
 
-That is **30 planned trials per model job** and 90 planned trials in the current
-primary batch. Successful trials run once. A trial that fails with a
-transport/gateway fault is discarded and run again once; if the retry also fails,
-the second failure is final.
+Successful trials run once. A trial that fails with a transport/gateway fault is
+discarded and run again once; if the retry also fails, the second failure is final.
 
 Agent timeouts and verifier/reward faults are **not** retried
 (`exclude_exceptions` keeps Pier's default non-retryable set). A trial that
@@ -121,36 +122,57 @@ wasted spend deleted from the cost metric. Run only one model job at a time.
 
 ## Frozen versions
 
-Re-verified on **2026-08-31** immediately before the benchmark launch. Do not
-update these revisions between jobs in the primary batch.
+### Current benchmark setup (2026-09-18)
+
+Use these revisions for new runs. The Pier pin is the merge commit that brought
+the reviewed OpenCode V2 adapter onto `FZR-forks/pier` main.
 
 | Component | Frozen revision/version |
 | --- | --- |
-| FZR Pier fork | `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d` |
+| FZR Pier fork | `b0acdae033425500e968ac917acffeafd35f9cdb` |
 | DeepSWE | `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea` |
 | Codex CLI | `0.151.0` |
 | Claude Code | `2.1.251` |
 | Pi | `0.84.4` |
+| OpenCode V2 | `2.0.8` (`@opencode/cli-<target>@2.0.8`; checksums and frozen catalog provenance under `benchmark/references/`) |
 | Codex model catalog | `rust-v0.151.0` vendored at `benchmark/references/codex-rust-v0.151.0-models.json` |
 | Codex compatibility bridge | CLIProxyAPI `v7.2.146` + upstream #5659 backport; GHCR digest `sha256:26de0755cf37765291e149590e13ee354010c8caa7b25ec3981827f2d606d6dc` |
+
+Pier PR [FZR-forks/pier#12](https://github.com/FZR-forks/pier/pull/12) added the
+independent `opencode-v2` adapter. The PA1-side OpenCode configuration,
+verification evidence, frozen binary checksums, model isolation rules, output
+caps, and transport choices are documented in
+`benchmark/references/opencode-v2-verification.md`,
+`benchmark/references/opencode-v2-glm-5.3-flash.json`, and
+`benchmark/deferred/opencode-v2/`.
 
 The DeepSWE revision includes the upstream 10,800-second task timeout. Claude
 Code runs with its updater disabled. Pier writes `lock.json` into each job
 result directory; keep it with the benchmark results and record the PA1 commit
 used for the run.
 
-The bridge has one documented post-Kimi exception to the original freeze. The
-completed Kimi K3 run used the unmodified upstream `v7.2.146` image
-(`sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163`).
-Before the DeepSeek V4.1 run, upstream issue CLIProxyAPI #5659 was identified:
-if one streamed Chat Completions delta contains both non-empty `content` and
-`reasoning_content`, `v7.2.146` emits the corresponding Responses items in the
-wrong order. The Kimi CLIProxy request logs were checked and contained zero
-such mixed deltas, so the triggering condition was absent from the completed
-Kimi run. Rather than adopt the 184 unrelated commits in upstream `v7.2.158`,
-PA1 keeps the `v7.2.146` base and backports only upstream fix `c8ecb4f3`. The
-patched image above is used for subsequent third-party Codex runs. Full scope
-and verification are recorded in
+### Historical 2026-08-31 run configuration — preserve exactly
+
+The first benchmark runs at the end of August used the following frozen setup.
+This is historical provenance and must not be replaced by the current Pier pin,
+because those results were produced before OpenCode V2 support landed.
+
+| Component | Frozen revision/version used on 2026-08-31 |
+| --- | --- |
+| FZR Pier fork | `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d` |
+| DeepSWE | `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea` |
+| Codex CLI | `0.151.0` |
+| Claude Code | `2.1.251` |
+| Pi | `0.84.4` |
+| OpenCode V2 | not available in this Pier revision |
+| Codex model catalog | `rust-v0.151.0` vendored at `benchmark/references/codex-rust-v0.151.0-models.json` |
+| Codex compatibility bridge | completed Kimi K3 run used unmodified CLIProxyAPI `v7.2.146`, digest `sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163` |
+
+The completed Kimi K3 run predates the bridge #5659 backport. Its request logs
+were checked and contained zero streamed deltas with both non-empty `content`
+and `reasoning_content`, so the triggering condition for that bug was absent.
+Later third-party Codex runs use the `v7.2.146` base with only upstream fix
+`c8ecb4f3` backported. Full scope and verification are recorded in
 [`benchmark/bridges/codex-cliproxy/BACKPORT-5659.md`](bridges/codex-cliproxy/BACKPORT-5659.md).
 
 ## Current model policy
@@ -484,7 +506,7 @@ cd ~
 git clone https://github.com/FZR-forks/pier.git pier   # skip if present
 cd ~/pier
 git fetch origin
-git checkout ff65bae55c9a8ff15ddd3c2967c81a936713dd4d
+git checkout b0acdae033425500e968ac917acffeafd35f9cdb
 uv sync --python /usr/bin/python3.13
 ~/pier/.venv/bin/pier job start --help
 ```
