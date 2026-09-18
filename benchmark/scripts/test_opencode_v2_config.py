@@ -245,7 +245,7 @@ providers:
                 smoke = target / "opencode-v2" / "smoke.yaml"
                 self.assertTrue(smoke.exists())
                 smoke_contents = smoke.read_text()
-                self.assertIn("model_name: fireworks/glm-5.3-flash", smoke_contents)
+                self.assertIn("model_name: zai/glm-5.3-flash", smoke_contents)
                 self.assertIn("model_name: openai/gpt-5.6-luna", smoke_contents)
                 self.assertIn("variant: low", smoke_contents)
                 self.assertNotIn("gpt-5.6-luna:\n", smoke_contents)
