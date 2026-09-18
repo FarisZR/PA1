@@ -22,12 +22,12 @@ agents:
       LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
     kwargs:
       variant: low
-      version: "2.0.6"
+      version: "2.0.8"
       opencode_v2_checksums:
-        linux-x64: 6f999433a2b44be2cd690387e2451b99b6c3a8426e7dc6eff54f4b3ced90fef3
-        linux-arm64: cdb2ed114a00c8aeb438735ac6bef9003277a452b432b512c4af670da9950f53
+        linux-x64: 8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625
+        linux-arm64: 957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce
       restrict_model: true
-      model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.6.json
+      model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.8.json
       opencode_v2_config:
         websearch: false
         providers:
@@ -62,12 +62,12 @@ agents:
       LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
     kwargs:
       variant: low
-      version: "2.0.6"
+      version: "2.0.8"
       opencode_v2_checksums:
-        linux-x64: 6f999433a2b44be2cd690387e2451b99b6c3a8426e7dc6eff54f4b3ced90fef3
-        linux-arm64: cdb2ed114a00c8aeb438735ac6bef9003277a452b432b512c4af670da9950f53
+        linux-x64: 8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625
+        linux-arm64: 957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce
       restrict_model: true
-      model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.6.json
+      model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.8.json
       opencode_v2_config:
         websearch: false
         providers:

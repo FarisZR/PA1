@@ -1,12 +1,12 @@
 {
   "component": "@opencode/cli-linux-x64",
-  "version": "2.0.6",
-  "source": "https://registry.npmjs.org/@opencode/cli-linux-x64/-/cli-linux-x64-2.0.6.tgz",
-  "sha256": "6f999433a2b44be2cd690387e2451b99b6c3a8426e7dc6eff54f4b3ced90fef3",
+  "version": "2.0.8",
+  "source": "https://registry.npmjs.org/@opencode/cli-linux-x64/-/cli-linux-x64-2.0.8.tgz",
+  "sha256": "8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625",
   "catalog": {
-    "source": "benchmark/references/opencode-v2-model-catalog-2.0.6.json",
+    "source": "benchmark/references/opencode-v2-model-catalog-2.0.8.json",
     "sha256": "45fdbd9077c122f3fe27c77ca99ef0ae768953b9ef23bf0c833a9a4a28c97410",
-    "base": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.6 plus the recorded models.dev GLM/DeepSeek entries and the Fireworks GLM transport alias",
+    "base": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.8 plus the recorded models.dev GLM/DeepSeek entries and the Fireworks GLM transport alias",
     "fetch_disabled": true,
     "model_present": false,
     "live_models_dev_check": {
@@ -86,7 +86,7 @@
     "issue": "PA1 #41",
     "output_limit_regression": "PA1 #40"
   },
-  "binary_sha256": "d0ed32790fd6f76998f6172e84cb8c4646bf6f322ead7d4ada71a01bdcbe8b32",
-  "source_tag": "v2.0.6",
-  "source_commit": "b084acc55ea2cdb50e9c2ec49a8d9ab3608d43ad"
+  "binary_sha256": "18dab9a071769cccd5a1663b2b5f0d1bfc10062cfb19bf8b9ae088813407c9a7",
+  "source_tag": "v2.0.8",
+  "source_commit": null
 }

@@ -54,13 +54,13 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                             "linux-x64": "a" * 64,
                             "linux-arm64": "b" * 64,
                         },
-                        "model_catalog_file": "benchmark/references/opencode-v2-model-catalog-2.0.6.json",
+                        "model_catalog_file": "benchmark/references/opencode-v2-model-catalog-2.0.8.json",
                     },
                 }],
             }
             path.write_text(yaml.safe_dump(job))
             ref = refs / "opencode-v2-glm-5.3-flash.json"
-            catalog = refs / "opencode-v2-model-catalog-2.0.6.json"
+            catalog = refs / "opencode-v2-model-catalog-2.0.8.json"
             catalog.write_text("{}")
             provenance = {
                 "version": "2.9.9",
@@ -201,7 +201,7 @@ providers:
         self.assertIn(f'version: "{verify_opencode_v2.OFFLINE_CLI_VERSION}"', rendered)
         self.assertIn("opencode_v2_checksums:", rendered)
         self.assertIn(
-            "linux-arm64: cdb2ed114a00c8aeb438735ac6bef9003277a452b432b512c4af670da9950f53",
+            "linux-arm64: 957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce",
             rendered,
         )
         self.assertNotIn("cost:\n", rendered)

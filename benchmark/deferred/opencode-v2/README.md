@@ -19,7 +19,7 @@ Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 from the primary jobs.
 
 Kimi uses its built-in Chat Completions profile and Luna retains the built-in
-OpenAI Responses profile. OpenCode 2.0.6's frozen catalogue includes the GLM
+OpenAI Responses profile. OpenCode 2.0.8's frozen catalogue includes the GLM
 5.3 Flash profile, while DeepSeek V4.1 Flash is still added explicitly. GLM
 uses a frozen Fireworks transport alias with the same `zai/glm-5.3-flash`
 metadata and overrides only its gateway model ID, endpoint, key, and required
@@ -29,7 +29,7 @@ Every profile keeps one effective `reasoningEffort` per variant and an explicit
 model-body output cap.
 Luna's inherited limits are `context: 1050000`, `input: 922000`, and
 `output: 128000`, matching the current models.dev profile. Although the live
-models.dev catalogue now lists `zai/glm-5.3-flash`, the pinned OpenCode 2.0.6
+models.dev catalogue now lists `zai/glm-5.3-flash`, the pinned OpenCode 2.0.8
 binary still embeds the older catalogue and runs with model fetching disabled.
 GLM therefore keeps the upstream `zai/glm-5.3-flash` metadata and provenance
 while selecting `fireworks/glm-5.3-flash` for transport; its profile and provenance are in
@@ -37,7 +37,7 @@ while selecting `fireworks/glm-5.3-flash` for transport; its profile and provena
 Opus has no gateway base URL and remains on the direct Anthropic API route.
 
 Restricted trials install the committed frozen catalog and narrow it to the
-selected model and variant before starting OpenCode. This is required by 2.0.6:
+selected model and variant before starting OpenCode. This is required by 2.0.8:
 the native subagent tool can select any model exposed by the catalog, so agent
 configuration pinning alone is not a model-isolation boundary.
 

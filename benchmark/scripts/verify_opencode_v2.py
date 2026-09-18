@@ -59,7 +59,7 @@ def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
     )
     if reference["version"] != version or reference["sha256"] != checksums["linux-x64"]:
         raise ValueError("OpenCode release provenance does not match the smoke config")
-    catalog_path = benchmark_dir / "references/opencode-v2-model-catalog-2.0.6.json"
+    catalog_path = benchmark_dir / "references/opencode-v2-model-catalog-2.0.8.json"
     catalog_sha256 = hashlib.sha256(catalog_path.read_bytes()).hexdigest()
     if catalog_sha256 != reference["catalog"]["sha256"]:
         raise ValueError("OpenCode model catalog provenance does not match its bytes")
@@ -75,7 +75,7 @@ def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
                 str(selected.get("version")) != version
                 or selected.get("opencode_v2_checksums") != checksums
                 or selected.get("model_catalog_file")
-                != "benchmark/references/opencode-v2-model-catalog-2.0.6.json"
+                != "benchmark/references/opencode-v2-model-catalog-2.0.8.json"
             ):
                 raise ValueError(f"{path}: release pin differs from the smoke config")
     return {
@@ -550,7 +550,7 @@ def write_restricted_catalog(
     opencode_config: dict,
 ) -> Path:
     """Create the frozen one-model source used by disposable verifier runs."""
-    source = BENCHMARK_DIR / "references/opencode-v2-model-catalog-2.0.6.json"
+    source = BENCHMARK_DIR / "references/opencode-v2-model-catalog-2.0.8.json"
     catalog = json.loads(source.read_text())
     provider_id, model_id = model_name.split("/", 1)
     provider = catalog.get(provider_id)
