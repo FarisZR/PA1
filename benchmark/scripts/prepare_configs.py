@@ -23,7 +23,6 @@ CURRENT_MODEL_CONFIGS = {
     "opencode-v2/smoke.yaml": 2,
     "opencode-v2/delegation-smoke.yaml": 1,
 }
-OPENCODE_V2_SMOKE_CONFIG = "opencode-v2/smoke.yaml"
 STAGED_OPENCODE_V2_MODELS = {
     "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
     "kimi-k3.yaml": "moonshotai/kimi-k3",
@@ -459,90 +458,160 @@ def render_model_config(path: Path, base_url: str, expected_sentinels: int) -> s
     return rendered
 
 
+OPENCODE_V2_AGENT_BLOCK = r"(?ms)^  - name: opencode-v2\b.*?(?=^  - name:|\Z)"
+OPENCODE_V2_ZAI_TRANSPORT = ("zai", "zai-coding-plan", "zhipuai", "zhipuai-coding-plan")
+
+
+def _opencode_v2_agent_blocks(rendered: str) -> list[str]:
+    """Return one comment-free text block per ``opencode-v2`` agent.
+
+    Every check below is per owning agent: a compliant sibling must not satisfy
+    a requirement for an agent that omits it, and prose in a comment must not
+    stand in for a declaration.
+    """
+    blocks = []
+    for block in re.findall(OPENCODE_V2_AGENT_BLOCK, rendered):
+        blocks.append(
+            "\n".join(
+                line for line in block.splitlines() if not line.lstrip().startswith("#")
+            )
+        )
+    return blocks
+
+
+def _require(path: Path, label: str, block: str, needles) -> None:
+    missing = [
+        needle
+        for needle in needles
+        if not (
+            re.search(needle[1], block, re.MULTILINE)
+            if isinstance(needle, tuple)
+            else needle in block
+        )
+    ]
+    if missing:
+        raise SystemExit(
+            f"{path}: OpenCode V2 {label} is missing "
+            + ", ".join(
+                repr(item[0] if isinstance(item, tuple) else item) for item in missing
+            )
+        )
+
+
 def validate_opencode_v2_config(path: Path, rendered: str) -> None:
-    """Validate an OpenCode V2 smoke profile at generation time.
+    """Validate the OpenCode V2 smoke profiles at generation time.
 
     OpenCode's JSON schema accepts both ``limit.output`` metadata and a model
     request ``body``.  The former alone did not put an output cap on the wire
-    in the frozen 2.0.3 executable (PA1 #40), so silently dropping this body
-    override would turn a generated smoke job into an unbounded probe.
-    Keep this check text-based to preserve the generator's zero-runtime-
-    dependency contract and to catch conflicting reasoning controls before any
-    deployment files are written.
+    (PA1 #40), so silently dropping this body override would turn a generated
+    smoke job into an unbounded probe.  Keep these checks text-based to
+    preserve the generator's zero-runtime-dependency contract and to catch
+    conflicting reasoning controls before any deployment files are written.
+
+    The model-specific checks are keyed on the agent's own ``model_name``, not
+    on the file name, so every GLM profile is covered rather than only
+    ``smoke.yaml``.
     """
-    if path.as_posix().endswith(OPENCODE_V2_SMOKE_CONFIG):
-        required = (
-            "name: opencode-v2",
-            "model_name: zai/glm-5.3-flash",
-            "variant: low",
-            "opencode_v2_checksums:",
-            "restrict_model: true",
-            "model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.8.json",
-            'package: "@opencode/ai/providers/fireworks"',
-            "canonical: fireworks",
-            "models:\n              glm-5.3-flash:",
-            "modelID: glm-5p3-flash",
-            "maxTokensField: max_tokens",
-            "max_tokens: 8192",
-            "reasoningField: reasoning_content",
-            "reasoningEffort: low",
-            "baseURL: ",
-            # The smoke header promises an 8192 cap for both legs; limit.output
-            # metadata alone is not sent on the wire (PA1 #40), so Luna needs
-            # its own Responses body field.
-            "max_output_tokens: 8192",
+    if "opencode_v2_config:" not in rendered:
+        return
+    blocks = _opencode_v2_agent_blocks(rendered)
+    if not blocks:
+        raise SystemExit(f"{path}: OpenCode V2 config declares no opencode-v2 agent")
+    # Acceptance-only smoke jobs additionally pin the cheap settings their
+    # headers document; the staged primary profiles use their own values.
+    is_smoke = "configs/opencode-v2/" in path.as_posix()
+    # The two-model smoke exists to exercise both supported transports, so it
+    # must keep a GLM (Chat Completions) leg; the previous whole-document check
+    # required one implicitly.
+    if is_smoke and path.name == "smoke.yaml":
+        for model in ("zai/glm-5.3-flash", "openai/gpt-5.6-luna"):
+            if not any(
+                re.search(
+                    rf"^\s+model_name: {re.escape(model)}$", block, re.MULTILINE
+                )
+                for block in blocks
+            ):
+                raise SystemExit(
+                    f"{path}: the OpenCode V2 smoke job must cover both "
+                    f"transports; no agent declares {model}"
+                )
+
+    for block in blocks:
+        _require(
+            path,
+            "agent",
+            block,
+            [
+                "restrict_model: true",
+                "opencode_v2_checksums:",
+                "model_catalog_file: benchmark/references/"
+                "opencode-v2-model-catalog-2.0.8.json",
+                ("variant: <effort>", r"^\s+variant: \S+$"),
+                # Release selection belongs to each job, not this generator.
+                (
+                    "exact version pin (x.y.z)",
+                    r"^\s+version:\s*[\"\']?\d+\.\d+\.\d+(?:-[\w.-]+)?[\"\']?\s*$",
+                ),
+                ("linux-x64 SHA-256", r"^\s+linux-x64:\s*[0-9a-f]{64}\s*$"),
+                ("linux-arm64 SHA-256", r"^\s+linux-arm64:\s*[0-9a-f]{64}\s*$"),
+                # Every agent declares its own web-search policy (PA1 #48).
+                ("websearch:", r"^\s+websearch:"),
+                ("baseURL:", r"^\s+baseURL: \S+"),
+            ],
         )
-        missing = [needle for needle in required if needle not in rendered]
-        if missing:
-            raise SystemExit(
-                f"{path}: OpenCode V2 GLM smoke profile is missing "
-                + ", ".join(repr(item) for item in missing)
-            )
-        if "thinking:" in rendered:
-            raise SystemExit(
-                f"{path}: GLM low must use reasoningEffort alone; "
-                "do not add a conflicting thinking control"
-            )
-    if "opencode_v2_config:" in rendered:
-        # Release selection belongs to each job, not this generator.
-        # A smoke profile may also include a Codex agent, whose independent
-        # `version` kwarg must not be counted as an OpenCode release pin.
-        opencode_blocks = re.findall(
-            r"(?ms)^  - name: opencode-v2\b.*?(?=^  - name:|\Z)",
-            rendered,
-        )
-        versions = [
-            version
-            for block in opencode_blocks
-            for version in re.findall(
-                r'^\s*version:\s*["\']?([^\s"\']+)["\']?\s*$',
+
+        if re.search(r"^\s+model_name: zai/glm-5\.3-flash$", block, re.MULTILINE):
+            _require(
+                path,
+                "GLM profile",
                 block,
-                re.MULTILINE,
+                [
+                    'package: "@opencode/ai/providers/fireworks"',
+                    "canonical: fireworks",
+                    ("glm-5.3-flash model entry", r"^\s+glm-5\.3-flash:\s*$"),
+                    "modelID: glm-5p3-flash",
+                    "maxTokensField: max_tokens",
+                    "reasoningField: reasoning_content",
+                    ("reasoningEffort:", r"^\s+reasoningEffort: \S+$"),
+                    # PA1 #40: limit.output metadata is not sent on the wire.
+                    ("body max_tokens cap", r"^\s+max_tokens: \d+$"),
+                ],
             )
-        ]
-        if not versions or any(
-            not re.fullmatch(r"\d+\.\d+\.\d+(?:-[\w.-]+)?", version)
-            for version in versions
-        ):
-            raise SystemExit(f"{path}: OpenCode V2 requires an exact version pin")
-        for target in ("linux-x64", "linux-arm64"):
-            hashes = re.findall(
-                rf"^\s*{target}:\s*([0-9a-f]{{64}})\s*$", rendered, re.MULTILINE
+            # PA1 #53: the Fireworks route rejects `thinking` alongside
+            # `reasoning_effort`, so GLM must use reasoningEffort alone.
+            if re.search(r"^\s+thinking:", block, re.MULTILINE):
+                raise SystemExit(
+                    f"{path}: GLM must use reasoningEffort alone; "
+                    "do not add a conflicting thinking control"
+                )
+            if is_smoke:
+                _require(
+                    path,
+                    "GLM smoke profile",
+                    block,
+                    ["variant: low", "reasoningEffort: low", "max_tokens: 8192"],
+                )
+
+        if re.search(r"^\s+model_name: openai/gpt-5\.6-luna$", block, re.MULTILINE):
+            _require(
+                path,
+                "Luna profile",
+                block,
+                [
+                    ("gpt-5.6-luna model entry", r"^\s+gpt-5\.6-luna:\s*$"),
+                    # Luna keeps the built-in Responses profile, whose output
+                    # field is max_output_tokens (PA1 #40).
+                    ("body max_output_tokens cap", r"^\s+max_output_tokens: \d+$"),
+                ],
             )
-            if len(hashes) != len(versions):
-                raise SystemExit(f"{path}: OpenCode V2 requires a SHA-256 for {target}")
-        if rendered.count(
-            "model_catalog_file: benchmark/references/"
-            "opencode-v2-model-catalog-2.0.8.json"
-        ) != len(versions):
-            raise SystemExit(
-                f"{path}: every restricted OpenCode V2 agent requires the frozen "
-                "2.0.8 model catalog"
-            )
-    if "opencode_v2_config:" in rendered and "websearch:" not in rendered:
-        raise SystemExit(
-            f"{path}: every OpenCode V2 config must declare its web-search policy"
-        )
+            if is_smoke:
+                _require(
+                    path,
+                    "Luna smoke profile",
+                    block,
+                    ["variant: low", "max_output_tokens: 8192"],
+                )
+
     validate_opencode_v2_tool_stream(path, rendered)
 
 
@@ -557,25 +626,26 @@ def validate_opencode_v2_tool_stream(path: Path, rendered: str) -> None:
     model-level override: ``zaiToolStream`` is absent from OpenCode's config
     schema.
     """
-    # Check per owning agent: a compliant sibling must not satisfy the guard
-    # for an agent that omits it. Comments are stripped so prose mentioning a
-    # required scalar cannot stand in for the declaration.
-    blocks = re.findall(
-        r"(?ms)^  - name: opencode-v2\b.*?(?=^  - name:|\Z)", rendered
-    ) or [rendered]
-    for block in blocks:
-        body = "\n".join(
-            line for line in block.splitlines() if not line.lstrip().startswith("#")
+    blocks = _opencode_v2_agent_blocks(rendered) or [
+        "\n".join(
+            line for line in rendered.splitlines() if not line.lstrip().startswith("#")
         )
-        if not re.search(r"(?m)^\s+zai:\s*$", body):
+    ]
+    for block in blocks:
+        declared = [
+            provider
+            for provider in OPENCODE_V2_ZAI_TRANSPORT
+            if re.search(rf"^\s+{re.escape(provider)}:\s*$", block, re.MULTILINE)
+        ]
+        if not declared:
             continue
-        if not re.search(r"(?m)^\s+canonical:\s*fireworks\s*$", body):
+        if not re.search(r"^\s+canonical:\s*fireworks\s*$", block, re.MULTILINE):
             raise SystemExit(
-                f"{path}: an OpenCode V2 profile using the zai provider id must set "
-                "providers.zai.canonical: fireworks, otherwise OpenCode 2.0.8 sends "
-                "tool_stream:true and the gateway returns HTTP 400"
+                f"{path}: an OpenCode V2 profile using the "
+                f"{', '.join(declared)} provider id must set canonical: fireworks, "
+                "otherwise OpenCode 2.0.8 sends tool_stream:true and the gateway "
+                "returns HTTP 400"
             )
-
 
 def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:
     """Read one model's integer limit block without adding a YAML dependency."""

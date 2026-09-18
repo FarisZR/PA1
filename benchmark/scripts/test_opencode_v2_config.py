@@ -209,6 +209,73 @@ providers:
         self.assertNotIn("thinking:", rendered)
         self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", rendered)
 
+    OPENCODE_V2_GATEWAY = "https://gw.example.test/v1"
+
+    def _rendered(self, name: str) -> tuple[Path, str]:
+        path = BENCHMARK / "configs/opencode-v2" / name
+        return path, path.read_text().replace(
+            "__LITELLM_OPENAI_BASE_URL__", self.OPENCODE_V2_GATEWAY
+        )
+
+    def test_committed_opencode_v2_smoke_profiles_validate(self) -> None:
+        for name in ("smoke.yaml", "delegation-smoke.yaml"):
+            path, rendered = self._rendered(name)
+            with self.subTest(name):
+                prepare_configs.validate_opencode_v2_config(path, rendered)
+
+    def test_glm_checks_apply_to_every_glm_agent_not_only_smoke_yaml(self) -> None:
+        """The GLM requirements are keyed on the agent's model_name, so the
+        delegation job cannot reintroduce PA1 #53's conflicting `thinking`
+        control or drop PA1 #40's explicit wire cap."""
+        path, rendered = self._rendered("delegation-smoke.yaml")
+        mutations = {
+            "conflicting thinking control (#53)": rendered.replace(
+                "                body:\n",
+                "                settings:\n"
+                "                  thinking:\n"
+                "                    type: enabled\n"
+                "                body:\n",
+                1,
+            ),
+            "output cap deleted (#40)": re.sub(
+                r"(?m)^\s+max_tokens: 8192\n", "", rendered
+            ),
+            "wrong gateway modelID": rendered.replace(
+                "modelID: glm-5p3-flash", "modelID: glm-5p3-pro"
+            ),
+            "reasoningEffort dropped": re.sub(
+                r"(?m)^\s+reasoningEffort: low\n", "", rendered
+            ),
+            "canonical dropped": re.sub(
+                r"(?m)^\s+canonical: fireworks\n", "", rendered
+            ),
+        }
+        for label, mutated in mutations.items():
+            with self.subTest(label):
+                with self.assertRaises(SystemExit):
+                    prepare_configs.validate_opencode_v2_config(path, mutated)
+
+    def test_requirements_are_per_agent_not_per_document(self) -> None:
+        """A compliant sibling agent must not satisfy a requirement for an
+        agent that omits it."""
+        path, rendered = self._rendered("smoke.yaml")
+        mutations = {
+            "one leg loses restrict_model": rendered.replace(
+                "      restrict_model: true\n", "", 1
+            ),
+            "one leg loses its web-search policy": rendered.replace(
+                "        websearch: false\n", "", 1
+            ),
+            "one leg loses variant": rendered.replace("      variant: low\n", "", 1),
+            "Luna leg loses its Responses cap": re.sub(
+                r"(?m)^\s+max_output_tokens: 8192\n", "", rendered
+            ),
+        }
+        for label, mutated in mutations.items():
+            with self.subTest(label):
+                with self.assertRaises(SystemExit):
+                    prepare_configs.validate_opencode_v2_config(path, mutated)
+
     def test_tool_stream_guard_is_per_agent_and_ignores_comments(self) -> None:
         """OpenCode 2.0.8 injects tool_stream:true for the zai provider id and
         the Fireworks gateway route rejects it with HTTP 400, so every
