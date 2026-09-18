@@ -26,8 +26,8 @@ CURRENT_MODEL_CONFIGS = {
 OPENCODE_V2_SMOKE_CONFIG = "opencode-v2/smoke.yaml"
 OPENCODE_V2_RESPONSES_PACKAGE = "@opencode-ai/ai/providers/openai/responses"
 STAGED_OPENCODE_V2_MODELS = {
-    "deepseek-v4p1-flash.yaml": "fireworks/deepseek-v4p1-flash",
-    "kimi-k3.yaml": "fireworks/kimi-k3",
+    "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
+    "kimi-k3.yaml": "moonshotai/kimi-k3",
     "luna.yaml": "openai/gpt-5.6-luna",
 }
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
@@ -474,7 +474,7 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
     if path.as_posix().endswith(OPENCODE_V2_SMOKE_CONFIG):
         required = (
             "name: opencode-v2",
-            "model_name: fireworks/glm-5.3-flash",
+            "model_name: zai/glm-5.3-flash",
             "variant: low",
             "opencode_v2_checksums:",
             "restrict_model: true",
@@ -605,19 +605,17 @@ def validate_staged_opencode_v2_profile(
             f"{path}: {model_ref} must override the built-in {provider} "
             "provider transport settings"
         )
-    if model_ref == "fireworks/kimi-k3":
+    if model_ref == "moonshotai/kimi-k3":
         required = (
             "websearch:\n        provider: random",
-            "canonical: moonshotai",
             'package: "@opencode/ai/providers/fireworks"',
             "models:\n            kimi-k3:",
             "reasoningField: reasoning_content",
             "max_tokens: 131072",
         )
-    elif model_ref == "fireworks/deepseek-v4p1-flash":
+    elif model_ref == "deepseek/deepseek-v4p1-flash":
         required = (
             "websearch: false",
-            "canonical: deepseek",
             'package: "@opencode/ai/providers/fireworks"',
             "models:\n            deepseek-v4p1-flash:",
             "modelID: deepseek-v4p1-flash",
@@ -670,9 +668,8 @@ def _validate_staged_explicit_profile(
             f"{path}: staged profile is missing "
             + ", ".join(repr(item) for item in missing)
         )
-    if model_ref == "fireworks/glm-5.3-flash":
+    if model_ref == "zai/glm-5.3-flash":
         required_glm = (
-            "canonical: zai",
             'package: "@opencode/ai/providers/fireworks"',
             "models:\n            glm-5.3-flash:",
             "modelID: glm-5p3-flash",
@@ -701,7 +698,7 @@ def validate_staged_opencode_v2_profiles() -> None:
             require_input=filename == "luna.yaml",
         )
     explicit_profiles = {
-        "glm-5.3-flash.yaml": ("fireworks/glm-5.3-flash", "max"),
+        "glm-5.3-flash.yaml": ("zai/glm-5.3-flash", "max"),
         "opus.yaml": ("anthropic/claude-opus-5", "medium"),
     }
     for filename, (model_ref, variant) in explicit_profiles.items():

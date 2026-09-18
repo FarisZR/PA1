@@ -35,7 +35,7 @@ datasets:
   - koota-composite-trait-aspects
 agents:
 - name: opencode-v2
-  model_name: fireworks/kimi-k3
+  model_name: moonshotai/kimi-k3
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
@@ -53,8 +53,7 @@ agents:
       websearch:
         provider: random
       providers:
-        fireworks:
-          canonical: moonshotai
+        moonshotai:
           package: "@opencode/ai/providers/fireworks"
           env:
           - LITELLM_API_KEY

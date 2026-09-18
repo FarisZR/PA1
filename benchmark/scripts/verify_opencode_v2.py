@@ -553,22 +553,11 @@ def write_restricted_catalog(
     source = BENCHMARK_DIR / "references/opencode-v2-model-catalog-2.0.8.json"
     catalog = json.loads(source.read_text())
     provider_id, model_id = model_name.split("/", 1)
-    catalog_provider_id = provider_id
-    provider = catalog.get(catalog_provider_id)
-    configured_provider = (opencode_config.get("providers") or {}).get(
-        provider_id, {}
-    )
-    aliased_from_canonical = False
+    provider = catalog.get(provider_id)
     if not isinstance(provider, dict) or model_id not in (provider.get("models") or {}):
-        canonical = (
-            configured_provider.get("canonical")
-            if isinstance(configured_provider, dict)
-            else None
+        configured_provider = (opencode_config.get("providers") or {}).get(
+            provider_id, {}
         )
-        if isinstance(canonical, str) and isinstance(catalog.get(canonical), dict):
-            catalog_provider_id = canonical
-            provider = catalog[catalog_provider_id]
-            aliased_from_canonical = True
         configured_model = (configured_provider.get("models") or {}).get(model_id, {})
         package = str(configured_provider.get("package") or "@ai-sdk/openai-compatible")
         package = package.removeprefix("aisdk:")
@@ -604,20 +593,14 @@ def write_restricted_catalog(
         }
         if field := compatibility.get("reasoningField"):
             raw_model["interleaved"] = {"field": field}
-        catalog[catalog_provider_id] = {
-            "id": catalog_provider_id,
-            "name": str(configured_provider.get("name") or catalog_provider_id),
+        catalog[provider_id] = {
+            "id": provider_id,
+            "name": str(configured_provider.get("name") or provider_id),
             "env": list(configured_provider.get("env") or []),
             "npm": package,
             "models": {model_id: raw_model},
         }
-        provider = catalog[catalog_provider_id]
-    if not isinstance(provider, dict) or model_id not in (provider.get("models") or {}):
-        raise ValueError(
-            f"catalog does not contain {provider_id}/{model_id} "
-            "or its canonical provider"
-        )
-    selected_provider = copy.deepcopy(catalog[catalog_provider_id])
+    selected_provider = copy.deepcopy(catalog[provider_id])
     selected_model = copy.deepcopy(selected_provider["models"][model_id])
     selected_model.pop("experimental", None)
     if variant:
@@ -625,15 +608,10 @@ def write_restricted_catalog(
             {"type": "effort", "values": [variant]}
         ]
     selected_provider["models"] = {model_id: selected_model}
-    if aliased_from_canonical:
-        selected_provider["id"] = provider_id
-        catalog = {provider_id: selected_provider}
-    else:
-        catalog = {catalog_provider_id: selected_provider}
+    catalog = {provider_id: selected_provider}
     path = output_dir / "models.json"
     path.write_text(json.dumps(catalog, separators=(",", ":")))
     return path
-
 
 def run_pier_agent(
     pier_root: Path,

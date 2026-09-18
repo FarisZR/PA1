@@ -16,7 +16,7 @@ tasks:
 
 agents:
   - name: opencode-v2
-    model_name: fireworks/glm-5.3-flash
+    model_name: zai/glm-5.3-flash
     env:
       LITELLM_API_KEY: ${LITELLM_API_KEY}
       LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
@@ -31,8 +31,7 @@ agents:
       opencode_v2_config:
         websearch: false
         providers:
-          fireworks:
-            canonical: zai
+          zai:
             package: "@opencode/ai/providers/fireworks"
             env: [LITELLM_API_KEY]
             settings:

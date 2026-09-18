@@ -19,19 +19,21 @@ Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 from the primary jobs.
 
 Luna retains the built-in OpenAI Responses profile. Kimi K3, DeepSeek V4.1
-Flash, and GLM use Fireworks transport aliases with `canonical` set to their
-upstream providers (`moonshotai`, `deepseek`, and `zai`, respectively). The
-frozen catalogue therefore keeps one upstream metadata profile per model; the
-runtime config overrides only the transport package, gateway model ID,
-endpoint, key, and required output cap. OpenCode's native Fireworks transport
-avoids the Z.AI-specific variant adding a second thinking control (PA1
-[#53](https://github.com/FarisZR/PA1/issues/53)). Every profile keeps one
+Flash, and GLM keep their canonical OpenCode model identities
+(`moonshotai/kimi-k3`, `deepseek/deepseek-v4p1-flash`, and
+`zai/glm-5.3-flash`). Their provider configs override only the transport
+package, gateway model ID, endpoint, key, and required output cap to use the
+Fireworks route. The frozen catalogue therefore keeps the upstream metadata
+profile and model identity instead of creating synthetic `fireworks/*`
+models. For GLM, the Fireworks transport also avoids the Z.AI-specific
+OpenAI-compatible thinking injection that conflicts with `reasoningEffort`
+(PA1 [#53](https://github.com/FarisZR/PA1/issues/53)). Every profile keeps one
 effective `reasoningEffort` per variant and an explicit model-body output cap.
 Luna's inherited limits are `context: 1050000`, `input: 922000`, and
 `output: 128000`, matching the current models.dev profile. The pinned
 OpenCode 2.0.8 run uses the committed catalogue with model fetching disabled.
-GLM therefore keeps the upstream `zai/glm-5.3-flash` metadata and provenance
-while selecting `fireworks/glm-5.3-flash` for transport; its canonical profile and provenance are in
+GLM therefore keeps the upstream `zai/glm-5.3-flash` metadata and identity
+while using the Fireworks transport; its profile and provenance are in
 `benchmark/references/opencode-v2-glm-5.3-flash.json`.
 Opus has no gateway base URL and remains on the direct Anthropic API route.
 
