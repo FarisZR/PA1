@@ -1,0 +1,32 @@
+version = "1.0"
+
+[task]
+name = "pier/opencode-v2-smoke"
+authors = []
+keywords = []
+
+[metadata]
+author_name = "PA1"
+author_email = "noreply@example.com"
+difficulty = "easy"
+category = "programming"
+tags = ["trivial", "opencode-v2"]
+
+[verifier]
+timeout_sec = 120.0
+
+[agent]
+timeout_sec = 600.0
+
+[environment]
+build_timeout_sec = 300.0
+cpus = 1
+memory_mb = 2048
+storage_mb = 4096
+gpus = 0
+allow_internet = true
+mcp_servers = []
+
+[verifier.env]
+
+[solution.env]

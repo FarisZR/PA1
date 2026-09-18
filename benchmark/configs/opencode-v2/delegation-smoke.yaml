@@ -1,0 +1,64 @@
+# Small OpenCode V2 delegation smoke. This deliberately uses only GLM low and
+# requires one native general-subagent call so the collected session tree can
+# be compared with the official OpenCode V2 session/message records.
+job_name: opencode-v2-glm-delegation-smoke
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 1
+retry:
+  max_retries: 0
+
+environment:
+  type: docker
+
+tasks:
+  - path: benchmark/tasks/opencode-v2-delegation-smoke
+
+agents:
+  - name: opencode-v2
+    model_name: zai/glm-5.3-flash
+    env:
+      LITELLM_API_KEY: ${LITELLM_API_KEY}
+      LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+    kwargs:
+      variant: low
+      version: "2.0.8"
+      opencode_v2_checksums:
+        linux-x64: 8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625
+        linux-arm64: 957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce
+      restrict_model: true
+      model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.8.json
+      opencode_v2_config:
+        websearch: false
+        providers:
+          zai:
+            package: "@opencode/ai/providers/fireworks"
+            # OpenCode 2.0.8 injects the Z.AI-only `tool_stream: true` extension
+            # whenever the resolved transport provider is zai/zhipuai and tools
+            # are present, which the Fireworks-backed gateway route rejects with
+            # HTTP 400. The flag keys off `canonical ?? providerID`, so naming
+            # the Fireworks transport as the canonical provider suppresses it
+            # while keeping the benchmark identity `zai/glm-5.3-flash` and the
+            # Fireworks package that fixes PA1 #53.
+            canonical: fireworks
+            env: [LITELLM_API_KEY]
+            settings:
+              baseURL: __LITELLM_OPENAI_BASE_URL__
+            models:
+              glm-5.3-flash:
+                modelID: glm-5p3-flash
+                body:
+                  max_tokens: 8192
+                compatibility:
+                  maxTokensField: max_tokens
+                  reasoningField: reasoning_content
+                variants:
+                  - id: low
+                    settings:
+                      reasoningEffort: low
+                  - id: high
+                    settings:
+                      reasoningEffort: high
+                  - id: max
+                    settings:
+                      reasoningEffort: max

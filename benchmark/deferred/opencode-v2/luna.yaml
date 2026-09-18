@@ -1,8 +1,9 @@
-# BLOCKED on PA1#9 / Pier OpenCode 2 support. Do not run yet.
+# STAGED OpenCode V2 primary profile. Launch only after the per-model gate in
+# benchmark/README.md; this remains outside the current primary batch.
 job_name: opencode-v2-luna
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 14
+n_concurrent_trials: 30
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
@@ -33,32 +34,44 @@ datasets:
   - boa-hierarchical-evaluation-cancellation
   - koota-composite-trait-aspects
 agents:
-- name: opencode
-  model_name: litellm/gpt-5.6-luna
+- name: opencode-v2
+  model_name: openai/gpt-5.6-luna
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
   kwargs:
-    version: 0.0.0-beta-18684
     variant: max
-    opencode_config:
-      autoupdate: false
+    version: "2.0.8"
+    opencode_v2_checksums:
+      linux-x64: 8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625
+      linux-arm64: 957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce
+    restrict_model: true
+    model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.8.json
+    opencode_v2_config:
+      update: disable
+      share: disabled
+      websearch: false
       providers:
-        litellm:
-          name: LiteLLM
+        openai:
           env:
           - LITELLM_API_KEY
-          package: '@opencode-ai/ai/providers/openai-compatible/responses'
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
+          # Preserve the built-in Responses profile while making its output
+          # ceiling explicit on the gateway wire.
+          #
+          # PA1 #17: every harness holds Luna to the 272,000-token window.
+          # Codex uses the native 272,000 entry, Claude Code sets
+          # CLAUDE_CODE_AUTO_COMPACT_WINDOW=272000 and Pi's bundled entry is
+          # already 272000. OpenAI prices input above 272,000 at 2x and
+          # benchmark/pricing.yaml models no such tier, so inheriting the full
+          # 1,050,000 window would under-cost this harness relative to the
+          # others instead of measuring a harness property.
           models:
             gpt-5.6-luna:
-              modelID: gpt-5.6-luna
-              name: GPT-5.6 Luna
               limit:
                 context: 272000
+                input: 144000
                 output: 128000
-              variants:
-              - id: max
-                settings:
-                  reasoningEffort: max
+              body:
+                max_output_tokens: 128000

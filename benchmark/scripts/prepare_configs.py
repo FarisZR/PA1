@@ -20,6 +20,13 @@ CURRENT_MODEL_CONFIGS = {
     "deepseek-v4p1-flash.yaml": 1,
     "glm-5.3-flash.yaml": 1,
     "luna.yaml": 0,
+    "opencode-v2/smoke.yaml": 2,
+    "opencode-v2/delegation-smoke.yaml": 1,
+}
+STAGED_OPENCODE_V2_MODELS = {
+    "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
+    "kimi-k3.yaml": "moonshotai/kimi-k3",
+    "luna.yaml": "openai/gpt-5.6-luna",
 }
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
 CLAUDE_OUTPUT_OVERRIDE = "CLAUDE_CODE_MAX_OUTPUT_TOKENS"
@@ -294,9 +301,7 @@ def validate_bridge_url(url: str) -> str:
             "on 443."
         )
     if not parsed.path.rstrip("/").endswith("/v1"):
-        raise SystemExit(
-            f"CODEX_CLIPROXY_BASE_URL should end in /v1, got {url!r}"
-        )
+        raise SystemExit(f"CODEX_CLIPROXY_BASE_URL should end in /v1, got {url!r}")
     return url.rstrip("/")
 
 
@@ -464,6 +469,360 @@ def render_model_config(path: Path, base_url: str, expected_sentinels: int) -> s
     return rendered
 
 
+OPENCODE_V2_AGENT_BLOCK = r"(?ms)^  - name: opencode-v2\b.*?(?=^  - name:|\Z)"
+OPENCODE_V2_ZAI_TRANSPORT = ("zai", "zai-coding-plan", "zhipuai", "zhipuai-coding-plan")
+
+
+def _opencode_v2_agent_blocks(rendered: str) -> list[str]:
+    """Return one comment-free text block per ``opencode-v2`` agent.
+
+    Every check below is per owning agent: a compliant sibling must not satisfy
+    a requirement for an agent that omits it, and prose in a comment must not
+    stand in for a declaration.
+    """
+    blocks = []
+    for block in re.findall(OPENCODE_V2_AGENT_BLOCK, rendered):
+        blocks.append(
+            "\n".join(
+                line for line in block.splitlines() if not line.lstrip().startswith("#")
+            )
+        )
+    return blocks
+
+
+def _require(path: Path, label: str, block: str, needles) -> None:
+    missing = [
+        needle
+        for needle in needles
+        if not (
+            re.search(needle[1], block, re.MULTILINE)
+            if isinstance(needle, tuple)
+            else needle in block
+        )
+    ]
+    if missing:
+        raise SystemExit(
+            f"{path}: OpenCode V2 {label} is missing "
+            + ", ".join(
+                repr(item[0] if isinstance(item, tuple) else item) for item in missing
+            )
+        )
+
+
+def validate_opencode_v2_config(path: Path, rendered: str) -> None:
+    """Validate the OpenCode V2 smoke profiles at generation time.
+
+    OpenCode's JSON schema accepts both ``limit.output`` metadata and a model
+    request ``body``.  The former alone did not put an output cap on the wire
+    (PA1 #40), so silently dropping this body override would turn a generated
+    smoke job into an unbounded probe.  Keep these checks text-based to
+    preserve the generator's zero-runtime-dependency contract and to catch
+    conflicting reasoning controls before any deployment files are written.
+
+    The model-specific checks are keyed on the agent's own ``model_name``, not
+    on the file name, so every GLM profile is covered rather than only
+    ``smoke.yaml``.
+    """
+    if "opencode_v2_config:" not in rendered:
+        return
+    blocks = _opencode_v2_agent_blocks(rendered)
+    if not blocks:
+        raise SystemExit(f"{path}: OpenCode V2 config declares no opencode-v2 agent")
+    # Acceptance-only smoke jobs additionally pin the cheap settings their
+    # headers document; the staged primary profiles use their own values.
+    is_smoke = "configs/opencode-v2/" in path.as_posix()
+    # The two-model smoke exists to exercise both supported transports, so it
+    # must keep a GLM (Chat Completions) leg; the previous whole-document check
+    # required one implicitly.
+    if is_smoke and path.name == "smoke.yaml":
+        for model in ("zai/glm-5.3-flash", "openai/gpt-5.6-luna"):
+            if not any(
+                re.search(
+                    rf"^\s+model_name: {re.escape(model)}$", block, re.MULTILINE
+                )
+                for block in blocks
+            ):
+                raise SystemExit(
+                    f"{path}: the OpenCode V2 smoke job must cover both "
+                    f"transports; no agent declares {model}"
+                )
+
+    for block in blocks:
+        _require(
+            path,
+            "agent",
+            block,
+            [
+                "restrict_model: true",
+                "opencode_v2_checksums:",
+                "model_catalog_file: benchmark/references/"
+                "opencode-v2-model-catalog-2.0.8.json",
+                ("variant: <effort>", r"^\s+variant: \S+$"),
+                # Release selection belongs to each job, not this generator.
+                (
+                    "exact version pin (x.y.z)",
+                    r"^\s+version:\s*[\"\']?\d+\.\d+\.\d+(?:-[\w.-]+)?[\"\']?\s*$",
+                ),
+                ("linux-x64 SHA-256", r"^\s+linux-x64:\s*[0-9a-f]{64}\s*$"),
+                ("linux-arm64 SHA-256", r"^\s+linux-arm64:\s*[0-9a-f]{64}\s*$"),
+                # Every agent declares its own web-search policy (PA1 #48).
+                ("websearch:", r"^\s+websearch:"),
+                ("baseURL:", r"^\s+baseURL: \S+"),
+            ],
+        )
+
+        if re.search(r"^\s+model_name: zai/glm-5\.3-flash$", block, re.MULTILINE):
+            _require(
+                path,
+                "GLM profile",
+                block,
+                [
+                    'package: "@opencode/ai/providers/fireworks"',
+                    "canonical: fireworks",
+                    ("glm-5.3-flash model entry", r"^\s+glm-5\.3-flash:\s*$"),
+                    "modelID: glm-5p3-flash",
+                    "maxTokensField: max_tokens",
+                    "reasoningField: reasoning_content",
+                    ("reasoningEffort:", r"^\s+reasoningEffort: \S+$"),
+                    # PA1 #40: limit.output metadata is not sent on the wire.
+                    ("body max_tokens cap", r"^\s+max_tokens: \d+$"),
+                ],
+            )
+            # PA1 #53: the Fireworks route rejects `thinking` alongside
+            # `reasoning_effort`, so GLM must use reasoningEffort alone.
+            if re.search(r"^\s+thinking:", block, re.MULTILINE):
+                raise SystemExit(
+                    f"{path}: GLM must use reasoningEffort alone; "
+                    "do not add a conflicting thinking control"
+                )
+            if is_smoke:
+                _require(
+                    path,
+                    "GLM smoke profile",
+                    block,
+                    ["variant: low", "reasoningEffort: low", "max_tokens: 8192"],
+                )
+
+        if re.search(r"^\s+model_name: openai/gpt-5\.6-luna$", block, re.MULTILINE):
+            _require(
+                path,
+                "Luna profile",
+                block,
+                [
+                    ("gpt-5.6-luna model entry", r"^\s+gpt-5\.6-luna:\s*$"),
+                    # Luna keeps the built-in Responses profile, whose output
+                    # field is max_output_tokens (PA1 #40).
+                    ("body max_output_tokens cap", r"^\s+max_output_tokens: \d+$"),
+                ],
+            )
+            if is_smoke:
+                _require(
+                    path,
+                    "Luna smoke profile",
+                    block,
+                    ["variant: low", "max_output_tokens: 8192"],
+                )
+
+    validate_opencode_v2_tool_stream(path, rendered)
+
+
+def validate_opencode_v2_tool_stream(path: Path, rendered: str) -> None:
+    """Keep the Z.AI-only ``tool_stream`` extension off the gateway wire.
+
+    OpenCode 2.0.8 injects ``tool_stream: true`` whenever the resolved
+    transport provider is zai/zhipuai and the request carries tools. The
+    Fireworks-backed PA1 route rejects that field with HTTP 400 before any
+    token is spent, so a profile that keeps the canonical ``zai`` provider id
+    must redirect ``canonical`` at the Fireworks transport. There is no
+    model-level override: ``zaiToolStream`` is absent from OpenCode's config
+    schema.
+    """
+    blocks = _opencode_v2_agent_blocks(rendered) or [
+        "\n".join(
+            line for line in rendered.splitlines() if not line.lstrip().startswith("#")
+        )
+    ]
+    for block in blocks:
+        declared = [
+            provider
+            for provider in OPENCODE_V2_ZAI_TRANSPORT
+            if re.search(rf"^\s+{re.escape(provider)}:\s*$", block, re.MULTILINE)
+        ]
+        if not declared:
+            continue
+        if not re.search(r"^\s+canonical:\s*fireworks\s*$", block, re.MULTILINE):
+            raise SystemExit(
+                f"{path}: an OpenCode V2 profile using the "
+                f"{', '.join(declared)} provider id must set canonical: fireworks, "
+                "otherwise OpenCode 2.0.8 sends tool_stream:true and the gateway "
+                "returns HTTP 400"
+            )
+
+def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:
+    """Read one model's integer limit block without adding a YAML dependency."""
+    lines = rendered.splitlines()
+    model_index = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.strip() == f"{model_id}:"
+        ),
+        None,
+    )
+    if model_index is None:
+        raise SystemExit(f"OpenCode V2 profile is missing model {model_id!r}")
+    model_indent = len(lines[model_index]) - len(lines[model_index].lstrip())
+    limit_index = None
+    for index in range(model_index + 1, len(lines)):
+        stripped = lines[index].strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(lines[index]) - len(lines[index].lstrip())
+        if indent <= model_indent:
+            break
+        if stripped == "limit:":
+            limit_index = index
+            break
+    if limit_index is None:
+        raise SystemExit(f"OpenCode V2 model {model_id!r} is missing limit")
+    limit_indent = len(lines[limit_index]) - len(lines[limit_index].lstrip())
+    values: dict[str, int] = {}
+    for line in lines[limit_index + 1 :]:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip())
+        if indent <= limit_indent:
+            break
+        match = re.fullmatch(r"(context|input|output):\s*([0-9]+)", stripped)
+        if match:
+            values[match.group(1)] = int(match.group(2))
+    return values
+
+
+def validate_staged_opencode_v2_profile(
+    path: Path, rendered: str, model_ref: str, *, require_input: bool = False
+) -> None:
+    """Validate a staged built-in profile and its minimal route overrides."""
+    if f"model_name: {model_ref}" not in rendered or "#" in rendered.split(
+        "model_name:", 1
+    )[1].splitlines()[0]:
+        raise SystemExit(
+            f"{path}: OpenCode V2 model_name must be the built-in {model_ref} "
+            "reference with variant supplied separately in kwargs"
+        )
+    if "variant: max" not in rendered:
+        raise SystemExit(
+            f"{path}: {model_ref} must set kwargs.variant: max"
+        )
+    provider, _ = model_ref.split("/", 1)
+    provider_block = f"        {provider}:"
+    if provider_block not in rendered:
+        raise SystemExit(
+            f"{path}: {model_ref} must override the built-in {provider} "
+            "provider transport settings"
+        )
+    if model_ref == "moonshotai/kimi-k3":
+        required = (
+            "websearch:\n        provider: random",
+            'package: "@opencode/ai/providers/fireworks"',
+            "models:\n            kimi-k3:",
+            "reasoningField: reasoning_content",
+            "max_tokens: 131072",
+        )
+    elif model_ref == "deepseek/deepseek-v4p1-flash":
+        required = (
+            "websearch: false",
+            'package: "@opencode/ai/providers/fireworks"',
+            "models:\n            deepseek-v4p1-flash:",
+            "modelID: deepseek-v4p1-flash",
+            "reasoningField: reasoning_content",
+            "max_tokens: 384000",
+            "reasoningEffort: max",
+        )
+    elif model_ref == "openai/gpt-5.6-luna":
+        required = (
+            "websearch: false",
+            "models:\n            gpt-5.6-luna:",
+            "max_output_tokens: 128000",
+        )
+    else:
+        raise SystemExit(f"{path}: unsupported staged OpenCode V2 model {model_ref!r}")
+    missing = [needle for needle in required if needle not in rendered]
+    if missing:
+        raise SystemExit(
+            f"{path}: {model_ref} is missing inherited-profile override(s): "
+            + ", ".join(repr(item) for item in missing)
+        )
+
+    if require_input:
+        limits = _model_limit_values(rendered, model_ref.rsplit("/", 1)[1])
+        input_limit = limits.get("input")
+        context_limit = limits.get("context")
+        if input_limit is None or context_limit is None:
+            raise SystemExit(
+                f"{path}: {model_ref} must declare both input and context limits"
+            )
+        if input_limit > context_limit:
+            raise SystemExit(
+                f"{path}: {model_ref} input limit {input_limit} exceeds "
+                f"context limit {context_limit}"
+            )
+
+
+def _validate_staged_explicit_profile(
+    path: Path, rendered: str, model_ref: str, variant: str
+) -> None:
+    """Validate the explicit frozen-catalogue exception or direct Anthropic profile."""
+    required = (
+        f"model_name: {model_ref}",
+        f"variant: {variant}",
+        "websearch: false",
+    )
+    missing = [needle for needle in required if needle not in rendered]
+    if missing:
+        raise SystemExit(
+            f"{path}: staged profile is missing "
+            + ", ".join(repr(item) for item in missing)
+        )
+    if model_ref == "zai/glm-5.3-flash":
+        required_glm = (
+            'package: "@opencode/ai/providers/fireworks"',
+            "models:\n            glm-5.3-flash:",
+            "modelID: glm-5p3-flash",
+            "reasoningField: reasoning_content",
+            "max_tokens: 131072",
+            "reasoningEffort: low",
+            "reasoningEffort: high",
+            "reasoningEffort: max",
+        )
+        missing_glm = [needle for needle in required_glm if needle not in rendered]
+        if missing_glm:
+            raise SystemExit(
+                f"{path}: GLM explicit profile is missing "
+                + ", ".join(repr(item) for item in missing_glm)
+            )
+
+
+def validate_staged_opencode_v2_profiles() -> None:
+    """Validate all staged primary profiles before generating deployment files."""
+    for filename, model_id in STAGED_OPENCODE_V2_MODELS.items():
+        path = BENCHMARK_DIR / "deferred" / "opencode-v2" / filename
+        validate_staged_opencode_v2_profile(
+            path,
+            path.read_text(),
+            model_id,
+            require_input=filename == "luna.yaml",
+        )
+    explicit_profiles = {
+        "glm-5.3-flash.yaml": ("zai/glm-5.3-flash", "max"),
+        "opus.yaml": ("anthropic/claude-opus-5", "medium"),
+    }
+    for filename, (model_ref, variant) in explicit_profiles.items():
+        path = BENCHMARK_DIR / "deferred" / "opencode-v2" / filename
+        _validate_staged_explicit_profile(path, path.read_text(), model_ref, variant)
+
+
 def validate_claude_output_policy() -> None:
     """Keep Claude Code on its native per-model output-token behavior."""
     offenders = [
@@ -493,6 +852,7 @@ def main() -> None:
         load_env_file(args.env_file)
 
     validate_claude_output_policy()
+    validate_staged_opencode_v2_profiles()
 
     litellm_url = require("LITELLM_OPENAI_BASE_URL")
     litellm_api_key = require("LITELLM_API_KEY")
@@ -510,10 +870,13 @@ def main() -> None:
     for name, expected_sentinels in CURRENT_MODEL_CONFIGS.items():
         source = CONFIG_DIR / name
         destination = GENERATED_DIR / name
+        rendered = render_model_config(source, litellm_url, expected_sentinels)
+        if name.startswith("opencode-v2/"):
+            validate_opencode_v2_config(source, rendered)
         rendered_models.append(
             (
                 destination,
-                render_model_config(source, litellm_url, expected_sentinels),
+                rendered,
             )
         )
 
@@ -574,6 +937,7 @@ def main() -> None:
         (GENERATED_DIR / obsolete).unlink(missing_ok=True)
 
     for path, contents in rendered_models:
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(contents)
         print(f"Wrote {path}")
 

@@ -1,0 +1,92 @@
+{
+  "component": "@opencode/cli-linux-x64",
+  "version": "2.0.8",
+  "source": "https://registry.npmjs.org/@opencode/cli-linux-x64/-/cli-linux-x64-2.0.8.tgz",
+  "sha256": "8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625",
+  "catalog": {
+    "source": "benchmark/references/opencode-v2-model-catalog-2.0.8.json",
+    "sha256": "1b2ceeb94bbdc65757498cdc62d6f0fefde5dc8d898f28a95ed932db4a175574",
+    "base": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.8 plus the recorded models.dev DeepSeek entry",
+    "fetch_disabled": true,
+    "model_present": true,
+    "live_models_dev_check": {
+      "source": "https://models.dev/api.json",
+      "checked": "2026-09-17",
+      "model_present": true,
+      "canonical_provider": "zai",
+      "model_id": "glm-5.3-flash",
+      "selected_profile_sha256": "e4fb524094822262ea86ef524fdfdfeba5d13d0443499a5289adc4361f0a5637",
+      "copied_into_frozen_catalog": false
+    },
+    "canonical_provider": "zai",
+    "transport_provider": "fireworks",
+    "transport_package": "@opencode/ai/providers/fireworks",
+    "profile": {
+      "provider": "zai",
+      "transport": "openai-compatible-chat",
+      "model_id": "glm-5.3-flash",
+      "transport_model_id": "glm-5p3-flash",
+      "family": "glm-flash",
+      "release_date": "2026-08-26",
+      "last_updated": "2026-08-26",
+      "attachment": true,
+      "structured_output": true,
+      "temperature": true,
+      "open_weights": true,
+      "capabilities": {
+        "tools": true,
+        "input": [
+          "text",
+          "image",
+          "video",
+          "pdf"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "context": 1000000,
+      "output": 131072,
+      "cost": {
+        "input": 0.075,
+        "output": 0.25,
+        "cache_read": 0.015,
+        "cache_write": 0.0
+      },
+      "reasoning": [
+        "low",
+        "high",
+        "max"
+      ],
+      "reasoning_field": "reasoning_content",
+      "max_tokens_field": "max_tokens",
+      "smoke_variant": "low",
+      "smoke_reasoning_effort": "low",
+      "primary_body_override": {
+        "max_tokens": 131072
+      },
+      "smoke_body_override": {
+        "max_tokens": 8192
+      },
+      "offline_wire_control": {
+        "metadata_limit_output": 54321,
+        "model_body_max_tokens": 8192,
+        "expected_wire_field": "max_tokens",
+        "expected_wire_value": 8192
+      }
+    }
+  },
+  "provenance": {
+    "gateway_alias": "glm-5p3-flash",
+    "route": "existing PA1 LiteLLM Fireworks-backed route",
+    "profile_sources": [
+      "https://models.dev/api.json (zai/glm-5.3-flash, checked 2026-09-17)",
+      "benchmark/pricing.yaml (normalized benchmark cost only)"
+    ],
+    "issue": "PA1 #41",
+    "output_limit_regression": "PA1 #40"
+  },
+  "binary_sha256": "18dab9a071769cccd5a1663b2b5f0d1bfc10062cfb19bf8b9ae088813407c9a7",
+  "source_tag": "v2.0.8",
+  "source_commit": null
+}
