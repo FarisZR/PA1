@@ -557,14 +557,24 @@ def validate_opencode_v2_tool_stream(path: Path, rendered: str) -> None:
     model-level override: ``zaiToolStream`` is absent from OpenCode's config
     schema.
     """
-    if "        zai:" not in rendered and "          zai:" not in rendered:
-        return
-    if "canonical: fireworks" not in rendered:
-        raise SystemExit(
-            f"{path}: an OpenCode V2 profile using the zai provider id must set "
-            "providers.zai.canonical: fireworks, otherwise OpenCode 2.0.8 sends "
-            "tool_stream:true and the gateway returns HTTP 400"
+    # Check per owning agent: a compliant sibling must not satisfy the guard
+    # for an agent that omits it. Comments are stripped so prose mentioning a
+    # required scalar cannot stand in for the declaration.
+    blocks = re.findall(
+        r"(?ms)^  - name: opencode-v2\b.*?(?=^  - name:|\Z)", rendered
+    ) or [rendered]
+    for block in blocks:
+        body = "\n".join(
+            line for line in block.splitlines() if not line.lstrip().startswith("#")
         )
+        if not re.search(r"(?m)^\s+zai:\s*$", body):
+            continue
+        if not re.search(r"(?m)^\s+canonical:\s*fireworks\s*$", body):
+            raise SystemExit(
+                f"{path}: an OpenCode V2 profile using the zai provider id must set "
+                "providers.zai.canonical: fireworks, otherwise OpenCode 2.0.8 sends "
+                "tool_stream:true and the gateway returns HTTP 400"
+            )
 
 
 def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:

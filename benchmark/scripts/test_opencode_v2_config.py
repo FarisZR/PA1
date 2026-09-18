@@ -13,6 +13,7 @@ import importlib
 import io
 import json
 import os
+import re
 import sys
 import tarfile
 import tempfile
@@ -207,6 +208,36 @@ providers:
         self.assertNotIn("cost:\n", rendered)
         self.assertNotIn("thinking:", rendered)
         self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", rendered)
+
+    def test_tool_stream_guard_is_per_agent_and_ignores_comments(self) -> None:
+        """OpenCode 2.0.8 injects tool_stream:true for the zai provider id and
+        the Fireworks gateway route rejects it with HTTP 400, so every
+        zai-identity agent needs its own canonical override. A compliant
+        sibling, or prose in a comment, must not satisfy the guard."""
+        smoke = BENCHMARK / "configs/opencode-v2/smoke.yaml"
+        raw = smoke.read_text()
+        starts = [m.start() for m in re.finditer(r"(?m)^  - name: opencode-v2$", raw)]
+        self.assertEqual(len(starts), 2)
+        glm_block = raw[starts[0] : starts[1]].rstrip("\n")
+
+        # The committed profile is compliant.
+        prepare_configs.validate_opencode_v2_tool_stream(smoke, raw)
+
+        sibling_leak = (
+            raw.rstrip("\n")
+            + "\n\n"
+            + glm_block.replace("            canonical: fireworks\n", "")
+            + "\n"
+        )
+        with self.assertRaises(SystemExit):
+            prepare_configs.validate_opencode_v2_tool_stream(smoke, sibling_leak)
+
+        commented_out = raw.replace(
+            "            canonical: fireworks\n",
+            "            # canonical: fireworks\n",
+        )
+        with self.assertRaises(SystemExit):
+            prepare_configs.validate_opencode_v2_tool_stream(smoke, commented_out)
 
     def test_generator_writes_nested_opencode_file_without_touching_repo(self) -> None:
         old_generated = prepare_configs.GENERATED_DIR
