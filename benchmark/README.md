@@ -24,7 +24,7 @@ the Kimi or DeepSeek templates directly: their Pi endpoint placeholder is
 resolved only in `benchmark/generated/`. Use generated files for all three
 primary jobs for one consistent workflow.
 
-Claude Opus 5 remains deferred. OpenCode V2 is now supported by the pinned Pier revision below. Its per-model profiles remain separate from the legacy three-harness generated jobs so the already-completed August runs stay reproducible; run the corresponding `benchmark/deferred/opencode-v2/<model>.yaml` profile when adding the fourth harness for a model.
+Claude Opus 5 remains deferred. OpenCode V2 is now supported by the pinned Pier revision below. The Pi / Claude Code / Codex model jobs are the current configurations, not legacy jobs. Kimi K3 is the only continuity exception: its web-tool configuration intentionally matches the completed 2026-08-31 Kimi runs, while the other model configurations use the updated policy with web-search tooling disabled ([PA1 #48](https://github.com/FarisZR/PA1/issues/48), [PA1 #54](https://github.com/FarisZR/PA1/issues/54)). OpenCode V2 is launched from the corresponding `benchmark/deferred/opencode-v2/<model>.yaml` profile when adding the fourth harness for a model.
 
 ## OpenCode V2 verification, smoke tests, and staged profiles
 
@@ -93,15 +93,21 @@ policy; the smoke jobs run with retries disabled so adapter faults stay
 visible), and [#9](https://github.com/FarisZR/PA1/issues/9) (V1 vs V2
 decision: V2, npm scope `@opencode`, pinned `2.0.8`).
 
-The legacy generated primary job for each model contains Pi, Claude Code, and
-Codex over the same 10 selected DeepSWE tasks. OpenCode V2 is represented by a
-separate per-model profile under `benchmark/deferred/opencode-v2/`. This split is
-intentional: it preserves the exact three-harness configuration used for the
-2026-08-31 runs while allowing the current benchmark setup to add OpenCode V2
-without rewriting historical job definitions.
+Each current generated primary job contains Pi, Claude Code, and Codex over the
+same 10 selected DeepSWE tasks. OpenCode V2 is represented by a separate
+per-model profile under `benchmark/deferred/opencode-v2/`. The split is only
+about launch/config organization; it does not make the three-harness jobs
+historical.
+
+Kimi K3 alone keeps the web-tool behavior of the completed 2026-08-31 run for
+continuity. GLM-5.3-Flash, DeepSeek V4.1 Flash, and GPT-5.6 Luna use the updated
+configuration with web-search tooling disabled. The OpenCode V2 profiles follow
+the same rule: web search is disabled except for Kimi K3
+([PA1 #48](https://github.com/FarisZR/PA1/issues/48),
+[PA1 #54](https://github.com/FarisZR/PA1/issues/54)).
 
 For a model evaluated on all four harnesses, the complete wave is therefore
-**40 planned trials**: 30 from the legacy Pi / Claude Code / Codex job plus 10
+**40 planned trials**: 30 from the current Pi / Claude Code / Codex job plus 10
 from the matching OpenCode V2 profile. Each profile uses 1 attempt per task,
 1 automatic retry for transport/gateway faults only, and
 `n_concurrent_trials: 30` for the primary profiles.
@@ -129,14 +135,14 @@ the reviewed OpenCode V2 adapter onto `FZR-forks/pier` main.
 
 | Component | Frozen revision/version |
 | --- | --- |
-| FZR Pier fork | `b0acdae033425500e968ac917acffeafd35f9cdb` |
-| DeepSWE | `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea` |
+| FZR Pier fork | [`b0acdae033425500e968ac917acffeafd35f9cdb`](https://github.com/FZR-forks/pier/commit/b0acdae033425500e968ac917acffeafd35f9cdb) |
+| DeepSWE | [`0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`](https://github.com/datacurve-ai/deep-swe/commit/0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea) |
 | Codex CLI | `0.151.0` |
 | Claude Code | `2.1.251` |
 | Pi | `0.84.4` |
-| OpenCode V2 | `2.0.8` (`@opencode/cli-<target>@2.0.8`; checksums and frozen catalog provenance under `benchmark/references/`) |
+| OpenCode V2 | [`2.0.8`](https://www.npmjs.com/package/@opencode/cli/v/2.0.8) (`@opencode/cli-<target>@2.0.8`; checksums and frozen catalog provenance under `benchmark/references/`) |
 | Codex model catalog | `rust-v0.151.0` vendored at `benchmark/references/codex-rust-v0.151.0-models.json` |
-| Codex compatibility bridge | CLIProxyAPI `v7.2.146` + upstream #5659 backport; GHCR digest `sha256:26de0755cf37765291e149590e13ee354010c8caa7b25ec3981827f2d606d6dc` |
+| Codex compatibility bridge | CLIProxyAPI `v7.2.146` + [upstream #5659](https://github.com/router-for-me/CLIProxyAPI/issues/5659) backport; GHCR digest `sha256:26de0755cf37765291e149590e13ee354010c8caa7b25ec3981827f2d606d6dc` |
 
 Pier PR [FZR-forks/pier#12](https://github.com/FZR-forks/pier/pull/12) added the
 independent `opencode-v2` adapter. The PA1-side OpenCode configuration,
@@ -151,16 +157,18 @@ Code runs with its updater disabled. Pier writes `lock.json` into each job
 result directory; keep it with the benchmark results and record the PA1 commit
 used for the run.
 
-### Historical 2026-08-31 run configuration — preserve exactly
+### Historical Kimi K3 2026-08-31 run configuration — preserve exactly
 
-The first benchmark runs at the end of August used the following frozen setup.
-This is historical provenance and must not be replaced by the current Pier pin,
-because those results were produced before OpenCode V2 support landed.
+The completed Kimi K3 runs at the end of August used the following frozen setup.
+This is historical provenance for Kimi only and must not be generalized to the
+other model configurations. The later model runs use the current setup above;
+Kimi keeps its historical web-tool behavior for continuity
+([PA1 #54](https://github.com/FarisZR/PA1/issues/54)).
 
 | Component | Frozen revision/version used on 2026-08-31 |
 | --- | --- |
-| FZR Pier fork | `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d` |
-| DeepSWE | `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea` |
+| FZR Pier fork | [`ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`](https://github.com/FZR-forks/pier/commit/ff65bae55c9a8ff15ddd3c2967c81a936713dd4d) |
+| DeepSWE | [`0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`](https://github.com/datacurve-ai/deep-swe/commit/0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea) |
 | Codex CLI | `0.151.0` |
 | Claude Code | `2.1.251` |
 | Pi | `0.84.4` |
@@ -168,11 +176,11 @@ because those results were produced before OpenCode V2 support landed.
 | Codex model catalog | `rust-v0.151.0` vendored at `benchmark/references/codex-rust-v0.151.0-models.json` |
 | Codex compatibility bridge | completed Kimi K3 run used unmodified CLIProxyAPI `v7.2.146`, digest `sha256:238691ac26ce55e4d1c5219d72e3ad74838f81eda26359912eeb415e2820d163` |
 
-The completed Kimi K3 run predates the bridge #5659 backport. Its request logs
+The completed Kimi K3 run predates the [CLIProxyAPI #5659](https://github.com/router-for-me/CLIProxyAPI/issues/5659) backport. Its request logs
 were checked and contained zero streamed deltas with both non-empty `content`
 and `reasoning_content`, so the triggering condition for that bug was absent.
 Later third-party Codex runs use the `v7.2.146` base with only upstream fix
-`c8ecb4f3` backported. Full scope and verification are recorded in
+[`c8ecb4f3`](https://github.com/router-for-me/CLIProxyAPI/commit/c8ecb4f3c972664aae802e21c6a6743d5f6bd80a) backported. Full scope and verification are recorded in
 [`benchmark/bridges/codex-cliproxy/BACKPORT-5659.md`](bridges/codex-cliproxy/BACKPORT-5659.md).
 
 ## Current model policy
@@ -787,8 +795,8 @@ is therefore organizational, not a Pier-support blocker.
 
 Before a primary OpenCode V2 run, execute the offline verifier and the relevant
 cheap live/provider gate described above, then launch the matching per-model
-profile. Issue #9 records the original V1/V2 decision; Pier support itself is no
-longer blocked.
+profile. [PA1 #9](https://github.com/FarisZR/PA1/issues/9) records the original
+V1/V2 decision; Pier support itself is no longer blocked.
 
 ## Upstream compatibility references
 
