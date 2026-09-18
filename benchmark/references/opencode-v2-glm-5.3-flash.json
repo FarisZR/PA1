@@ -5,8 +5,8 @@
   "sha256": "6f999433a2b44be2cd690387e2451b99b6c3a8426e7dc6eff54f4b3ced90fef3",
   "catalog": {
     "source": "benchmark/references/opencode-v2-model-catalog-2.0.6.json",
-    "sha256": "1b2ceeb94bbdc65757498cdc62d6f0fefde5dc8d898f28a95ed932db4a175574",
-    "base": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.6 plus the recorded models.dev GLM and DeepSeek entries",
+    "sha256": "45fdbd9077c122f3fe27c77ca99ef0ae768953b9ef23bf0c833a9a4a28c97410",
+    "base": "bundled models.dev snapshot in @opencode/cli-linux-x64 2.0.6 plus the recorded models.dev GLM/DeepSeek entries and the Fireworks GLM transport alias",
     "fetch_disabled": true,
     "model_present": false,
     "live_models_dev_check": {
@@ -19,6 +19,8 @@
       "copied_into_frozen_catalog": true
     },
     "canonical_provider": "zai",
+    "transport_provider": "fireworks",
+    "transport_package": "@opencode/ai/providers/fireworks",
     "profile": {
       "provider": "zai",
       "transport": "openai-compatible-chat",

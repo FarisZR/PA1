@@ -195,7 +195,7 @@ providers:
             source, "https://gateway.example/v1", expected_sentinels=2
         )
         prepare_configs.validate_opencode_v2_config(source, rendered)
-        self.assertIn("limit:\n                  context: 1000000", rendered)
+        self.assertIn('package: "@opencode/ai/providers/fireworks"', rendered)
         self.assertIn("reasoningEffort: low", rendered)
         self.assertIn("body:\n                  max_tokens: 8192", rendered)
         self.assertIn(f'version: "{verify_opencode_v2.OFFLINE_CLI_VERSION}"', rendered)
@@ -204,7 +204,7 @@ providers:
             "linux-arm64: cdb2ed114a00c8aeb438735ac6bef9003277a452b432b512c4af670da9950f53",
             rendered,
         )
-        self.assertIn("input: 0.075", rendered)
+        self.assertNotIn("cost:\n", rendered)
         self.assertNotIn("thinking:", rendered)
         self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", rendered)
 
@@ -245,7 +245,7 @@ providers:
                 smoke = target / "opencode-v2" / "smoke.yaml"
                 self.assertTrue(smoke.exists())
                 smoke_contents = smoke.read_text()
-                self.assertIn("model_name: zai/glm-5.3-flash", smoke_contents)
+                self.assertIn("model_name: fireworks/glm-5.3-flash", smoke_contents)
                 self.assertIn("model_name: openai/gpt-5.6-luna", smoke_contents)
                 self.assertIn("variant: low", smoke_contents)
                 self.assertNotIn("gpt-5.6-luna:\n", smoke_contents)

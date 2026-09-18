@@ -474,19 +474,14 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
     if path.as_posix().endswith(OPENCODE_V2_SMOKE_CONFIG):
         required = (
             "name: opencode-v2",
-            "model_name: zai/glm-5.3-flash",
+            "model_name: fireworks/glm-5.3-flash",
             "variant: low",
             "opencode_v2_checksums:",
             "restrict_model: true",
             "model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.6.json",
+            'package: "@opencode/ai/providers/fireworks"',
             "models:\n              glm-5.3-flash:",
             "modelID: glm-5p3-flash",
-            "family: glm-flash",
-            "input: [text, image, video, pdf]",
-            "context: 1000000",
-            "input: 0.075",
-            "output: 0.25",
-            "read: 0.015",
             "maxTokensField: max_tokens",
             "max_tokens: 8192",
             "reasoningField: reasoning_content",
@@ -679,16 +674,11 @@ def _validate_staged_explicit_profile(
             f"{path}: staged profile is missing "
             + ", ".join(repr(item) for item in missing)
         )
-    if model_ref == "zai/glm-5.3-flash":
+    if model_ref == "fireworks/glm-5.3-flash":
         required_glm = (
+            'package: "@opencode/ai/providers/fireworks"',
             "models:\n            glm-5.3-flash:",
             "modelID: glm-5p3-flash",
-            "family: glm-flash",
-            "input: [text, image, video, pdf]",
-            "context: 1000000",
-            "input: 0.075",
-            "output: 0.25",
-            "read: 0.015",
             "reasoningField: reasoning_content",
             "max_tokens: 131072",
             "reasoningEffort: low",
@@ -714,7 +704,7 @@ def validate_staged_opencode_v2_profiles() -> None:
             require_input=filename == "luna.yaml",
         )
     explicit_profiles = {
-        "glm-5.3-flash.yaml": ("zai/glm-5.3-flash", "max"),
+        "glm-5.3-flash.yaml": ("fireworks/glm-5.3-flash", "max"),
         "opus.yaml": ("anthropic/claude-opus-5", "medium"),
     }
     for filename, (model_ref, variant) in explicit_profiles.items():

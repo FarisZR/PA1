@@ -317,6 +317,11 @@ Code's declared compaction window, and cost normalization.
 Pi has no native subagent system in this benchmark setup. Pier launches the
 selected provider/model explicitly in non-interactive print mode.
 
+OpenCode V2 keeps the same canonical `zai/glm-5.3-flash` model metadata, but
+uses its native Fireworks transport for the PA1 gateway route. This avoids the
+Z.AI transport emitting both `thinking` and `reasoning_effort` (PA1 #53) while
+preserving the upstream context window and normalized pricing.
+
 DeepSeek V4.1 Flash is newer than the frozen Pi 0.84.4 catalog, so
 `benchmark/configs/deepseek-v4p1-flash.yaml` declares its model explicitly. The
 entry preserves DeepSeek's required reasoning-content echo, adds native image

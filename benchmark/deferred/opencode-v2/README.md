@@ -19,18 +19,21 @@ Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 from the primary jobs.
 
 Kimi uses its built-in Chat Completions profile and Luna retains the built-in
-OpenAI Responses profile. OpenCode 2.0.6's frozen catalogue predates both the
-GLM 5.3 Flash and DeepSeek V4.1 Flash entries, so those profiles explicitly
-copy their current models.dev metadata while overriding only the gateway model
-ID, endpoint, key, and required output cap. Every profile keeps one effective
-`reasoningEffort` per variant and an explicit model-body output cap.
+OpenAI Responses profile. OpenCode 2.0.6's frozen catalogue includes the GLM
+5.3 Flash profile, while DeepSeek V4.1 Flash is still added explicitly. GLM
+uses a frozen Fireworks transport alias with the same `zai/glm-5.3-flash`
+metadata and overrides only its gateway model ID, endpoint, key, and required
+output cap. OpenCode's native Fireworks transport avoids the
+Z.AI-specific variant adding a second thinking control (PA1 [#53](https://github.com/FarisZR/PA1/issues/53)).
+Every profile keeps one effective `reasoningEffort` per variant and an explicit
+model-body output cap.
 Luna's inherited limits are `context: 1050000`, `input: 922000`, and
 `output: 128000`, matching the current models.dev profile. Although the live
 models.dev catalogue now lists `zai/glm-5.3-flash`, the pinned OpenCode 2.0.6
 binary still embeds the older catalogue and runs with model fetching disabled.
-GLM therefore uses the canonical `zai/glm-5.3-flash` identity with an explicit
-profile and provenance rather than inventing a LiteLLM identity; its profile
-and provenance are in `benchmark/references/opencode-v2-glm-5.3-flash.json`.
+GLM therefore keeps the upstream `zai/glm-5.3-flash` metadata and provenance
+while selecting `fireworks/glm-5.3-flash` for transport; its profile and provenance are in
+`benchmark/references/opencode-v2-glm-5.3-flash.json`.
 Opus has no gateway base URL and remains on the direct Anthropic API route.
 
 Restricted trials install the committed frozen catalog and narrow it to the

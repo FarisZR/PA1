@@ -35,7 +35,7 @@ datasets:
   - koota-composite-trait-aspects
 agents:
 - name: opencode-v2
-  model_name: zai/glm-5.3-flash
+  model_name: fireworks/glm-5.3-flash
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
@@ -52,7 +52,8 @@ agents:
       share: disabled
       websearch: false
       providers:
-        zai:
+        fireworks:
+          package: "@opencode/ai/providers/fireworks"
           env:
           - LITELLM_API_KEY
           settings:
@@ -60,27 +61,8 @@ agents:
           models:
             glm-5.3-flash:
               modelID: glm-5p3-flash
-              name: GLM-5.3-Flash
-              family: glm-flash
-              capabilities:
-                tools: true
-                input: [text, image, video, pdf]
-                output: [text]
-              limit:
-                context: 1000000
-                output: 131072
-              # GLM-5.3-Flash is absent from OpenCode 2.0.6's bundled catalogue.
-              # This explicit profile follows models.dev's zai/glm-5.3-flash
-              # record while modelID selects PA1's gateway alias; provenance
-              # is recorded in benchmark/references/.
               body:
                 max_tokens: 131072
-              cost:
-                input: 0.075
-                output: 0.25
-                cache:
-                  read: 0.015
-                  write: 0.0
               compatibility:
                 maxTokensField: max_tokens
                 reasoningField: reasoning_content
