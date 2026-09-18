@@ -23,7 +23,7 @@ CURRENT_MODEL_CONFIGS = {
     "opencode-v2/smoke.yaml": 2,
     "opencode-v2/delegation-smoke.yaml": 1,
 }
-STAGED_OPENCODE_V2_MODELS = {
+PRIMARY_OPENCODE_V2_MODELS = {
     "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
     "kimi-k3.yaml": "moonshotai/kimi-k3",
     "luna.yaml": "openai/gpt-5.6-luna",
@@ -529,7 +529,7 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
     if not blocks:
         raise SystemExit(f"{path}: OpenCode V2 config declares no opencode-v2 agent")
     # Acceptance-only smoke jobs additionally pin the cheap settings their
-    # headers document; the staged primary profiles use their own values.
+    # headers document; the primary profiles use their own values.
     is_smoke = "configs/opencode-v2/" in path.as_posix()
     # The two-model smoke exists to exercise both supported transports, so it
     # must keep a GLM (Chat Completions) leg; the previous whole-document check
@@ -700,10 +700,10 @@ def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:
     return values
 
 
-def validate_staged_opencode_v2_profile(
+def validate_primary_opencode_v2_profile(
     path: Path, rendered: str, model_ref: str, *, require_input: bool = False
 ) -> None:
-    """Validate a staged built-in profile and its minimal route overrides."""
+    """Validate a primary built-in profile and its minimal route overrides."""
     if f"model_name: {model_ref}" not in rendered or "#" in rendered.split(
         "model_name:", 1
     )[1].splitlines()[0]:
@@ -747,7 +747,7 @@ def validate_staged_opencode_v2_profile(
             "max_output_tokens: 128000",
         )
     else:
-        raise SystemExit(f"{path}: unsupported staged OpenCode V2 model {model_ref!r}")
+        raise SystemExit(f"{path}: unsupported primary OpenCode V2 model {model_ref!r}")
     missing = [needle for needle in required if needle not in rendered]
     if missing:
         raise SystemExit(
@@ -770,7 +770,7 @@ def validate_staged_opencode_v2_profile(
             )
 
 
-def _validate_staged_explicit_profile(
+def _validate_primary_explicit_profile(
     path: Path, rendered: str, model_ref: str, variant: str
 ) -> None:
     """Validate the explicit frozen-catalogue exception or direct Anthropic profile."""
@@ -782,7 +782,7 @@ def _validate_staged_explicit_profile(
     missing = [needle for needle in required if needle not in rendered]
     if missing:
         raise SystemExit(
-            f"{path}: staged profile is missing "
+            f"{path}: primary profile is missing "
             + ", ".join(repr(item) for item in missing)
         )
     if model_ref == "zai/glm-5.3-flash":
@@ -804,11 +804,11 @@ def _validate_staged_explicit_profile(
             )
 
 
-def validate_staged_opencode_v2_profiles() -> None:
-    """Validate all staged primary profiles before generating deployment files."""
-    for filename, model_id in STAGED_OPENCODE_V2_MODELS.items():
-        path = BENCHMARK_DIR / "deferred" / "opencode-v2" / filename
-        validate_staged_opencode_v2_profile(
+def validate_primary_opencode_v2_profiles() -> None:
+    """Validate all primary profiles before generating deployment files."""
+    for filename, model_id in PRIMARY_OPENCODE_V2_MODELS.items():
+        path = BENCHMARK_DIR / "configs" / "opencode-v2" / filename
+        validate_primary_opencode_v2_profile(
             path,
             path.read_text(),
             model_id,
@@ -819,8 +819,8 @@ def validate_staged_opencode_v2_profiles() -> None:
         "opus.yaml": ("anthropic/claude-opus-5", "medium"),
     }
     for filename, (model_ref, variant) in explicit_profiles.items():
-        path = BENCHMARK_DIR / "deferred" / "opencode-v2" / filename
-        _validate_staged_explicit_profile(path, path.read_text(), model_ref, variant)
+        path = BENCHMARK_DIR / "configs" / "opencode-v2" / filename
+        _validate_primary_explicit_profile(path, path.read_text(), model_ref, variant)
 
 
 def validate_claude_output_policy() -> None:
@@ -845,14 +845,14 @@ def main() -> None:
     parser.add_argument(
         "--include-opus",
         action="store_true",
-        help="also generate the deferred Codex Opus catalog and bridge route",
+        help="also generate the active Codex Opus catalog and bridge route",
     )
     args = parser.parse_args()
     if args.env_file:
         load_env_file(args.env_file)
 
     validate_claude_output_policy()
-    validate_staged_opencode_v2_profiles()
+    validate_primary_opencode_v2_profiles()
 
     litellm_url = require("LITELLM_OPENAI_BASE_URL")
     litellm_api_key = require("LITELLM_API_KEY")

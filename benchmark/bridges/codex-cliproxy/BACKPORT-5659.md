@@ -103,6 +103,6 @@ The selected approach keeps the experimental delta narrow and auditable:
   silently change benchmark behavior.
 - PA1's deterministic bridge translation test passed against the pinned image.
 - PA1's generated-config test also passed and booted this exact image on both
-  the default and deferred-Opus generated configurations.
+  the default and Opus-enabled generated configurations.
 
 Upstream issue: `router-for-me/CLIProxyAPI#5659`.

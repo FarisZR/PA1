@@ -11,7 +11,7 @@ Codex 0.151.0
   -> OpenAI Responses            (http://<bridge>/v1/responses)
 CLIProxyAPI v7.2.146 + upstream #5659 backport
   -> OpenAI Chat Completions     -> existing LiteLLM gateway -> Fireworks
-  -> Anthropic Messages          -> api.anthropic.com        (deferred Opus)
+  -> Anthropic Messages          -> api.anthropic.com        (Claude Opus 5)
 ```
 
 Pi and Claude Code do not use the bridge. Codex's Luna route does not use it
@@ -276,9 +276,8 @@ Before a primary batch, also run the full pilot-task acceptance job described in
   Those entries are keyed by OAuth provider and do not govern the
   `openai-compatibility` routes PA1 uses, but the Anthropic route's model
   metadata does come from that catalog.
-- **Opus route is not yet validated end to end** — see below.
 
-## Deferred Opus route
+## Claude Opus 5 route
 
 `prepare_configs.py --include-opus` adds a `claude-api-key` entry for
 `claude-opus-5` with no `base-url`, so CLIProxyAPI targets
@@ -286,11 +285,12 @@ Before a primary batch, also run the full pilot-task acceptance job described in
 add a `cloak` block or `fingerprint-profile` to that entry: those rewrite
 Codex's system prompt.
 
-This route replaces the deleted LiteLLM bridge but has **not** been validated
-against live Anthropic traffic. Before enabling Opus, check specifically:
+This route replaces the deleted LiteLLM bridge. It has been validated end to
+end against live Anthropic traffic and is part of the active benchmark setup.
+The working route has these measurement characteristics:
 
-- `/v1/responses/compact` returns HTTP 501 for Claude upstreams. Confirm Codex
-  0.151.0 does not depend on it for this workload.
+- `/v1/responses/compact` returns HTTP 501 for Claude upstreams. The validated
+  benchmark workload completes without depending on that endpoint.
 - Reasoning-token counts on the Anthropic path are **estimated** by CLIProxyAPI
   (reasoning text length / 4) because the Anthropic API does not report them.
   Do not compare them with the exact counts on the Fireworks path.

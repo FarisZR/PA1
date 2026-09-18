@@ -1,6 +1,5 @@
-# STAGED OpenCode V2 primary profile. Launch only after the per-model gate in
-# benchmark/README.md; this remains outside the current primary batch.
-job_name: opencode-v2-glm-5.3-flash
+# OpenCode V2 primary profile. The adapter and provider path are validated for the current benchmark setup.
+job_name: opencode-v2-deepseek-v4p1-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
 n_concurrent_trials: 30
@@ -35,7 +34,7 @@ datasets:
   - koota-composite-trait-aspects
 agents:
 - name: opencode-v2
-  model_name: zai/glm-5.3-flash
+  model_name: deepseek/deepseek-v4p1-flash
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
@@ -52,25 +51,17 @@ agents:
       share: disabled
       websearch: false
       providers:
-        zai:
-          package: "@opencode/ai/providers/fireworks"
-          # OpenCode 2.0.8 injects the Z.AI-only `tool_stream: true` extension
-          # whenever the resolved transport provider is zai/zhipuai and tools
-          # are present, which the Fireworks-backed gateway route rejects with
-          # HTTP 400. The flag keys off `canonical ?? providerID`, so naming
-          # the Fireworks transport as the canonical provider suppresses it
-          # while keeping the benchmark identity `zai/glm-5.3-flash` and the
-          # Fireworks package that fixes PA1 #53.
-          canonical: fireworks
+        deepseek:
           env:
           - LITELLM_API_KEY
+          package: "@opencode/ai/providers/fireworks"
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
           models:
-            glm-5.3-flash:
-              modelID: glm-5p3-flash
+            deepseek-v4p1-flash:
+              modelID: deepseek-v4p1-flash
               body:
-                max_tokens: 131072
+                max_tokens: 384000
               compatibility:
                 maxTokensField: max_tokens
                 reasoningField: reasoning_content
