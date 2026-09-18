@@ -15,17 +15,49 @@ loads a one-model, one-variant catalog and verifies that exact catalog through
 the live model API before execution.
 
 The current machine-readable evidence is
-The prior [`opencode-v2-verification-2.0.6.json`](opencode-v2-verification-2.0.6.json)
-remains historical; the 2.0.8 rerun passed all 53 actual-binary offline
-assertions and the GLM Low/Luna Low live smoke (both reward 1.0).
-The older JSON report remains as historical 2.0.3 acceptance evidence.
+[`opencode-v2-verification.json`](opencode-v2-verification.json).
+[`opencode-v2-verification-2.0.6.json`](opencode-v2-verification-2.0.6.json)
+and the 2.0.3 sections further down remain historical only.
 
-Final verification passed 53/53 actual-binary offline assertions, 137 focused
-Pier tests, all 477 Pier tests, and 14 PA1 config/budget tests. Coverage includes GLM, Kimi, DeepSeek,
-Luna, normalized usage, native compaction, retry and failure handling, output
-caps, model restriction and simultaneous trial isolation.
-No paid requests were made; the direct Anthropic route was not exercised.
-The existing live-budget and retry-policy limitations below remain unresolved.
+Final verification passed 54/54 actual-binary offline assertions, 138 focused
+Pier tests, all 478 Pier tests, and 14 PA1 config/budget tests. Coverage
+includes GLM, Kimi, DeepSeek, Luna, normalized usage, native compaction, retry
+and failure handling, output caps, model restriction and simultaneous trial
+isolation. No paid requests were made by the offline suite; the direct
+Anthropic route was not exercised. The existing live-budget and retry-policy
+limitations below remain unresolved.
+
+### Merge-review findings resolved on 2026-09-18
+
+An independent review ran the shipped smoke job against the real gateway and
+found that every `zai/glm-5.3-flash` profile failed before producing a token:
+
+```
+Fireworks_aiException - "Extra inputs are not permitted, field: 'tool_stream',
+value: True"   Received Model Group=glm-5p3-flash   (HTTP 400)
+```
+
+OpenCode 2.0.8 injects the Z.AI-only `tool_stream: true` extension whenever the
+resolved transport provider is zai/zhipuai and the request carries tools. The
+flag keys off `canonical ?? providerID`, not off the transport package or base
+URL, and `zaiToolStream` is absent from OpenCode's config schema, so there is
+no model-level override. Setting `providers.zai.canonical: fireworks` keeps the
+benchmark identity `zai/glm-5.3-flash` and the Fireworks package that fixes
+[#53](https://github.com/FarisZR/PA1/issues/53) while suppressing the field.
+`prepare_configs.py` now refuses to generate a `zai` profile without it.
+
+Also fixed in the same pass: Luna is held to the 272,000-token window required
+by [#17](https://github.com/FarisZR/PA1/issues/17) (the frozen catalog prices
+above 272,000 at 2x and `pricing.yaml` models no such tier); the smoke Luna leg
+carries the 8,192-token `max_output_tokens` body cap its header documents; the
+runner no longer redacts `max_tokens`/`maxTokensField` out of the preflight
+provenance; the collection settle budget is 600 s rather than 120 s; and the
+staged profiles use `n_concurrent_trials: 30`.
+
+Live re-verification on the real gateway covered GLM-5.3-Flash Low, GPT-5.6
+Luna Low, Kimi K3 Low and DeepSeek V4.1 Flash Low (all reward 1.0), one GLM
+delegation trial with a real native subagent, and one trial under
+`network_mode = "no-network"` through Pier's filtered egress proxy.
 
 The remaining report records earlier 2.0.3 verification and is historical;
 its release hashes and old configuration descriptions are not the active pin.

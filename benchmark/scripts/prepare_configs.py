@@ -24,7 +24,6 @@ CURRENT_MODEL_CONFIGS = {
     "opencode-v2/delegation-smoke.yaml": 1,
 }
 OPENCODE_V2_SMOKE_CONFIG = "opencode-v2/smoke.yaml"
-OPENCODE_V2_RESPONSES_PACKAGE = "@opencode-ai/ai/providers/openai/responses"
 STAGED_OPENCODE_V2_MODELS = {
     "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
     "kimi-k3.yaml": "moonshotai/kimi-k3",
@@ -480,6 +479,7 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
             "restrict_model: true",
             "model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.8.json",
             'package: "@opencode/ai/providers/fireworks"',
+            "canonical: fireworks",
             "models:\n              glm-5.3-flash:",
             "modelID: glm-5p3-flash",
             "maxTokensField: max_tokens",
@@ -487,6 +487,10 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
             "reasoningField: reasoning_content",
             "reasoningEffort: low",
             "baseURL: ",
+            # The smoke header promises an 8192 cap for both legs; limit.output
+            # metadata alone is not sent on the wire (PA1 #40), so Luna needs
+            # its own Responses body field.
+            "max_output_tokens: 8192",
         )
         missing = [needle for needle in required if needle not in rendered]
         if missing:
@@ -538,6 +542,28 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
     if "opencode_v2_config:" in rendered and "websearch:" not in rendered:
         raise SystemExit(
             f"{path}: every OpenCode V2 config must declare its web-search policy"
+        )
+    validate_opencode_v2_tool_stream(path, rendered)
+
+
+def validate_opencode_v2_tool_stream(path: Path, rendered: str) -> None:
+    """Keep the Z.AI-only ``tool_stream`` extension off the gateway wire.
+
+    OpenCode 2.0.8 injects ``tool_stream: true`` whenever the resolved
+    transport provider is zai/zhipuai and the request carries tools. The
+    Fireworks-backed PA1 route rejects that field with HTTP 400 before any
+    token is spent, so a profile that keeps the canonical ``zai`` provider id
+    must redirect ``canonical`` at the Fireworks transport. There is no
+    model-level override: ``zaiToolStream`` is absent from OpenCode's config
+    schema.
+    """
+    if "        zai:" not in rendered and "          zai:" not in rendered:
+        return
+    if "canonical: fireworks" not in rendered:
+        raise SystemExit(
+            f"{path}: an OpenCode V2 profile using the zai provider id must set "
+            "providers.zai.canonical: fireworks, otherwise OpenCode 2.0.8 sends "
+            "tool_stream:true and the gateway returns HTTP 400"
         )
 
 

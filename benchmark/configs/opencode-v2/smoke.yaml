@@ -33,6 +33,14 @@ agents:
         providers:
           zai:
             package: "@opencode/ai/providers/fireworks"
+            # OpenCode 2.0.8 injects the Z.AI-only `tool_stream: true` extension
+            # whenever the resolved transport provider is zai/zhipuai and tools
+            # are present, which the Fireworks-backed gateway route rejects with
+            # HTTP 400. The flag keys off `canonical ?? providerID`, so naming
+            # the Fireworks transport as the canonical provider suppresses it
+            # while keeping the benchmark identity `zai/glm-5.3-flash` and the
+            # Fireworks package that fixes PA1 #53.
+            canonical: fireworks
             env: [LITELLM_API_KEY]
             settings:
               baseURL: __LITELLM_OPENAI_BASE_URL__
@@ -75,3 +83,11 @@ agents:
             env: [LITELLM_API_KEY]
             settings:
               baseURL: __LITELLM_OPENAI_BASE_URL__
+            # limit.output metadata alone is not sent on the wire (PA1 #40),
+            # so the documented 8192 smoke cap needs an explicit model body
+            # field. Luna keeps the built-in Responses profile, whose output
+            # field is max_output_tokens.
+            models:
+              gpt-5.6-luna:
+                body:
+                  max_output_tokens: 8192

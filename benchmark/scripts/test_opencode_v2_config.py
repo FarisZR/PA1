@@ -248,7 +248,13 @@ providers:
                 self.assertIn("model_name: zai/glm-5.3-flash", smoke_contents)
                 self.assertIn("model_name: openai/gpt-5.6-luna", smoke_contents)
                 self.assertIn("variant: low", smoke_contents)
-                self.assertNotIn("gpt-5.6-luna:\n", smoke_contents)
+                # Both smoke legs must carry the 8192 cap the header promises:
+                # limit.output metadata alone is not sent on the wire (#40).
+                self.assertIn("max_tokens: 8192", smoke_contents)
+                self.assertIn("max_output_tokens: 8192", smoke_contents)
+                # The zai provider id makes OpenCode 2.0.8 emit tool_stream,
+                # which the Fireworks gateway route rejects with HTTP 400.
+                self.assertIn("canonical: fireworks", smoke_contents)
                 self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", smoke_contents)
         finally:
             prepare_configs.GENERATED_DIR = old_generated

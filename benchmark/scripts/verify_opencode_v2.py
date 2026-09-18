@@ -638,7 +638,6 @@ def run_pier_agent(
     workdir: Path,
     output_dir: Path,
     model_name: str,
-    restrict_model: str,
     variant: str | None,
     opencode_config: dict,
     base_url: str,
@@ -1263,7 +1262,6 @@ def offline_probe(
     root: Path,
     *,
     model_name: str = "litellm/glm-5p3-flash",
-    restrict_model: str = "litellm/glm-5p3-flash",
     variant: str | None = "low",
     opencode_config: dict | None = None,
     instruction: str = "Say hello.",
@@ -1316,7 +1314,6 @@ def offline_probe(
         workdir=root,
         output_dir=output_dir,
         model_name=selected_model,
-        restrict_model=restrict_model,
         variant=variant,
         opencode_config=config,
         base_url=f"http://127.0.0.1:{provider.port}/v1",
@@ -1630,7 +1627,10 @@ def offline_primary_responses_profiles(
             "/v1/responses",
             "max_output_tokens",
             128000,
-            {"context": 1050000, "input": 922000, "output": 128000},
+            # PA1 #17 holds Luna to 272,000 tokens in every harness; the
+            # catalogue's inherited 1,050,000 window crosses the 2x input
+            # price tier that pricing.yaml does not model.
+            {"context": 272000, "input": 144000, "output": 128000},
             None,
         ),
     )
@@ -1672,6 +1672,20 @@ def offline_primary_responses_profiles(
             f"offline: staged {filename} declares its transport output cap",
             json.dumps(model_config),
         )
+        if filename == "luna.yaml":
+            policy_limit = yaml.safe_load(
+                (BENCHMARK_DIR / "pricing.yaml").read_text()
+            )["models"]["gpt-5.6-luna"]["context_limit"]
+            check(
+                (model_config.get("limit") or {}).get("context") == policy_limit,
+                "offline: staged luna.yaml matches the pricing.yaml context policy",
+                json.dumps(
+                    {
+                        "configured": (model_config.get("limit") or {}).get("context"),
+                        "pricing_yaml": policy_limit,
+                    }
+                ),
+            )
         check(
             (model_config.get("limit") or {}) == expected_limits,
             f"offline: staged {filename} carries the committed limit overlay",
@@ -1688,7 +1702,6 @@ def offline_primary_responses_profiles(
             provider,
             root,
             model_name=model_name,
-            restrict_model=model_name,
             variant=variant,
             opencode_config=config,
         )
@@ -2587,7 +2600,6 @@ def _live_case(
         workdir=output_dir,
         output_dir=case_dir,
         model_name="litellm/glm-5p3-flash",
-        restrict_model="litellm/glm-5p3-flash",
         variant="low",
         opencode_config=config,
         base_url=recorder_base_url,

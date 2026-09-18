@@ -29,12 +29,24 @@ models. For GLM, the Fireworks transport also avoids the Z.AI-specific
 OpenAI-compatible thinking injection that conflicts with `reasoningEffort`
 (PA1 [#53](https://github.com/FarisZR/PA1/issues/53)). Every profile keeps one
 effective `reasoningEffort` per variant and an explicit model-body output cap.
-Luna's inherited limits are `context: 1050000`, `input: 922000`, and
-`output: 128000`, matching the current models.dev profile. The pinned
-OpenCode 2.0.8 run uses the committed catalogue with model fetching disabled.
+Luna's models.dev profile inherits `context: 1050000` and `input: 922000`,
+but the staged profile overrides them to `context: 272000`, `input: 144000`,
+`output: 128000`. PA1 [#17](https://github.com/FarisZR/PA1/issues/17) holds
+Luna to 272,000 tokens in every harness, the frozen catalogue prices input
+above 272,000 at 2x, and `benchmark/pricing.yaml` models no such tier, so
+inheriting the full window would under-cost this harness rather than measure
+it. The pinned OpenCode 2.0.8 run uses the committed catalogue with model
+fetching disabled.
+
 GLM therefore keeps the upstream `zai/glm-5.3-flash` metadata and identity
 while using the Fireworks transport; its profile and provenance are in
-`benchmark/references/opencode-v2-glm-5.3-flash.json`.
+`benchmark/references/opencode-v2-glm-5.3-flash.json`. The GLM profiles also
+set `providers.zai.canonical: fireworks`: OpenCode 2.0.8 injects the Z.AI-only
+`tool_stream: true` extension whenever the resolved transport provider is
+zai/zhipuai and tools are present, and the Fireworks-backed gateway route
+rejects it with HTTP 400. The flag keys off `canonical ?? providerID` and has
+no model-level override, so redirecting `canonical` at the transport is the
+only way to keep the canonical benchmark identity.
 Opus has no gateway base URL and remains on the direct Anthropic API route.
 
 Restricted trials install the committed frozen catalog and narrow it to the

@@ -3,7 +3,7 @@
 job_name: opencode-v2-luna
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 14
+n_concurrent_trials: 30
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
@@ -59,11 +59,19 @@ agents:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
           # Preserve the built-in Responses profile while making its output
           # ceiling explicit on the gateway wire.
+          #
+          # PA1 #17: every harness holds Luna to the 272,000-token window.
+          # Codex uses the native 272,000 entry, Claude Code sets
+          # CLAUDE_CODE_AUTO_COMPACT_WINDOW=272000 and Pi's bundled entry is
+          # already 272000. OpenAI prices input above 272,000 at 2x and
+          # benchmark/pricing.yaml models no such tier, so inheriting the full
+          # 1,050,000 window would under-cost this harness relative to the
+          # others instead of measuring a harness property.
           models:
             gpt-5.6-luna:
               limit:
-                context: 1050000
-                input: 922000
+                context: 272000
+                input: 144000
                 output: 128000
               body:
                 max_output_tokens: 128000
