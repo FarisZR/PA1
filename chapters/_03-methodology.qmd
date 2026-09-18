@@ -24,7 +24,7 @@ Provider-specific harness optimizations are otherwise retained. For example, a h
 
 GPT-5.6 Luna supports a larger API context window, but the first-party Codex 0.151.0 model profile uses 272,000 tokens as its default context window and requires an explicit override to use more [@codex0151ModelCatalog]. OpenAI also applies higher pricing when a request exceeds 272,000 input tokens [@openaiGpt56Luna]. The experiment therefore adopts the same 272,000-token operating window recommended by the first-party Codex default for every harness. Allowing only some harnesses to use the larger window would make cost depend on inconsistent context configuration and could move one harness into a different pricing tier.
 
-Web access is disabled for benchmark agents. Each trial is evaluated only against the repository and tools supplied by the benchmark environment.
+Web-search tools are disabled for the later benchmark wave wherever the harness exposes a controllable search capability. Kimi K3 is the deliberate exception: its Pi, Claude Code, and Codex runs were already completed on 2026-08-31 before the final cross-harness search policy was established, so their historical tool configuration is retained. The later OpenCode V2 Kimi run keeps web search enabled for the same continuity reason. Inspection of the retained Kimi logs found no recorded use of an Internet-backed search path, so this remains a configuration difference rather than an observed source of external information in the completed runs. All other model configurations explicitly disable web search.
 
 ### Model profiles
 
@@ -54,6 +54,8 @@ These changes were kept outside the benchmark task itself. They affect agent ins
 
 The Pier checkout is not identical across all runs. The initial Kimi K3 trial runs on 2026-08-31 used fork revision `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`, which already contained the Pi adapter, Claude Code and Codex subagent accounting, model pinning, cache-write accounting, internal-CA support, and retry-attempt preservation. It did not contain OpenCode V2 support.
 
+The 2026-08-31 Kimi runs are therefore treated as a historical batch rather than being rerun after later infrastructure changes. Subsequent model runs use the newer validated PA1/Pier checkout and the harness versions pinned at their launch time. Exact versions and revisions are recorded per run, so the comparison does not imply that every model was executed against one identical software snapshot.
+
 OpenCode V2 was intentionally deferred from that initial batch because its V2 interface and request behavior were not yet stable enough for the required adapter to be validated reliably. After V2 had stabilized sufficiently, OpenCode V2 support was added as a separate Pier adapter. OpenCode-inclusive runs therefore use a later Pier checkout. The functional addition relevant to the experiment is the new `opencode-v2` adapter and its recursive session collection and model enforcement; the existing Pi, Claude Code, and Codex adapters were left unchanged by that addition. The exact Pier revision is recorded with each benchmark run instead of implying that all runs used one runner binary.
 
 For Claude Code and Codex, delegated-agent usage is included in the final token totals. Claude Code subagents are explicitly pinned to the benchmark model. Codex delegation remains available, but spawn-time model overrides are disabled so child agents inherit the tested model. OpenCode V2 is run through its dedicated adapter, which collects root, delegated, and compaction sessions and enforces the configured model where required.
@@ -74,7 +76,7 @@ During the benchmark period, an upstream CLIProxyAPI defect was identified in wh
 
 ### OpenCode V2 output limit
 
-OpenCode V2.0.3 did not propagate its configured output limit into requests sent through `@ai-sdk/openai-compatible`; the upstream provider could therefore apply its own default completion limit [@opencodeIssue47398]. The benchmark configuration explicitly injects the model's output limit into the request body. This restores the intended model configuration without changing OpenCode's agent policy or tool behavior.
+During OpenCode V2 adapter validation, the configured output limit was not reliably propagated into requests sent through `@ai-sdk/openai-compatible`; the upstream provider could therefore apply its own default completion limit [@opencodeIssue47398]. The benchmark configuration explicitly injects the model's output limit into the request body. This restores the intended model configuration without changing OpenCode's agent policy or tool behavior.
 
 ## Cost accounting
 
@@ -84,4 +86,4 @@ If a trial is discarded and repeated because of a transport or gateway failure, 
 
 ## Reproducibility
 
-The selected DeepSWE task IDs are fixed in `data/deepswe_task_selection_v1.1.json`, while the runnable benchmark checkout is pinned separately. The initial 2026-08-31 benchmark batch uses DeepSWE revision `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`, Pier revision `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`, Codex CLI 0.151.0, Claude Code 2.1.251, and Pi 0.84.4. OpenCode V2 is pinned independently to version 2.0.3 and uses the later Pier revision containing its adapter. The compatibility-bridge image digest, model profiles, pricing table, generated configurations, task-selection audit data, and Pier revision for each batch are stored with the benchmark setup. Pier additionally records a `lock.json` in each result directory so that every run can be traced to the exact configuration used.
+The selected DeepSWE task IDs are fixed in `data/deepswe_task_selection_v1.1.json`, while the runnable benchmark checkout is pinned separately. The completed 2026-08-31 Kimi K3 batch uses DeepSWE revision `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`, Pier revision `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`, Codex CLI 0.151.0, Claude Code 2.1.251, and Pi 0.84.4. Later model runs use the newer revisions and harness releases validated for the subsequent benchmark wave rather than inheriting this August software set. OpenCode V2 is pinned independently to version 2.0.8 and uses the later Pier revision containing its adapter. The compatibility-bridge image digest, model profiles, pricing table, generated configurations, task-selection audit data, and Pier revision for each batch are stored with the benchmark setup. Pier additionally records a `lock.json` in each result directory so that every run can be traced to the exact configuration used.
