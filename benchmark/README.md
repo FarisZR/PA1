@@ -789,8 +789,9 @@ treating Opus Codex numbers as comparable to anything.
 ## OpenCode V2 primary profiles
 
 OpenCode V2 is supported by the current pinned Pier revision. Its per-model
-profiles remain under `benchmark/deferred/opencode-v2/` because they are launched
-separately from the historical Pi / Claude Code / Codex jobs. The directory name
+profiles remain under `benchmark/deferred/opencode-v2/` because OpenCode V2 is
+launched as a separate per-model job from the current Pi / Claude Code / Codex
+job. The directory name
 is therefore organizational, not a Pier-support blocker.
 
 Before a primary OpenCode V2 run, execute the offline verifier and the relevant
