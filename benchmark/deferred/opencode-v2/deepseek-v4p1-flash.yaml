@@ -35,7 +35,7 @@ datasets:
   - koota-composite-trait-aspects
 agents:
 - name: opencode-v2
-  model_name: deepseek/deepseek-v4p1-flash
+  model_name: fireworks/deepseek-v4p1-flash
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
@@ -52,35 +52,18 @@ agents:
       share: disabled
       websearch: false
       providers:
-        deepseek:
+        fireworks:
+          canonical: deepseek
           env:
           - LITELLM_API_KEY
-          package: 'aisdk:@ai-sdk/openai-compatible'
+          package: "@opencode/ai/providers/fireworks"
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
-          # DeepSeek V4.1 Flash is absent from OpenCode 2.0.8's bundled
-          # catalogue. This explicit profile follows the models.dev
-          # fireworks-ai entry while modelID selects PA1's gateway alias.
           models:
             deepseek-v4p1-flash:
               modelID: deepseek-v4p1-flash
-              name: DeepSeek V4.1 Flash
-              family: deepseek-flash
-              capabilities:
-                tools: true
-                input: [text, image]
-                output: [text]
-              limit:
-                context: 1000000
-                output: 384000
               body:
                 max_tokens: 384000
-              cost:
-                input: 0.22
-                output: 0.66
-                cache:
-                  read: 0.007
-                  write: 0.0
               compatibility:
                 maxTokensField: max_tokens
                 reasoningField: reasoning_content

@@ -53,6 +53,7 @@ agents:
       websearch: false
       providers:
         fireworks:
+          canonical: zai
           package: "@opencode/ai/providers/fireworks"
           env:
           - LITELLM_API_KEY

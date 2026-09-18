@@ -18,21 +18,20 @@ Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 `benchmark/configs/opencode-v2/` use `low`; both are intentionally separate
 from the primary jobs.
 
-Kimi uses its built-in Chat Completions profile and Luna retains the built-in
-OpenAI Responses profile. OpenCode 2.0.8's frozen catalogue includes the GLM
-5.3 Flash profile, while DeepSeek V4.1 Flash is still added explicitly. GLM
-uses a frozen Fireworks transport alias with the same `zai/glm-5.3-flash`
-metadata and overrides only its gateway model ID, endpoint, key, and required
-output cap. OpenCode's native Fireworks transport avoids the
-Z.AI-specific variant adding a second thinking control (PA1 [#53](https://github.com/FarisZR/PA1/issues/53)).
-Every profile keeps one effective `reasoningEffort` per variant and an explicit
-model-body output cap.
+Luna retains the built-in OpenAI Responses profile. Kimi K3, DeepSeek V4.1
+Flash, and GLM use Fireworks transport aliases with `canonical` set to their
+upstream providers (`moonshotai`, `deepseek`, and `zai`, respectively). The
+frozen catalogue therefore keeps one upstream metadata profile per model; the
+runtime config overrides only the transport package, gateway model ID,
+endpoint, key, and required output cap. OpenCode's native Fireworks transport
+avoids the Z.AI-specific variant adding a second thinking control (PA1
+[#53](https://github.com/FarisZR/PA1/issues/53)). Every profile keeps one
+effective `reasoningEffort` per variant and an explicit model-body output cap.
 Luna's inherited limits are `context: 1050000`, `input: 922000`, and
-`output: 128000`, matching the current models.dev profile. Although the live
-models.dev catalogue now lists `zai/glm-5.3-flash`, the pinned OpenCode 2.0.8
-binary still embeds the older catalogue and runs with model fetching disabled.
+`output: 128000`, matching the current models.dev profile. The pinned
+OpenCode 2.0.8 run uses the committed catalogue with model fetching disabled.
 GLM therefore keeps the upstream `zai/glm-5.3-flash` metadata and provenance
-while selecting `fireworks/glm-5.3-flash` for transport; its profile and provenance are in
+while selecting `fireworks/glm-5.3-flash` for transport; its canonical profile and provenance are in
 `benchmark/references/opencode-v2-glm-5.3-flash.json`.
 Opus has no gateway base URL and remains on the direct Anthropic API route.
 

@@ -26,8 +26,8 @@ CURRENT_MODEL_CONFIGS = {
 OPENCODE_V2_SMOKE_CONFIG = "opencode-v2/smoke.yaml"
 OPENCODE_V2_RESPONSES_PACKAGE = "@opencode-ai/ai/providers/openai/responses"
 STAGED_OPENCODE_V2_MODELS = {
-    "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
-    "kimi-k3.yaml": "moonshotai/kimi-k3",
+    "deepseek-v4p1-flash.yaml": "fireworks/deepseek-v4p1-flash",
+    "kimi-k3.yaml": "fireworks/kimi-k3",
     "luna.yaml": "openai/gpt-5.6-luna",
 }
 PI_BASE_URL_SENTINEL = "__LITELLM_OPENAI_BASE_URL__"
@@ -605,26 +605,22 @@ def validate_staged_opencode_v2_profile(
             f"{path}: {model_ref} must override the built-in {provider} "
             "provider transport settings"
         )
-    if model_ref == "moonshotai/kimi-k3":
+    if model_ref == "fireworks/kimi-k3":
         required = (
             "websearch:\n        provider: random",
+            "canonical: moonshotai",
+            'package: "@opencode/ai/providers/fireworks"',
             "models:\n            kimi-k3:",
+            "reasoningField: reasoning_content",
             "max_tokens: 131072",
         )
-    elif model_ref == "deepseek/deepseek-v4p1-flash":
+    elif model_ref == "fireworks/deepseek-v4p1-flash":
         required = (
             "websearch: false",
-            "package: 'aisdk:@ai-sdk/openai-compatible'",
+            "canonical: deepseek",
+            'package: "@opencode/ai/providers/fireworks"',
             "models:\n            deepseek-v4p1-flash:",
             "modelID: deepseek-v4p1-flash",
-            "name: DeepSeek V4.1 Flash",
-            "family: deepseek-flash",
-            "input: [text, image]",
-            "context: 1000000",
-            "output: 384000",
-            "input: 0.22",
-            "output: 0.66",
-            "read: 0.007",
             "reasoningField: reasoning_content",
             "max_tokens: 384000",
             "reasoningEffort: max",
@@ -676,6 +672,7 @@ def _validate_staged_explicit_profile(
         )
     if model_ref == "fireworks/glm-5.3-flash":
         required_glm = (
+            "canonical: zai",
             'package: "@opencode/ai/providers/fireworks"',
             "models:\n            glm-5.3-flash:",
             "modelID: glm-5p3-flash",
