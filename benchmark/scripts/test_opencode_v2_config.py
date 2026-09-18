@@ -130,10 +130,10 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
                 verify_opencode_v2.stage_binary(root)
                 self.assertEqual(binary.read_bytes(), payload)
 
-    def test_staged_profiles_use_builtin_models_with_transport_overrides(self) -> None:
-        prepare_configs.validate_staged_opencode_v2_profiles()
+    def test_primary_profiles_use_builtin_models_with_transport_overrides(self) -> None:
+        prepare_configs.validate_primary_opencode_v2_profiles()
         luna = (
-            BENCHMARK / "deferred" / "opencode-v2" / "luna.yaml"
+            BENCHMARK / "configs" / "opencode-v2" / "luna.yaml"
         ).read_text()
         self.assertIn("model_name: openai/gpt-5.6-luna", luna)
         self.assertIn("variant: max", luna)
@@ -142,7 +142,7 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
         self.assertIn("max_output_tokens: 128000", luna)
         self.assertIn("websearch: false", luna)
 
-    def test_staged_profile_rejects_contradictory_inherited_limits(self) -> None:
+    def test_primary_profile_rejects_contradictory_inherited_limits(self) -> None:
         rendered = """
 model_name: openai/gpt-5.6-luna
 variant: max
@@ -159,7 +159,7 @@ providers:
                 max_output_tokens: 128000
 """
         with self.assertRaisesRegex(SystemExit, "input limit 922000 exceeds context"):
-            prepare_configs.validate_staged_opencode_v2_profile(
+            prepare_configs.validate_primary_opencode_v2_profile(
                 Path("luna.yaml"),
                 rendered,
                 "openai/gpt-5.6-luna",
@@ -538,7 +538,7 @@ providers:
         self.assertFalse(reconciled)
 
     def test_luna_profile_keeps_builtin_identity_and_gateway_override(self) -> None:
-        contents = (BENCHMARK / "deferred" / "opencode-v2" / "luna.yaml").read_text()
+        contents = (BENCHMARK / "configs" / "opencode-v2" / "luna.yaml").read_text()
         self.assertIn("model_name: openai/gpt-5.6-luna", contents)
         self.assertIn("env:\n          - LITELLM_API_KEY", contents)
         self.assertIn("baseURL: '{env:LITELLM_OPENAI_BASE_URL}'", contents)

@@ -1,6 +1,5 @@
-# STAGED OpenCode V2 primary profile. Launch only after the per-model gate in
-# benchmark/README.md; this remains outside the current primary batch.
-job_name: opencode-v2-luna
+# OpenCode V2 primary profile. The adapter and provider path are validated for the current benchmark setup.
+job_name: opencode-v2-glm-5.3-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
 n_concurrent_trials: 30
@@ -35,7 +34,7 @@ datasets:
   - koota-composite-trait-aspects
 agents:
 - name: opencode-v2
-  model_name: openai/gpt-5.6-luna
+  model_name: zai/glm-5.3-flash
   env:
     LITELLM_API_KEY: ${LITELLM_API_KEY}
     LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
@@ -52,26 +51,35 @@ agents:
       share: disabled
       websearch: false
       providers:
-        openai:
+        zai:
+          package: "@opencode/ai/providers/fireworks"
+          # OpenCode 2.0.8 injects the Z.AI-only `tool_stream: true` extension
+          # whenever the resolved transport provider is zai/zhipuai and tools
+          # are present, which the Fireworks-backed gateway route rejects with
+          # HTTP 400. The flag keys off `canonical ?? providerID`, so naming
+          # the Fireworks transport as the canonical provider suppresses it
+          # while keeping the benchmark identity `zai/glm-5.3-flash` and the
+          # Fireworks package that fixes PA1 #53.
+          canonical: fireworks
           env:
           - LITELLM_API_KEY
           settings:
             baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
-          # Preserve the built-in Responses profile while making its output
-          # ceiling explicit on the gateway wire.
-          #
-          # PA1 #17: every harness holds Luna to the 272,000-token window.
-          # Codex uses the native 272,000 entry, Claude Code sets
-          # CLAUDE_CODE_AUTO_COMPACT_WINDOW=272000 and Pi's bundled entry is
-          # already 272000. OpenAI prices input above 272,000 at 2x and
-          # benchmark/pricing.yaml models no such tier, so inheriting the full
-          # 1,050,000 window would under-cost this harness relative to the
-          # others instead of measuring a harness property.
           models:
-            gpt-5.6-luna:
-              limit:
-                context: 272000
-                input: 144000
-                output: 128000
+            glm-5.3-flash:
+              modelID: glm-5p3-flash
               body:
-                max_output_tokens: 128000
+                max_tokens: 131072
+              compatibility:
+                maxTokensField: max_tokens
+                reasoningField: reasoning_content
+              variants:
+              - id: low
+                settings:
+                  reasoningEffort: low
+              - id: high
+                settings:
+                  reasoningEffort: high
+              - id: max
+                settings:
+                  reasoningEffort: max

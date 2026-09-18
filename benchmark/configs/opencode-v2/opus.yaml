@@ -1,6 +1,5 @@
-# STAGED OpenCode V2 primary profile. Launch only after the per-model gate in
-# benchmark/README.md; this remains outside the current primary batch.
-job_name: opencode-v2-kimi-k3
+# OpenCode V2 primary profile. The adapter and provider path are validated for the current benchmark setup.
+job_name: opencode-v2-opus
 jobs_dir: benchmark/runs
 n_attempts: 1
 n_concurrent_trials: 30
@@ -35,12 +34,11 @@ datasets:
   - koota-composite-trait-aspects
 agents:
 - name: opencode-v2
-  model_name: moonshotai/kimi-k3
+  model_name: anthropic/claude-opus-5
   env:
-    LITELLM_API_KEY: ${LITELLM_API_KEY}
-    LITELLM_OPENAI_BASE_URL: ${LITELLM_OPENAI_BASE_URL}
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
   kwargs:
-    variant: max
+    variant: medium
     version: "2.0.8"
     opencode_v2_checksums:
       linux-x64: 8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625
@@ -50,32 +48,4 @@ agents:
     opencode_v2_config:
       update: disable
       share: disabled
-      websearch:
-        provider: random
-      providers:
-        moonshotai:
-          package: "@opencode/ai/providers/fireworks"
-          env:
-          - LITELLM_API_KEY
-          settings:
-            baseURL: '{env:LITELLM_OPENAI_BASE_URL}'
-          # Preserve the built-in profile while restoring the Chat
-          # Completions output cap required by the benchmark route.
-          models:
-            kimi-k3:
-              modelID: kimi-k3
-              compatibility:
-                maxTokensField: max_tokens
-                reasoningField: reasoning_content
-              body:
-                max_tokens: 131072
-              variants:
-              - id: low
-                settings:
-                  reasoningEffort: low
-              - id: high
-                settings:
-                  reasoningEffort: high
-              - id: max
-                settings:
-                  reasoningEffort: max
+      websearch: false

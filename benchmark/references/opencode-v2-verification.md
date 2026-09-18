@@ -52,7 +52,7 @@ above 272,000 at 2x and `pricing.yaml` models no such tier); the smoke Luna leg
 carries the 8,192-token `max_output_tokens` body cap its header documents; the
 runner no longer redacts `max_tokens`/`maxTokensField` out of the preflight
 provenance; the collection settle budget is 600 s rather than 120 s; and the
-staged profiles use `n_concurrent_trials: 30`.
+primary profiles use `n_concurrent_trials: 30`.
 
 Live re-verification on the real gateway covered GLM-5.3-Flash Low, GPT-5.6
 Luna Low, Kimi K3 Low and DeepSeek V4.1 Flash Low (all reward 1.0), one GLM
@@ -81,7 +81,7 @@ alone emitted no output-cap field. The model-body override emitted exactly
 compaction, retry/failure retention, slow streaming, nested/background trees,
 server death, and simultaneous isolated trials are covered across 34 offline
 fake-provider requests. Actual-binary Responses probes also passed for the
-staged Kimi K3, DeepSeek V4.1 Flash, and GPT-5.6 Luna profiles with their
+primary Kimi K3, DeepSeek V4.1 Flash, and GPT-5.6 Luna profiles with their
 primary `max` reasoning setting and configured output ceilings.
 
 The review-response revision additionally shell-quotes install URLs, creates
@@ -107,7 +107,7 @@ final offline artifact SHA-256 is
 the runner SHA-256 is
 `80cffb2334e7bba6529bea495dc2f6b58a82196570ebe346a82f9525a9c08f97`.
 
-The configuration review found that the three staged Responses profiles named
+The configuration review found that the three primary Responses profiles named
 an entrypoint absent from OpenCode 2.0.3 and that Luna inherited a contradictory
 922,000-token input limit. They now use the frozen binary's built-in
 `@opencode-ai/ai/providers/openai/responses` entrypoint; Luna explicitly resolves
@@ -189,5 +189,5 @@ not independently prove that hidden gateway retries/fallbacks are disabled.
 OpenCode 2.0.3 also collapses absent provider usage into an all-zero normalized
 object. Its observed native retry delays were seconds, so PA1 #37's roughly
 three-minute policy goal is not satisfied. GLM acceptance does not prove the
-other staged primary transports. The complete assertion-by-assertion record is
+other primary transports. The complete assertion-by-assertion record is
 in `opencode-v2-verification.json`.

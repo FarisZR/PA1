@@ -24,7 +24,7 @@ Provider-specific harness optimizations are otherwise retained. For example, a h
 
 GPT-5.6 Luna supports a larger API context window, but the first-party Codex 0.151.0 model profile uses 272,000 tokens as its default context window and requires an explicit override to use more [@codex0151ModelCatalog]. OpenAI also applies higher pricing when a request exceeds 272,000 input tokens [@openaiGpt56Luna]. The experiment therefore adopts the same 272,000-token operating window recommended by the first-party Codex default for every harness. Allowing only some harnesses to use the larger window would make cost depend on inconsistent context configuration and could move one harness into a different pricing tier.
 
-Web access is disabled for benchmark agents. Each trial is evaluated only against the repository and tools supplied by the benchmark environment.
+Web-search tooling is disabled for the current model runs. Kimi K3 is the continuity exception: its harness/tool exposure is kept aligned with the completed 2026-08-31 configuration so that the historical Kimi results are not mixed with a changed tool policy. Tool exposure does not by itself imply usable external web access under the benchmark network policy.
 
 ### Model profiles
 
@@ -38,7 +38,7 @@ For Claude Opus 5, Kimi K3, DeepSeek V4.1 Flash, and GLM-5.3-Flash, the experime
 
 ### Model routing
 
-All non-Anthropic model traffic is routed through AiOrbit, the internal LiteLLM proxy used by the organization. The open-weight models are served through Fireworks behind this proxy. Anthropic models are the exception and call the Anthropic API directly. This routing path is kept constant for a given model across harnesses.
+All non-Anthropic model traffic is routed through AiOrbit, the internal LiteLLM proxy used by the organization. The open-weight models are served through Fireworks behind this proxy. Claude Opus 5 uses the official Anthropic API instead: Pi, Claude Code, and OpenCode V2 call it directly, while Codex uses the local CLIProxyAPI protocol bridge, which forwards Anthropic Messages directly to `api.anthropic.com`. This routing path is kept constant for a given model across harnesses.
 
 AiOrbit and Fireworks are infrastructure outside the experimental manipulation. Either may transform requests or introduce provider-side failures that the study cannot control. The results therefore characterize the harnesses under this fixed deployment path rather than an abstract provider-independent environment.
 
@@ -54,7 +54,7 @@ These changes were kept outside the benchmark task itself. They affect agent ins
 
 The Pier checkout is not identical across all runs. The initial Kimi K3 trial runs on 2026-08-31 used fork revision `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`, which already contained the Pi adapter, Claude Code and Codex subagent accounting, model pinning, cache-write accounting, internal-CA support, and retry-attempt preservation. It did not contain OpenCode V2 support.
 
-OpenCode V2 was intentionally deferred from that initial batch because its V2 interface and request behavior were not yet stable enough for the required adapter to be validated reliably. After V2 had stabilized sufficiently, OpenCode V2 support was added as a separate Pier adapter. OpenCode-inclusive runs therefore use a later Pier checkout. The functional addition relevant to the experiment is the new `opencode-v2` adapter and its recursive session collection and model enforcement; the existing Pi, Claude Code, and Codex adapters were left unchanged by that addition. The exact Pier revision is recorded with each benchmark run instead of implying that all runs used one runner binary.
+OpenCode V2 was not part of the 2026-08-31 Kimi run because its V2 interface and request behavior were not yet stable enough for the required adapter to be validated reliably. After V2 had stabilized sufficiently, OpenCode V2 support was added as a separate Pier adapter. Current OpenCode-inclusive runs therefore use the later Pier checkout. The functional addition relevant to the experiment is the new `opencode-v2` adapter and its recursive session collection and model enforcement; the existing Pi, Claude Code, and Codex adapters were left unchanged by that addition. The exact Pier revision is recorded with each benchmark run instead of implying that all runs used one runner binary.
 
 For Claude Code and Codex, delegated-agent usage is included in the final token totals. Claude Code subagents are explicitly pinned to the benchmark model. Codex delegation remains available, but spawn-time model overrides are disabled so child agents inherit the tested model. OpenCode V2 is run through its dedicated adapter, which collects root, delegated, and compaction sessions and enforces the configured model where required.
 
@@ -68,13 +68,13 @@ Codex 0.151.0 uses the OpenAI Responses protocol, while the Fireworks-backed mod
 
 `Codex -> Responses -> CLIProxyAPI -> Chat Completions -> AiOrbit -> Fireworks`.
 
-The bridge performs protocol translation only. Its own retries, credential cooldowns, and model fallbacks are disabled so it cannot improve the measured harness behavior.
+The bridge performs protocol translation only. Its own retries, credential cooldowns, and model fallbacks are disabled so it cannot improve the measured harness behavior. For Claude Opus 5, the same bridge translates Codex Responses requests to Anthropic Messages and sends them to the official Anthropic API; this path was validated end to end before the current runs.
 
 During the benchmark period, an upstream CLIProxyAPI defect was identified in which a streamed chunk containing both `reasoning_content` and visible `content` could produce an invalid Responses item order [@cliproxyIssue5659]. Rather than upgrade the complete bridge and introduce unrelated changes, the benchmark keeps the frozen v7.2.146 base and backports only the upstream fix [@cliproxyFix5659]. Logs from the completed 2026-08-31 Kimi K3 trial runs showed that the defect's triggering condition did not occur, so those runs were retained.
 
 ### OpenCode V2 output limit
 
-OpenCode V2.0.3 did not propagate its configured output limit into requests sent through `@ai-sdk/openai-compatible`; the upstream provider could therefore apply its own default completion limit [@opencodeIssue47398]. The benchmark configuration explicitly injects the model's output limit into the request body. This restores the intended model configuration without changing OpenCode's agent policy or tool behavior.
+The output-limit regression was identified while validating OpenCode V2.0.3: the configured limit was not propagated into requests sent through `@ai-sdk/openai-compatible`, so the upstream provider could apply its own default completion limit [@opencodeIssue47398]. The current OpenCode V2.0.8 profiles retain an explicit request-body output limit. This restores the intended model configuration without changing OpenCode's agent policy or tool behavior.
 
 ## Cost accounting
 
@@ -84,4 +84,4 @@ If a trial is discarded and repeated because of a transport or gateway failure, 
 
 ## Reproducibility
 
-The selected DeepSWE task IDs are fixed in `data/deepswe_task_selection_v1.1.json`, while the runnable benchmark checkout is pinned separately. The initial 2026-08-31 benchmark batch uses DeepSWE revision `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`, Pier revision `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`, Codex CLI 0.151.0, Claude Code 2.1.251, and Pi 0.84.4. OpenCode V2 is pinned independently to version 2.0.3 and uses the later Pier revision containing its adapter. The compatibility-bridge image digest, model profiles, pricing table, generated configurations, task-selection audit data, and Pier revision for each batch are stored with the benchmark setup. Pier additionally records a `lock.json` in each result directory so that every run can be traced to the exact configuration used.
+The selected DeepSWE task IDs are fixed in `data/deepswe_task_selection_v1.1.json`, while the runnable benchmark checkout is pinned separately. The completed Kimi K3 Pi/Claude Code/Codex runs from 2026-08-31 use DeepSWE revision `0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea` and Pier revision `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`; OpenCode V2 was not available in that runner revision. The other model runs use the current benchmark setup with Pier revision `b0acdae033425500e968ac917acffeafd35f9cdb`, Codex CLI 0.151.0, Claude Code 2.1.251, Pi 0.84.4, and OpenCode V2.0.8. Kimi retains its 2026-08-31 tool-policy configuration for continuity, while the other model runs use the current web-search-disabled policy. The compatibility-bridge image digest, model profiles, pricing table, generated configurations, task-selection audit data, and Pier revision for each run are stored with the benchmark setup. Pier additionally records a `lock.json` in each result directory so that every run can be traced to the exact configuration used.

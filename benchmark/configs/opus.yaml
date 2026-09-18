@@ -1,4 +1,4 @@
-# Deferred: do not run with the current Luna/DeepSeek/Kimi/GLM batch.
+# Primary Claude Opus 5 job. The direct Anthropic route has been validated end to end.
 job_name: opus
 jobs_dir: benchmark/runs
 n_attempts: 1

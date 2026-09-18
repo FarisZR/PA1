@@ -65,7 +65,7 @@ def load_cli_pin(benchmark_dir: Path = BENCHMARK_DIR) -> dict[str, str]:
         raise ValueError("OpenCode model catalog provenance does not match its bytes")
     for path in (
         *sorted((benchmark_dir / "configs/opencode-v2").glob("*.yaml")),
-        *sorted((benchmark_dir / "deferred/opencode-v2").glob("*.yaml")),
+        *sorted((benchmark_dir / "configs/opencode-v2").glob("*.yaml")),
     ):
         for agent in (yaml.safe_load(path.read_text()) or {}).get("agents", []):
             if agent.get("name") != "opencode-v2":
@@ -1596,15 +1596,15 @@ def offline_contract(pier_root: Path, provider: FakeProvider, root: Path) -> Non
 def offline_primary_responses_profiles(
     pier_root: Path, provider: FakeProvider, root: Path
 ) -> None:
-    """Execute the committed staged primary profiles on the pinned executable."""
+    """Execute the committed primary profiles on the pinned executable."""
     try:
         import yaml
     except ImportError as error:  # pragma: no cover - environment prerequisite
         raise SystemExit(
-            "offline staged-profile verification requires PyYAML to read committed YAML"
+            "offline primary-profile verification requires PyYAML to read committed YAML"
         ) from error
 
-    staged_dir = BENCHMARK_DIR / "deferred" / "opencode-v2"
+    primary_dir = BENCHMARK_DIR / "configs" / "opencode-v2"
     cases = (
         (
             "kimi-k3.yaml",
@@ -1643,7 +1643,7 @@ def offline_primary_responses_profiles(
         expected_limits,
         expected_package,
     ) in cases:
-        document = yaml.safe_load((staged_dir / filename).read_text()) or {}
+        document = yaml.safe_load((primary_dir / filename).read_text()) or {}
         agent = (document.get("agents") or [{}])[0]
         kwargs = agent.get("kwargs") or {}
         model_name = agent.get("model_name")
@@ -1659,17 +1659,17 @@ def offline_primary_responses_profiles(
         )
         check(
             configured_model is None,
-            f"offline: staged {filename} leaves model pinning to adapter kwargs",
+            f"offline: primary {filename} leaves model pinning to adapter kwargs",
             json.dumps({"model_name": model_name, "config_model": configured_model}),
         )
         check(
             config.get("websearch") == expected_websearch,
-            f"offline: staged {filename} has the expected web-search policy",
+            f"offline: primary {filename} has the expected web-search policy",
             json.dumps(config.get("websearch")),
         )
         check(
             (model_config.get("body") or {}).get(cap_field) == cap_value,
-            f"offline: staged {filename} declares its transport output cap",
+            f"offline: primary {filename} declares its transport output cap",
             json.dumps(model_config),
         )
         if filename == "luna.yaml":
@@ -1678,7 +1678,7 @@ def offline_primary_responses_profiles(
             )["models"]["gpt-5.6-luna"]["context_limit"]
             check(
                 (model_config.get("limit") or {}).get("context") == policy_limit,
-                "offline: staged luna.yaml matches the pricing.yaml context policy",
+                "offline: primary luna.yaml matches the pricing.yaml context policy",
                 json.dumps(
                     {
                         "configured": (model_config.get("limit") or {}).get("context"),
@@ -1688,12 +1688,12 @@ def offline_primary_responses_profiles(
             )
         check(
             (model_config.get("limit") or {}) == expected_limits,
-            f"offline: staged {filename} carries the committed limit overlay",
+            f"offline: primary {filename} carries the committed limit overlay",
             json.dumps(model_config.get("limit") or {}),
         )
         check(
             provider_config.get("package") == expected_package,
-            f"offline: staged {filename} uses the expected provider package",
+            f"offline: primary {filename} uses the expected provider package",
             json.dumps(provider_config),
         )
         provider.scenario("ok")
@@ -1739,7 +1739,7 @@ def offline_primary_responses_profiles(
                 and set(details["reasoning"] or {}) <= {"effort", "summary"}
             )
             and not details["errors"],
-            f"offline: staged {filename} executes",
+            f"offline: primary {filename} executes",
             json.dumps(details),
         )
 

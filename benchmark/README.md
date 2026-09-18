@@ -6,27 +6,36 @@ harness, so expensive/high-priority models can be completed independently.
 
 ## Current run order
 
-Run these steps in this order:
+The Pi / Claude Code / Codex Kimi K3 runs were completed on 2026-08-31 and are
+preserved as historical benchmark data. Do not rerun them with the current
+configuration. All other model runs use the current setup below. Kimi K3 is the
+only continuity exception: its harness/tool configuration remains aligned with
+the 2026-08-31 run where required ([PA1 #54](https://github.com/FarisZR/PA1/issues/54)).
 
-1. `benchmark/configs/smoke-test.yaml` — Luna low on one pilot task, all three runnable harnesses
-2. generate the deployment-specific primary files with `prepare_configs.py`
-3. start the Codex compatibility bridge under `benchmark/bridges/codex-cliproxy/`
-4. one-task Kimi gateway acceptance run using `benchmark/generated/kimi-k3.yaml`
-5. `benchmark/generated/kimi-k3.yaml` — **highest-priority primary job**
-6. one-task GLM-5.3-Flash gateway acceptance run using `benchmark/generated/glm-5.3-flash.yaml`
-7. `benchmark/generated/glm-5.3-flash.yaml`
-8. one-task DeepSeek V4.1 Flash gateway acceptance run using `benchmark/generated/deepseek-v4p1-flash.yaml`
-9. `benchmark/generated/deepseek-v4p1-flash.yaml`
-10. `benchmark/generated/luna.yaml`
+There are no deferred model jobs. Claude Opus 5 and all OpenCode V2 primary
+profiles are active and ready to run.
 
-The primary files under `benchmark/configs/` are source templates. Do not launch
-the Kimi or DeepSeek templates directly: their Pi endpoint placeholder is
-resolved only in `benchmark/generated/`. Use generated files for all three
-primary jobs for one consistent workflow.
+Run the current setup in this order:
 
-Claude Opus 5 remains deferred. OpenCode V2 is now supported by the pinned Pier revision below. The Pi / Claude Code / Codex model jobs are the current configurations, not legacy jobs. Kimi K3 is the only continuity exception: its web-tool configuration intentionally matches the completed 2026-08-31 Kimi runs, while the other model configurations use the updated policy with web-search tooling disabled ([PA1 #48](https://github.com/FarisZR/PA1/issues/48), [PA1 #54](https://github.com/FarisZR/PA1/issues/54)). OpenCode V2 is launched from the corresponding `benchmark/deferred/opencode-v2/<model>.yaml` profile when adding the fourth harness for a model.
+1. `benchmark/configs/smoke-test.yaml` — Luna low on one pilot task
+2. generate deployment-specific files with `prepare_configs.py --include-opus`
+3. start the Codex compatibility bridge
+4. run the relevant cheap gateway/provider acceptance checks
+5. `benchmark/generated/glm-5.3-flash.yaml`
+6. `benchmark/generated/deepseek-v4p1-flash.yaml`
+7. `benchmark/generated/luna.yaml`
+8. `benchmark/configs/opus.yaml`
+9. run the matching `benchmark/configs/opencode-v2/<model>.yaml` job for the
+   OpenCode V2 result of each model. Kimi's OpenCode V2 profile preserves the
+   continuity policy from the 2026-08-31 configuration.
 
-## OpenCode V2 verification, smoke tests, and staged profiles
+The source templates for the gateway-backed Pi / Claude Code / Codex jobs remain
+under `benchmark/configs/`; use the generated files for GLM, DeepSeek, Luna,
+and Kimi because generation resolves deployment-specific endpoints and Codex
+bridge files. Opus is a direct-Anthropic source job and is launched from
+`benchmark/configs/opus.yaml`.
+
+## OpenCode V2 verification, smoke tests, and primary profiles
 
 Pier's `opencode-v2` adapter is exercised separately from the current Pi /
 Claude Code / Codex primary jobs. There are two small jobs under
@@ -66,19 +75,18 @@ provider; each edits one file in `benchmark/tasks/opencode-v2-smoke`, with
 8192-token request caps and no whole-trial retries:
 
 ```bash
-python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local
+python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus
 /absolute/path/to/pier/.venv/bin/pier run \
   -c benchmark/generated/opencode-v2/smoke.yaml \
   --env-file benchmark/env.local --yes
 ```
 
-This low-effort smoke does not change the staged primary profiles' reasoning
+This low-effort smoke does not change the primary profiles' reasoning
 levels or task selection.
 
-The per-model staged profiles are under
-[`benchmark/deferred/opencode-v2/`](deferred/opencode-v2/). They are not
-selected by the current benchmark generator and do not alter scoring or
-pricing. Use `benchmark/references/opencode-v2-glm-5.3-flash.json` to verify the
+The per-model primary profiles are under
+[`benchmark/configs/opencode-v2/`](configs/opencode-v2/). They are launched as separate primary jobs and use the same scoring and
+pricing policy as the other harnesses. Use `benchmark/references/opencode-v2-glm-5.3-flash.json` to verify the
 frozen binary/profile provenance and `benchmark/pricing.yaml` for PA1's existing
 normalized cost policy.
 
@@ -95,7 +103,7 @@ decision: V2, npm scope `@opencode`, pinned `2.0.8`).
 
 Each current generated primary job contains Pi, Claude Code, and Codex over the
 same 10 selected DeepSWE tasks. OpenCode V2 is represented by a separate
-per-model profile under `benchmark/deferred/opencode-v2/`. The split is only
+per-model profile under `benchmark/configs/opencode-v2/`. The split is only
 about launch/config organization; it does not make the three-harness jobs
 historical.
 
@@ -150,7 +158,7 @@ verification evidence, frozen binary checksums, model isolation rules, output
 caps, and transport choices are documented in
 `benchmark/references/opencode-v2-verification.md`,
 `benchmark/references/opencode-v2-glm-5.3-flash.json`, and
-`benchmark/deferred/opencode-v2/`.
+`benchmark/configs/opencode-v2/`.
 
 The DeepSWE revision includes the upstream 10,800-second task timeout. Claude
 Code runs with its updater disabled. Pier writes `lock.json` into each job
@@ -189,7 +197,7 @@ Later third-party Codex runs use the `v7.2.146` base with only upstream fix
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
 | GLM-5.3-Flash | max | Existing LiteLLM gateway | Fireworks 1,048,576 context; Pi native entry uses 1,000,000 |
-| DeepSeek V4.1 Flash | max | Existing LiteLLM gateway | Normalized to exactly 1,000,000 across Pi, Claude Code, Codex, and deferred OpenCode |
+| DeepSeek V4.1 Flash | max | Existing LiteLLM gateway | Normalized to exactly 1,000,000 across Pi, Claude Code, Codex, and OpenCode V2 |
 | GPT-5.6 Luna | max | Existing LiteLLM gateway | 272,000-token benchmark window |
 
 DeepSeek is deliberately normalized to exactly **1,000,000 tokens** across all
@@ -228,7 +236,7 @@ is frozen in this repository at
 `eb0d7b9a5dcaf103895c5f8a14c16b269df46e039b375a55ba97f6238542d2ed`.
 Generation reads only this local file.
 
-For DeepSeek, Kimi, GLM, and deferred Opus, the Sol profile is preserved except for:
+For Claude Opus 5, DeepSeek, Kimi, and GLM, the Sol profile is preserved except for:
 
 - model identity/display metadata;
 - model-specific context, modality, and supported reasoning metadata;
@@ -248,16 +256,17 @@ Codex's Responses requests are **not** sent to the LiteLLM gateway for the
 third-party models. Codex 0.151.0 unconditionally attaches `client_metadata`,
 and the gateway forwards the Responses `reasoning` object into `reasoning_effort`
 as an object, so the Fireworks-backed routes reject every request (PA1 issue
-[#31](https://github.com/FarisZR/PA1/issues/31)). DeepSeek, Kimi, and the
-deferred Opus therefore route through a pinned CLIProxyAPI instance that
-translates Responses to Chat Completions in front of the same gateway:
+[#31](https://github.com/FarisZR/PA1/issues/31)). DeepSeek, Kimi, and GLM therefore route through a pinned CLIProxyAPI instance
+that translates Responses to Chat Completions in front of the same gateway:
 
 ```text
 Codex -> Responses -> CLIProxyAPI -> Chat Completions -> LiteLLM -> Fireworks
 ```
 
-Luna stays on the direct native Responses path, because it is OpenAI-backed and
-works unchanged.
+Claude Opus 5 uses the same CLIProxyAPI deployment for Codex, but that route
+translates Responses to Anthropic Messages and calls `api.anthropic.com`
+directly with `ANTHROPIC_API_KEY`. Luna stays on the direct native Responses
+path because it is OpenAI-backed and works unchanged.
 
 This is a transport fix, not a harness change: the Codex model catalog, prompt,
 reasoning effort, and reasoning-summary settings are all unchanged, and the
@@ -282,7 +291,7 @@ The third-party `[1m]` aliases are retained for DeepSeek/Kimi/GLM compatibility.
 Luna also uses `[1m]`, then explicitly lowers its compaction window to 272,000.
 Kimi keeps its 1,048,576 declared context. DeepSeek instead explicitly sets a
 1,000,000-token Claude Code auto-compaction window so it matches Pi, Codex, and
-the deferred OpenCode profile under the DeepSeek normalization policy above.
+the OpenCode V2 profile under the DeepSeek normalization policy above.
 For unrecognized `[1m]` aliases Claude Code itself assumes a 1,000,000-token
 window, so DeepSeek's declared and effective limits now match.
 
@@ -296,7 +305,7 @@ the requests are routed through a gateway rather than directly to Anthropic:
 
 These are documented in [Claude Code environment variables](https://code.claude.com/docs/en/env-vars)
 and [Model configuration](https://code.claude.com/docs/en/model-config#correct-the-window-for-a-gateway-or-custom-model-id).
-The deferred Opus job sets none of them: `claude-opus-5` is a model ID Claude
+The Opus job sets none of them: `claude-opus-5` is a model ID Claude
 Code recognizes, and it connects to the Anthropic API directly.
 
 #### Claude Code output-token policy
@@ -475,8 +484,8 @@ Fill these values:
 | `CODEX_CLIPROXY_API_KEY` | Codex | Token Codex presents to the bridge. Chosen locally; not a gateway or vendor credential. |
 | `CODEX_CLIPROXY_BIND`, `CODEX_CLIPROXY_PORT` | bridge | Host address and port the bridge publishes on. Must match `CODEX_CLIPROXY_BASE_URL`. |
 | `CODEX_CLIPROXY_REQUEST_LOG` | bridge | Log full request bodies for the live acceptance check. Keep `false` for benchmark jobs; it records every prompt verbatim. |
+| `ANTHROPIC_API_KEY` | Pi, Claude Code, OpenCode V2, bridge | Direct Anthropic API credential for Claude Opus 5. Codex itself receives only the bridge-local `CODEX_CLIPROXY_API_KEY`; CLIProxyAPI holds `ANTHROPIC_API_KEY` for the outbound Anthropic Messages request. |
 
-No Anthropic/Opus credential is required for the current batch.
 `benchmark/env.local` is ignored by Git.
 
 ## Step-by-step setup and run
@@ -591,10 +600,13 @@ benchmark/generated/codex-cliproxy.toml        # Codex -> compatibility bridge
 benchmark/generated/cliproxy-config.yaml       # bridge deployment config (0600)
 benchmark/generated/codex-litellm.toml         # direct route; control only
 benchmark/generated/codex-thirdparty-models.json
+benchmark/generated/codex-opus-models.json          # restricted Codex Opus catalog
 ```
 
-The four generated YAML files correspond directly to the four source templates
-in `benchmark/configs/`. Generation resolves the nested Pi endpoint placeholder,
+The four generated gateway-backed YAML files correspond to the Kimi, DeepSeek,
+GLM, and Luna source templates in `benchmark/configs/`. Claude Opus 5 is launched
+from `benchmark/configs/opus.yaml` and uses the generated restricted Codex Opus
+catalog plus the same CLIProxyAPI deployment. Generation resolves the nested Pi endpoint placeholder,
 writes the Codex provider TOML and the bridge's deployment config, and builds
 the restricted third-party Codex catalog. It verifies the expected placeholder
 count and the SHA-256 of the vendored Codex catalog before writing the run set,
@@ -609,15 +621,15 @@ generated from the tracked templates in `benchmark/bridges/codex-cliproxy/`
 rather than mounted directly, because CLIProxyAPI does no environment
 interpolation and needs the credentials as literals.
 
-The Codex catalog contains DeepSeek, Kimi, and GLM because Luna uses Codex's
-bundled first-party model entry. All three third-party entries are cloned from
-the vendored GPT-5.6 Sol entry; no upstream file is fetched while generating
-these artifacts.
+The generated third-party Codex catalog contains DeepSeek, Kimi, and GLM because
+Luna uses Codex's bundled first-party model entry. A separate generated catalog
+contains Claude Opus 5. These non-native entries are derived from the vendored
+GPT-5.6 Sol entry; no upstream file is fetched while generating these artifacts.
 
 ### 5b. Start the Codex compatibility bridge
 
-Required before any Kimi or DeepSeek job, and before the acceptance runs below.
-Luna does not need it.
+Required for Codex on Kimi, DeepSeek, GLM, and Claude Opus 5, and before the
+acceptance runs below. Luna does not need it.
 
 ```bash
 cd ~/PA1/benchmark/bridges/codex-cliproxy
@@ -741,23 +753,21 @@ $PIER job start -c benchmark/generated/luna.yaml \
 Keep each complete `benchmark/runs/<job-name>/` directory, especially its
 `lock.json`.
 
-## Deferred Opus 5
+## Claude Opus 5
 
-Opus is not part of the current batch. Its model job is
-`benchmark/deferred/opus.yaml`, containing Pi + Claude Code + Codex for the same
-10 tasks.
+Claude Opus 5 is an active primary model. The Pi / Claude Code / Codex job is
+`benchmark/configs/opus.yaml`; OpenCode V2 uses
+`benchmark/configs/opencode-v2/opus.yaml`. All use the same ten selected tasks
+and medium reasoning.
 
-Codex reaches Opus through the same `benchmark/bridges/codex-cliproxy/`
-deployment as DeepSeek, Kimi, and GLM. There is no separate Opus bridge: CLIProxyAPI
-routes `claude-opus-5` straight to `api.anthropic.com/v1/messages`, never
-through the shared LiteLLM gateway. The previous dedicated LiteLLM bridge has
-been removed.
+Pi, Claude Code, and OpenCode V2 call the official Anthropic API directly with
+`ANTHROPIC_API_KEY`. Codex reaches Opus through the same
+`benchmark/bridges/codex-cliproxy/` deployment used for the third-party
+compatibility path. CLIProxyAPI routes `claude-opus-5` directly to
+`api.anthropic.com/v1/messages`; it does not send Opus through the shared
+LiteLLM gateway.
 
-When Opus is enabled later:
-
-1. append the variables from `benchmark/deferred/opus-env.example` to
-   `benchmark/env.local` — only `ANTHROPIC_API_KEY` is new;
-2. regenerate so the bridge learns the Opus route, and restart it:
+Generate the current bridge and Codex catalogs with Opus enabled:
 
 ```bash
 python3 benchmark/scripts/prepare_configs.py \
@@ -769,30 +779,24 @@ docker compose --env-file ../../env.local up -d --force-recreate
 cd ~/PA1
 ```
 
-3. run the single Opus model job:
+Then run the primary job:
 
 ```bash
-$PIER job start -c benchmark/deferred/opus.yaml \
+$PIER job start -c benchmark/configs/opus.yaml \
   --env-file benchmark/env.local
 ```
 
-The generated Opus catalog is separate from the current DeepSeek/Kimi/GLM catalog.
-
-The Anthropic route through the bridge has **not** been validated against live
-Anthropic traffic, and it differs from the removed LiteLLM bridge in ways that
-matter for measurement: reasoning tokens are estimated rather than reported,
-reasoning effort maps to Anthropic adaptive thinking instead of a token budget,
-and `/v1/responses/compact` is unsupported. Run the Opus acceptance checks in
-[`bridges/codex-cliproxy/README.md`](bridges/codex-cliproxy/README.md) before
-treating Opus Codex numbers as comparable to anything.
+The Codex-to-CLIProxyAPI-to-Anthropic path has been validated end to end against
+live Anthropic traffic and is part of the active benchmark setup. The route
+still has documented measurement characteristics: CLIProxyAPI estimates
+Anthropic reasoning-token counts, maps Codex effort to Anthropic adaptive
+thinking, and does not implement `/v1/responses/compact` for the Claude
+upstream. These are recorded properties of the working route, not blockers.
 
 ## OpenCode V2 primary profiles
 
-OpenCode V2 is supported by the current pinned Pier revision. Its per-model
-profiles remain under `benchmark/deferred/opencode-v2/` because OpenCode V2 is
-launched as a separate per-model job from the current Pi / Claude Code / Codex
-job. The directory name
-is therefore organizational, not a Pier-support blocker.
+OpenCode V2 is supported by the current pinned Pier revision. Its per-model primary profiles are under `benchmark/configs/opencode-v2/` and
+are launched as separate per-model jobs from the Pi / Claude Code / Codex jobs.
 
 Before a primary OpenCode V2 run, execute the offline verifier and the relevant
 cheap live/provider gate described above, then launch the matching per-model
