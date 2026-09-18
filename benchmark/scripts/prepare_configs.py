@@ -747,7 +747,7 @@ def validate_primary_opencode_v2_profile(
             "max_output_tokens: 128000",
         )
     else:
-        raise SystemExit(f"{path}: unsupported staged OpenCode V2 model {model_ref!r}")
+        raise SystemExit(f"{path}: unsupported primary OpenCode V2 model {model_ref!r}")
     missing = [needle for needle in required if needle not in rendered]
     if missing:
         raise SystemExit(
@@ -807,7 +807,7 @@ def _validate_primary_explicit_profile(
 def validate_primary_opencode_v2_profiles() -> None:
     """Validate all primary profiles before generating deployment files."""
     for filename, model_id in PRIMARY_OPENCODE_V2_MODELS.items():
-        path = BENCHMARK_DIR / "deferred" / "opencode-v2" / filename
+        path = BENCHMARK_DIR / "configs" / "opencode-v2" / filename
         validate_primary_opencode_v2_profile(
             path,
             path.read_text(),
@@ -819,7 +819,7 @@ def validate_primary_opencode_v2_profiles() -> None:
         "opus.yaml": ("anthropic/claude-opus-5", "medium"),
     }
     for filename, (model_ref, variant) in explicit_profiles.items():
-        path = BENCHMARK_DIR / "deferred" / "opencode-v2" / filename
+        path = BENCHMARK_DIR / "configs" / "opencode-v2" / filename
         _validate_primary_explicit_profile(path, path.read_text(), model_ref, variant)
 
 
