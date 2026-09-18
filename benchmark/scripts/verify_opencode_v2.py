@@ -197,6 +197,25 @@ class Handler(BaseHTTPRequestHandler):
                 }
         self._record(body, response_usage=response_usage)
 
+        # Fireworks Chat Completions rejects the native DeepSeek combination
+        # of reasoning_effort and thinking. Keep this fixture strict so the
+        # offline acceptance cannot hide a transport/configuration regression.
+        if (
+            not self.path.rstrip("/").endswith("/responses")
+            and "reasoning_effort" in body
+            and "thinking" in body
+        ):
+            self._plain(
+                400,
+                {
+                    "error": {
+                        "message": "reasoning_effort and thinking are mutually exclusive",
+                        "type": "invalid_request",
+                    }
+                },
+            )
+            return
+
         if scenario == "http-401":
             self._plain(401, {"error": {"message": "bad key", "type": "auth"}})
             return
@@ -1687,6 +1706,7 @@ def offline_primary_responses_profiles(
             "output_cap": body.get(cap_field),
             "reasoning_effort": body.get("reasoning_effort"),
             "reasoning": body.get("reasoning"),
+            "thinking_present": "thinking" in body,
             "errors": find_errors(result["events"]),
         }
         evidence["offline_primary_responses"][filename] = details
@@ -1696,6 +1716,9 @@ def offline_primary_responses_profiles(
             and details["path"] == expected_path
             and details["model"] == model_id
             and details["output_cap"] == cap_value
+            and not (
+                "reasoning_effort" in body and "thinking" in body
+            )
             and (
                 details["reasoning_effort"] == "max"
                 if expected_path == "/v1/chat/completions"
