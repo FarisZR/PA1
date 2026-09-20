@@ -3,6 +3,12 @@
 > **Placeholder section:** Do not add results until the underlying data and
 > analysis are available and documented.
 
+```{python}
+#| include: false
+
+from scripts.figures import plot_grouped_line, plot_pareto_frontier
+```
+
 ## Task success
 
 - TODO: Report task-success results from the recorded data.
@@ -26,3 +32,5 @@
 ## Comparative analysis
 
 - TODO: Compare the results using the defined methodology and metrics.
+- TODO: Add executable Quarto figure cells here once the benchmark result data
+  is frozen. See `scripts/README-figures.md` for the Pareto-frontier and line-chart patterns.
