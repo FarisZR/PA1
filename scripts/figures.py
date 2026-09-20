@@ -7,10 +7,20 @@ analysis cell or analysis script.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 import pandas as pd
+
+
+def _place_legend_above(ax, labels: Sequence[str]) -> None:
+    if len(labels) > 1:
+        ax.legend(
+            loc="lower center",
+            bbox_to_anchor=(0.5, 1.01),
+            ncols=min(len(labels), 3),
+            frameon=False,
+        )
 
 
 def plot_pareto_frontier(
@@ -106,5 +116,156 @@ def plot_grouped_line(
     ax.set_ylabel(y_label or y_col)
     ax.grid(alpha=0.2)
     ax.legend()
+    fig.tight_layout()
+    return ax
+
+
+def plot_grouped_bar(
+    data: pd.DataFrame,
+    *,
+    category_col: str,
+    value_cols: Sequence[str],
+    series_labels: Sequence[str] | None = None,
+    horizontal: bool = False,
+    x_label: str | None = None,
+    y_label: str | None = None,
+    percentage_axis: bool = False,
+    annotate: bool = False,
+):
+    """Plot side-by-side bars for one or more numeric series."""
+    frame = data[[category_col, *value_cols]].copy()
+    labels = list(series_labels or value_cols)
+    if len(labels) != len(value_cols):
+        raise ValueError("series_labels must match value_cols")
+
+    fig, ax = plt.subplots()
+    positions = list(range(len(frame)))
+    series_count = len(value_cols)
+    width = 0.8 / max(series_count, 1)
+    offsets = [
+        (index - (series_count - 1) / 2) * width
+        for index in range(series_count)
+    ]
+
+    for offset, column, label in zip(offsets, value_cols, labels, strict=True):
+        values = frame[column].astype(float)
+        shifted = [position + offset for position in positions]
+        if horizontal:
+            bars = ax.barh(shifted, values, height=width * 0.92, label=label)
+        else:
+            bars = ax.bar(shifted, values, width=width * 0.92, label=label)
+
+        if annotate:
+            for bar, value in zip(bars, values, strict=True):
+                if horizontal:
+                    ax.text(
+                        value + 1,
+                        bar.get_y() + bar.get_height() / 2,
+                        f"{value:.1f}%" if percentage_axis else f"{value:g}",
+                        va="center",
+                        fontsize=8,
+                    )
+                else:
+                    ax.text(
+                        bar.get_x() + bar.get_width() / 2,
+                        value + 1,
+                        f"{value:.1f}%" if percentage_axis else f"{value:g}",
+                        ha="center",
+                        fontsize=8,
+                    )
+
+    categories = frame[category_col].astype(str).tolist()
+    if horizontal:
+        ax.set_yticks(positions, categories)
+        ax.invert_yaxis()
+        ax.set_xlabel(x_label or "Value")
+        if y_label:
+            ax.set_ylabel(y_label)
+        ax.xaxis.grid(True, alpha=0.2)
+        if percentage_axis:
+            ax.set_xlim(0, 100)
+    else:
+        ax.set_xticks(positions, categories)
+        if x_label:
+            ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label or "Value")
+        ax.yaxis.grid(True, alpha=0.2)
+        if percentage_axis:
+            ax.set_ylim(0, 100)
+
+    _place_legend_above(ax, labels)
+    fig.tight_layout()
+    return ax
+
+
+def plot_stacked_percent(
+    data: pd.DataFrame,
+    *,
+    category_col: str,
+    value_cols: Sequence[str],
+    series_labels: Sequence[str] | None = None,
+    horizontal: bool = False,
+    annotate: bool = True,
+    min_label_percent: float = 7.5,
+):
+    """Plot a 100 percent stacked bar chart from percentage-point values."""
+    frame = data[[category_col, *value_cols]].copy()
+    labels = list(series_labels or value_cols)
+    if len(labels) != len(value_cols):
+        raise ValueError("series_labels must match value_cols")
+
+    fig, ax = plt.subplots()
+    positions = list(range(len(frame)))
+    cumulative = [0.0] * len(frame)
+
+    for column, label in zip(value_cols, labels, strict=True):
+        values = frame[column].astype(float).tolist()
+        if horizontal:
+            bars = ax.barh(positions, values, left=cumulative, label=label)
+        else:
+            bars = ax.bar(positions, values, bottom=cumulative, label=label)
+
+        if annotate:
+            for bar, value, start in zip(bars, values, cumulative, strict=True):
+                if value < min_label_percent:
+                    continue
+                label_text = f"{value:.1f}%" if value < 10 else f"{value:.0f}%"
+                if horizontal:
+                    ax.text(
+                        start + value / 2,
+                        bar.get_y() + bar.get_height() / 2,
+                        label_text,
+                        ha="center",
+                        va="center",
+                        fontsize=8,
+                    )
+                else:
+                    ax.text(
+                        bar.get_x() + bar.get_width() / 2,
+                        start + value / 2,
+                        label_text,
+                        ha="center",
+                        va="center",
+                        fontsize=8,
+                    )
+        cumulative = [
+            previous + value
+            for previous, value in zip(cumulative, values, strict=True)
+        ]
+
+    categories = frame[category_col].astype(str).tolist()
+    if horizontal:
+        ax.set_yticks(positions, categories)
+        ax.invert_yaxis()
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Share of classifiable configurations (%)")
+        ax.xaxis.grid(True, alpha=0.2)
+    else:
+        ax.set_xticks(positions, categories)
+        ax.set_ylim(0, 100)
+        ax.set_ylabel("Share of classifiable configurations (%)")
+        ax.yaxis.grid(True, alpha=0.2)
+
+    _place_legend_above(ax, labels)
     fig.tight_layout()
     return ax

@@ -1,29 +1,222 @@
 # Current State in the Company {#sec-current-state}
 
-> draft
 
-### Internal Survey
+## Internal Survey
 
-To assess the current use of AI coding agents, an internal survey was conducted between August and September 2026. The survey received 56 responses. Participation was voluntary and the sample was not selected to be representative of the company as a whole. The results are therefore used descriptively to identify usage patterns among the respondents rather than to estimate company-wide adoption rates.
+An internal survey conducted between August and September 2026 received 57 responses. It was distributed through four Google Chat rooms: two team rooms and two rooms focused on AI users and AI products. Several employees were also contacted directly. This sampling favors employees with high AI interest and adoption. The results therefore describe an AI-active subgroup rather than company-wide usage.
 
-### Agent Harness Usage
+Respondents reported one first-choice configuration and up to three additional configurations used at least weekly. The two Claude Code answer labels were merged. Adoption rates count each respondent once per harness or model; configuration analyses count each distinct respondent--harness--model pair once. "Other" and automatically selected models are excluded where a named model or provider is required.
 
-Claude Code was clearly the dominant agent harness among respondents. It was selected as the first-choice harness by 40 of 56 respondents (71.4%) and appeared in the weekly workflow of 51 respondents (91.1%). OpenCode was the second-most common first choice with 8 respondents (14.3%) and was used weekly by 14 respondents (25.0%). Codex and GitHub Copilot were each used weekly by 9 respondents (16.1%), while Pi was used by 5 respondents (8.9%).
+The model list was fixed when the survey was published and was not updated for later releases. Models released afterwards, including DeepSeek V4.1 Flash and GLM-5.3-Flash, were therefore not available as named choices. Their adoption may consequently be understated in the survey.
 
-Despite the concentration around Claude Code, the reported workflows were not homogeneous. A total of 41 respondents (73.2%) stated that they used at least one additional AI coding setup or model each week, and 31 respondents (55.4%) reported using two or more distinct harnesses. The most common multi-harness combination was Claude Code together with OpenCode, reported by 11 respondents. Claude Code was also frequently combined with GitHub Copilot and Codex.
+```{python}
+#| include: false
 
-### Model Usage
+from scripts.figures import plot_grouped_bar, plot_stacked_percent
+from scripts.survey_analysis import (
+    configuration_usage,
+    harness_tier_distribution,
+    harness_usage,
+    load_model_tiers,
+    load_survey,
+    model_usage,
+    provider_diversification,
+    reported_cost_distribution,
+    role_tier_distribution,
+)
 
-Anthropic models were similarly dominant. An Anthropic model was selected as the primary model by 41 respondents (73.2%), while 50 respondents (89.3%) reported using at least one Anthropic model in their weekly workflow.
+survey = load_survey("data/company-survey.csv")
+model_tiers = load_model_tiers("data/model-cost-tiers.csv")
+```
 
-Claude Opus 5 was the most common primary model, selected by 20 respondents (35.7%), followed by Claude Sonnet 4.6 with 10 respondents (17.9%) and Claude Sonnet 5 with 8 respondents (14.3%). Looking at all reported weekly configurations, Opus 5 was used by 26 respondents (46.4%).
+## Harness-Model Configurations
 
-The most common primary harness-model configuration was **Claude Code with Claude Opus 5**, used by 18 respondents (32.1%). It was followed by Claude Code with Sonnet 5 at 14.3% and Claude Code with Sonnet 4.6 at 12.5%. When secondary setups are also considered, Claude Code with Opus 5 appeared in the workflows of 24 respondents (42.9%).
+The combined configurations show a clear Claude-centered pattern. Claude Code with Claude Opus 5 was the most common primary configuration, selected by 18 of 57 respondents (31.6%), and appeared in 24 weekly workflows (42.1%). Claude Code with Claude Sonnet 5 appeared in 15 workflows (26.3%), followed by Claude Code with Claude Sonnet 4.6 in 11 (19.3%). @fig-survey-configuration-usage shows the eight most common named configurations.
 
-Non-Anthropic models were less common but showed greater variety. GPT-5.6 Sol was used weekly by five respondents, DeepSeek V4 Flash 0731 by four, and Kimi K3 by three. Overall, 23 respondents (41.1%) reported named models from at least two different model-provider families.
+```{python}
+#| label: fig-survey-configuration-usage
+#| fig-cap: "Most common named harness--model configurations among survey respondents (n = 57)."
+#| fig-alt: "Horizontal grouped bar chart of the eight most common named harness-model configurations. Claude Code with Claude Opus 5 is the most common primary and weekly configuration, followed by Claude Code with Claude Sonnet 5 and Claude Sonnet 4.6."
+#| fig-width: 7.2
+#| fig-format: svg
+#| fig-height: 5.2
 
-### Reported Cost
+plot_grouped_bar(
+    configuration_usage(survey, limit=8),
+    category_col="configuration",
+    value_cols=["Primary %", "Any weekly use %"],
+    series_labels=["Primary configuration", "Any weekly use"],
+    horizontal=True,
+    x_label="Respondents (%)",
+    percentage_axis=True,
+)
+```
 
-The cost responses were more difficult to compare because the questionnaire allowed both monetary ranges and answers such as flat-rate subscriptions or unknown costs. Of the 32 respondents who provided a monetary range, 21 (65.6%) reported monthly costs of at least EUR 100. However, these values should not be interpreted as an estimate of average company expenditure.
+*Source: own analysis of the internal survey. Unnamed configurations are omitted.*
 
-Overall, the survey indicates a **dominant Claude Code and Anthropic baseline combined with substantial experimentation with alternative harnesses and models**. This makes harness choice relevant even in an environment where one ecosystem is clearly preferred, since a considerable share of respondents already use multiple agent configurations in parallel.
+## Harness Usage
+
+Claude Code was the first-choice harness for 41 of 57 respondents (71.9%) and was used weekly by 52 (91.2%). OpenCode ranked second with 8 first-choice responses (14.0%) and 15 weekly users (26.3%). Codex and GitHub Copilot each had 9 weekly users (15.8%); Pi had 5 (8.8%). @fig-survey-harness-usage compares first-choice and weekly use.
+
+```{python}
+#| label: fig-survey-harness-usage
+#| fig-cap: "First-choice and weekly harness usage among survey respondents (n = 57)."
+#| fig-alt: "Horizontal grouped bar chart comparing first-choice harness usage with any reported weekly use. Claude Code is substantially higher than every alternative in both measures."
+#| fig-width: 7.2
+#| fig-format: svg
+#| fig-height: 4.5
+
+plot_grouped_bar(
+    harness_usage(survey),
+    category_col="harness",
+    value_cols=["First choice %", "Any weekly use %"],
+    series_labels=["First choice", "Any weekly use"],
+    horizontal=True,
+    x_label="Respondents (%)",
+    percentage_axis=True,
+)
+```
+
+*Source: own analysis of the internal survey.*
+
+Multiple setups were common. A total of 42 respondents (73.7%) reported at least one additional setup or model used weekly, and 32 (56.1%) used two or more harnesses. Claude Code with OpenCode was the most common multi-harness combination, reported by 12 respondents.
+
+Alternative harnesses mostly complemented Claude Code. Among weekly users, 12 of 15 OpenCode users and 8 of 9 Codex users also used Claude Code. The same applied to all 9 GitHub Copilot users, all 7 Antigravity users, and all 5 Pi users.
+
+## Model Usage
+
+Anthropic models were similarly concentrated. An Anthropic model was primary for 42 respondents (73.7%), and 51 (89.5%) used at least one named Anthropic model weekly.
+
+Claude Opus 5 was the most common primary model with 20 respondents (35.1%), followed by Claude Sonnet 4.6 with 11 (19.3%) and Claude Sonnet 5 with 8 (14.0%). Weekly use was 27 respondents for Opus 5 (47.4%), 15 for Sonnet 5 (26.3%), and 13 for Sonnet 4.6 (22.8%). @fig-survey-model-usage shows the full distribution of named models.
+
+```{python}
+#| label: fig-survey-model-usage
+#| fig-cap: "Primary and weekly usage of named models among survey respondents (n = 57)."
+#| fig-alt: "Horizontal grouped bar chart of named models. Claude Opus 5 has the highest primary and weekly adoption, followed by Claude Sonnet 5 and Claude Sonnet 4.6."
+#| fig-width: 7.2
+#| fig-format: svg
+#| fig-height: 6.5
+
+plot_grouped_bar(
+    model_usage(survey),
+    category_col="model",
+    value_cols=["Primary %", "Any weekly use %"],
+    series_labels=["Primary model", "Any weekly use"],
+    horizontal=True,
+    x_label="Respondents (%)",
+    percentage_axis=True,
+)
+```
+
+*Source: own analysis of the internal survey. Unnamed models are omitted.*
+
+Non-Anthropic models were common but rarely used alone. Of the 57 respondents, 27 (47.4%) reported only named Anthropic models, 24 (42.1%) combined Anthropic with another provider, and 5 (8.8%) used only non-Anthropic models. One response could not be classified by provider. @fig-survey-provider-diversification shows the three classifiable groups.
+
+```{python}
+#| label: fig-survey-provider-diversification
+#| fig-cap: "Anthropic-only and alternative-provider model use among survey respondents."
+#| fig-alt: "Three-bar chart showing 47.4 percent Anthropic-only use, 42.1 percent combined Anthropic and alternative-provider use, and 8.8 percent alternative-provider-only use."
+#| fig-width: 6.5
+#| fig-format: svg
+#| fig-height: 4.2
+
+provider_groups = provider_diversification(survey)
+provider_groups = provider_groups[provider_groups["category"] != "Unclassified"]
+plot_grouped_bar(
+    provider_groups,
+    category_col="category",
+    value_cols=["percentage"],
+    horizontal=False,
+    y_label="Respondents (%)",
+    percentage_axis=True,
+    annotate=True,
+)
+```
+
+*Source: own analysis of the internal survey. One respondent (1.8%) is omitted because no named model provider could be identified.*
+
+Among these respondents, alternative providers therefore mostly complement rather than replace Anthropic.
+
+## Model Cost Tiers
+
+Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. MiniMax M3 has no comparable DeepSWE result and is classified as low cost from its official API pricing [@minimaxM3Pricing2026]. Claude Haiku 4.5 also lacks a comparable DeepSWE result. It is manually assigned to the medium-cost tier based on its official API price of USD 1 per million input tokens and USD 5 per million output tokens [@anthropicHaiku45Pricing2025]. This is a pricing-based fallback rather than a DeepSWE-derived classification. Unnamed models remain excluded.
+
+The high-cost tier contains Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Fable 5, Claude Opus 4.8, and GPT-5.6 Sol. The medium-cost tier contains GPT-5.6 Terra, Gemini 3.1 Pro, Gemini 3.6 Flash, Kimi K3, and Claude Haiku 4.5. The low-cost tier contains GPT-5.6 Luna, DeepSeek V4 Flash 0731, and MiniMax M3.
+
+Model cost differs by harness. In @fig-survey-harness-cost-tier, 55 of 57 classifiable Claude Code configurations (96.5%) use high-cost models and 2 (3.5%) use medium-cost models. OpenCode spans all three tiers: 40.0% high, 33.3% medium, and 26.7% low cost. Three of the four classifiable Pi configurations are low cost. Small samples for less common harnesses limit these comparisons.
+
+```{python}
+#| label: fig-survey-harness-cost-tier
+#| fig-cap: "Model cost-tier distribution by harness for classifiable weekly configurations."
+#| fig-alt: "One-hundred-percent stacked horizontal bars by harness. Claude Code is 96.5 percent high cost and 3.5 percent medium cost after including Claude Haiku 4.5 in the medium tier. OpenCode spans all three tiers, and Pi is mostly low cost. Each harness label includes its number of classifiable configurations."
+#| fig-width: 7.2
+#| fig-format: svg
+#| fig-height: 4.4
+
+harness_tiers = harness_tier_distribution(
+    survey,
+    model_tiers,
+    ["Claude Code", "OpenCode", "Codex", "GitHub Copilot", "Antigravity", "Pi"],
+)
+plot_stacked_percent(
+    harness_tiers,
+    category_col="harness_label",
+    value_cols=["High cost", "Medium cost", "Low cost"],
+    horizontal=True,
+    min_label_percent=3.0,
+)
+```
+
+*Source: own analysis of the internal survey. Tier boundaries use DeepSWE v1.1 average cost per task [@deepsweLeaderboard2026], with pricing-based fallbacks for MiniMax M3 [@minimaxM3Pricing2026] and Claude Haiku 4.5 [@anthropicHaiku45Pricing2025].*
+
+Cost tier also differs between primary and secondary configurations. High-cost models account for 81.1% of classifiable primary configurations and 55.1% of secondary configurations. Medium-cost models rise from 7.5% of primary to 34.7% of secondary configurations, while low-cost models account for 11.3% and 10.2%, respectively (@fig-survey-role-cost-tier).
+
+```{python}
+#| label: fig-survey-role-cost-tier
+#| fig-cap: "Model cost-tier distribution for primary and secondary survey configurations."
+#| fig-alt: "One-hundred-percent stacked bars comparing primary and secondary configurations. Primary configurations are 81.1 percent high, 7.5 percent medium, and 11.3 percent low cost. Secondary configurations are 55.1 percent high, 34.7 percent medium, and 10.2 percent low cost after including Claude Haiku 4.5 in the medium tier."
+#| fig-width: 6.2
+#| fig-format: svg
+#| fig-height: 4.6
+
+role_tiers = role_tier_distribution(survey, model_tiers)
+plot_stacked_percent(
+    role_tiers,
+    category_col="role_label",
+    value_cols=["High cost", "Medium cost", "Low cost"],
+    horizontal=False,
+    min_label_percent=3.0,
+)
+```
+
+*Source: own analysis of the internal survey. Primary and secondary bars contain 53 and 49 classifiable configurations, respectively.*
+
+The respondent-level data show the same association. Of the 17 respondents using at least one medium-cost model, 13 (76.5%) used multiple named providers and 13 (76.5%) used multiple harnesses. Among the 40 respondents without a medium-cost model, 11 (27.5%) used multiple named providers. This exploratory result suggests that medium-cost models are more common in diversified workflows.
+
+## Reported Cost
+
+Monthly coding-agent cost was reported in categories rather than exact amounts. Of the 57 responses, 33 gave a monetary range, 15 selected a flat-rate subscription, 8 selected "I don't know", and 1 was blank. Among the 33 monetary responses, 22 (66.7%) reported at least EUR 100 per month. @fig-survey-reported-cost keeps the original categories instead of converting ranges to estimated values.
+
+```{python}
+#| label: fig-survey-reported-cost
+#| fig-cap: "Reported monthly AI coding-agent cost categories among survey respondents (n = 57)."
+#| fig-alt: "Horizontal bar chart of the original monthly cost response categories. Flat-rate subscription is the most common category, followed by EUR 100-199, EUR 20-49, EUR 200-499, and unknown cost."
+#| fig-width: 7.0
+#| fig-format: svg
+#| fig-height: 4.8
+
+plot_grouped_bar(
+    reported_cost_distribution(survey),
+    category_col="category",
+    value_cols=["respondents"],
+    horizontal=True,
+    x_label="Respondents",
+    annotate=True,
+)
+```
+
+*Source: own analysis of the internal survey.*
+
+The cost categories are not directly comparable as continuous values, so no average expenditure is derived.
+
+Overall, the sample shows a strong Claude Code and Anthropic baseline with alternatives layered around it. High-cost models dominate primary configurations, while medium-cost models are more common in secondary and diversified setups. Because the survey targeted AI-active groups, these results characterize advanced internal users rather than company-wide adoption.
