@@ -4,6 +4,10 @@ author: "Fares Rahmani"
 abstract-title: "Abstract"
 abstract: |
   TODO: Write the abstract after the study is complete.
+jupyter: python3
+execute:
+  echo: false
+  warning: false
 ---
 
 <!--
