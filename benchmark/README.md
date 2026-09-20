@@ -474,14 +474,22 @@ These are account-wide and shared with anything else using the same gateway
 credential, so they are an upper bound on what a job can assume, not a budget
 reserved for it.
 
-Read the table as a snapshot, not as fixed capacity. Fireworks documents
-starting limits of 3.6M / 900k / 36k TPM, which adaptation then grows or
-shrinks. Against that anchor, `kimi-k3` and `deepseek-v4p1-flash` both sit at
-exactly twice the starting limit — an idle route near its floor — while
-`glm-5p3-flash` sits at roughly 7x starting prompt and 5x starting generated,
-measured two hours after a 55-minute GLM job. Elevated limits therefore appear
-to persist for hours after the traffic that earned them, but the decay is
-undocumented and should not be relied on.
+Read the table as a snapshot, not as fixed capacity. **All concurrency sizing
+here rests on the observed idle effective limit — 7.2M total-prompt TPM — and
+not on any documented figure.** That number is what an untouched route reports,
+and it is what the `check_rate_headroom.py` output and every config comment
+divide by.
+
+The interpretation below is secondary and weaker. An [archived 2026-05-07
+revision](https://web.archive.org/web/20260507222857/https://docs.fireworks.ai/serverless/rate-limits)
+of the Fireworks page published starting limits of 3.6M / 900k / 36k TPM; the
+current revision no longer states them, so treat the figures as historical
+rather than current documentation. Against that old anchor, `kimi-k3` and
+`deepseek-v4p1-flash` both sit at exactly twice it while `glm-5p3-flash` sits
+near 7x prompt and 5x generated, measured two hours after a 55-minute GLM job.
+That is consistent with elevated limits persisting for hours after the traffic
+that earned them, but it is inference from three readings with no pre-run
+baseline, and the decay is undocumented. Nothing operational depends on it.
 
 The practical consequence is that a model's headroom at the *start* of a job is
 near the floor, not the number measured after a previous run. DeepSeek V4.1
@@ -511,8 +519,13 @@ the gateway's cache without an upstream call, and the reply then carries no
 `Llm_provider-X-Ratelimit-*` headers at all — which looks like "this route
 reports no limits" rather than like a cache hit.
 
-The arithmetic is `max_trials = limit_TPM / per_trial_TPM`. Per-trial demand
-measured over the 20 real trials of the 2026-09-20 GLM run:
+The arithmetic is `max_trials = limit_TPM / per_trial_TPM`. Configs are set at
+roughly 82-85% of the resulting cap; the script prints a flatter 80% as its
+conservative default, so it will sometimes suggest one trial fewer than a
+config uses. Every such margin is against **median** per-trial demand, so it is
+a sizing convention rather than guaranteed headroom — the p90 row below is what
+a run of uniformly heavy trials would draw. Per-trial demand measured over the
+20 real trials of the 2026-09-20 GLM run:
 
 | | total prompt | uncached | generated |
 |---|---|---|---|
@@ -542,11 +555,22 @@ heavier than average:
 | `kimi-k3` | 116,396 | 173,443 |
 | **DeepSeek / GLM ratio** | 1.85x | **2.05x** |
 
-Upstream runs a different harness, so its absolute rates are roughly 1.5-2x
-below ours and are not directly usable; the model-to-model *ratio* is what
-transfers. Two independent checks that it does: upstream puts GLM at 2.90x Kimi
-on our tasks and our own runs measured 2.07x, and upstream's 94% cache rate for
-GLM matches the 94.4% measured in the 2026-09-20 run exactly.
+Upstream runs a different harness, so its absolute rates sit roughly 1.5-2x
+below ours and are not usable directly. **The ratio is used as an estimate, not
+as a transferable constant.** The one case where both sources measure the same
+pair disagrees by about 40%: upstream puts GLM at 2.90x Kimi on our tasks where
+our own runs measured 2.07x. That agrees on direction and rough magnitude, which
+is enough to reject the earlier "DeepSeek behaves like GLM" assumption, but it
+is not precision. A separate consistency check is better behaved — upstream's
+94% cache rate for GLM matches the 94.4% measured on 2026-09-20.
+
+Size for that uncertainty rather than through it. At the central 2.05x estimate
+DeepSeek at four trials sits at 84% of the idle limit; the ratio would have to
+reach 2.44x before four trials exceeded it, and the 40% disagreement above
+spans that. Four is therefore the right setting on the central estimate but is
+not immune to the estimate being wrong; drop to three if a run is too expensive
+to risk. Replace the estimate with a direct measurement from the first
+DeepSeek job's `result.json` files and this caveat goes away.
 
 Treat the result as an upper bound rather than a target, for two reasons. The
 per-trial figures are averages over a whole trial, but demand grows with context
@@ -845,8 +869,9 @@ $PIER job start -c benchmark/generated/glm-5.3-flash.yaml \
 
 The GLM job is pinned to eight concurrent trials. A GLM trial draws a median
 736,678 total-prompt TPM, measured over the 20 real trials of the 2026-09-20
-run, and the 7.2M cold limit therefore caps a cold start at 9.8 trials; eight
-leaves about 20% headroom. That earlier attempt at thirty demanded 307% of the
+run, and the 7.2M observed idle limit therefore caps a cold start at 9.8
+trials; eight sits at 82% of that. That margin is against *median* demand, not
+a guarantee — at p90 demand the same limit allows only 5.2 trials. That earlier attempt at thirty demanded 307% of the
 cold limit, was throttled by the Fireworks route, and Codex did not survive it.
 Expect roughly **2-3 hours** for the 30 trials.
 

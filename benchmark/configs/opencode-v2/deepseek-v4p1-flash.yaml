@@ -3,11 +3,11 @@ job_name: opencode-v2-deepseek-v4p1-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
 # This profile is 10 trials, so 30 meant "all at once". Measured OpenCode V2
-# GLM demand is 594,226 prompt TPM/trial; scaling by the 2.05x DeepSeek/GLM
-# ratio from upstream DeepSWE data on PA1's ten tasks puts DeepSeek near
-# 1,218,163, so ten at once would be 169% of the 7.2M cold limit. Six is 101%
-# of it at GLM's rate and well inside it in practice.
-n_concurrent_trials: 6
+# GLM demand is 594,226 prompt TPM/trial; scaling by the estimated 2.05x
+# DeepSeek/GLM ratio puts DeepSeek near 1,218,163, so ten at once would be
+# 169% of the 7.2M observed idle limit. Five is 85% of it, the same buffer the
+# primary DeepSeek job uses. Six would be 101.5% — over the limit, not under.
+n_concurrent_trials: 5
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency

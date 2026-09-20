@@ -70,29 +70,54 @@ def probe(base: str, key: str, model: str) -> dict[str, str]:
         return {k.lower(): v for k, v in response.headers.items()}
 
 
+BUFFER = 0.8
+
+
 def report(model: str, headers: dict[str, str]) -> None:
+    """Print effective limits and the trial count they support.
+
+    Two separate numbers, because they answer different questions. "at limit"
+    divides the full effective limit by per-trial demand and therefore assumes
+    nothing else is drawing on the route. "at remaining" divides what is left
+    in the current window instead, which is the number that matters when the
+    route is already busy. They coincide only on an idle route.
+    """
     demand = PER_TRIAL_TPM.get(model)
     over = headers.get("llm_provider-x-ratelimit-over-limit")
     print(f"\n{model}   over-limit={over or 'n/a'}")
-    print(f"  {'metric':<11}{'limit TPM':>14}{'remaining':>14}{'used':>7}{'max trials':>12}")
+    print(f"  {'metric':<11}{'limit TPM':>14}{'remaining':>14}{'used':>7}"
+          f"{'at limit':>10}{'at remain':>11}")
     caps: dict[str, float] = {}
+    caps_rem: dict[str, float] = {}
+    worst_used = 0.0
     for metric, header in HEADERS.items():
         limit = int(headers.get(header) or 0)
         if not limit:
             continue
         remaining = int(headers.get(REMAINING[metric]) or limit)
         used = 100 * (limit - remaining) / limit
-        cell = ""
+        worst_used = max(worst_used, used)
+        at_lim = at_rem = ""
         if demand:
             caps[metric] = limit / demand[metric]
-            cell = f"{caps[metric]:.1f}"
-        print(f"  {metric:<11}{limit:>14,}{remaining:>14,}{used:>6.1f}%{cell:>12}")
-    if caps:
-        binding = min(caps, key=caps.get)
-        print(f"  -> binding metric: {binding}; safe concurrency now "
-              f"{int(caps[binding] * 0.8)} (80% of {caps[binding]:.1f})")
+            caps_rem[metric] = remaining / demand[metric]
+            at_lim, at_rem = f"{caps[metric]:.1f}", f"{caps_rem[metric]:.1f}"
+        print(f"  {metric:<11}{limit:>14,}{remaining:>14,}{used:>6.1f}%"
+              f"{at_lim:>10}{at_rem:>11}")
     if not demand:
         print("  (no per-trial demand on file for this model; limits only)")
+        return
+    binding = min(caps, key=caps.get)
+    print(f"  -> binding metric: {binding}. Capacity at the current effective "
+          f"limit, assuming an otherwise idle route:")
+    print(f"     {int(caps[binding] * BUFFER)} trials "
+          f"({BUFFER:.0%} of {caps[binding]:.1f}), against median per-trial demand.")
+    if worst_used >= 5:
+        print(f"     Route is NOT idle ({worst_used:.0f}% of a window already "
+              f"consumed). Against what is left: "
+              f"{int(min(caps_rem.values()) * BUFFER)} trials.")
+        print("     Sample with --watch to estimate the other workload's "
+              "sustained rate before trusting either number.")
 
 
 def main() -> int:

@@ -4,9 +4,11 @@ n_attempts: 1
 # Sized against the Fireworks limit rather than by feel. A GLM trial demands a
 # median 736,678 total-prompt TPM (measured over the 20 real trials of the
 # 2026-09-20 run; the agentic loop re-sends a ~94%-cached context every turn,
-# so total prompt binds long before uncached or generated do). An idle route
-# allows 7.2M total-prompt TPM, which caps a cold start at 9.8 trials. 8 leaves
-# ~20% headroom.
+# so total prompt binds long before uncached or generated do). An idle route is
+# observed to allow 7.2M total-prompt TPM, which caps a cold start at 9.8
+# trials. 8 sits at 82% of that. The margin is against *median* demand and is
+# not guaranteed: at p90 per-trial demand (1,393,319 TPM) the same limit allows
+# only 5.2 trials.
 #
 # The same arithmetic explains the 2026-09-20 failure: 30 trials demanded 307%
 # of the cold limit and were throttled; once Pi's 10 died and the limit had
