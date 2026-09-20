@@ -12,4 +12,4 @@ Kimi K3,4.65,Medium cost,DeepSWE v1.1 best-listed configuration average cost per
 GPT-5.6 Luna,0.61,Low cost,DeepSWE v1.1 best-listed configuration average cost per task,https://deepswe.datacurve.ai/
 DeepSeek V4 Flash 0731,0.46,Low cost,DeepSWE v1.1 best-listed configuration average cost per task,https://deepswe.datacurve.ai/
 MiniMax M3,,Low cost,Official API token-pricing fallback; no comparable DeepSWE result,https://platform.minimax.io/subscribe/token-plan?tab=api-enterprise
-Claude Haiku 4.5,,,No comparable DeepSWE result; excluded from cost-tier figures,
+Claude Haiku 4.5,,Medium cost,Manual API token-pricing fallback; no comparable DeepSWE result; USD 1/M input and USD 5/M output,https://www.anthropic.com/news/claude-haiku-4-5
