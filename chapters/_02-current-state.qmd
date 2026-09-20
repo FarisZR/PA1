@@ -13,18 +13,45 @@ The questionnaire allowed one first-choice configuration and up to three additio
 
 from scripts.figures import plot_grouped_bar, plot_stacked_percent
 from scripts.survey_analysis import (
+    configuration_usage,
     harness_tier_distribution,
     harness_usage,
     load_model_tiers,
     load_survey,
     model_usage,
     provider_diversification,
+    reported_cost_distribution,
     role_tier_distribution,
 )
 
 survey = load_survey("data/company-survey.csv")
 model_tiers = load_model_tiers("data/model-cost-tiers.csv")
 ```
+
+## Harness-Model Configurations
+
+Before considering harnesses and models separately, the combined configurations show a pronounced concentration around Claude Code with Anthropic models. The most common primary configuration was Claude Code with Claude Opus 5, selected by 18 of 57 respondents (31.6%). When all reported weekly configurations are considered, this combination appeared in the workflows of 24 respondents (42.1%). Claude Code with Claude Sonnet 5 was reported by 15 respondents (26.3%) and Claude Code with Claude Sonnet 4.6 by 11 respondents (19.3%). @fig-survey-configuration-usage shows the eight most frequently reported named harness--model configurations.
+
+```{python}
+#| label: fig-survey-configuration-usage
+#| fig-cap: "Most frequently reported named harness--model configurations among survey respondents (n = 57)."
+#| fig-alt: "Horizontal grouped bar chart of the eight most common named harness-model configurations. Claude Code with Claude Opus 5 is the most common primary and weekly configuration, followed by Claude Code with Claude Sonnet 5 and Claude Sonnet 4.6."
+#| fig-width: 7.2
+#| fig-format: svg
+#| fig-height: 5.2
+
+plot_grouped_bar(
+    configuration_usage(survey, limit=8),
+    category_col="configuration",
+    value_cols=["Primary %", "Any weekly use %"],
+    series_labels=["Primary configuration", "Any weekly use"],
+    horizontal=True,
+    x_label="Respondents (%)",
+    percentage_axis=True,
+)
+```
+
+*Source: own analysis of the internal survey. "Other", automatically selected, and missing model values are omitted because they do not identify a named harness--model configuration.*
 
 ## Agent Harness Usage
 
@@ -81,8 +108,6 @@ plot_grouped_bar(
 ```
 
 *Source: own analysis of the internal survey. "Other" and automatically selected models are omitted because they cannot be assigned to a named model.*
-
-The most common primary harness--model configuration was Claude Code with Claude Opus 5, used by 18 respondents (31.6%). Claude Code with Sonnet 5 and Claude Code with Sonnet 4.6 were each selected by 8 respondents (14.0%). When secondary configurations are included, Claude Code with Opus 5 appeared in the workflows of 24 respondents (42.1%).
 
 Non-Anthropic models were used by a substantial minority, but usually alongside Anthropic models. Of the 57 respondents, 27 (47.4%) reported only named Anthropic models, 24 (42.1%) combined Anthropic with at least one named alternative provider, and only 5 (8.8%) reported named non-Anthropic models without Anthropic. One response could not be classified by provider. @fig-survey-provider-diversification visualizes the three classifiable groups.
 
@@ -167,6 +192,28 @@ The same pattern is visible at respondent level. Of the 16 respondents using at 
 
 ## Reported Cost
 
-The cost responses were more difficult to compare because the questionnaire allowed both monetary ranges and answers such as flat-rate subscriptions or unknown costs. Of the 33 respondents who provided a monetary range, 22 (66.7%) reported monthly costs of at least EUR 100. These values should not be interpreted as an estimate of average company expenditure.
+The questionnaire recorded monthly coding-agent cost as categories rather than exact amounts. Of the 57 responses, 33 provided a monetary range, 15 selected a flat-rate subscription, 8 selected "I don't know", and 1 respondent left the item blank. Among the 33 monetary-range responses, 22 (66.7%) reported monthly costs of at least EUR 100. @fig-survey-reported-cost preserves the original categorical answers rather than converting the ranges to estimated point values.
+
+```{python}
+#| label: fig-survey-reported-cost
+#| fig-cap: "Reported monthly AI coding-agent cost categories among survey respondents (n = 57)."
+#| fig-alt: "Horizontal bar chart of the original monthly cost response categories. Flat-rate subscription is the most common category, followed by EUR 100-199, EUR 20-49, EUR 200-499, and unknown cost."
+#| fig-width: 7.0
+#| fig-format: svg
+#| fig-height: 4.8
+
+plot_grouped_bar(
+    reported_cost_distribution(survey),
+    category_col="category",
+    value_cols=["respondents"],
+    horizontal=True,
+    x_label="Respondents",
+    annotate=True,
+)
+```
+
+*Source: own analysis of the internal survey.*
+
+The monetary ranges, flat-rate subscriptions, and unknown-cost responses are not directly comparable as continuous expenditure values. They are therefore reported descriptively and should not be interpreted as an estimate of average company expenditure.
 
 Overall, the survey shows a concentrated Claude Code and Anthropic baseline together with substantial experimentation around it. Alternative harnesses are commonly used alongside Claude Code, and non-Anthropic models are usually added alongside Anthropic rather than used on their own. The configuration-level cost analysis further shows that high-cost models dominate primary workflows, while medium-cost models are more prominent in secondary and diversified setups.
