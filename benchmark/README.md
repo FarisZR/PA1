@@ -118,7 +118,8 @@ For a model evaluated on all four harnesses, the complete wave is therefore
 **40 planned trials**: 30 from the current Pi / Claude Code / Codex job plus 10
 from the matching OpenCode V2 profile. Each profile uses 1 attempt per task,
 1 automatic retry for transport/gateway faults only, and
-`n_concurrent_trials: 30` for the primary profiles.
+a per-model `n_concurrent_trials` sized against the model's Fireworks
+token-rate headroom (see "Sizing concurrency against the limit").
 
 Successful trials run once. A trial that fails with a transport/gateway fault is
 discarded and run again once; if the retry also fails, the second failure is final.
@@ -361,11 +362,17 @@ openai/gpt-5.6-luna
 
 The gateway exposes GLM-5.3-Flash as `glm-5p3-flash`. Pi therefore registers that
 transport alias as a custom `zai` model while copying Pi 0.84.4's built-in
-`zai/glm-5.3-flash` metadata exactly: text-and-image input, `low`/`high`/`max`
+`zai/glm-5.3-flash` metadata: text-and-image input, `low`/`high`/`max`
 reasoning, a 1,000,000-token context window, a 131,072-token output ceiling,
-Z.AI thinking/tool-stream compatibility, and the built-in cost metadata. The
+Z.AI tool-stream compatibility, and the built-in cost metadata. The
 Fireworks route advertises 1,048,576 context, which is used for Codex, Claude
 Code's declared compaction window, and cost normalization.
+
+`compat.thinkingFormat` is the one field overridden from the bundled profile.
+The bundled value `"zai"` emits `thinking` alongside `reasoning_effort`, which
+the gateway's Fireworks route rejects with HTTP 400 — the 2026-09-20 run lost
+all ten Pi trials to it before the first token. It is set to `"openai"`, the
+same single-`reasoning_effort` path Kimi K3 and DeepSeek V4.1 Flash take.
 
 Pi has no native subagent system in this benchmark setup. Pier launches the
 selected provider/model explicitly in non-interactive print mode.
@@ -387,11 +394,11 @@ alternative `thinking: {type: "enabled"}` plus `reasoning_effort` pair with HTTP
 
 The underlying rule is a property of the gateway's Fireworks route, not of one
 model: it rejects `thinking` and `reasoning_effort` together, and accepts either
-one alone. Both Fireworks-backed aliases were probed directly against the
-gateway, and both behave identically — `deepseek-v4p1-flash` and `kimi-k3` each
-return HTTP 200 for `reasoning_effort` alone and HTTP 400 for the pair. Any
-further Fireworks model added to Pi must therefore be checked for a bundled
-`thinkingFormat` that emits two controls.
+one alone. All three Fireworks-backed aliases were probed directly against the
+gateway, and all behave identically — `deepseek-v4p1-flash`, `kimi-k3`, and
+`glm-5p3-flash` each return HTTP 200 for `reasoning_effort` alone and HTTP 400
+for the pair. Any further Fireworks model added to Pi must therefore be checked
+for a bundled `thinkingFormat` that emits two controls.
 
 Kimi K3 needs no override: its bundled entry already declares
 `thinkingFormat: "openai"` with `supportsReasoningEffort: true`, and a captured
@@ -442,6 +449,143 @@ glm-5p3-flash
 
 `deepseek-v4p1-flash` is the stable DeepSeek model ID used by all three
 harnesses. The gateway maps it to the DeepSeek V4.1 Flash checkpoint.
+
+### Fireworks rate limits
+
+Fireworks rate-limits **per account and per model**, on token throughput rather
+than request count, and the effective limit is *adaptive* — it grows and shrinks
+with recent usage inside a ceiling set by model size. A cold burst is therefore
+throttled at a lower limit than the same load is once the account has warmed up,
+which is why the 2026-09-20 GLM run saw 429s clustered in its first minutes and
+none later. Fireworks sends no `Retry-After`; it documents exponential backoff.
+
+The gateway forwards Fireworks' limit headers as `Llm_provider-X-Ratelimit-*`,
+so the effective ceilings can be read at any time from a one-token request.
+Measured 2026-09-20 (tokens/min):
+
+| | `glm-5p3-flash` | `kimi-k3` | `deepseek-v4p1-flash` |
+|---|---|---|---|
+| Total prompt | 26,367,187 | 7,200,000 | 7,200,000 |
+| Uncached prompt | 2,250,000 | 1,800,000 | 1,800,000 |
+| Cache-adjusted prompt | 3,515,625 | 1,800,000 | 1,800,000 |
+| Generated | 175,781 | 72,000 | 72,000 |
+
+These are account-wide and shared with anything else using the same gateway
+credential, so they are an upper bound on what a job can assume, not a budget
+reserved for it.
+
+Read the table as a snapshot, not as fixed capacity. **All concurrency sizing
+here rests on the observed idle effective limit — 7.2M total-prompt TPM — and
+not on any documented figure.** That number is what an untouched route reports,
+and it is what the `check_rate_headroom.py` output and every config comment
+divide by.
+
+The interpretation below is secondary and weaker. An [archived 2026-05-07
+revision](https://web.archive.org/web/20260507222857/https://docs.fireworks.ai/serverless/rate-limits)
+of the Fireworks page published starting limits of 3.6M / 900k / 36k TPM; the
+current revision no longer states them, so treat the figures as historical
+rather than current documentation. Against that old anchor, `kimi-k3` and
+`deepseek-v4p1-flash` both sit at exactly twice it while `glm-5p3-flash` sits
+near 7x prompt and 5x generated, measured two hours after a 55-minute GLM job.
+That is consistent with elevated limits persisting for hours after the traffic
+that earned them, but it is inference from three readings with no pre-run
+baseline, and the decay is undocumented. Nothing operational depends on it.
+
+The practical consequence is that a model's headroom at the *start* of a job is
+near the floor, not the number measured after a previous run. DeepSeek V4.1
+Flash begins cold, so a concurrency tuned against warmed GLM is not
+automatically safe on it.
+
+This is also why the cheap per-model acceptance check in steps 6, 8, and 10 is
+worth running immediately before its primary job rather than hours earlier: it
+is three trials of real traffic that the run order already budgets for, so it
+warms the route at no extra cost. Pier has no stagger or ramp control — the only
+load knob is `n_concurrent_trials` — so a back-to-back acceptance run is the
+only free protection against the cold-burst 429s the Fireworks docs warn about
+("if your traffic ramps up too quickly, you will get 429s").
+
+### Sizing concurrency against the limit
+
+`benchmark/scripts/check_rate_headroom.py` reads the current effective limits
+and converts them into a trial count:
+
+```bash
+python3 benchmark/scripts/check_rate_headroom.py --env-file benchmark/env.local
+python3 benchmark/scripts/check_rate_headroom.py --model glm-5p3-flash --watch 60
+```
+
+It sends a nonce in every probe on purpose. A repeated payload is served from
+the gateway's cache without an upstream call, and the reply then carries no
+`Llm_provider-X-Ratelimit-*` headers at all — which looks like "this route
+reports no limits" rather than like a cache hit.
+
+The arithmetic is `max_trials = limit_TPM / per_trial_TPM`. Configs are set at
+roughly 82-85% of the resulting cap; the script prints a flatter 80% as its
+conservative default, so it will sometimes suggest one trial fewer than a
+config uses. Every such margin is against **median** per-trial demand, so it is
+a sizing convention rather than guaranteed headroom — the p90 row below is what
+a run of uniformly heavy trials would draw. Per-trial demand measured over the
+20 real trials of the 2026-09-20 GLM run:
+
+| | total prompt | uncached | generated |
+|---|---|---|---|
+| median per trial | 736,678 | 43,148 | 2,262 |
+| p90 per trial | 1,393,319 | 69,870 | 4,501 |
+
+**Total prompt binds, always, and by a wide margin** — an agentic loop re-sends
+a roughly 94%-cached context every turn, so it consumes total-prompt allowance
+an order of magnitude faster than uncached or generated allowance. Sizing
+against output tokens, the intuitive choice, would be wrong by 3-8x.
+
+Against a cold 7.2M total-prompt limit that caps a GLM job at 9.8 concurrent
+trials on median demand, or 5.2 on p90. The 2026-09-20 run at 30 demanded 307%
+of the cold limit.
+
+Only GLM and Kimi have been measured on this harness set. For a model that has
+not, scale a measured model's rate by the ratio between the two in upstream
+DeepSWE v1.1 trial data (`https://deepswe.datacurve.ai/artifacts/v1.1/trials.json`,
+31,617 rollouts with per-trial tokens and durations), **restricted to PA1's ten
+tasks** — the full 113-task set understates it, because our selection is
+heavier than average:
+
+| prompt TPM, mini-swe-agent | all 113 tasks | PA1's 10 tasks |
+|---|---|---|
+| `glm-5-3-flash` | 410,747 | 503,080 |
+| `deepseek-v4-flash` | 761,419 | 1,032,494 |
+| `kimi-k3` | 116,396 | 173,443 |
+| **DeepSeek / GLM ratio** | 1.85x | **2.05x** |
+
+Upstream runs a different harness, so its absolute rates sit roughly 1.5-2x
+below ours and are not usable directly. **The ratio is used as an estimate, not
+as a transferable constant.** The one case where both sources measure the same
+pair disagrees by about 40%: upstream puts GLM at 2.90x Kimi on our tasks where
+our own runs measured 2.07x. That agrees on direction and rough magnitude, which
+is enough to reject the earlier "DeepSeek behaves like GLM" assumption, but it
+is not precision. A separate consistency check is better behaved — upstream's
+94% cache rate for GLM matches the 94.4% measured on 2026-09-20.
+
+Size for that uncertainty rather than through it. At the central 2.05x estimate
+DeepSeek at four trials sits at 84% of the idle limit; the ratio would have to
+reach 2.44x before four trials exceeded it, and the 40% disagreement above
+spans that. Four is therefore the right setting on the central estimate but is
+not immune to the estimate being wrong; drop to three if a run is too expensive
+to risk. Replace the estimate with a direct measurement from the first
+DeepSeek job's `result.json` files and this caveat goes away.
+
+Treat the result as an upper bound rather than a target, for two reasons. The
+per-trial figures are averages over a whole trial, but demand grows with context
+length, so late-trial demand exceeds them. And the limit adapts to the *rate* of
+increase as well as the level: the 2026-08-31 Kimi run sustained 30 trials at
+about 148% of its own cold cap without a single 429, because Kimi's slower turns
+let the adaptive limit keep pace, whereas GLM's six-times-denser ramp outran it.
+A number under the cap is safe; a number over it is not automatically fatal.
+
+Sampling the `remaining-tokens-*` headers while no PA1 job was running showed
+0% of prompt and generated quota consumed on all three models across three
+samples, so other consumers of the gateway credential were not measurably
+eating the budget in that window. That was a single Sunday-afternoon
+observation and says nothing about weekday load; re-sample before assuming
+headroom.
 
 ### Claude Code aliases
 
@@ -697,7 +841,9 @@ $PIER job start -c benchmark/generated/kimi-k3.yaml \
 ```
 
 This runs Pi, Claude Code, and Codex across all 10 selected tasks: 30 trials,
-with at most 10 concurrent trials.
+all 30 concurrent. Kimi is the one model that needs no reduction: it draws
+356,251 prompt TPM per trial, the lowest of the three Fireworks models, and the
+2026-08-31 run completed at that setting without a single 429.
 
 ### 8. Run the GLM-5.3-Flash gateway acceptance check
 
@@ -721,7 +867,13 @@ $PIER job start -c benchmark/generated/glm-5.3-flash.yaml \
   --env-file benchmark/env.local
 ```
 
-The GLM job is pinned to six concurrent trials for the 64 GB laptop runner.
+The GLM job is pinned to eight concurrent trials. A GLM trial draws a median
+736,678 total-prompt TPM, measured over the 20 real trials of the 2026-09-20
+run, and the 7.2M observed idle limit therefore caps a cold start at 9.8
+trials; eight sits at 82% of that. That margin is against *median* demand, not
+a guarantee — at p90 demand the same limit allows only 5.2 trials. That earlier attempt at thirty demanded 307% of the
+cold limit, was throttled by the Fireworks route, and Codex did not survive it.
+Expect roughly **2-3 hours** for the 30 trials.
 
 ### 10. Run the DeepSeek gateway acceptance check
 
@@ -744,6 +896,27 @@ If all three trials complete, start the primary DeepSeek job.
 $PIER job start -c benchmark/generated/deepseek-v4p1-flash.yaml \
   --env-file benchmark/env.local
 ```
+
+The DeepSeek job is pinned to four concurrent trials. Do not assume it behaves
+like GLM because both are flash-class: on PA1's ten tasks, upstream DeepSWE data
+puts DeepSeek Flash at **2.05x** GLM-5.3-Flash's prompt TPM, because it takes
+roughly a third more steps per trial (median 148 vs 110) in a comparable
+wall-clock time. Scaling our measured GLM rate by that ratio gives about
+1,510,190 TPM per trial, so the 7.2M cold limit caps a cold start at 4.8 trials.
+Four sits at 84% of it; six would have been 126%.
+
+Expect roughly **2.5-4 hours** for the 30 trials. DeepSeek trials are short —
+upstream median 27 minutes on these tasks against Kimi's 93 — so the lower
+concurrency costs much less wall clock than it would for a slow model. Replaying
+our real Kimi durations scaled by that ratio through a four-worker scheduler
+gives 2.5h; scaling from our (censored, therefore optimistic) GLM durations
+instead gives about 4h.
+
+Two caveats on the 2.05x. Upstream measures `deepseek-v4-flash` and this job
+runs v4.1, and upstream's harness is `mini-swe-agent` rather than ours, so only
+the ratio transfers, not the absolute rate. Re-measure from the run's own
+`result.json` files afterwards and replace the estimate in
+`benchmark/scripts/check_rate_headroom.py`.
 
 ### 12. Run GPT-5.6 Luna
 

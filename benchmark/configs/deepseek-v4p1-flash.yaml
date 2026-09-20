@@ -1,7 +1,17 @@
 job_name: deepseek-v4p1-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 30
+# Calibrated against upstream DeepSWE v1.1 trial data rather than assumed from
+# GLM. On our ten tasks, DeepSeek Flash draws 2.05x GLM-5.3-Flash's prompt TPM
+# (1,032,494 vs 503,080 median, mini-swe-agent, n=40/39) because it takes far
+# more steps per trial. Scaling our own measured GLM rate of 736,678 TPM/trial
+# by that ratio gives roughly 1,510,190 TPM/trial, so the 7.2M cold
+# total-prompt limit caps a cold start at 4.8 trials. Four leaves ~16% headroom;
+# six would have been 126% of the limit.
+#
+# Upstream measures deepseek-v4-flash and this job runs v4.1; the ratio is
+# assumed to carry across the point release.
+n_concurrent_trials: 4
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency

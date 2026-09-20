@@ -1,7 +1,20 @@
 job_name: glm-5.3-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 30
+# Sized against the Fireworks limit rather than by feel. A GLM trial demands a
+# median 736,678 total-prompt TPM (measured over the 20 real trials of the
+# 2026-09-20 run; the agentic loop re-sends a ~94%-cached context every turn,
+# so total prompt binds long before uncached or generated do). An idle route is
+# observed to allow 7.2M total-prompt TPM, which caps a cold start at 9.8
+# trials. 8 sits at 82% of that. The margin is against *median* demand and is
+# not guaranteed: at p90 per-trial demand (1,393,319 TPM) the same limit allows
+# only 5.2 trials.
+#
+# The same arithmetic explains the 2026-09-20 failure: 30 trials demanded 307%
+# of the cold limit and were throttled; once Pi's 10 died and the limit had
+# adapted upward, the surviving 20 sat at 56% of the warmed limit and the 429s
+# stopped.
+n_concurrent_trials: 8
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
@@ -72,7 +85,13 @@ agents:
                   supportsDeveloperRole: false
                   supportsReasoningEffort: true
                   maxTokensField: max_tokens
-                  thinkingFormat: zai
+                  # Overridden from the bundled profile's "zai", which emits
+                  # `thinking` alongside `reasoning_effort`. The gateway's
+                  # Fireworks route rejects that pair with HTTP 400 before the
+                  # first turn (PA1 #53), so every Pi trial failed with zero
+                  # tokens. "openai" sends `reasoning_effort` alone, the same
+                  # path Kimi K3 and DeepSeek V4.1 Flash already take.
+                  thinkingFormat: openai
                   zaiToolStream: true
                 contextWindow: 1000000
                 maxTokens: 131072
