@@ -85,5 +85,7 @@ jobs:
         with:
           source-dir: ./_preview/
           preview-branch: gh-pages
-          wait-for-pages-deployment: true
+          # Do not make the CI result depend on GitHub Pages propagation.
+          # The action still deploys the preview and posts its sticky PR link.
+          wait-for-pages-deployment: false
           qr-code: false
