@@ -1,7 +1,13 @@
 job_name: glm-5.3-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 30
+# GLM-5.3-Flash turns around far faster than Kimi K3, so the same trial count
+# produces a much denser request stream: at 30 concurrent, Kimi averaged 12.7
+# upstream req/min and GLM averaged 71.3 (peak 141). The 2026-09-20 run at 30
+# was throttled by the gateway's Fireworks route in three windows, which Codex
+# did not survive. 12 targets Kimi-comparable gateway load rather than
+# Kimi-comparable trial count.
+n_concurrent_trials: 12
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
@@ -72,7 +78,13 @@ agents:
                   supportsDeveloperRole: false
                   supportsReasoningEffort: true
                   maxTokensField: max_tokens
-                  thinkingFormat: zai
+                  # Overridden from the bundled profile's "zai", which emits
+                  # `thinking` alongside `reasoning_effort`. The gateway's
+                  # Fireworks route rejects that pair with HTTP 400 before the
+                  # first turn (PA1 #53), so every Pi trial failed with zero
+                  # tokens. "openai" sends `reasoning_effort` alone, the same
+                  # path Kimi K3 and DeepSeek V4.1 Flash already take.
+                  thinkingFormat: openai
                   zaiToolStream: true
                 contextWindow: 1000000
                 maxTokens: 131072

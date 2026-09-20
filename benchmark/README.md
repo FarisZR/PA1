@@ -361,11 +361,17 @@ openai/gpt-5.6-luna
 
 The gateway exposes GLM-5.3-Flash as `glm-5p3-flash`. Pi therefore registers that
 transport alias as a custom `zai` model while copying Pi 0.84.4's built-in
-`zai/glm-5.3-flash` metadata exactly: text-and-image input, `low`/`high`/`max`
+`zai/glm-5.3-flash` metadata: text-and-image input, `low`/`high`/`max`
 reasoning, a 1,000,000-token context window, a 131,072-token output ceiling,
-Z.AI thinking/tool-stream compatibility, and the built-in cost metadata. The
+Z.AI tool-stream compatibility, and the built-in cost metadata. The
 Fireworks route advertises 1,048,576 context, which is used for Codex, Claude
 Code's declared compaction window, and cost normalization.
+
+`compat.thinkingFormat` is the one field overridden from the bundled profile.
+The bundled value `"zai"` emits `thinking` alongside `reasoning_effort`, which
+the gateway's Fireworks route rejects with HTTP 400 — the 2026-09-20 run lost
+all ten Pi trials to it before the first token. It is set to `"openai"`, the
+same single-`reasoning_effort` path Kimi K3 and DeepSeek V4.1 Flash take.
 
 Pi has no native subagent system in this benchmark setup. Pier launches the
 selected provider/model explicitly in non-interactive print mode.
@@ -387,11 +393,11 @@ alternative `thinking: {type: "enabled"}` plus `reasoning_effort` pair with HTTP
 
 The underlying rule is a property of the gateway's Fireworks route, not of one
 model: it rejects `thinking` and `reasoning_effort` together, and accepts either
-one alone. Both Fireworks-backed aliases were probed directly against the
-gateway, and both behave identically — `deepseek-v4p1-flash` and `kimi-k3` each
-return HTTP 200 for `reasoning_effort` alone and HTTP 400 for the pair. Any
-further Fireworks model added to Pi must therefore be checked for a bundled
-`thinkingFormat` that emits two controls.
+one alone. All three Fireworks-backed aliases were probed directly against the
+gateway, and all behave identically — `deepseek-v4p1-flash`, `kimi-k3`, and
+`glm-5p3-flash` each return HTTP 200 for `reasoning_effort` alone and HTTP 400
+for the pair. Any further Fireworks model added to Pi must therefore be checked
+for a bundled `thinkingFormat` that emits two controls.
 
 Kimi K3 needs no override: its bundled entry already declares
 `thinkingFormat: "openai"` with `supportsReasoningEffort: true`, and a captured
@@ -442,6 +448,31 @@ glm-5p3-flash
 
 `deepseek-v4p1-flash` is the stable DeepSeek model ID used by all three
 harnesses. The gateway maps it to the DeepSeek V4.1 Flash checkpoint.
+
+### Fireworks rate limits
+
+Fireworks rate-limits **per account and per model**, on token throughput rather
+than request count, and the effective limit is *adaptive* — it grows and shrinks
+with recent usage inside a ceiling set by model size. A cold burst is therefore
+throttled at a lower limit than the same load is once the account has warmed up,
+which is why the 2026-09-20 GLM run saw 429s clustered in its first minutes and
+none later. Fireworks sends no `Retry-After`; it documents exponential backoff.
+
+The gateway forwards Fireworks' limit headers as `Llm_provider-X-Ratelimit-*`,
+so the effective ceilings can be read at any time from a one-token request.
+Measured 2026-09-20 (tokens/min):
+
+| | `glm-5p3-flash` | `kimi-k3` | `deepseek-v4p1-flash` |
+|---|---|---|---|
+| Total prompt | 26,367,187 | 7,200,000 | 7,200,000 |
+| Uncached prompt | 2,250,000 | 1,800,000 | 1,800,000 |
+| Cache-adjusted prompt | 3,515,625 | 1,800,000 | 1,800,000 |
+| Generated | 175,781 | 72,000 | 72,000 |
+
+These are account-wide and shared with anything else using the same gateway
+credential, so they are an upper bound on what a job can assume, not a budget
+reserved for it. Note that DeepSeek V4.1 Flash has under half of GLM's generated
+ceiling, so a job tuned for GLM is not automatically safe on DeepSeek.
 
 ### Claude Code aliases
 
@@ -721,7 +752,11 @@ $PIER job start -c benchmark/generated/glm-5.3-flash.yaml \
   --env-file benchmark/env.local
 ```
 
-The GLM job is pinned to six concurrent trials for the 64 GB laptop runner.
+The GLM job is pinned to twelve concurrent trials. GLM-5.3-Flash turns around
+much faster than Kimi K3, so it produces roughly six times the upstream request
+rate at the same trial count; twelve targets Kimi-comparable gateway load rather
+than a Kimi-comparable trial count. A 2026-09-20 attempt at thirty was throttled
+by the Fireworks route and Codex did not survive it.
 
 ### 10. Run the DeepSeek gateway acceptance check
 
