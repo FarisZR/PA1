@@ -1,0 +1,89 @@
+name: Paper PDF preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: paper-pdf-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        if: github.event.action != 'closed'
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install paper dependencies
+        if: github.event.action != 'closed'
+        run: python -m pip install -r requirements.txt
+
+      - name: Set up Quarto
+        if: github.event.action != 'closed'
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: release
+
+      - name: Render paper
+        if: github.event.action != 'closed'
+        uses: quarto-dev/quarto-actions/render@v2
+        with:
+          path: pa1.qmd
+
+      - name: Verify rendered PDF
+        if: github.event.action != 'closed'
+        run: test -s _output/pa1.pdf
+
+      - name: Upload rendered PDF
+        if: github.event.action != 'closed'
+        uses: actions/upload-artifact@v7
+        with:
+          name: pa1-pdf-pr-${{ github.event.pull_request.number }}
+          path: _output/pa1.pdf
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Prepare browser preview
+        if: github.event.action != 'closed'
+        run: |
+          mkdir -p _preview
+          cp _output/pa1.pdf _preview/pa1.pdf
+          cat > _preview/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <meta http-equiv="refresh" content="0; url=pa1.pdf">
+              <title>PA1 PDF preview</title>
+            </head>
+            <body>
+              <p><a href="pa1.pdf">Open the rendered PA1 PDF.</a></p>
+            </body>
+          </html>
+          EOF
+
+      - name: Deploy PR preview
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./_preview/
+          preview-branch: gh-pages
+          wait-for-pages-deployment: true
+          qr-code: false
