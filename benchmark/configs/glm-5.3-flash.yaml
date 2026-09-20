@@ -13,7 +13,7 @@ retry:
     - RewardFileNotFoundError
     - RewardFileEmptyError
     - VerifierOutputParseError
-    - TrialCancelledError
+    - CancelledError
 
 environment:
   type: docker
