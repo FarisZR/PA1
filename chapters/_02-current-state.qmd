@@ -139,11 +139,11 @@ Among these respondents, alternative providers therefore mostly complement rathe
 
 ## Model Cost Tiers
 
-Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. MiniMax M3 has no comparable DeepSWE result and is classified as low cost from its official API pricing [@minimaxM3Pricing2026]. Claude Haiku 4.5 has no comparable DeepSWE result and remains unclassified. It occurs once in the survey, as a secondary Claude Code configuration, so its exclusion removes one configuration from the cost-tier analyses. Unnamed models are also excluded.
+Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. MiniMax M3 has no comparable DeepSWE result and is classified as low cost from its official API pricing [@minimaxM3Pricing2026]. Claude Haiku 4.5 also lacks a comparable DeepSWE result. It is manually assigned to the medium-cost tier based on its official API price of USD 1 per million input tokens and USD 5 per million output tokens [@anthropicHaiku45Pricing2025]. This is a pricing-based fallback rather than a DeepSWE-derived classification. Unnamed models remain excluded.
 
-The high-cost tier contains Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Fable 5, Claude Opus 4.8, and GPT-5.6 Sol. The medium-cost tier contains GPT-5.6 Terra, Gemini 3.1 Pro, Gemini 3.6 Flash, and Kimi K3. The low-cost tier contains GPT-5.6 Luna, DeepSeek V4 Flash 0731, and MiniMax M3.
+The high-cost tier contains Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Fable 5, Claude Opus 4.8, and GPT-5.6 Sol. The medium-cost tier contains GPT-5.6 Terra, Gemini 3.1 Pro, Gemini 3.6 Flash, Kimi K3, and Claude Haiku 4.5. The low-cost tier contains GPT-5.6 Luna, DeepSeek V4 Flash 0731, and MiniMax M3.
 
-Model cost differs by harness. In @fig-survey-harness-cost-tier, 55 of 56 classifiable Claude Code configurations (98.2%) use high-cost models. OpenCode spans all three tiers: 40.0% high, 33.3% medium, and 26.7% low cost. Three of the four classifiable Pi configurations are low cost. Small samples for less common harnesses limit these comparisons.
+Model cost differs by harness. In @fig-survey-harness-cost-tier, 55 of 57 classifiable Claude Code configurations (96.5%) use high-cost models and 2 (3.5%) use medium-cost models. OpenCode spans all three tiers: 40.0% high, 33.3% medium, and 26.7% low cost. Three of the four classifiable Pi configurations are low cost. Small samples for less common harnesses limit these comparisons.
 
 ```{python}
 #| label: fig-survey-harness-cost-tier
@@ -166,9 +166,9 @@ plot_stacked_percent(
 )
 ```
 
-*Source: own analysis of the internal survey. Tier boundaries use DeepSWE v1.1 average cost per task [@deepsweLeaderboard2026], with the documented MiniMax M3 fallback [@minimaxM3Pricing2026].*
+*Source: own analysis of the internal survey. Tier boundaries use DeepSWE v1.1 average cost per task [@deepsweLeaderboard2026], with pricing-based fallbacks for MiniMax M3 [@minimaxM3Pricing2026] and Claude Haiku 4.5 [@anthropicHaiku45Pricing2025].*
 
-Cost tier also differs between primary and secondary configurations. High-cost models account for 81.1% of classifiable primary configurations and 56.3% of secondary configurations. Medium-cost models rise from 7.5% of primary to 33.3% of secondary configurations, while low-cost models remain near 11% in both groups (@fig-survey-role-cost-tier).
+Cost tier also differs between primary and secondary configurations. High-cost models account for 81.1% of classifiable primary configurations and 55.1% of secondary configurations. Medium-cost models rise from 7.5% of primary to 34.7% of secondary configurations, while low-cost models account for 11.3% and 10.2%, respectively (@fig-survey-role-cost-tier).
 
 ```{python}
 #| label: fig-survey-role-cost-tier
@@ -187,9 +187,9 @@ plot_stacked_percent(
 )
 ```
 
-*Source: own analysis of the internal survey. Primary and secondary bars contain 53 and 48 classifiable configurations, respectively.*
+*Source: own analysis of the internal survey. Primary and secondary bars contain 53 and 49 classifiable configurations, respectively.*
 
-The respondent-level data show the same association. Of the 16 respondents using at least one medium-cost model, 13 (81.3%) used multiple named providers and 13 (81.3%) used multiple harnesses. Among the 41 respondents without a medium-cost model, 11 (26.8%) used multiple named providers. This exploratory result suggests that medium-cost models are more common in diversified workflows.
+The respondent-level data show the same association. Of the 17 respondents using at least one medium-cost model, 13 (76.5%) used multiple named providers and 13 (76.5%) used multiple harnesses. Among the 40 respondents without a medium-cost model, 11 (27.5%) used multiple named providers. This exploratory result suggests that medium-cost models are more common in diversified workflows.
 
 ## Reported Cost
 
