@@ -155,8 +155,9 @@ the reviewed OpenCode V2 live-evidence and timeout-diagnostic fixes on
 | Codex compatibility bridge | CLIProxyAPI `v7.2.146` + [upstream #5659](https://github.com/router-for-me/CLIProxyAPI/issues/5659) backport; GHCR digest `sha256:26de0755cf37765291e149590e13ee354010c8caa7b25ec3981827f2d606d6dc` |
 
 Pier PR [FZR-forks/pier#12](https://github.com/FZR-forks/pier/pull/12) added the
-independent `opencode-v2` adapter, and PR [#14](https://github.com/FZR-forks/pier/pull/14)
-made its execution evidence durable during failures and timeouts. The PA1-side OpenCode configuration,
+independent `opencode-v2` adapter, and PR
+[#14](https://github.com/FZR-forks/pier/pull/14) made its execution evidence
+durable during failures and timeouts. The PA1-side OpenCode configuration,
 verification evidence, frozen binary checksums, model isolation rules, output
 caps, and transport choices are documented in
 `benchmark/references/opencode-v2-verification.md`,
