@@ -1,9 +1,7 @@
 job_name: glm-5.3-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
-# This job is intended for the 64 GB laptop runner. Six concurrent DeepSWE
-# sandboxes leave headroom for the host while still keeping the remote model busy.
-n_concurrent_trials: 6
+n_concurrent_trials: 30
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
