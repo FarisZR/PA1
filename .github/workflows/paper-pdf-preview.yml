@@ -2,15 +2,33 @@ name: Paper PDF preview
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "pa1.qmd"
+      - "chapters/**"
+      - "_quarto.yml"
+      - "references.bib"
+      - "ieee.csl"
+      - "requirements.txt"
+      - "figures/**"
+      - "scripts/figures.py"
+      - "scripts/survey_analysis.py"
+      - "data/**/*.csv"
+      - ".github/workflows/paper-pdf-preview.yml"
 
 permissions:
-  contents: write
+  contents: read
+  deployments: write
   pull-requests: write
 
 concurrency:
   group: paper-pdf-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_PAGES_PROJECT: fariszr-pa1
 
 jobs:
   preview:
@@ -23,7 +41,6 @@ jobs:
           persist-credentials: false
 
       - name: Set up Python
-        if: github.event.action != 'closed'
         uses: actions/setup-python@v7
         with:
           python-version: "3.13"
@@ -31,27 +48,22 @@ jobs:
           cache-dependency-path: requirements.txt
 
       - name: Install paper dependencies
-        if: github.event.action != 'closed'
         run: python -m pip install -r requirements.txt
 
       - name: Set up Quarto
-        if: github.event.action != 'closed'
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: release
 
       - name: Render paper
-        if: github.event.action != 'closed'
         uses: quarto-dev/quarto-actions/render@v2
         with:
           path: pa1.qmd
 
       - name: Verify rendered PDF
-        if: github.event.action != 'closed'
         run: test -s _output/pa1.pdf
 
       - name: Upload rendered PDF
-        if: github.event.action != 'closed'
         uses: actions/upload-artifact@v7
         with:
           name: pa1-pdf-pr-${{ github.event.pull_request.number }}
@@ -60,7 +72,6 @@ jobs:
           retention-days: 30
 
       - name: Prepare browser preview
-        if: github.event.action != 'closed'
         run: |
           mkdir -p _preview
           cp _output/pa1.pdf _preview/pa1.pdf
@@ -79,13 +90,64 @@ jobs:
           </html>
           EOF
 
-      - name: Deploy PR preview
-        if: github.event.pull_request.head.repo.full_name == github.repository
-        uses: rossjrw/pr-preview-action@v1
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        if: >-
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          env.CLOUDFLARE_API_TOKEN != '' &&
+          env.CLOUDFLARE_ACCOUNT_ID != ''
+        uses: cloudflare/wrangler-action@v4
         with:
-          source-dir: ./_preview/
-          preview-branch: gh-pages
-          # Do not make the CI result depend on GitHub Pages propagation.
-          # The action still deploys the preview and posts its sticky PR link.
-          wait-for-pages-deployment: false
-          qr-code: false
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4"
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          preCommands: >-
+            wrangler pages project create ${{ env.CLOUDFLARE_PAGES_PROJECT }}
+            --production-branch=main || true
+          command: >-
+            pages deploy _preview
+            --project-name=${{ env.CLOUDFLARE_PAGES_PROJECT }}
+            --branch=pr-${{ github.event.pull_request.number }}
+            --commit-hash=${{ github.event.pull_request.head.sha }}
+
+      - name: Comment preview URL
+        if: steps.deploy.outcome == 'success'
+        uses: actions/github-script@v9
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url || steps.deploy.outputs.deployment-url }}
+        with:
+          script: |
+            const marker = '<!-- cloudflare-pages-pdf-preview -->';
+            const body = `${marker}
+            **Rendered PDF preview:** ${process.env.PREVIEW_URL}
+
+            This preview is generated from the current pull request by Quarto and deployed to Cloudflare Pages.`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find(comment =>
+              comment.user?.type === 'Bot' && comment.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
