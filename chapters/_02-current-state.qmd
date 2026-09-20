@@ -148,7 +148,7 @@ Model cost differs by harness. In @fig-survey-harness-cost-tier, 55 of 57 classi
 ```{python}
 #| label: fig-survey-harness-cost-tier
 #| fig-cap: "Model cost-tier distribution by harness for classifiable weekly configurations."
-#| fig-alt: "One-hundred-percent stacked horizontal bars by harness. Claude Code is almost entirely high-cost, OpenCode spans all three cost tiers, and Pi is mostly low-cost. Each harness label includes its number of classifiable configurations."
+#| fig-alt: "One-hundred-percent stacked horizontal bars by harness. Claude Code is 96.5 percent high cost and 3.5 percent medium cost after including Claude Haiku 4.5 in the medium tier. OpenCode spans all three tiers, and Pi is mostly low cost. Each harness label includes its number of classifiable configurations."
 #| fig-width: 7.2
 #| fig-format: svg
 #| fig-height: 4.4
@@ -163,6 +163,7 @@ plot_stacked_percent(
     category_col="harness_label",
     value_cols=["High cost", "Medium cost", "Low cost"],
     horizontal=True,
+    min_label_percent=3.0,
 )
 ```
 
@@ -173,7 +174,7 @@ Cost tier also differs between primary and secondary configurations. High-cost m
 ```{python}
 #| label: fig-survey-role-cost-tier
 #| fig-cap: "Model cost-tier distribution for primary and secondary survey configurations."
-#| fig-alt: "One-hundred-percent stacked bars comparing primary and secondary configurations. High-cost models dominate both, while medium-cost models occupy a substantially larger share of secondary configurations."
+#| fig-alt: "One-hundred-percent stacked bars comparing primary and secondary configurations. Primary configurations are 81.1 percent high, 7.5 percent medium, and 11.3 percent low cost. Secondary configurations are 55.1 percent high, 34.7 percent medium, and 10.2 percent low cost after including Claude Haiku 4.5 in the medium tier."
 #| fig-width: 6.2
 #| fig-format: svg
 #| fig-height: 4.6
@@ -184,6 +185,7 @@ plot_stacked_percent(
     category_col="role_label",
     value_cols=["High cost", "Medium cost", "Low cost"],
     horizontal=False,
+    min_label_percent=3.0,
 )
 ```
 
