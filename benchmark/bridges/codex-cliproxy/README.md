@@ -201,9 +201,11 @@ For `deepseek-v4p1-flash`, `kimi-k3`, and `glm-5p3-flash` this first confirms th
 sends the identical request through the bridge, and finally reads the bridge's
 own request log to prove the real upstream body is clean.
 
-`request-log` records every prompt verbatim, so leave
-`CODEX_CLIPROXY_REQUEST_LOG=false` for benchmark jobs and enable it only for
-acceptance runs. Logs land in `benchmark/generated/cliproxy-logs/`.
+`request-log` records every prompt and authorization header verbatim. The current
+benchmark debugging run intentionally keeps `CODEX_CLIPROXY_REQUEST_LOG=true` so
+transport failures can be investigated after the job. Logs land in the owner-only
+`benchmark/generated/cliproxy-logs/` directory; do not share them outside the
+runner. Set the variable to `false` only when intentionally disabling capture.
 
 ### Generated config
 
