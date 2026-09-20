@@ -1,7 +1,12 @@
 job_name: deepseek-v4p1-flash
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 30
+# Half of GLM's twelve. DeepSeek V4.1 Flash is flash-class, so it produces a
+# GLM-like request rate per trial, but its Fireworks route carries half of
+# GLM's generated-token ceiling (72,000 vs 175,781 TPM) and currently sits at
+# the un-warmed baseline. A cold burst against a baseline adaptive limit is the
+# condition that threw HTTP 429 at the 2026-09-20 GLM run.
+n_concurrent_trials: 6
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency

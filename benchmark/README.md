@@ -471,8 +471,23 @@ Measured 2026-09-20 (tokens/min):
 
 These are account-wide and shared with anything else using the same gateway
 credential, so they are an upper bound on what a job can assume, not a budget
-reserved for it. Note that DeepSeek V4.1 Flash has under half of GLM's generated
-ceiling, so a job tuned for GLM is not automatically safe on DeepSeek.
+reserved for it.
+
+Read the table as a snapshot, not as fixed capacity. `kimi-k3` and
+`deepseek-v4p1-flash` report identical round numbers, which is what an
+un-warmed adaptive limit looks like; `glm-5p3-flash` reports larger, non-round
+values two hours after a 55-minute GLM job, which is what a warmed one looks
+like. The practical consequence is that a model's headroom at the *start* of a
+job is the baseline, not the number measured after a previous run — so DeepSeek
+V4.1 Flash begins with under half of GLM's generated ceiling and a job tuned for
+warmed GLM is not automatically safe on cold DeepSeek.
+
+Sampling the `remaining-tokens-*` headers while no PA1 job was running showed
+0% of prompt and generated quota consumed on all three models across three
+samples, so other consumers of the gateway credential were not measurably
+eating the budget in that window. That was a single Sunday-afternoon
+observation and says nothing about weekday load; re-sample before assuming
+headroom.
 
 ### Claude Code aliases
 
@@ -779,6 +794,17 @@ If all three trials complete, start the primary DeepSeek job.
 $PIER job start -c benchmark/generated/deepseek-v4p1-flash.yaml \
   --env-file benchmark/env.local
 ```
+
+The DeepSeek job is pinned to six concurrent trials — half of GLM's twelve.
+DeepSeek V4.1 Flash is flash-class, so it should produce a GLM-like request
+rate per trial, but its route carries half of GLM's generated-token ceiling and
+currently sits at the un-warmed baseline, so it has materially less headroom for
+a cold burst. Expect roughly **4–6 hours** for the 30 trials: replaying the
+2026-08-31 Kimi trial durations through a six-worker scheduler gives 5.8h, and
+the (interruption-censored, therefore optimistic) GLM durations give 3.8h. The
+same replay reproduces the Kimi run's actual 3.0h at thirty concurrent, so the
+model is calibrated; the uncertainty is in DeepSeek's own per-trial duration,
+which has never been measured over a full job.
 
 ### 12. Run GPT-5.6 Luna
 
