@@ -7,6 +7,8 @@ An internal survey conducted between August and September 2026 received 57 respo
 
 Respondents reported one first-choice configuration and up to three additional configurations used at least weekly. The two Claude Code answer labels were merged. Adoption rates count each respondent once per harness or model; configuration analyses count each distinct respondent--harness--model pair once. "Other" and automatically selected models are excluded where a named model or provider is required.
 
+The model list was fixed when the survey was published and was not updated for later releases. Models released afterwards, including DeepSeek V4.1 Flash and GLM-5.3-Flash, were therefore not available as named choices. Their adoption may consequently be understated in the survey.
+
 ```{python}
 #| include: false
 
@@ -137,7 +139,7 @@ Among these respondents, alternative providers therefore mostly complement rathe
 
 ## Model Cost Tiers
 
-Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. MiniMax M3 has no comparable DeepSWE result and is classified as low cost from its official API pricing [@minimaxM3Pricing2026]. Claude Haiku 4.5 and unnamed models remain unclassified and are excluded from the tier figures.
+Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. MiniMax M3 has no comparable DeepSWE result and is classified as low cost from its official API pricing [@minimaxM3Pricing2026]. Claude Haiku 4.5 has no comparable DeepSWE result and remains unclassified. It occurs once in the survey, as a secondary Claude Code configuration, so its exclusion removes one configuration from the cost-tier analyses. Unnamed models are also excluded.
 
 The high-cost tier contains Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Fable 5, Claude Opus 4.8, and GPT-5.6 Sol. The medium-cost tier contains GPT-5.6 Terra, Gemini 3.1 Pro, Gemini 3.6 Flash, and Kimi K3. The low-cost tier contains GPT-5.6 Luna, DeepSeek V4 Flash 0731, and MiniMax M3.
 
