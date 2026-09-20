@@ -118,7 +118,8 @@ For a model evaluated on all four harnesses, the complete wave is therefore
 **40 planned trials**: 30 from the current Pi / Claude Code / Codex job plus 10
 from the matching OpenCode V2 profile. Each profile uses 1 attempt per task,
 1 automatic retry for transport/gateway faults only, and
-`n_concurrent_trials: 30` for the primary profiles.
+a per-model `n_concurrent_trials` sized against the model's Fireworks
+token-rate headroom (see "Sizing concurrency against the limit").
 
 Successful trials run once. A trial that fails with a transport/gateway fault is
 discarded and run again once; if the retry also fails, the second failure is final.
@@ -505,6 +506,11 @@ python3 benchmark/scripts/check_rate_headroom.py --env-file benchmark/env.local
 python3 benchmark/scripts/check_rate_headroom.py --model glm-5p3-flash --watch 60
 ```
 
+It sends a nonce in every probe on purpose. A repeated payload is served from
+the gateway's cache without an upstream call, and the reply then carries no
+`Llm_provider-X-Ratelimit-*` headers at all — which looks like "this route
+reports no limits" rather than like a cache hit.
+
 The arithmetic is `max_trials = limit_TPM / per_trial_TPM`. Per-trial demand
 measured over the 20 real trials of the 2026-09-20 GLM run:
 
@@ -521,6 +527,26 @@ against output tokens, the intuitive choice, would be wrong by 3-8x.
 Against a cold 7.2M total-prompt limit that caps a GLM job at 9.8 concurrent
 trials on median demand, or 5.2 on p90. The 2026-09-20 run at 30 demanded 307%
 of the cold limit.
+
+Only GLM and Kimi have been measured on this harness set. For a model that has
+not, scale a measured model's rate by the ratio between the two in upstream
+DeepSWE v1.1 trial data (`https://deepswe.datacurve.ai/artifacts/v1.1/trials.json`,
+31,617 rollouts with per-trial tokens and durations), **restricted to PA1's ten
+tasks** — the full 113-task set understates it, because our selection is
+heavier than average:
+
+| prompt TPM, mini-swe-agent | all 113 tasks | PA1's 10 tasks |
+|---|---|---|
+| `glm-5-3-flash` | 410,747 | 503,080 |
+| `deepseek-v4-flash` | 761,419 | 1,032,494 |
+| `kimi-k3` | 116,396 | 173,443 |
+| **DeepSeek / GLM ratio** | 1.85x | **2.05x** |
+
+Upstream runs a different harness, so its absolute rates are roughly 1.5-2x
+below ours and are not directly usable; the model-to-model *ratio* is what
+transfers. Two independent checks that it does: upstream puts GLM at 2.90x Kimi
+on our tasks and our own runs measured 2.07x, and upstream's 94% cache rate for
+GLM matches the 94.4% measured in the 2026-09-20 run exactly.
 
 Treat the result as an upper bound rather than a target, for two reasons. The
 per-trial figures are averages over a whole trial, but demand grows with context
@@ -791,7 +817,9 @@ $PIER job start -c benchmark/generated/kimi-k3.yaml \
 ```
 
 This runs Pi, Claude Code, and Codex across all 10 selected tasks: 30 trials,
-with at most 10 concurrent trials.
+all 30 concurrent. Kimi is the one model that needs no reduction: it draws
+356,251 prompt TPM per trial, the lowest of the three Fireworks models, and the
+2026-08-31 run completed at that setting without a single 429.
 
 ### 8. Run the GLM-5.3-Flash gateway acceptance check
 
@@ -815,11 +843,12 @@ $PIER job start -c benchmark/generated/glm-5.3-flash.yaml \
   --env-file benchmark/env.local
 ```
 
-The GLM job is pinned to twelve concurrent trials. GLM-5.3-Flash turns around
-much faster than Kimi K3, so it produces roughly six times the upstream request
-rate at the same trial count; twelve targets Kimi-comparable gateway load rather
-than a Kimi-comparable trial count. A 2026-09-20 attempt at thirty was throttled
-by the Fireworks route and Codex did not survive it.
+The GLM job is pinned to eight concurrent trials. A GLM trial draws a median
+736,678 total-prompt TPM, measured over the 20 real trials of the 2026-09-20
+run, and the 7.2M cold limit therefore caps a cold start at 9.8 trials; eight
+leaves about 20% headroom. That earlier attempt at thirty demanded 307% of the
+cold limit, was throttled by the Fireworks route, and Codex did not survive it.
+Expect roughly **2-3 hours** for the 30 trials.
 
 ### 10. Run the DeepSeek gateway acceptance check
 
@@ -843,16 +872,26 @@ $PIER job start -c benchmark/generated/deepseek-v4p1-flash.yaml \
   --env-file benchmark/env.local
 ```
 
-The DeepSeek job is pinned to six concurrent trials — half of GLM's twelve.
-DeepSeek V4.1 Flash is flash-class, so it should produce a GLM-like request
-rate per trial, but its route carries half of GLM's generated-token ceiling and
-currently sits at the un-warmed baseline, so it has materially less headroom for
-a cold burst. Expect roughly **4–6 hours** for the 30 trials: replaying the
-2026-08-31 Kimi trial durations through a six-worker scheduler gives 5.8h, and
-the (interruption-censored, therefore optimistic) GLM durations give 3.8h. The
-same replay reproduces the Kimi run's actual 3.0h at thirty concurrent, so the
-model is calibrated; the uncertainty is in DeepSeek's own per-trial duration,
-which has never been measured over a full job.
+The DeepSeek job is pinned to four concurrent trials. Do not assume it behaves
+like GLM because both are flash-class: on PA1's ten tasks, upstream DeepSWE data
+puts DeepSeek Flash at **2.05x** GLM-5.3-Flash's prompt TPM, because it takes
+roughly a third more steps per trial (median 148 vs 110) in a comparable
+wall-clock time. Scaling our measured GLM rate by that ratio gives about
+1,510,190 TPM per trial, so the 7.2M cold limit caps a cold start at 4.8 trials.
+Four sits at 84% of it; six would have been 126%.
+
+Expect roughly **2.5-4 hours** for the 30 trials. DeepSeek trials are short —
+upstream median 27 minutes on these tasks against Kimi's 93 — so the lower
+concurrency costs much less wall clock than it would for a slow model. Replaying
+our real Kimi durations scaled by that ratio through a four-worker scheduler
+gives 2.5h; scaling from our (censored, therefore optimistic) GLM durations
+instead gives about 4h.
+
+Two caveats on the 2.05x. Upstream measures `deepseek-v4-flash` and this job
+runs v4.1, and upstream's harness is `mini-swe-agent` rather than ours, so only
+the ratio transfers, not the absolute rate. Re-measure from the run's own
+`result.json` files afterwards and replace the estimate in
+`benchmark/scripts/check_rate_headroom.py`.
 
 ### 12. Run GPT-5.6 Luna
 

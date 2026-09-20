@@ -19,14 +19,17 @@ import json
 import os
 import time
 import urllib.request
+import uuid
 from pathlib import Path
 
-# Median per-trial demand, tokens/min, measured over the 20 real trials of the
-# 2026-09-20 glm-5.3-flash run. DeepSeek has no full-job measurement yet and is
-# assumed GLM-like because it is also flash-class; replace once measured.
+# Median per-trial demand, tokens/min. GLM and Kimi are measured directly from
+# PA1 runs on this harness set. DeepSeek has no full-job measurement here, so it
+# is GLM's measured rate scaled by 2.05x, the DeepSeek/GLM prompt-TPM ratio in
+# upstream DeepSWE v1.1 data restricted to PA1's ten tasks. Replace with a
+# direct measurement after the first full DeepSeek job.
 PER_TRIAL_TPM = {
     "glm-5p3-flash": {"prompt": 736_678, "uncached": 43_148, "generated": 2_262},
-    "deepseek-v4p1-flash": {"prompt": 736_678, "uncached": 43_148, "generated": 2_262},
+    "deepseek-v4p1-flash": {"prompt": 1_510_190, "uncached": 88_453, "generated": 4_637},
     "kimi-k3": {"prompt": 356_251, "uncached": 6_922, "generated": 2_191},
 }
 HEADERS = {
@@ -51,7 +54,13 @@ def load_env(path: Path) -> None:
 
 
 def probe(base: str, key: str, model: str) -> dict[str, str]:
-    body = {"model": model, "messages": [{"role": "user", "content": "hi"}], "max_tokens": 1}
+    # The nonce matters. A repeated payload is served from the gateway's cache
+    # without an upstream call, and the response then carries no
+    # Llm_provider-X-Ratelimit-* headers at all, which reads as "no limits
+    # reported" rather than as a cache hit.
+    nonce = uuid.uuid4()
+    body = {"model": model, "messages": [{"role": "user", "content": f"ping {nonce}"}],
+            "max_tokens": 1}
     request = urllib.request.Request(
         base.rstrip("/") + "/chat/completions",
         data=json.dumps(body).encode(),
