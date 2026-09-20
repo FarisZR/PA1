@@ -206,6 +206,7 @@ def plot_stacked_percent(
     series_labels: Sequence[str] | None = None,
     horizontal: bool = False,
     annotate: bool = True,
+    min_label_percent: float = 7.5,
 ):
     """Plot a 100 percent stacked bar chart from percentage-point values."""
     frame = data[[category_col, *value_cols]].copy()
@@ -226,13 +227,14 @@ def plot_stacked_percent(
 
         if annotate:
             for bar, value, start in zip(bars, values, cumulative, strict=True):
-                if value < 7.5:
+                if value < min_label_percent:
                     continue
+                label_text = f"{value:.1f}%" if value < 10 else f"{value:.0f}%"
                 if horizontal:
                     ax.text(
                         start + value / 2,
                         bar.get_y() + bar.get_height() / 2,
-                        f"{value:.0f}%",
+                        label_text,
                         ha="center",
                         va="center",
                         fontsize=8,
@@ -241,7 +243,7 @@ def plot_stacked_percent(
                     ax.text(
                         bar.get_x() + bar.get_width() / 2,
                         start + value / 2,
-                        f"{value:.0f}%",
+                        label_text,
                         ha="center",
                         va="center",
                         fontsize=8,
