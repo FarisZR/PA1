@@ -1,10 +1,9 @@
 # Current State in the Company {#sec-current-state}
 
-> draft
 
 ## Internal Survey
 
-To assess the current use of AI coding agents, an internal survey was conducted between August and September 2026. The survey received 57 responses. Participation was voluntary and the sample was not selected to be representative of the company as a whole. The results are therefore used descriptively to identify usage patterns among the respondents rather than to estimate company-wide adoption rates.
+To assess the current use of AI coding agents, an internal survey was conducted between August and September 2026 and received 57 responses. The questionnaire was distributed through four Google Chat rooms: two team rooms and two rooms focused on AI users and AI products, supplemented by direct outreach to several employees. This distribution primarily reached employees who already use AI extensively and are actively interested in its adoption. The sample therefore overrepresents comparatively advanced AI users and is not representative of the company as a whole. The results are used descriptively to characterize usage patterns within this AI-active group rather than to estimate company-wide adoption rates.
 
 The questionnaire allowed one first-choice configuration and up to three additional configurations used at least weekly. The two Claude Code answer labels were merged into one category. Adoption figures count each respondent at most once per harness or model, while configuration-level analyses count each distinct respondent--harness--model combination once. Answers such as "Other" and "I don't know / automatically selected" are excluded where a named model or provider is required.
 
