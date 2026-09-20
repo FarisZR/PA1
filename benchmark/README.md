@@ -137,14 +137,15 @@ wasted spend deleted from the cost metric. Run only one model job at a time.
 
 ## Frozen versions
 
-### Current benchmark setup (2026-09-18)
+### Current benchmark setup (2026-09-21)
 
-Use these revisions for new runs. The Pier pin is the merge commit that brought
-the reviewed OpenCode V2 adapter onto `FZR-forks/pier` main.
+Use these revisions for new runs. The Pier pin is the merge commit that includes
+the reviewed OpenCode V2 live-evidence and timeout-diagnostic fixes on
+`FZR-forks/pier` main.
 
 | Component | Frozen revision/version |
 | --- | --- |
-| FZR Pier fork | [`b0acdae033425500e968ac917acffeafd35f9cdb`](https://github.com/FZR-forks/pier/commit/b0acdae033425500e968ac917acffeafd35f9cdb) |
+| FZR Pier fork | [`7636cbee99ed947c64e0b350be031ec31e47dfee`](https://github.com/FZR-forks/pier/commit/7636cbee99ed947c64e0b350be031ec31e47dfee) |
 | DeepSWE | [`0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`](https://github.com/datacurve-ai/deep-swe/commit/0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea) |
 | Codex CLI | `0.151.0` |
 | Claude Code | `2.1.251` |
@@ -154,7 +155,8 @@ the reviewed OpenCode V2 adapter onto `FZR-forks/pier` main.
 | Codex compatibility bridge | CLIProxyAPI `v7.2.146` + [upstream #5659](https://github.com/router-for-me/CLIProxyAPI/issues/5659) backport; GHCR digest `sha256:26de0755cf37765291e149590e13ee354010c8caa7b25ec3981827f2d606d6dc` |
 
 Pier PR [FZR-forks/pier#12](https://github.com/FZR-forks/pier/pull/12) added the
-independent `opencode-v2` adapter. The PA1-side OpenCode configuration,
+independent `opencode-v2` adapter, and PR [#14](https://github.com/FZR-forks/pier/pull/14)
+made its execution evidence durable during failures and timeouts. The PA1-side OpenCode configuration,
 verification evidence, frozen binary checksums, model isolation rules, output
 caps, and transport choices are documented in
 `benchmark/references/opencode-v2-verification.md`,
@@ -667,7 +669,7 @@ cd ~
 git clone https://github.com/FZR-forks/pier.git pier   # skip if present
 cd ~/pier
 git fetch origin
-git checkout b0acdae033425500e968ac917acffeafd35f9cdb
+git checkout 7636cbee99ed947c64e0b350be031ec31e47dfee
 uv sync --python /usr/bin/python3.13
 ~/pier/.venv/bin/pier job start --help
 ```
