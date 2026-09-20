@@ -483,7 +483,7 @@ Fill these values:
 | `CODEX_CLIPROXY_BASE_URL` | Codex | `/v1` endpoint of the compatibility bridge as seen from a trial container. Must be on port 80 or 443 and must not be a dotless bare hostname; `prepare_configs.py` rejects both. |
 | `CODEX_CLIPROXY_API_KEY` | Codex | Token Codex presents to the bridge. Chosen locally; not a gateway or vendor credential. |
 | `CODEX_CLIPROXY_BIND`, `CODEX_CLIPROXY_PORT` | bridge | Host address and port the bridge publishes on. Must match `CODEX_CLIPROXY_BASE_URL`. |
-| `CODEX_CLIPROXY_REQUEST_LOG` | bridge | Log full request bodies for the live acceptance check. Keep `false` for benchmark jobs; it records every prompt verbatim. |
+| `CODEX_CLIPROXY_REQUEST_LOG` | bridge | Keep `true` for the current benchmark debugging run. It records every request body, prompt, and authorization header verbatim in the owner-only `benchmark/generated/cliproxy-logs/` directory; do not share those logs. Set `false` only when intentionally disabling capture. |
 | `ANTHROPIC_API_KEY` | Pi, Claude Code, OpenCode V2, bridge | Direct Anthropic API credential for Claude Opus 5. Codex itself receives only the bridge-local `CODEX_CLIPROXY_API_KEY`; CLIProxyAPI holds `ANTHROPIC_API_KEY` for the outbound Anthropic Messages request. |
 
 `benchmark/env.local` is ignored by Git.
@@ -677,9 +677,11 @@ $PIER job start -c benchmark/generated/kimi-k3.yaml \
 Confirm all three harness trials complete and, for Codex specifically, that a
 tool call followed by another model turn succeeds. If the Codex trial fails on a
 tool schema, reasoning-state, or Responses translation error, stop before the
-full Kimi batch: check the bridge is healthy and, with
-`CODEX_CLIPROXY_REQUEST_LOG=true`, inspect the translated upstream body in
-`benchmark/generated/cliproxy-logs/` before touching the gateway route.
+full Kimi batch: check the bridge is healthy and inspect the translated upstream body in
+`benchmark/generated/cliproxy-logs/` before touching the gateway route. The current
+benchmark debugging run keeps `CODEX_CLIPROXY_REQUEST_LOG=true`; these logs contain
+verbatim prompts and authorization headers, so keep the directory owner-only and do not
+share it outside the runner.
 
 ### 7. Run Kimi K3 first
 
