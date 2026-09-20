@@ -473,14 +473,27 @@ These are account-wide and shared with anything else using the same gateway
 credential, so they are an upper bound on what a job can assume, not a budget
 reserved for it.
 
-Read the table as a snapshot, not as fixed capacity. `kimi-k3` and
-`deepseek-v4p1-flash` report identical round numbers, which is what an
-un-warmed adaptive limit looks like; `glm-5p3-flash` reports larger, non-round
-values two hours after a 55-minute GLM job, which is what a warmed one looks
-like. The practical consequence is that a model's headroom at the *start* of a
-job is the baseline, not the number measured after a previous run — so DeepSeek
-V4.1 Flash begins with under half of GLM's generated ceiling and a job tuned for
-warmed GLM is not automatically safe on cold DeepSeek.
+Read the table as a snapshot, not as fixed capacity. Fireworks documents
+starting limits of 3.6M / 900k / 36k TPM, which adaptation then grows or
+shrinks. Against that anchor, `kimi-k3` and `deepseek-v4p1-flash` both sit at
+exactly twice the starting limit — an idle route near its floor — while
+`glm-5p3-flash` sits at roughly 7x starting prompt and 5x starting generated,
+measured two hours after a 55-minute GLM job. Elevated limits therefore appear
+to persist for hours after the traffic that earned them, but the decay is
+undocumented and should not be relied on.
+
+The practical consequence is that a model's headroom at the *start* of a job is
+near the floor, not the number measured after a previous run. DeepSeek V4.1
+Flash begins cold, so a concurrency tuned against warmed GLM is not
+automatically safe on it.
+
+This is also why the cheap per-model acceptance check in steps 6, 8, and 10 is
+worth running immediately before its primary job rather than hours earlier: it
+is three trials of real traffic that the run order already budgets for, so it
+warms the route at no extra cost. Pier has no stagger or ramp control — the only
+load knob is `n_concurrent_trials` — so a back-to-back acceptance run is the
+only free protection against the cold-burst 429s the Fireworks docs warn about
+("if your traffic ramps up too quickly, you will get 429s").
 
 Sampling the `remaining-tokens-*` headers while no PA1 job was running showed
 0% of prompt and generated quota consumed on all three models across three
