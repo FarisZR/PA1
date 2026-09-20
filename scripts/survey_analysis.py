@@ -19,6 +19,7 @@ HARNESS_COLUMNS = [
     "Agent / Harness.1",
 ]
 MODEL_COLUMNS = ["Model", "Model  (Optional)", "Model.1", "Model.2"]
+COST_COLUMN = "how much does your AI coding-agent usage cost per month in total?"
 UNKNOWN_MODELS = {"Other", "I don't know / automatically selected"}
 
 HARNESS_RENAMES = {
@@ -148,6 +149,84 @@ def model_usage(survey: pd.DataFrame) -> pd.DataFrame:
     frame["Primary %"] = frame["Primary"] / n * 100
     frame["Any weekly use %"] = frame["Any weekly use"] / n * 100
     return frame.sort_values(["Any weekly use", "Primary", "model"], ascending=[False, False, True]).reset_index(drop=True)
+
+
+def configuration_usage(
+    survey: pd.DataFrame,
+    *,
+    limit: int = 8,
+) -> pd.DataFrame:
+    """Return the most common named harness-model configurations.
+
+    Counts are respondent-level: an identical harness-model pair repeated in
+    multiple survey slots by the same respondent is counted once for weekly use.
+    "Other", automatically selected, and missing model values are excluded.
+    """
+    n = len(survey)
+    configs = pd.DataFrame(iter_configurations(survey))
+    configs = configs.dropna(subset=["harness", "model"])
+    configs = configs[
+        (configs["harness"] != "Other")
+        & (~configs["model"].isin(UNKNOWN_MODELS))
+    ]
+
+    weekly = (
+        configs.groupby(["harness", "model"])["respondent"]
+        .nunique()
+        .rename("Any weekly use")
+    )
+    primary = (
+        configs[configs["role"] == "Primary"]
+        .groupby(["harness", "model"])["respondent"]
+        .nunique()
+        .rename("Primary")
+    )
+
+    frame = (
+        pd.concat([primary, weekly], axis=1)
+        .fillna(0)
+        .astype(int)
+        .reset_index()
+    )
+    frame["configuration"] = frame["harness"] + " + " + frame["model"]
+    frame["Primary %"] = frame["Primary"] / n * 100
+    frame["Any weekly use %"] = frame["Any weekly use"] / n * 100
+    return (
+        frame.sort_values(
+            ["Any weekly use", "Primary", "configuration"],
+            ascending=[False, False, True],
+        )
+        .head(limit)
+        .reset_index(drop=True)
+    )
+
+
+def reported_cost_distribution(survey: pd.DataFrame) -> pd.DataFrame:
+    """Return the original monthly-cost response categories in logical order."""
+    display_order = [
+        ("20-49 EUR", "EUR 20-49"),
+        ("50-99 EUR", "EUR 50-99"),
+        ("100-199 EUR", "EUR 100-199"),
+        ("200-499 EUR", "EUR 200-499"),
+        ("500-999 EUR", "EUR 500-999"),
+        ("1,000 EUR or more", "EUR 1,000 or more"),
+        ("Flat Rate Subscription (e.g. Gemini)", "Flat-rate subscription"),
+        ("I don't know", "Unknown"),
+    ]
+    counts = survey[COST_COLUMN].value_counts(dropna=False)
+    rows = []
+    for raw, label in display_order:
+        count = int(counts.get(raw, 0))
+        if count:
+            rows.append({"category": label, "respondents": count})
+
+    missing = int(survey[COST_COLUMN].isna().sum())
+    if missing:
+        rows.append({"category": "No answer", "respondents": missing})
+
+    frame = pd.DataFrame(rows)
+    frame["percentage"] = frame["respondents"] / len(survey) * 100
+    return frame
 
 
 def _configuration_frame(survey: pd.DataFrame, tiers: pd.DataFrame) -> pd.DataFrame:
