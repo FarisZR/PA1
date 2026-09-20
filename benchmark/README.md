@@ -495,6 +495,41 @@ load knob is `n_concurrent_trials` — so a back-to-back acceptance run is the
 only free protection against the cold-burst 429s the Fireworks docs warn about
 ("if your traffic ramps up too quickly, you will get 429s").
 
+### Sizing concurrency against the limit
+
+`benchmark/scripts/check_rate_headroom.py` reads the current effective limits
+and converts them into a trial count:
+
+```bash
+python3 benchmark/scripts/check_rate_headroom.py --env-file benchmark/env.local
+python3 benchmark/scripts/check_rate_headroom.py --model glm-5p3-flash --watch 60
+```
+
+The arithmetic is `max_trials = limit_TPM / per_trial_TPM`. Per-trial demand
+measured over the 20 real trials of the 2026-09-20 GLM run:
+
+| | total prompt | uncached | generated |
+|---|---|---|---|
+| median per trial | 736,678 | 43,148 | 2,262 |
+| p90 per trial | 1,393,319 | 69,870 | 4,501 |
+
+**Total prompt binds, always, and by a wide margin** — an agentic loop re-sends
+a roughly 94%-cached context every turn, so it consumes total-prompt allowance
+an order of magnitude faster than uncached or generated allowance. Sizing
+against output tokens, the intuitive choice, would be wrong by 3-8x.
+
+Against a cold 7.2M total-prompt limit that caps a GLM job at 9.8 concurrent
+trials on median demand, or 5.2 on p90. The 2026-09-20 run at 30 demanded 307%
+of the cold limit.
+
+Treat the result as an upper bound rather than a target, for two reasons. The
+per-trial figures are averages over a whole trial, but demand grows with context
+length, so late-trial demand exceeds them. And the limit adapts to the *rate* of
+increase as well as the level: the 2026-08-31 Kimi run sustained 30 trials at
+about 148% of its own cold cap without a single 429, because Kimi's slower turns
+let the adaptive limit keep pace, whereas GLM's six-times-denser ramp outran it.
+A number under the cap is safe; a number over it is not automatically fatal.
+
 Sampling the `remaining-tokens-*` headers while no PA1 job was running showed
 0% of prompt and generated quota consumed on all three models across three
 samples, so other consumers of the gateway credential were not measurably
