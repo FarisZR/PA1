@@ -942,10 +942,15 @@ def main() -> None:
     # Retained as the control for issue #31: this is the direct corporate-gateway
     # Codex route that Fireworks rejects. No current job references it.
     litellm_toml = provider_toml("litellm", "LiteLLM", litellm_url, "LITELLM_API_KEY")
-    # Luna keeps Codex's built-in OpenAI model/provider. This file intentionally
-    # contains only the global policy override; Pier supplies openai_base_url as
-    # a CLI override from OPENAI_BASE_URL.
-    openai_no_web_search_toml = 'web_search = "disabled"\n'
+    # Luna keeps Codex's built-in OpenAI model/provider, but the endpoint is
+    # redirected to the shared CLIProxyAPI instance backed by ChatGPT OAuth.
+    openai_no_web_search_toml = provider_toml(
+        "openai",
+        "CLIProxyAPI ChatGPT",
+        bridge_url,
+        "CODEX_CLIPROXY_API_KEY",
+        disable_web_search=True,
+    )
     # The route every third-party Codex job actually uses.
     bridge_toml = provider_toml(
         "cliproxy", "CLIProxyAPI", bridge_url, "CODEX_CLIPROXY_API_KEY"
