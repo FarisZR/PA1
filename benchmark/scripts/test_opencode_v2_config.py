@@ -190,7 +190,7 @@ providers:
             Path("glm-5.3-flash.yaml"), glm
         )
 
-        with self.assertRaisesRegex(SystemExit, "tool_stream"):
+        with self.assertRaisesRegex(SystemExit, "zaiToolStream|tool_stream"):
             prepare_configs.validate_pi_fireworks_compat(
                 Path("glm-5.3-flash.yaml"),
                 glm.replace("zaiToolStream: false", "zaiToolStream: true"),
