@@ -176,9 +176,15 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
     openai_no_web_search_toml = (
         target / "codex-openai-no-web-search.toml"
     ).read_text()
+    openai_config = tomllib.loads(openai_no_web_search_toml)
     check(
-        openai_no_web_search_toml == 'web_search = "disabled"\n',
-        f"{label}: Luna keeps the built-in OpenAI provider",
+        openai_config.get("web_search") == "disabled"
+        and openai_config.get("model_provider") == "openai"
+        and openai_config.get("model_providers", {}).get("openai", {}).get("base_url")
+        == BRIDGE_URL
+        and openai_config.get("model_providers", {}).get("openai", {}).get("env_key")
+        == "CODEX_CLIPROXY_API_KEY",
+        f"{label}: Luna keeps the built-in OpenAI identity through CLIProxyAPI",
         openai_no_web_search_toml,
     )
 
