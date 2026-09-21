@@ -1,36 +1,32 @@
-# Cheap end-to-end environment check before any primary benchmark spending.
-# Runs one simple DeepSWE pilot task once on each currently runnable harness,
-# using the same CLIProxyAPI-backed GPT-5.6 Luna routing/context policy as the
-# primary benchmark but with low reasoning effort and serial execution.
-
-job_name: smoke-luna
+# Cheap end-to-end environment check before primary benchmark spending.
+# One pilot task is run through every API surface used by the current
+# Pi / Claude Code / Codex benchmark routes:
+# - GPT-5.6 Luna via CLIProxyAPI backed by the ChatGPT subscription
+# - GLM-5.3-Flash via the direct Z.AI Coding Plan API
+# - DeepSeek V4.1 Flash via the corporate LiteLLM proxy
+# All agents use low reasoning and serial execution.
+job_name: smoke-current-routes
 jobs_dir: benchmark/runs
 n_attempts: 1
 n_concurrent_trials: 1
 retry:
   max_retries: 1
-  # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
-  # result on this task set, and verifier/reward failures are grading faults, so
-  # re-running a whole trial for either would corrupt the measurement.
   exclude_exceptions:
     - AgentTimeoutError
     - VerifierTimeoutError
     - RewardFileNotFoundError
     - RewardFileEmptyError
     - VerifierOutputParseError
-    # An operator interrupt (Ctrl-C) surfaces as CancelledError. It is not a
-    # transport fault, and retrying it relaunches every in-flight trial.
     - CancelledError
 
 environment:
   type: docker
 
-datasets:
-  - path: ../DeepSWE/tasks
-    task_names:
-      - anko-default-function-arguments
+tasks:
+  - path: benchmark/tasks/opencode-v2-smoke
 
 agents:
+  # Luna: OpenAI-compatible CLIProxyAPI surface.
   - name: pi
     model_name: openai/gpt-5.6-luna
     env:
@@ -40,6 +36,7 @@ agents:
       version: "0.84.4"
       thinking: low
 
+  # Luna: Anthropic-compatible CLIProxyAPI surface.
   - name: claude-code
     model_name: gpt-5.6-luna[1m]
     env:
@@ -55,6 +52,7 @@ agents:
       reasoning_effort: low
       disallowed_tools: "EnterPlanMode,WebSearch"
 
+  # Luna: native Codex Responses -> CLIProxyAPI/ChatGPT.
   - name: codex
     model_name: openai/gpt-5.6-luna
     env:
@@ -65,3 +63,115 @@ agents:
       reasoning_effort: low
       restrict_model_catalog: true
       config_toml_file: benchmark/generated/codex-openai-no-web-search.toml
+
+  # GLM: Pi native Z.AI Coding Plan surface.
+  - name: pi
+    model_name: zai/glm-5.3-flash
+    env:
+      ZAI_API_KEY: ${ZAI_API_KEY}
+    kwargs:
+      version: "0.84.4"
+      thinking: low
+      pi_config:
+        providers:
+          zai:
+            baseUrl: https://api.z.ai/api/coding/paas/v4
+
+  # GLM: Z.AI Anthropic-compatible surface.
+  - name: claude-code
+    model_name: glm-5.3-flash[1m]
+    env:
+      ANTHROPIC_AUTH_TOKEN: ${ZAI_API_KEY}
+      ANTHROPIC_BASE_URL: https://api.z.ai/api/anthropic
+      ANTHROPIC_DEFAULT_FABLE_MODEL: glm-5.3-flash[1m]
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1000000"
+      API_FORCE_IDLE_TIMEOUT: "0"
+      CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
+      DISABLE_AUTOUPDATER: "1"
+    kwargs:
+      version: "2.1.251"
+      reasoning_effort: low
+      disallowed_tools: "EnterPlanMode,WebSearch"
+
+  # GLM: Codex Responses -> CLIProxyAPI -> direct Z.AI Coding Plan.
+  - name: codex
+    model_name: zai/glm-5.3-flash
+    env:
+      CODEX_CLIPROXY_API_KEY: ${CODEX_CLIPROXY_API_KEY}
+    kwargs:
+      version: "0.151.0"
+      command_model_name: glm-5.3-flash
+      reasoning_effort: low
+      restrict_model_catalog: true
+      model_catalog_file: benchmark/generated/codex-glm-zai-models.json
+      config_toml_file: benchmark/generated/codex-cliproxy-no-web-search.toml
+
+  # DeepSeek: OpenAI-compatible LiteLLM surface.
+  - name: pi
+    model_name: deepseek/deepseek-v4p1-flash
+    env:
+      DEEPSEEK_API_KEY: ${LITELLM_API_KEY}
+    kwargs:
+      version: "0.84.4"
+      thinking: low
+      pi_config:
+        providers:
+          deepseek:
+            baseUrl: __LITELLM_OPENAI_BASE_URL__
+            apiKey: $DEEPSEEK_API_KEY
+            models:
+              - id: deepseek-v4p1-flash
+                name: DeepSeek V4.1 Flash
+                api: openai-completions
+                reasoning: true
+                thinkingLevelMap:
+                  minimal: null
+                  low: low
+                  medium: null
+                  high: high
+                  xhigh: null
+                  max: max
+                input: [text, image]
+                cost:
+                  input: 0.15
+                  output: 0.60
+                  cacheRead: 0.003
+                  cacheWrite: 0
+                compat:
+                  supportsStore: false
+                  supportsDeveloperRole: false
+                  supportsReasoningEffort: true
+                  maxTokensField: max_tokens
+                  requiresReasoningContentOnAssistantMessages: true
+                  thinkingFormat: openai
+                contextWindow: 1000000
+                maxTokens: 384000
+
+  # DeepSeek: Anthropic-compatible LiteLLM surface.
+  - name: claude-code
+    model_name: deepseek-v4p1-flash[1m]
+    env:
+      ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
+      ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
+      ANTHROPIC_DEFAULT_FABLE_MODEL: deepseek-v4p1-flash[1m]
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1000000"
+      API_FORCE_IDLE_TIMEOUT: "0"
+      CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
+      DISABLE_AUTOUPDATER: "1"
+    kwargs:
+      version: "2.1.251"
+      reasoning_effort: low
+      disallowed_tools: "EnterPlanMode,WebSearch"
+
+  # DeepSeek: Codex Responses -> CLIProxyAPI -> LiteLLM.
+  - name: codex
+    model_name: deepseek/deepseek-v4p1-flash
+    env:
+      CODEX_CLIPROXY_API_KEY: ${CODEX_CLIPROXY_API_KEY}
+    kwargs:
+      version: "0.151.0"
+      command_model_name: deepseek-v4p1-flash
+      reasoning_effort: low
+      restrict_model_catalog: true
+      model_catalog_file: benchmark/generated/codex-thirdparty-models.json
+      config_toml_file: benchmark/generated/codex-cliproxy-no-web-search.toml

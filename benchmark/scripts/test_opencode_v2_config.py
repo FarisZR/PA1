@@ -190,7 +190,7 @@ providers:
             Path("glm-5.3-flash.yaml"), glm
         )
 
-        with self.assertRaisesRegex(SystemExit, "tool_stream"):
+        with self.assertRaisesRegex(SystemExit, "zaiToolStream|tool_stream"):
             prepare_configs.validate_pi_fireworks_compat(
                 Path("glm-5.3-flash.yaml"),
                 glm.replace("zaiToolStream: false", "zaiToolStream: true"),
@@ -249,9 +249,12 @@ providers:
     def test_smoke_template_has_explicit_chat_output_override(self) -> None:
         source = BENCHMARK / "configs" / "opencode-v2" / "smoke.yaml"
         rendered = prepare_configs.render_model_config(
-            source, "https://gateway.example/v1", expected_sentinels=2
+            source, "https://gateway.example/v1", expected_sentinels=0
         )
         prepare_configs.validate_opencode_v2_config(source, rendered)
+        self.assertIn("ZHIPU_API_KEY: ${ZAI_API_KEY}", rendered)
+        self.assertIn("baseURL: https://api.z.ai/api/coding/paas/v4", rendered)
+        self.assertIn("model_name: deepseek/deepseek-v4p1-flash", rendered)
         self.assertIn('package: "@opencode/ai/providers/fireworks"', rendered)
         self.assertIn("reasoningEffort: low", rendered)
         self.assertIn("body:\n                  max_tokens: 8192", rendered)
@@ -340,27 +343,13 @@ providers:
         smoke = BENCHMARK / "configs/opencode-v2/smoke.yaml"
         raw = smoke.read_text()
         starts = [m.start() for m in re.finditer(r"(?m)^  - name: opencode-v2$", raw)]
-        self.assertEqual(len(starts), 2)
-        glm_block = raw[starts[0] : starts[1]].rstrip("\n")
+        self.assertEqual(len(starts), 3)
 
-        # The committed profile is compliant.
+        # The current smoke uses native Z.AI for GLM, so tool_stream is valid
+        # there and no Fireworks canonical redirect is required.
         prepare_configs.validate_opencode_v2_tool_stream(smoke, raw)
-
-        sibling_leak = (
-            raw.rstrip("\n")
-            + "\n\n"
-            + glm_block.replace("            canonical: fireworks\n", "")
-            + "\n"
-        )
-        with self.assertRaises(SystemExit):
-            prepare_configs.validate_opencode_v2_tool_stream(smoke, sibling_leak)
-
-        commented_out = raw.replace(
-            "            canonical: fireworks\n",
-            "            # canonical: fireworks\n",
-        )
-        with self.assertRaises(SystemExit):
-            prepare_configs.validate_opencode_v2_tool_stream(smoke, commented_out)
+        self.assertIn("baseURL: https://api.z.ai/api/coding/paas/v4", raw)
+        self.assertNotIn("canonical: fireworks", raw)
 
     def test_generator_writes_nested_opencode_file_without_touching_repo(self) -> None:
         old_generated = prepare_configs.GENERATED_DIR
@@ -403,15 +392,23 @@ providers:
                 smoke_contents = smoke.read_text()
                 self.assertIn("model_name: zai/glm-5.3-flash", smoke_contents)
                 self.assertIn("model_name: openai/gpt-5.6-luna", smoke_contents)
+                self.assertIn("model_name: deepseek/deepseek-v4p1-flash", smoke_contents)
                 self.assertIn("variant: low", smoke_contents)
-                # Both smoke legs must carry the 8192 cap the header promises:
-                # limit.output metadata alone is not sent on the wire (#40).
                 self.assertIn("max_tokens: 8192", smoke_contents)
                 self.assertIn("max_output_tokens: 8192", smoke_contents)
-                # The zai provider id makes OpenCode 2.0.8 emit tool_stream,
-                # which the Fireworks gateway route rejects with HTTP 400.
-                self.assertIn("canonical: fireworks", smoke_contents)
+                self.assertIn("baseURL: https://api.z.ai/api/coding/paas/v4", smoke_contents)
+                self.assertNotIn("canonical: fireworks", smoke_contents)
                 self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", smoke_contents)
+
+                general_smoke = target / "smoke-test.yaml"
+                self.assertTrue(general_smoke.exists())
+                general_contents = general_smoke.read_text()
+                self.assertEqual(general_contents.count("  - name: pi\n"), 3)
+                self.assertEqual(general_contents.count("  - name: claude-code\n"), 3)
+                self.assertEqual(general_contents.count("  - name: codex\n"), 3)
+                self.assertIn("https://api.z.ai/api/coding/paas/v4", general_contents)
+                self.assertIn("https://gateway.example/v1", general_contents)
+                self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", general_contents)
         finally:
             prepare_configs.GENERATED_DIR = old_generated
             sys.argv = old_argv
