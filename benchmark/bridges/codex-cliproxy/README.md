@@ -10,8 +10,9 @@ which only handled Anthropic.
 Codex 0.151.0
   -> OpenAI Responses            (http://<bridge>/v1/responses)
 CLIProxyAPI v7.2.146 + upstream #5659 backport
-  -> OpenAI Chat Completions     -> existing LiteLLM gateway -> Fireworks
-  -> Anthropic Messages          -> api.anthropic.com        (Claude Opus 5)
+  -> OpenAI Chat Completions     -> existing LiteLLM gateway -> Fireworks (historical routes)
+  -> OpenAI Chat Completions     -> api.z.ai                  (GLM subscription route)
+  -> Anthropic Messages          -> api.anthropic.com         (Claude Opus 5)
 ```
 
 Pi and Claude Code do not use the bridge for the Fireworks-backed models.
@@ -67,7 +68,7 @@ The config lives in two tracked templates:
 
 | File | Contents |
 | --- | --- |
-| `config.template.yaml` | the whole deployment config, with `"__SENTINEL__"` placeholders for the three credentials and the request-log flag |
+| `config.template.yaml` | the whole deployment config, with `"__SENTINEL__"` placeholders for the bridge, LiteLLM, and Z.AI credentials plus the request-log flag |
 | `config.opus.template.yaml` | the Anthropic route, appended by `--include-opus` |
 
 Both are reviewable and diffable. Everything above each file's `---8<---`
@@ -85,8 +86,8 @@ table the job configs point at.
 
 The file has to be generated rather than mounted straight from the template
 because **CLIProxyAPI performs no environment interpolation** — there is no
-`os.ExpandEnv` or `os.Getenv` anywhere in its config package — so the gateway
-key, the bridge key, and the Anthropic key must be literals in the file it
+`os.ExpandEnv` or `os.Getenv` anywhere in its config package — so the gateway,
+Z.AI, bridge, and optional Anthropic keys must be literals in the file it
 reads. Sentinels are quoted in the template so it stays valid YAML on its own,
 and the generator replaces the whole quoted scalar so credentials are escaped
 rather than pasted in raw. It refuses to write a config with any placeholder
@@ -107,6 +108,25 @@ Two properties of the generated config are load-bearing:
   Left at their defaults they would retry failed calls without attribution, take
   the single credential out of service after one transient error, and — in the
   case of `quota-exceeded.switch-preview-model` — answer with a different model.
+
+## Direct Z.AI GLM route
+
+`prepare_configs.py` also writes a dedicated `glm-5.3-flash`
+OpenAI-compatibility alias backed by:
+
+```text
+https://api.z.ai/api/coding/paas/v4
+```
+
+Its credential is `ZAI_API_KEY`. This alias is distinct from the historical
+`glm-5p3-flash` LiteLLM/AiOrbit alias, so a `glm-5.3-sub` Codex run cannot
+silently fall back to Fireworks. Codex still talks Responses to CLIProxyAPI;
+CLIProxyAPI converts the request to Chat Completions and sends it directly to
+Z.AI.
+
+The other GLM harnesses do not need this bridge: Pi uses its native Z.AI
+provider, Claude Code uses `https://api.z.ai/api/anthropic`, and OpenCode V2
+uses the Z.AI Coding Plan endpoint directly.
 
 ## Running it
 
@@ -151,9 +171,9 @@ also rejects a dotless bare hostname, because Pier discards those when building
 the Squid allowlist and every Codex request would then be denied.
 
 The Codex-to-bridge hop is plain HTTP on the runner host. What crosses it is
-`CODEX_CLIPROXY_API_KEY`, a token chosen locally for this bridge — the gateway
-and Anthropic credentials stay in the bridge's own config and never leave the
-host. To use TLS instead, set `tls.enable`/`cert`/`key` in the generated config,
+`CODEX_CLIPROXY_API_KEY`, a token chosen locally for this bridge — the LiteLLM,
+Z.AI, and Anthropic credentials stay in the bridge's own config and never leave
+the host. To use TLS instead, set `tls.enable`/`cert`/`key` in the generated config,
 publish on 443, and append the issuing CA to the `PIER_EXTRA_CA_CERTS` bundle,
 which accepts multiple PEM blocks.
 
@@ -230,10 +250,11 @@ python3 benchmark/bridges/codex-cliproxy/tests/test_generated_config.py
 
 Runs the real generator into a temporary directory — never touching
 `benchmark/generated/` — and checks what it actually emits: no unresolved
-placeholders, credentials substituted, `max` still declared for all three models,
-the transparency settings present, mode 0600, and the Codex provider TOML
-pointing at the bridge. It then boots the pinned image on that exact file and
-confirms CLIProxyAPI accepts it, serves exactly the three benchmark models, and
+placeholders, credentials substituted, `max` still declared for the three
+historical aliases plus the direct Z.AI GLM alias, the transparency settings
+present, mode 0600, and the Codex provider TOML pointing at the bridge. It then
+boots the pinned image on that exact file and confirms CLIProxyAPI accepts it,
+serves those four aliases, and
 rejects an unknown API key. The `--include-opus` variant is checked too.
 
 ### Codex driving a real task

@@ -166,6 +166,24 @@ providers:
                 require_input=True,
             )
 
+    def test_direct_zai_glm_profiles_keep_native_transport(self) -> None:
+        prepare_configs.validate_primary_opencode_v2_profiles()
+        opencode = (
+            BENCHMARK / "configs" / "opencode-v2" / "glm-5.3-sub.yaml"
+        ).read_text()
+        self.assertIn("model_name: zai/glm-5.3-flash", opencode)
+        self.assertIn("ZHIPU_API_KEY: ${ZAI_API_KEY}", opencode)
+        self.assertIn("baseURL: https://api.z.ai/api/coding/paas/v4", opencode)
+        self.assertNotIn("@opencode/ai/providers/fireworks", opencode)
+        self.assertNotIn("canonical: fireworks", opencode)
+
+        primary = (BENCHMARK / "configs" / "glm-5.3-sub.yaml").read_text()
+        self.assertIn("n_concurrent_trials: 3", primary)
+        self.assertIn("ZAI_API_KEY: ${ZAI_API_KEY}", primary)
+        self.assertIn("ANTHROPIC_BASE_URL: https://api.z.ai/api/anthropic", primary)
+        self.assertNotIn("thinkingFormat: openai", primary)
+        self.assertNotIn("zaiToolStream: false", primary)
+
     def test_glm_pi_rejects_zai_only_transport_extensions(self) -> None:
         glm = (BENCHMARK / "configs" / "glm-5.3-flash.yaml").read_text()
         prepare_configs.validate_pi_fireworks_compat(
@@ -358,6 +376,7 @@ providers:
                             "LITELLM_OPENAI_BASE_URL=https://gateway.example/v1",
                             "LITELLM_ANTHROPIC_BASE_URL=https://gateway.example",
                             "LITELLM_API_KEY=test-gateway-key",
+                            "ZAI_API_KEY=test-zai-key",
                             "CODEX_CLIPROXY_BASE_URL=https://bridge.example/v1",
                             "CODEX_CLIPROXY_API_KEY=test-bridge-key",
                         ]

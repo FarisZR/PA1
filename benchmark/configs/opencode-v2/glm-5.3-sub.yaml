@@ -1,0 +1,60 @@
+# GLM-5.3-Flash through the Z.AI Coding Plan API.
+# This profile deliberately uses OpenCode's native zai provider; the
+# Fireworks package/canonical/model-id compatibility overrides in
+# glm-5.3-flash.yaml are not used on the upstream Z.AI route.
+job_name: opencode-v2-glm-5.3-sub
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 3
+retry:
+  max_retries: 1
+  exclude_exceptions:
+    - AgentTimeoutError
+    - VerifierTimeoutError
+    - RewardFileNotFoundError
+    - RewardFileEmptyError
+    - VerifierOutputParseError
+    - CancelledError
+
+environment:
+  type: docker
+
+datasets:
+  - path: ../DeepSWE/tasks
+    task_names:
+      - expr-try-catch-errors
+      - katex-multicolumn-array-spans
+      - python-statemachine-state-data-scoping
+      - oxvg-structural-selector-preservation
+      - effect-sse-httpapi-streaming
+      - scriggo-method-declarations
+      - csstree-shorthand-expansion-compression
+      - fastapi-implicit-head-options
+      - boa-hierarchical-evaluation-cancellation
+      - koota-composite-trait-aspects
+
+agents:
+  - name: opencode-v2
+    model_name: zai/glm-5.3-flash
+    env:
+      # OpenCode 2.0.8's frozen zai provider reads ZHIPU_API_KEY. Keep the
+      # repository-level secret name provider-neutral and map it here.
+      ZHIPU_API_KEY: ${ZAI_API_KEY}
+    kwargs:
+      variant: max
+      version: "2.0.8"
+      opencode_v2_checksums:
+        linux-x64: 8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625
+        linux-arm64: 957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce
+      restrict_model: true
+      model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.8.json
+      opencode_v2_config:
+        update: disable
+        share: disabled
+        websearch: false
+        providers:
+          zai:
+            # The frozen OpenCode 2.0.8 catalog points zai at the general API.
+            # A Coding Plan API key must use the coding-only endpoint instead.
+            settings:
+              baseURL: https://api.z.ai/api/coding/paas/v4

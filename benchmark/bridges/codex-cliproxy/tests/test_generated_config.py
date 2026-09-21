@@ -37,6 +37,7 @@ COMPOSE_FILE = BRIDGE_DIR / "compose.yaml"
 BRIDGE_KEY = "pa1-generated-config-test-key"
 GATEWAY_KEY = "pa1-generated-config-upstream-key"
 GATEWAY_URL = "https://gateway.invalid/v1"
+ZAI_KEY = "pa1-generated-config-zai-key"
 BRIDGE_URL = "http://172.17.0.1/v1"
 ANTHROPIC_KEY = "sk-ant-pa1-generated-config-test"
 CONTAINER = "pa1-generated-config-test"
@@ -92,6 +93,7 @@ def write_env(path: Path, include_opus: bool) -> None:
     lines = [
         f"LITELLM_OPENAI_BASE_URL={GATEWAY_URL}",
         f"LITELLM_API_KEY={GATEWAY_KEY}",
+        f"ZAI_API_KEY={ZAI_KEY}",
         "LITELLM_ANTHROPIC_BASE_URL=https://gateway.invalid",
         f"CODEX_CLIPROXY_BASE_URL={BRIDGE_URL}",
         f"CODEX_CLIPROXY_API_KEY={BRIDGE_KEY}",
@@ -116,7 +118,9 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
         f"{label}: no unresolved template placeholders",
     )
     check(
-        f'"{BRIDGE_KEY}"' in config and f'"{GATEWAY_KEY}"' in config,
+        f'"{BRIDGE_KEY}"' in config
+        and f'"{GATEWAY_KEY}"' in config
+        and f'"{ZAI_KEY}"' in config,
         f"{label}: credentials substituted into the config",
     )
     check(
@@ -127,7 +131,12 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
     # The reason this whole test exists. CLIProxyAPI snaps an unknown effort to
     # the nearest level it knows, so losing `max` here would silently downgrade
     # every third-party Codex request.
-    for model in ("deepseek-v4p1-flash", "kimi-k3", "glm-5p3-flash"):
+    for model in (
+        "deepseek-v4p1-flash",
+        "kimi-k3",
+        "glm-5p3-flash",
+        "glm-5.3-flash",
+    ):
         block = config.split(f'- name: "{model}"', 1)
         levels = re.search(r"levels: \[([^\]]*)\]", block[1]) if len(block) > 1 else None
         check(
@@ -135,6 +144,21 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
             f'{label}: {model} declares "max" reasoning',
             levels.group(0) if levels else "model block not found",
         )
+
+    direct_zai = config.split('- name: "zai-coding-plan"', 1)
+    check(
+        len(direct_zai) == 2
+        and 'base-url: "https://api.z.ai/api/coding/paas/v4"' in direct_zai[1]
+        and f'"{ZAI_KEY}"' in direct_zai[1],
+        f"{label}: direct GLM route points at Z.AI Coding Plan",
+    )
+
+    zai_catalog = json.loads((target / "codex-glm-zai-models.json").read_text())
+    check(
+        [model["slug"] for model in zai_catalog["models"]] == ["glm-5.3-flash"],
+        f"{label}: direct Z.AI Codex catalog uses the upstream GLM id",
+        str(zai_catalog),
+    )
 
     for setting in (
         "request-retry: 0",
@@ -241,8 +265,9 @@ def boot_check(config_path: Path) -> None:
 
     served = sorted(entry["id"] for entry in models.get("data", []))
     check(
-        served == ["deepseek-v4p1-flash", "glm-5p3-flash", "kimi-k3"],
-        "bridge serves exactly the three benchmark models",
+        served
+        == ["deepseek-v4p1-flash", "glm-5.3-flash", "glm-5p3-flash", "kimi-k3"],
+        "bridge serves the historical aliases plus direct Z.AI GLM",
         str(served),
     )
 

@@ -1,0 +1,81 @@
+# GLM-5.3-Flash through the Z.AI Coding Plan API.
+# This is intentionally separate from glm-5.3-flash.yaml, which preserves the
+# earlier AiOrbit -> Fireworks benchmark route for reproducibility.
+job_name: glm-5.3-sub
+jobs_dir: benchmark/runs
+n_attempts: 1
+n_concurrent_trials: 3
+retry:
+  max_retries: 1
+  # Retry transport/provider faults only. Agent timeouts are a genuine
+  # efficiency result on this task set, and verifier/reward failures are
+  # grading faults, so re-running a whole trial for either would corrupt the
+  # measurement.
+  exclude_exceptions:
+    - AgentTimeoutError
+    - VerifierTimeoutError
+    - RewardFileNotFoundError
+    - RewardFileEmptyError
+    - VerifierOutputParseError
+    - CancelledError
+
+environment:
+  type: docker
+
+datasets:
+  - path: ../DeepSWE/tasks
+    task_names:
+      - expr-try-catch-errors
+      - katex-multicolumn-array-spans
+      - python-statemachine-state-data-scoping
+      - oxvg-structural-selector-preservation
+      - effect-sse-httpapi-streaming
+      - scriggo-method-declarations
+      - csstree-shorthand-expansion-compression
+      - fastapi-implicit-head-options
+      - boa-hierarchical-evaluation-cancellation
+      - koota-composite-trait-aspects
+
+agents:
+  - name: pi
+    # Use Pi's native Z.AI profile unchanged. In particular, do not carry over
+    # the Fireworks-specific thinkingFormat/zaiToolStream transport overrides
+    # from the historical gateway configuration.
+    model_name: zai/glm-5.3-flash
+    env:
+      ZAI_API_KEY: ${ZAI_API_KEY}
+    kwargs:
+      version: "0.84.4"
+      thinking: max
+
+  - name: claude-code
+    # The [1m] suffix is local Claude Code context metadata; the adapter removes
+    # it before sending the model id to Z.AI.
+    model_name: glm-5.3-flash[1m]
+    env:
+      ANTHROPIC_AUTH_TOKEN: ${ZAI_API_KEY}
+      ANTHROPIC_BASE_URL: https://api.z.ai/api/anthropic
+      ANTHROPIC_DEFAULT_FABLE_MODEL: glm-5.3-flash[1m]
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1000000"
+      API_FORCE_IDLE_TIMEOUT: "0"
+      CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
+      DISABLE_AUTOUPDATER: "1"
+    kwargs:
+      version: "2.1.251"
+      reasoning_effort: max
+      disallowed_tools: "EnterPlanMode,WebSearch"
+
+  - name: codex
+    # Codex still needs the Responses -> Chat Completions protocol bridge, but
+    # the glm-5.3-flash alias in that bridge points directly at Z.AI's Coding
+    # Plan endpoint rather than AiOrbit/LiteLLM/Fireworks.
+    model_name: zai/glm-5.3-flash
+    env:
+      CODEX_CLIPROXY_API_KEY: ${CODEX_CLIPROXY_API_KEY}
+    kwargs:
+      version: "0.151.0"
+      command_model_name: glm-5.3-flash
+      reasoning_effort: max
+      restrict_model_catalog: true
+      model_catalog_file: benchmark/generated/codex-glm-zai-models.json
+      config_toml_file: benchmark/generated/codex-cliproxy-no-web-search.toml
