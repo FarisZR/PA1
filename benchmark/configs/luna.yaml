@@ -1,6 +1,6 @@
 # GPT-5.6 Luna is routed through the pinned CLIProxyAPI instance backed by
-# the benchmark ChatGPT subscription. Serial execution avoids subscription-side
-# concurrency differences between harnesses.
+# the benchmark ChatGPT subscription. Bounded six-trial execution limits the
+# subscription burst while avoiding the cost of fully serial execution.
 job_name: luna
 jobs_dir: benchmark/runs
 n_attempts: 1

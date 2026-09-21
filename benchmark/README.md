@@ -1093,8 +1093,10 @@ the ratio transfers, not the absolute rate. Re-measure from the run's own
 
 ### 11. Run GPT-5.6 Luna
 
-Luna is intentionally serial (`n_concurrent_trials: 1`) because all harnesses
-share one ChatGPT subscription through CLIProxyAPI.
+Luna uses bounded concurrency (`n_concurrent_trials: 6`) because all harnesses
+share one ChatGPT subscription through CLIProxyAPI. Six concurrent trials limit
+the subscription burst while avoiding the unnecessary wall-clock cost of fully
+serial execution.
 
 ```bash
 $PIER job start -c benchmark/generated/luna.yaml \
@@ -1102,7 +1104,7 @@ $PIER job start -c benchmark/generated/luna.yaml \
 ```
 
 Run the OpenCode V2 Luna profile separately; it uses the same subscription route
-and the same serial concurrency.
+but keeps the concurrency configured in its own profile.
 
 Keep each complete `benchmark/runs/<job-name>/` directory, especially its
 `lock.json`.
