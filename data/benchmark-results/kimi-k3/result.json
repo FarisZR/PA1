@@ -1,0 +1,692 @@
+{
+    "id": "c202af6a-d08a-40ff-ad80-7c44b9c71976",
+    "started_at": "2026-08-31T22:28:07.071533",
+    "updated_at": "2026-09-01T01:30:52.955064",
+    "finished_at": "2026-09-01T01:30:52.955064",
+    "n_total_trials": 30,
+    "stats": {
+        "n_completed_trials": 30,
+        "n_errored_trials": 2,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 2,
+        "evals": {
+            "pi__kimi-k3__tasks": {
+                "n_trials": 9,
+                "n_errors": 2,
+                "metrics": [
+                    {
+                        "f2p": 0.5567461485624571,
+                        "f2p_passed": 36.4,
+                        "f2p_total": 48.5,
+                        "p2p": 0.9,
+                        "p2p_passed": 8918.7,
+                        "p2p_total": 8918.7,
+                        "partial": 0.7816162242209329,
+                        "reward": 0.2
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "1": [
+                            "python-statemachine-state-data-s__DygNFF5",
+                            "katex-multicolumn-array-spans__cdFjGfW"
+                        ],
+                        "0": [
+                            "oxvg-structural-selector-preserv__6RJxk4a",
+                            "effect-sse-httpapi-streaming__39RtzMT",
+                            "boa-hierarchical-evaluation-canc__cUfVvX7",
+                            "expr-try-catch-errors__6nXFbiV",
+                            "scriggo-method-declarations__PkULDqE",
+                            "fastapi-implicit-head-options__2Tg3eMe",
+                            "csstree-shorthand-expansion-comp__4hUtHNN"
+                        ]
+                    },
+                    "f2p_total": {
+                        "72": [
+                            "python-statemachine-state-data-s__DygNFF5"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__6RJxk4a"
+                        ],
+                        "47": [
+                            "effect-sse-httpapi-streaming__39RtzMT"
+                        ],
+                        "17": [
+                            "boa-hierarchical-evaluation-canc__cUfVvX7"
+                        ],
+                        "79": [
+                            "expr-try-catch-errors__6nXFbiV",
+                            "csstree-shorthand-expansion-comp__4hUtHNN"
+                        ],
+                        "94": [
+                            "katex-multicolumn-array-spans__cdFjGfW"
+                        ],
+                        "48": [
+                            "scriggo-method-declarations__PkULDqE"
+                        ],
+                        "43": [
+                            "fastapi-implicit-head-options__2Tg3eMe"
+                        ]
+                    },
+                    "f2p_passed": {
+                        "72": [
+                            "python-statemachine-state-data-s__DygNFF5"
+                        ],
+                        "4": [
+                            "oxvg-structural-selector-preserv__6RJxk4a"
+                        ],
+                        "0": [
+                            "effect-sse-httpapi-streaming__39RtzMT",
+                            "boa-hierarchical-evaluation-canc__cUfVvX7",
+                            "scriggo-method-declarations__PkULDqE"
+                        ],
+                        "78": [
+                            "expr-try-catch-errors__6nXFbiV"
+                        ],
+                        "94": [
+                            "katex-multicolumn-array-spans__cdFjGfW"
+                        ],
+                        "42": [
+                            "fastapi-implicit-head-options__2Tg3eMe"
+                        ],
+                        "74": [
+                            "csstree-shorthand-expansion-comp__4hUtHNN"
+                        ]
+                    },
+                    "p2p_total": {
+                        "1286": [
+                            "python-statemachine-state-data-s__DygNFF5"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__6RJxk4a"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__39RtzMT"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__cUfVvX7"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__6nXFbiV"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__cdFjGfW"
+                        ],
+                        "1049": [
+                            "scriggo-method-declarations__PkULDqE"
+                        ],
+                        "3134": [
+                            "fastapi-implicit-head-options__2Tg3eMe"
+                        ],
+                        "16715": [
+                            "csstree-shorthand-expansion-comp__4hUtHNN"
+                        ]
+                    },
+                    "p2p_passed": {
+                        "1286": [
+                            "python-statemachine-state-data-s__DygNFF5"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__6RJxk4a"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__39RtzMT"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__cUfVvX7"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__6nXFbiV"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__cdFjGfW"
+                        ],
+                        "1049": [
+                            "scriggo-method-declarations__PkULDqE"
+                        ],
+                        "3134": [
+                            "fastapi-implicit-head-options__2Tg3eMe"
+                        ],
+                        "16715": [
+                            "csstree-shorthand-expansion-comp__4hUtHNN"
+                        ]
+                    },
+                    "f2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__DygNFF5",
+                            "katex-multicolumn-array-spans__cdFjGfW"
+                        ],
+                        "0.6666666666666666": [
+                            "oxvg-structural-selector-preserv__6RJxk4a"
+                        ],
+                        "0.0": [
+                            "effect-sse-httpapi-streaming__39RtzMT",
+                            "boa-hierarchical-evaluation-canc__cUfVvX7",
+                            "scriggo-method-declarations__PkULDqE"
+                        ],
+                        "0.9873417721518988": [
+                            "expr-try-catch-errors__6nXFbiV"
+                        ],
+                        "0.9767441860465116": [
+                            "fastapi-implicit-head-options__2Tg3eMe"
+                        ],
+                        "0.9367088607594937": [
+                            "csstree-shorthand-expansion-comp__4hUtHNN"
+                        ]
+                    },
+                    "p2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__DygNFF5",
+                            "oxvg-structural-selector-preserv__6RJxk4a",
+                            "effect-sse-httpapi-streaming__39RtzMT",
+                            "boa-hierarchical-evaluation-canc__cUfVvX7",
+                            "expr-try-catch-errors__6nXFbiV",
+                            "katex-multicolumn-array-spans__cdFjGfW",
+                            "scriggo-method-declarations__PkULDqE",
+                            "fastapi-implicit-head-options__2Tg3eMe",
+                            "csstree-shorthand-expansion-comp__4hUtHNN"
+                        ]
+                    },
+                    "partial": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__DygNFF5",
+                            "katex-multicolumn-array-spans__cdFjGfW"
+                        ],
+                        "0.9705882352941176": [
+                            "oxvg-structural-selector-preserv__6RJxk4a"
+                        ],
+                        "0.5982905982905983": [
+                            "effect-sse-httpapi-streaming__39RtzMT"
+                        ],
+                        "0.2916666666666667": [
+                            "boa-hierarchical-evaluation-canc__cUfVvX7"
+                        ],
+                        "0.999984927046907": [
+                            "expr-try-catch-errors__6nXFbiV"
+                        ],
+                        "0.9562443026435734": [
+                            "scriggo-method-declarations__PkULDqE"
+                        ],
+                        "0.9996852376455776": [
+                            "fastapi-implicit-head-options__2Tg3eMe"
+                        ],
+                        "0.9997022746218888": [
+                            "csstree-shorthand-expansion-comp__4hUtHNN"
+                        ]
+                    }
+                },
+                "exception_stats": {
+                    "AgentTimeoutError": [
+                        "scriggo-method-declarations__PkULDqE"
+                    ],
+                    "VerifierTimeoutError": [
+                        "koota-composite-trait-aspects__JWZnkA9"
+                    ]
+                }
+            },
+            "claude-code__kimi-k3[1m]__tasks": {
+                "n_trials": 10,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "f2p": 0.7457872368262637,
+                        "f2p_passed": 42.7,
+                        "f2p_total": 53.6,
+                        "p2p": 1.0,
+                        "p2p_passed": 8935.9,
+                        "p2p_total": 8935.9,
+                        "partial": 0.9235039299909854,
+                        "reward": 0.1
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "0": [
+                            "python-statemachine-state-data-s__rPBVs54",
+                            "oxvg-structural-selector-preserv__USS6tzH",
+                            "effect-sse-httpapi-streaming__PnvLNXA",
+                            "boa-hierarchical-evaluation-canc__245SQfJ",
+                            "expr-try-catch-errors__xdh2hSz",
+                            "katex-multicolumn-array-spans__LfhLMSd",
+                            "scriggo-method-declarations__hFMoy8t",
+                            "fastapi-implicit-head-options__CdKbHQt",
+                            "csstree-shorthand-expansion-comp__6vuvpdq"
+                        ],
+                        "1": [
+                            "koota-composite-trait-aspects__FBs3PJg"
+                        ]
+                    },
+                    "f2p_total": {
+                        "72": [
+                            "python-statemachine-state-data-s__rPBVs54"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__USS6tzH"
+                        ],
+                        "47": [
+                            "effect-sse-httpapi-streaming__PnvLNXA"
+                        ],
+                        "17": [
+                            "boa-hierarchical-evaluation-canc__245SQfJ"
+                        ],
+                        "79": [
+                            "expr-try-catch-errors__xdh2hSz",
+                            "csstree-shorthand-expansion-comp__6vuvpdq"
+                        ],
+                        "94": [
+                            "katex-multicolumn-array-spans__LfhLMSd"
+                        ],
+                        "48": [
+                            "scriggo-method-declarations__hFMoy8t"
+                        ],
+                        "43": [
+                            "fastapi-implicit-head-options__CdKbHQt"
+                        ],
+                        "51": [
+                            "koota-composite-trait-aspects__FBs3PJg"
+                        ]
+                    },
+                    "f2p_passed": {
+                        "70": [
+                            "python-statemachine-state-data-s__rPBVs54"
+                        ],
+                        "4": [
+                            "oxvg-structural-selector-preserv__USS6tzH"
+                        ],
+                        "45": [
+                            "effect-sse-httpapi-streaming__PnvLNXA"
+                        ],
+                        "0": [
+                            "boa-hierarchical-evaluation-canc__245SQfJ"
+                        ],
+                        "8": [
+                            "expr-try-catch-errors__xdh2hSz"
+                        ],
+                        "92": [
+                            "katex-multicolumn-array-spans__LfhLMSd"
+                        ],
+                        "44": [
+                            "scriggo-method-declarations__hFMoy8t"
+                        ],
+                        "41": [
+                            "fastapi-implicit-head-options__CdKbHQt"
+                        ],
+                        "72": [
+                            "csstree-shorthand-expansion-comp__6vuvpdq"
+                        ],
+                        "51": [
+                            "koota-composite-trait-aspects__FBs3PJg"
+                        ]
+                    },
+                    "p2p_total": {
+                        "1286": [
+                            "python-statemachine-state-data-s__rPBVs54"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__USS6tzH"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__PnvLNXA"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__245SQfJ"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__xdh2hSz"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__LfhLMSd"
+                        ],
+                        "1049": [
+                            "scriggo-method-declarations__hFMoy8t"
+                        ],
+                        "3134": [
+                            "fastapi-implicit-head-options__CdKbHQt"
+                        ],
+                        "16715": [
+                            "csstree-shorthand-expansion-comp__6vuvpdq"
+                        ],
+                        "172": [
+                            "koota-composite-trait-aspects__FBs3PJg"
+                        ]
+                    },
+                    "p2p_passed": {
+                        "1286": [
+                            "python-statemachine-state-data-s__rPBVs54"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__USS6tzH"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__PnvLNXA"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__245SQfJ"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__xdh2hSz"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__LfhLMSd"
+                        ],
+                        "1049": [
+                            "scriggo-method-declarations__hFMoy8t"
+                        ],
+                        "3134": [
+                            "fastapi-implicit-head-options__CdKbHQt"
+                        ],
+                        "16715": [
+                            "csstree-shorthand-expansion-comp__6vuvpdq"
+                        ],
+                        "172": [
+                            "koota-composite-trait-aspects__FBs3PJg"
+                        ]
+                    },
+                    "f2p": {
+                        "0.9722222222222222": [
+                            "python-statemachine-state-data-s__rPBVs54"
+                        ],
+                        "0.6666666666666666": [
+                            "oxvg-structural-selector-preserv__USS6tzH"
+                        ],
+                        "0.9574468085106383": [
+                            "effect-sse-httpapi-streaming__PnvLNXA"
+                        ],
+                        "0.0": [
+                            "boa-hierarchical-evaluation-canc__245SQfJ"
+                        ],
+                        "0.10126582278481013": [
+                            "expr-try-catch-errors__xdh2hSz"
+                        ],
+                        "0.9787234042553191": [
+                            "katex-multicolumn-array-spans__LfhLMSd"
+                        ],
+                        "0.9166666666666666": [
+                            "scriggo-method-declarations__hFMoy8t"
+                        ],
+                        "0.9534883720930233": [
+                            "fastapi-implicit-head-options__CdKbHQt"
+                        ],
+                        "0.9113924050632911": [
+                            "csstree-shorthand-expansion-comp__6vuvpdq"
+                        ],
+                        "1.0": [
+                            "koota-composite-trait-aspects__FBs3PJg"
+                        ]
+                    },
+                    "p2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__rPBVs54",
+                            "oxvg-structural-selector-preserv__USS6tzH",
+                            "effect-sse-httpapi-streaming__PnvLNXA",
+                            "boa-hierarchical-evaluation-canc__245SQfJ",
+                            "expr-try-catch-errors__xdh2hSz",
+                            "katex-multicolumn-array-spans__LfhLMSd",
+                            "scriggo-method-declarations__hFMoy8t",
+                            "fastapi-implicit-head-options__CdKbHQt",
+                            "csstree-shorthand-expansion-comp__6vuvpdq",
+                            "koota-composite-trait-aspects__FBs3PJg"
+                        ]
+                    },
+                    "partial": {
+                        "0.9985272459499264": [
+                            "python-statemachine-state-data-s__rPBVs54"
+                        ],
+                        "0.9705882352941176": [
+                            "oxvg-structural-selector-preserv__USS6tzH"
+                        ],
+                        "0.9829059829059829": [
+                            "effect-sse-httpapi-streaming__PnvLNXA"
+                        ],
+                        "0.2916666666666667": [
+                            "boa-hierarchical-evaluation-canc__245SQfJ"
+                        ],
+                        "0.9989298203303991": [
+                            "expr-try-catch-errors__xdh2hSz"
+                        ],
+                        "0.9971139971139971": [
+                            "katex-multicolumn-array-spans__LfhLMSd"
+                        ],
+                        "0.9963536918869644": [
+                            "scriggo-method-declarations__hFMoy8t"
+                        ],
+                        "0.9993704752911552": [
+                            "fastapi-implicit-head-options__CdKbHQt"
+                        ],
+                        "0.9995831844706443": [
+                            "csstree-shorthand-expansion-comp__6vuvpdq"
+                        ],
+                        "1.0": [
+                            "koota-composite-trait-aspects__FBs3PJg"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            },
+            "codex__kimi-k3__tasks": {
+                "n_trials": 10,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "f2p": 0.9923511984917857,
+                        "f2p_passed": 53.1,
+                        "f2p_total": 53.6,
+                        "p2p": 1.0,
+                        "p2p_passed": 8935.9,
+                        "p2p_total": 8935.9,
+                        "partial": 0.9980004907066886,
+                        "reward": 0.7
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "1": [
+                            "python-statemachine-state-data-s__SzvNQWZ",
+                            "oxvg-structural-selector-preserv__vcjhjue",
+                            "boa-hierarchical-evaluation-canc__v8kdp5C",
+                            "scriggo-method-declarations__xe6AG2H",
+                            "fastapi-implicit-head-options__STL2u86",
+                            "csstree-shorthand-expansion-comp__ME8CVaQ",
+                            "koota-composite-trait-aspects__BuQFGiG"
+                        ],
+                        "0": [
+                            "effect-sse-httpapi-streaming__X99kS8q",
+                            "expr-try-catch-errors__tUXUfys",
+                            "katex-multicolumn-array-spans__gjm5bSa"
+                        ]
+                    },
+                    "f2p_total": {
+                        "72": [
+                            "python-statemachine-state-data-s__SzvNQWZ"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__vcjhjue"
+                        ],
+                        "47": [
+                            "effect-sse-httpapi-streaming__X99kS8q"
+                        ],
+                        "17": [
+                            "boa-hierarchical-evaluation-canc__v8kdp5C"
+                        ],
+                        "79": [
+                            "expr-try-catch-errors__tUXUfys",
+                            "csstree-shorthand-expansion-comp__ME8CVaQ"
+                        ],
+                        "94": [
+                            "katex-multicolumn-array-spans__gjm5bSa"
+                        ],
+                        "48": [
+                            "scriggo-method-declarations__xe6AG2H"
+                        ],
+                        "43": [
+                            "fastapi-implicit-head-options__STL2u86"
+                        ],
+                        "51": [
+                            "koota-composite-trait-aspects__BuQFGiG"
+                        ]
+                    },
+                    "f2p_passed": {
+                        "72": [
+                            "python-statemachine-state-data-s__SzvNQWZ"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__vcjhjue"
+                        ],
+                        "45": [
+                            "effect-sse-httpapi-streaming__X99kS8q"
+                        ],
+                        "17": [
+                            "boa-hierarchical-evaluation-canc__v8kdp5C"
+                        ],
+                        "78": [
+                            "expr-try-catch-errors__tUXUfys"
+                        ],
+                        "92": [
+                            "katex-multicolumn-array-spans__gjm5bSa"
+                        ],
+                        "48": [
+                            "scriggo-method-declarations__xe6AG2H"
+                        ],
+                        "43": [
+                            "fastapi-implicit-head-options__STL2u86"
+                        ],
+                        "79": [
+                            "csstree-shorthand-expansion-comp__ME8CVaQ"
+                        ],
+                        "51": [
+                            "koota-composite-trait-aspects__BuQFGiG"
+                        ]
+                    },
+                    "p2p_total": {
+                        "1286": [
+                            "python-statemachine-state-data-s__SzvNQWZ"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__vcjhjue"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__X99kS8q"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__v8kdp5C"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__tUXUfys"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__gjm5bSa"
+                        ],
+                        "1049": [
+                            "scriggo-method-declarations__xe6AG2H"
+                        ],
+                        "3134": [
+                            "fastapi-implicit-head-options__STL2u86"
+                        ],
+                        "16715": [
+                            "csstree-shorthand-expansion-comp__ME8CVaQ"
+                        ],
+                        "172": [
+                            "koota-composite-trait-aspects__BuQFGiG"
+                        ]
+                    },
+                    "p2p_passed": {
+                        "1286": [
+                            "python-statemachine-state-data-s__SzvNQWZ"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__vcjhjue"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__X99kS8q"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__v8kdp5C"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__tUXUfys"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__gjm5bSa"
+                        ],
+                        "1049": [
+                            "scriggo-method-declarations__xe6AG2H"
+                        ],
+                        "3134": [
+                            "fastapi-implicit-head-options__STL2u86"
+                        ],
+                        "16715": [
+                            "csstree-shorthand-expansion-comp__ME8CVaQ"
+                        ],
+                        "172": [
+                            "koota-composite-trait-aspects__BuQFGiG"
+                        ]
+                    },
+                    "f2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__SzvNQWZ",
+                            "oxvg-structural-selector-preserv__vcjhjue",
+                            "boa-hierarchical-evaluation-canc__v8kdp5C",
+                            "scriggo-method-declarations__xe6AG2H",
+                            "fastapi-implicit-head-options__STL2u86",
+                            "csstree-shorthand-expansion-comp__ME8CVaQ",
+                            "koota-composite-trait-aspects__BuQFGiG"
+                        ],
+                        "0.9574468085106383": [
+                            "effect-sse-httpapi-streaming__X99kS8q"
+                        ],
+                        "0.9873417721518988": [
+                            "expr-try-catch-errors__tUXUfys"
+                        ],
+                        "0.9787234042553191": [
+                            "katex-multicolumn-array-spans__gjm5bSa"
+                        ]
+                    },
+                    "p2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__SzvNQWZ",
+                            "oxvg-structural-selector-preserv__vcjhjue",
+                            "effect-sse-httpapi-streaming__X99kS8q",
+                            "boa-hierarchical-evaluation-canc__v8kdp5C",
+                            "expr-try-catch-errors__tUXUfys",
+                            "katex-multicolumn-array-spans__gjm5bSa",
+                            "scriggo-method-declarations__xe6AG2H",
+                            "fastapi-implicit-head-options__STL2u86",
+                            "csstree-shorthand-expansion-comp__ME8CVaQ",
+                            "koota-composite-trait-aspects__BuQFGiG"
+                        ]
+                    },
+                    "partial": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__SzvNQWZ",
+                            "oxvg-structural-selector-preserv__vcjhjue",
+                            "boa-hierarchical-evaluation-canc__v8kdp5C",
+                            "scriggo-method-declarations__xe6AG2H",
+                            "fastapi-implicit-head-options__STL2u86",
+                            "csstree-shorthand-expansion-comp__ME8CVaQ",
+                            "koota-composite-trait-aspects__BuQFGiG"
+                        ],
+                        "0.9829059829059829": [
+                            "effect-sse-httpapi-streaming__X99kS8q"
+                        ],
+                        "0.999984927046907": [
+                            "expr-try-catch-errors__tUXUfys"
+                        ],
+                        "0.9971139971139971": [
+                            "katex-multicolumn-array-spans__gjm5bSa"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        },
+        "n_input_tokens": 928903383,
+        "n_cache_tokens": 911740408,
+        "n_output_tokens": 3255886,
+        "cost_usd": 315.5355726
+    }
+}

