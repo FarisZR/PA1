@@ -68,7 +68,7 @@ The config lives in two tracked templates:
 
 | File | Contents |
 | --- | --- |
-| `config.template.yaml` | the whole deployment config, with `"__SENTINEL__"` placeholders for the three credentials and the request-log flag |
+| `config.template.yaml` | the whole deployment config, with `"__SENTINEL__"` placeholders for the bridge, LiteLLM, and Z.AI credentials plus the request-log flag |
 | `config.opus.template.yaml` | the Anthropic route, appended by `--include-opus` |
 
 Both are reviewable and diffable. Everything above each file's `---8<---`
@@ -86,8 +86,8 @@ table the job configs point at.
 
 The file has to be generated rather than mounted straight from the template
 because **CLIProxyAPI performs no environment interpolation** — there is no
-`os.ExpandEnv` or `os.Getenv` anywhere in its config package — so the gateway
-key, the bridge key, and the Anthropic key must be literals in the file it
+`os.ExpandEnv` or `os.Getenv` anywhere in its config package — so the gateway,
+Z.AI, bridge, and optional Anthropic keys must be literals in the file it
 reads. Sentinels are quoted in the template so it stays valid YAML on its own,
 and the generator replaces the whole quoted scalar so credentials are escaped
 rather than pasted in raw. It refuses to write a config with any placeholder
@@ -171,9 +171,9 @@ also rejects a dotless bare hostname, because Pier discards those when building
 the Squid allowlist and every Codex request would then be denied.
 
 The Codex-to-bridge hop is plain HTTP on the runner host. What crosses it is
-`CODEX_CLIPROXY_API_KEY`, a token chosen locally for this bridge — the gateway
-and Anthropic credentials stay in the bridge's own config and never leave the
-host. To use TLS instead, set `tls.enable`/`cert`/`key` in the generated config,
+`CODEX_CLIPROXY_API_KEY`, a token chosen locally for this bridge — the LiteLLM,
+Z.AI, and Anthropic credentials stay in the bridge's own config and never leave
+the host. To use TLS instead, set `tls.enable`/`cert`/`key` in the generated config,
 publish on 443, and append the issuing CA to the `PIER_EXTRA_CA_CERTS` bundle,
 which accepts multiple PEM blocks.
 
@@ -250,10 +250,11 @@ python3 benchmark/bridges/codex-cliproxy/tests/test_generated_config.py
 
 Runs the real generator into a temporary directory — never touching
 `benchmark/generated/` — and checks what it actually emits: no unresolved
-placeholders, credentials substituted, `max` still declared for all three models,
-the transparency settings present, mode 0600, and the Codex provider TOML
-pointing at the bridge. It then boots the pinned image on that exact file and
-confirms CLIProxyAPI accepts it, serves exactly the three benchmark models, and
+placeholders, credentials substituted, `max` still declared for the three
+historical aliases plus the direct Z.AI GLM alias, the transparency settings
+present, mode 0600, and the Codex provider TOML pointing at the bridge. It then
+boots the pinned image on that exact file and confirms CLIProxyAPI accepts it,
+serves those four aliases, and
 rejects an unknown API key. The `--include-opus` variant is checked too.
 
 ### Codex driving a real task
