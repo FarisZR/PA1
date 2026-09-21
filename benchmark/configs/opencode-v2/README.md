@@ -7,9 +7,10 @@ runs as the fourth harness in a separate per-model job. The profile order is:
 
 1. `kimi-k3.yaml`
 2. `deepseek-v4p1-flash.yaml`
-3. `glm-5.3-flash.yaml`
-4. `luna.yaml`
-5. `opus.yaml` (also subject to the separate Opus deferral)
+3. `glm-5.3-sub.yaml` (current direct Z.AI route)
+4. `glm-5.3-flash.yaml` (historical Fireworks route)
+5. `luna.yaml`
+6. `opus.yaml` (also subject to the separate Opus deferral)
 
 Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 `kwargs.variant: max`; the adapter emits OpenCode's native
@@ -39,6 +40,14 @@ above 272,000 at 2x, and `benchmark/pricing.yaml` models no such tier, so
 inheriting the full window would under-cost this harness rather than measure
 it. The pinned OpenCode 2.0.8 run uses the committed catalogue with model
 fetching disabled.
+
+The current GLM subscription job is `glm-5.3-sub.yaml`. It keeps the
+same upstream `zai/glm-5.3-flash` identity but uses OpenCode's native Z.AI
+provider with `ZHIPU_API_KEY` mapped from `ZAI_API_KEY` and overrides only
+the endpoint to `https://api.z.ai/api/coding/paas/v4`, which is required for a
+Coding Plan credential. It intentionally does not carry the Fireworks package,
+`canonical: fireworks`, `glm-5p3-flash` transport alias, or the Fireworks-only
+reasoning compatibility overrides.
 
 GLM therefore keeps the upstream `zai/glm-5.3-flash` metadata and identity
 while using the Fireworks transport; its profile and provenance are in
