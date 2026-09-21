@@ -22,10 +22,8 @@ retry:
 environment:
   type: docker
 
-datasets:
-  - path: ../DeepSWE/tasks
-    task_names:
-      - anko-default-function-arguments
+tasks:
+  - path: benchmark/tasks/opencode-v2-smoke
 
 agents:
   # Luna: OpenAI-compatible CLIProxyAPI surface.
