@@ -15,14 +15,16 @@ runs as the fourth harness in a separate per-model job. The profile order is:
 Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 `kwargs.variant: max`; the adapter emits OpenCode's native
 `provider/model#max` selection internally. Direct-Anthropic Opus uses
-`medium`. The tiny GLM/Luna smoke and dedicated GLM delegation smoke under
-`benchmark/configs/opencode-v2/` use `low`; both are intentionally separate
-from the primary jobs.
+`medium`. The tiny current-routes smoke covers direct Z.AI GLM, CLIProxyAPI
+Luna, and LiteLLM-backed DeepSeek at `low`. The dedicated GLM delegation smoke
+also uses `low` and remains intentionally separate from the primary jobs.
 
 Luna retains the built-in OpenAI Responses profile and redirects only its
 endpoint/key to the shared CLIProxyAPI instance backed by the ChatGPT
-subscription. Kimi K3, DeepSeek V4.1
-Flash, and GLM keep their canonical OpenCode model identities
+subscription. The current smoke uses the same route. DeepSeek's smoke leg uses
+the same LiteLLM/Fireworks transport override as its primary profile, while
+GLM's smoke leg uses the direct Z.AI Coding Plan endpoint from
+`glm-5.3-sub.yaml`. Kimi K3, DeepSeek V4.1 Flash, and GLM keep their canonical OpenCode model identities
 (`moonshotai/kimi-k3`, `deepseek/deepseek-v4p1-flash`, and
 `zai/glm-5.3-flash`). Their provider configs override only the transport
 package, gateway model ID, endpoint, key, and required output cap to use the
