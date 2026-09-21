@@ -42,6 +42,7 @@ __pycache__/
 benchmark/env.local
 benchmark/generated/
 benchmark/runs/
+benchmark/evidence/
 # The pinned executable is a local verification cache; provenance and SHA-256
 # are reviewable in benchmark/references/opencode-v2-glm-5.3-flash.json.
 # Version-agnostic so bumping the pin cannot leave a ~95 MB binary untracked.
