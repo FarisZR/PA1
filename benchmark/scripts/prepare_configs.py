@@ -509,22 +509,6 @@ def validate_pi_fireworks_compat(path: Path, rendered: str) -> None:
                 f"{path}: GLM Pi must not send Z.AI-only tool_stream to Fireworks"
             )
 
-    if "model_name: deepseek/deepseek-v4p1-flash" in rendered:
-        required = (
-            "thinkingFormat: openai",
-            "requiresReasoningContentOnAssistantMessages: true",
-            "zaiToolStream: false",
-        )
-        missing = [item for item in required if item not in rendered]
-        if missing:
-            raise SystemExit(
-                f"{path}: DeepSeek Pi Fireworks profile is missing "
-                + ", ".join(repr(item) for item in missing)
-            )
-        if "zaiToolStream: true" in rendered:
-            raise SystemExit(
-                f"{path}: DeepSeek Pi must not send Z.AI-only tool_stream to Fireworks"
-            )
 
 
 OPENCODE_V2_AGENT_BLOCK = r"(?ms)^  - name: opencode-v2\b.*?(?=^  - name:|\Z)"
