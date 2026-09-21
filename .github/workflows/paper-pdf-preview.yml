@@ -15,6 +15,20 @@ on:
       - "scripts/survey_analysis.py"
       - "data/**/*.csv"
       - ".github/workflows/paper-pdf-preview.yml"
+  push:
+    branches: [main]
+    paths:
+      - "pa1.qmd"
+      - "chapters/**"
+      - "_quarto.yml"
+      - "references.bib"
+      - "ieee.csl"
+      - "requirements.txt"
+      - "figures/**"
+      - "scripts/figures.py"
+      - "scripts/survey_analysis.py"
+      - "data/**/*.csv"
+      - ".github/workflows/paper-pdf-preview.yml"
 
 permissions:
   contents: read
@@ -22,7 +36,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: paper-pdf-preview-${{ github.event.pull_request.number }}
+  group: paper-pdf-preview-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
 env:
@@ -63,10 +77,24 @@ jobs:
       - name: Verify rendered PDF
         run: test -s _output/pa1.pdf
 
+      - name: Set preview metadata
+        id: preview
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "artifact=pa1-pdf-pr-${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+            echo "branch=pr-${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+            echo "commit=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "artifact=pa1-pdf-main" >> "$GITHUB_OUTPUT"
+            echo "branch=main" >> "$GITHUB_OUTPUT"
+            echo "commit=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload rendered PDF
         uses: actions/upload-artifact@v7
         with:
-          name: pa1-pdf-pr-${{ github.event.pull_request.number }}
+          name: ${{ steps.preview.outputs.artifact }}
           path: _output/pa1.pdf
           if-no-files-found: error
           retention-days: 30
@@ -93,7 +121,8 @@ jobs:
       - name: Deploy to Cloudflare Pages
         id: deploy
         if: >-
-          github.event.pull_request.head.repo.full_name == github.repository &&
+          (github.event_name == 'push' ||
+          github.event.pull_request.head.repo.full_name == github.repository) &&
           env.CLOUDFLARE_API_TOKEN != '' &&
           env.CLOUDFLARE_ACCOUNT_ID != ''
         uses: cloudflare/wrangler-action@v4
@@ -108,11 +137,11 @@ jobs:
           command: >-
             pages deploy _preview
             --project-name=${{ env.CLOUDFLARE_PAGES_PROJECT }}
-            --branch=pr-${{ github.event.pull_request.number }}
-            --commit-hash=${{ github.event.pull_request.head.sha }}
+            --branch=${{ steps.preview.outputs.branch }}
+            --commit-hash=${{ steps.preview.outputs.commit }}
 
       - name: Comment preview URL
-        if: steps.deploy.outcome == 'success'
+        if: github.event_name == 'pull_request' && steps.deploy.outcome == 'success'
         uses: actions/github-script@v9
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url || steps.deploy.outputs.deployment-url }}
