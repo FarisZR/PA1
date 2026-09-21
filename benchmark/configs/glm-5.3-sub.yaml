@@ -77,5 +77,5 @@ agents:
       command_model_name: glm-5.3-flash
       reasoning_effort: max
       restrict_model_catalog: true
-      model_catalog_file: benchmark/generated/codex-thirdparty-models.json
+      model_catalog_file: benchmark/generated/codex-glm-zai-models.json
       config_toml_file: benchmark/generated/codex-cliproxy-no-web-search.toml
