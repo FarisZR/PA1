@@ -143,12 +143,13 @@ wasted spend deleted from the cost metric. Run only one model job at a time.
 ### Current benchmark setup (2026-09-21)
 
 Use these revisions for new runs. The Pier pin is the merge commit that includes
-the reviewed OpenCode V2 live-evidence and timeout-diagnostic fixes on
-`FZR-forks/pier` main.
+the reviewed OpenCode V2 live-evidence and timeout-diagnostic fixes plus the
+provider-URL compatibility hotfix required for CLIProxyAPI on the Docker bridge
+endpoint.
 
 | Component | Frozen revision/version |
 | --- | --- |
-| FZR Pier fork | [`7636cbee99ed947c64e0b350be031ec31e47dfee`](https://github.com/FZR-forks/pier/commit/7636cbee99ed947c64e0b350be031ec31e47dfee) |
+| FZR Pier fork | [`ac868ad54893db98143f6e9a2d8c783faeb64a61`](https://github.com/FZR-forks/pier/commit/ac868ad54893db98143f6e9a2d8c783faeb64a61) |
 | DeepSWE | [`0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`](https://github.com/datacurve-ai/deep-swe/commit/0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea) |
 | Codex CLI | `0.151.0` |
 | Claude Code | `2.1.251` |
@@ -158,9 +159,14 @@ the reviewed OpenCode V2 live-evidence and timeout-diagnostic fixes on
 | Codex compatibility bridge | CLIProxyAPI `v7.2.146` + [upstream #5659](https://github.com/router-for-me/CLIProxyAPI/issues/5659) backport; GHCR digest `sha256:26de0755cf37765291e149590e13ee354010c8caa7b25ec3981827f2d606d6dc` |
 
 Pier PR [FZR-forks/pier#12](https://github.com/FZR-forks/pier/pull/12) added the
-independent `opencode-v2` adapter, and PR
+independent `opencode-v2` adapter, PR
 [#14](https://github.com/FZR-forks/pier/pull/14) made its execution evidence
-durable during failures and timeouts. The PA1-side OpenCode configuration,
+durable during failures and timeouts, and PR
+[#15](https://github.com/FZR-forks/pier/pull/15) removed an OpenCode V2-only
+provider URL restriction that rejected the benchmark CLIProxyAPI endpoint
+`http://172.17.0.1/v1`. PR #15 changes only the OpenCode V2 provider-URL
+validation and its tests; Pi, Claude Code, Codex, task definitions, retry
+semantics, and accounting are unchanged. The PA1-side OpenCode configuration,
 verification evidence, frozen binary checksums, model isolation rules, output
 caps, and transport choices are documented in
 `benchmark/references/opencode-v2-verification.md`,
@@ -171,6 +177,38 @@ The DeepSWE revision includes the upstream 10,800-second task timeout. Claude
 Code runs with its updater disabled. Pier writes `lock.json` into each job
 result directory; keep it with the benchmark results and record the PA1 commit
 used for the run.
+
+### DeepSeek V4.1 pre-hotfix checkpoint — preserve completed runs
+
+DeepSeek V4.1 Flash was already completed on Pi, Claude Code, and Codex using
+Pier [`7636cbee99ed947c64e0b350be031ec31e47dfee`](https://github.com/FZR-forks/pier/commit/7636cbee99ed947c64e0b350be031ec31e47dfee)
+before the OpenCode V2 CLIProxyAPI incompatibility was discovered. Preserve
+those completed results on that checkpoint.
+
+The OpenCode V2 adapter at that revision enforced HTTPS for provider URLs except
+explicit loopback HTTP addresses. Trial containers reach CLIProxyAPI through
+the Docker bridge at `http://172.17.0.1/v1`, so OpenCode V2 rejected the route
+before the harness could run. Pier PR
+[#15](https://github.com/FZR-forks/pier/pull/15) removes that adapter-specific
+restriction and makes OpenCode V2 follow the same provider-address policy as the
+other Pier adapters.
+
+The hotfix merge checkpoint is
+[`ac868ad54893db98143f6e9a2d8c783faeb64a61`](https://github.com/FZR-forks/pier/commit/ac868ad54893db98143f6e9a2d8c783faeb64a61).
+Use it for the DeepSeek OpenCode V2 trials and for every newly started benchmark
+run after the hotfix. Do **not** rerun the completed DeepSeek Pi, Claude Code,
+or Codex trials merely to align the Pier SHA: PR #15 does not alter any code
+path used by those harnesses. Their exact runner revision remains recorded by
+the retained job `lock.json`.
+
+The resulting retained Pier provenance is therefore:
+
+| Primary data | Pier revision |
+| --- | --- |
+| Kimi K3 — Pi, Claude Code, Codex | `ff65bae55c9a8ff15ddd3c2967c81a936713dd4d` |
+| DeepSeek V4.1 Flash — Pi, Claude Code, Codex | `7636cbee99ed947c64e0b350be031ec31e47dfee` |
+| DeepSeek V4.1 Flash — OpenCode V2 | `ac868ad54893db98143f6e9a2d8c783faeb64a61` |
+| All newly started runs after the hotfix | `ac868ad54893db98143f6e9a2d8c783faeb64a61` |
 
 ### Historical Kimi K3 2026-08-31 run configuration — preserve exactly
 
@@ -682,12 +720,21 @@ cd ~
 git clone https://github.com/FZR-forks/pier.git pier   # skip if present
 cd ~/pier
 git fetch origin
-git checkout 7636cbee99ed947c64e0b350be031ec31e47dfee
+git checkout ac868ad54893db98143f6e9a2d8c783faeb64a61
 uv sync --python /usr/bin/python3.13
 ~/pier/.venv/bin/pier job start --help
 ```
 
 Run the actual jobs from `~/PA1`, not from the Pier checkout.
+
+To reproduce the completed DeepSeek V4.1 Pi / Claude Code / Codex runs,
+deliberately check out the pre-hotfix checkpoint:
+
+```bash
+cd ~/pier
+git checkout 7636cbee99ed947c64e0b350be031ec31e47dfee
+uv sync --python /usr/bin/python3.13
+```
 
 To reproduce the end-of-August runs instead of starting a new run, deliberately
 check out the historical Pier revision:
