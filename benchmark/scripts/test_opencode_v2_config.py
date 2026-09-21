@@ -166,7 +166,7 @@ providers:
                 require_input=True,
             )
 
-    def test_pi_fireworks_profiles_reject_provider_only_extensions(self) -> None:
+    def test_glm_pi_rejects_zai_only_transport_extensions(self) -> None:
         glm = (BENCHMARK / "configs" / "glm-5.3-flash.yaml").read_text()
         prepare_configs.validate_pi_fireworks_compat(
             Path("glm-5.3-flash.yaml"), glm
