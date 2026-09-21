@@ -19,6 +19,7 @@ CURRENT_MODEL_CONFIGS = {
     "kimi-k3.yaml": 1,
     "deepseek-v4p1-flash.yaml": 1,
     "glm-5.3-flash.yaml": 1,
+    "glm-5.3-sub.yaml": 0,
     "luna.yaml": 0,
     "opencode-v2/smoke.yaml": 2,
     "opencode-v2/delegation-smoke.yaml": 1,
@@ -259,6 +260,34 @@ def glm_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
     )
 
 
+def glm_zai_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
+    """Return direct Z.AI GLM-5.3-Flash metadata for the subscription route."""
+    return third_party_codex_entry(
+        sol_profile,
+        slug="glm-5.3-flash",
+        display_name="GLM-5.3-Flash",
+        description="GLM-5.3-Flash via Z.AI Coding Plan",
+        context_window=1_000_000,
+        input_modalities=["text", "image"],
+        default_reasoning_level="max",
+        supported_reasoning_levels=[
+            {
+                "effort": "low",
+                "description": "Fast responses with lighter reasoning",
+            },
+            {
+                "effort": "high",
+                "description": "Greater reasoning depth for complex problems",
+            },
+            {
+                "effort": "max",
+                "description": "Maximum reasoning depth for the hardest problems",
+            },
+        ],
+        supports_image_detail_original=False,
+    )
+
+
 def opus_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
     """Return Opus metadata on top of the frozen GPT-5.6 Sol profile."""
     return third_party_codex_entry(
@@ -363,6 +392,8 @@ def cliproxy_config(
     litellm_url: str,
     litellm_api_key: str,
     thirdparty_entries: list[dict[str, object]],
+    zai_entry: dict[str, object],
+    zai_api_key: str,
     opus_entry: dict[str, object] | None,
     anthropic_api_key: str | None,
     request_log: bool,
@@ -382,12 +413,15 @@ def cliproxy_config(
 
     template = template_body(CLIPROXY_TEMPLATE, CLIPROXY_TEMPLATE.read_text())
     template = "\n".join(CLIPROXY_GENERATED_HEADER) + "\n" + template
-    verify_cliproxy_models(CLIPROXY_TEMPLATE, template, thirdparty_entries)
+    verify_cliproxy_models(
+        CLIPROXY_TEMPLATE, template, [*thirdparty_entries, zai_entry]
+    )
 
     values = {
         "__CODEX_CLIPROXY_API_KEY__": bridge_api_key,
         "__LITELLM_API_KEY__": litellm_api_key,
         "__LITELLM_OPENAI_BASE_URL__": litellm_url.rstrip("/"),
+        "__ZAI_API_KEY__": zai_api_key,
         "__REQUEST_LOG__": request_log,
     }
 
@@ -828,22 +862,42 @@ def _validate_primary_explicit_profile(
             + ", ".join(repr(item) for item in missing)
         )
     if model_ref == "zai/glm-5.3-flash":
-        required_glm = (
-            'package: "@opencode/ai/providers/fireworks"',
-            "models:\n            glm-5.3-flash:",
-            "modelID: glm-5p3-flash",
-            "reasoningField: reasoning_content",
-            "max_tokens: 131072",
-            "reasoningEffort: low",
-            "reasoningEffort: high",
-            "reasoningEffort: max",
-        )
-        missing_glm = [needle for needle in required_glm if needle not in rendered]
-        if missing_glm:
-            raise SystemExit(
-                f"{path}: GLM explicit profile is missing "
-                + ", ".join(repr(item) for item in missing_glm)
+        if path.name == "glm-5.3-sub.yaml":
+            required_glm = (
+                "ZHIPU_API_KEY: ${ZAI_API_KEY}",
+                "providers:\n          zai:",
+                "baseURL: https://api.z.ai/api/coding/paas/v4",
             )
+            forbidden = (
+                '@opencode/ai/providers/fireworks',
+                "canonical: fireworks",
+                "modelID: glm-5p3-flash",
+            )
+            missing_glm = [needle for needle in required_glm if needle not in rendered]
+            present_forbidden = [needle for needle in forbidden if needle in rendered]
+            if missing_glm or present_forbidden:
+                detail = missing_glm + [f"forbidden {item}" for item in present_forbidden]
+                raise SystemExit(
+                    f"{path}: direct Z.AI GLM profile mismatch: "
+                    + ", ".join(repr(item) for item in detail)
+                )
+        else:
+            required_glm = (
+                'package: "@opencode/ai/providers/fireworks"',
+                "models:\n            glm-5.3-flash:",
+                "modelID: glm-5p3-flash",
+                "reasoningField: reasoning_content",
+                "max_tokens: 131072",
+                "reasoningEffort: low",
+                "reasoningEffort: high",
+                "reasoningEffort: max",
+            )
+            missing_glm = [needle for needle in required_glm if needle not in rendered]
+            if missing_glm:
+                raise SystemExit(
+                    f"{path}: GLM explicit profile is missing "
+                    + ", ".join(repr(item) for item in missing_glm)
+                )
 
 
 def validate_primary_opencode_v2_profiles() -> None:
@@ -858,6 +912,7 @@ def validate_primary_opencode_v2_profiles() -> None:
         )
     explicit_profiles = {
         "glm-5.3-flash.yaml": ("zai/glm-5.3-flash", "max"),
+        "glm-5.3-sub.yaml": ("zai/glm-5.3-flash", "max"),
         "opus.yaml": ("anthropic/claude-opus-5", "medium"),
     }
     for filename, (model_ref, variant) in explicit_profiles.items():
@@ -906,6 +961,7 @@ def main() -> None:
         require("LITELLM_ANTHROPIC_BASE_URL"),
     )
     litellm_api_key = require("LITELLM_API_KEY")
+    zai_api_key = require("ZAI_API_KEY")
     bridge_url = validate_bridge_url(require("CODEX_CLIPROXY_BASE_URL"))
     bridge_api_key = require("CODEX_CLIPROXY_API_KEY")
     request_log = os.environ.get("CODEX_CLIPROXY_REQUEST_LOG", "").strip().lower() in {
@@ -938,6 +994,8 @@ def main() -> None:
         glm_codex_entry(sol_profile),
     ]
     catalog_json = json.dumps({"models": thirdparty_entries}, indent=2) + "\n"
+    zai_entry = glm_zai_codex_entry(sol_profile)
+    zai_catalog_json = json.dumps({"models": [zai_entry]}, indent=2) + "\n"
 
     # Retained as the control for issue #31: this is the direct corporate-gateway
     # Codex route that Fireworks rejects. No current job references it.
@@ -974,6 +1032,8 @@ def main() -> None:
         litellm_url=litellm_url,
         litellm_api_key=litellm_api_key,
         thirdparty_entries=thirdparty_entries,
+        zai_entry=zai_entry,
+        zai_api_key=zai_api_key,
         opus_entry=opus_entry,
         anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", "").strip() or None,
         request_log=request_log,
@@ -1003,6 +1063,7 @@ def main() -> None:
         ("codex-cliproxy.toml", bridge_toml),
         ("codex-cliproxy-no-web-search.toml", bridge_no_web_search_toml),
         ("codex-thirdparty-models.json", catalog_json),
+        ("codex-glm-zai-models.json", zai_catalog_json),
     ):
         path = GENERATED_DIR / name
         path.write_text(contents)
