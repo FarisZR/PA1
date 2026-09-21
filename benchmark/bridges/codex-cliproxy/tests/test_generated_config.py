@@ -204,11 +204,8 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
     check(
         openai_config.get("web_search") == "disabled"
         and openai_config.get("model_provider") == "openai"
-        and openai_config.get("model_providers", {}).get("openai", {}).get("base_url")
-        == BRIDGE_URL
-        and openai_config.get("model_providers", {}).get("openai", {}).get("env_key")
-        == "CODEX_CLIPROXY_API_KEY",
-        f"{label}: Luna keeps the built-in OpenAI identity through CLIProxyAPI",
+        and "openai" not in openai_config.get("model_providers", {}),
+        f"{label}: Luna uses Codex's reserved built-in OpenAI provider",
         openai_no_web_search_toml,
     )
 
