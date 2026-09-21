@@ -367,15 +367,17 @@ The gateway exposes GLM-5.3-Flash as `glm-5p3-flash`. Pi therefore registers tha
 transport alias as a custom `zai` model while copying Pi 0.84.4's built-in
 `zai/glm-5.3-flash` metadata: text-and-image input, `low`/`high`/`max`
 reasoning, a 1,000,000-token context window, a 131,072-token output ceiling,
-Z.AI tool-stream compatibility, and the built-in cost metadata. The
-Fireworks route advertises 1,048,576 context, which is used for Codex, Claude
-Code's declared compaction window, and cost normalization.
+and the built-in cost metadata. The Fireworks route advertises 1,048,576
+context, which is used for Codex, Claude Code's declared compaction window, and
+cost normalization.
 
-`compat.thinkingFormat` is the one field overridden from the bundled profile.
-The bundled value `"zai"` emits `thinking` alongside `reasoning_effort`, which
-the gateway's Fireworks route rejects with HTTP 400 — the 2026-09-20 run lost
-all ten Pi trials to it before the first token. It is set to `"openai"`, the
-same single-`reasoning_effort` path Kimi K3 and DeepSeek V4.1 Flash take.
+Two Z.AI transport settings are overridden for the Fireworks-backed gateway.
+`thinkingFormat` is set to `"openai"` so Pi sends only `reasoning_effort`;
+the bundled `"zai"` format sends `thinking` as well and the gateway rejects
+that pair. `zaiToolStream` is set to `false` because Pi otherwise adds the
+Z.AI-only `tool_stream: true` field whenever tools are present, which Fireworks
+also rejects with HTTP 400. Generation now validates both invariants before any
+benchmark file is written.
 
 Pi has no native subagent system in this benchmark setup. Pier launches the
 selected provider/model explicitly in non-interactive print mode.
@@ -624,8 +626,8 @@ Fill these values:
 | Variable | Used by | Meaning |
 | --- | --- | --- |
 | `LITELLM_API_KEY` | all three harnesses | Credential for the existing LiteLLM gateway. Codex reaches it indirectly, through the bridge. |
-| `LITELLM_OPENAI_BASE_URL` | Pi, bridge | OpenAI-compatible base URL, normally ending in `/v1` |
-| `LITELLM_ANTHROPIC_BASE_URL` | Claude Code | Anthropic-compatible base URL |
+| `LITELLM_OPENAI_BASE_URL` | Pi, bridge | OpenAI-compatible base URL ending in `/v1`; generation rejects dotless hosts, localhost, and non-80/443 ports because Pier's egress proxy would block them. |
+| `LITELLM_ANTHROPIC_BASE_URL` | Claude Code | Anthropic-compatible base URL; generation applies the same host and 80/443 egress checks. |
 | `PIER_EXTRA_CA_CERTS` | all three harnesses | Absolute path to the tracked `benchmark/puki-root-ca-2022.pem` bundle containing both public PUKI Root CA 2022 RSA and EC certificates. Required on this runner: the gateway serves an internal IONOS PUKI certificate that containers do not trust by default, and without it every trial fails its first model call. |
 | `CODEX_CLIPROXY_BASE_URL` | Codex | `/v1` endpoint of the compatibility bridge as seen from a trial container. Must be on port 80 or 443 and must not be a dotless bare hostname; `prepare_configs.py` rejects both. |
 | `CODEX_CLIPROXY_API_KEY` | Codex | Token Codex presents to the bridge. Chosen locally; not a gateway or vendor credential. |

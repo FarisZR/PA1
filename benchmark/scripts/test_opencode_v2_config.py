@@ -166,6 +166,44 @@ providers:
                 require_input=True,
             )
 
+    def test_glm_pi_rejects_zai_only_transport_extensions(self) -> None:
+        glm = (BENCHMARK / "configs" / "glm-5.3-flash.yaml").read_text()
+        prepare_configs.validate_pi_fireworks_compat(
+            Path("glm-5.3-flash.yaml"), glm
+        )
+
+        with self.assertRaisesRegex(SystemExit, "tool_stream"):
+            prepare_configs.validate_pi_fireworks_compat(
+                Path("glm-5.3-flash.yaml"),
+                glm.replace("zaiToolStream: false", "zaiToolStream: true"),
+            )
+        with self.assertRaisesRegex(SystemExit, "thinkingFormat"):
+            prepare_configs.validate_pi_fireworks_compat(
+                Path("glm-5.3-flash.yaml"),
+                glm.replace("thinkingFormat: openai", "thinkingFormat: zai"),
+            )
+
+    def test_gateway_urls_match_pier_egress_contract(self) -> None:
+        self.assertEqual(
+            prepare_configs.validate_egress_url(
+                "LITELLM_OPENAI_BASE_URL",
+                "https://gateway.example/v1",
+                require_v1=True,
+            ),
+            "https://gateway.example/v1",
+        )
+        for url in (
+            "https://gateway:8443/v1",
+            "https://gateway/v1",
+            "http://localhost/v1",
+        ):
+            with self.subTest(url=url), self.assertRaises(SystemExit):
+                prepare_configs.validate_egress_url(
+                    "LITELLM_OPENAI_BASE_URL",
+                    url,
+                    require_v1=True,
+                )
+
     def test_model_limits_do_not_fall_through_to_sibling_model(self) -> None:
         rendered = """
 providers:
@@ -318,6 +356,7 @@ providers:
                     "\n".join(
                         [
                             "LITELLM_OPENAI_BASE_URL=https://gateway.example/v1",
+                            "LITELLM_ANTHROPIC_BASE_URL=https://gateway.example",
                             "LITELLM_API_KEY=test-gateway-key",
                             "CODEX_CLIPROXY_BASE_URL=https://bridge.example/v1",
                             "CODEX_CLIPROXY_API_KEY=test-bridge-key",

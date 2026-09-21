@@ -92,7 +92,9 @@ agents:
                   # tokens. "openai" sends `reasoning_effort` alone, the same
                   # path Kimi K3 and DeepSeek V4.1 Flash already take.
                   thinkingFormat: openai
-                  zaiToolStream: true
+                  # `tool_stream` is a Z.AI-only request extension. The PA1
+                  # route is Fireworks-backed and rejects that field with HTTP 400.
+                  zaiToolStream: false
                 contextWindow: 1000000
                 maxTokens: 131072
 
