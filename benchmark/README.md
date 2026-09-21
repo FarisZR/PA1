@@ -389,9 +389,8 @@ preserving the upstream context window and normalized pricing.
 
 DeepSeek V4.1 Flash is newer than the frozen Pi 0.84.4 catalog, so
 `benchmark/configs/deepseek-v4p1-flash.yaml` declares its model explicitly. The
-entry preserves DeepSeek's required reasoning-content echo, uses
-`thinkingFormat: openai`, and explicitly keeps `zaiToolStream: false` so the
-same Fireworks transport rule cannot regress there. It also adds native image
+entry preserves DeepSeek's required reasoning-content echo and uses
+`thinkingFormat: openai`. It also adds native image
 input, uses the normalized 1,000,000-token context window, and uses the same
 `thinkingFormat: openai` compatibility path as Pi's bundled Kimi K3 entry: a
 single `reasoning_effort`, mapped from `--thinking` by the declared
