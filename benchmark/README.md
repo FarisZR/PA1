@@ -638,6 +638,7 @@ Fill these values:
 | `CODEX_CLIPROXY_BIND`, `CODEX_CLIPROXY_PORT` | bridge | Host address and port the bridge publishes on. Must match `CODEX_CLIPROXY_BASE_URL`. |
 | `CODEX_CLIPROXY_REQUEST_LOG` | bridge | Keep `true` for the current benchmark debugging run. It records every request body, prompt, and authorization header verbatim in the owner-only `benchmark/generated/cliproxy-logs/` directory; do not share those logs. Set `false` only when intentionally disabling capture. |
 | `ANTHROPIC_API_KEY` | Pi, Claude Code, OpenCode V2, bridge | Direct Anthropic API credential for Claude Opus 5. Codex itself receives only the bridge-local `CODEX_CLIPROXY_API_KEY`; CLIProxyAPI holds `ANTHROPIC_API_KEY` for the outbound Anthropic Messages request. |
+| `ZAI_API_KEY` | all GLM subscription harnesses, bridge | Z.AI Coding Plan key. Pi uses the native Z.AI provider, Claude Code uses Z.AI's Anthropic-compatible endpoint, OpenCode V2 maps it to its built-in `ZHIPU_API_KEY`, and CLIProxyAPI holds it for Codex's direct Z.AI Chat Completions route. |
 
 `benchmark/env.local` is ignored by Git.
 
@@ -748,11 +749,13 @@ This writes ignored deployment-specific files:
 benchmark/generated/kimi-k3.yaml
 benchmark/generated/deepseek-v4p1-flash.yaml
 benchmark/generated/glm-5.3-flash.yaml
+benchmark/generated/glm-5.3-sub.yaml
 benchmark/generated/luna.yaml
 benchmark/generated/codex-cliproxy.toml        # Codex -> compatibility bridge
 benchmark/generated/cliproxy-config.yaml       # bridge deployment config (0600)
 benchmark/generated/codex-litellm.toml         # direct route; control only
 benchmark/generated/codex-thirdparty-models.json
+benchmark/generated/codex-glm-zai-models.json       # direct Z.AI GLM Codex catalog
 benchmark/generated/codex-opus-models.json          # restricted Codex Opus catalog
 ```
 
@@ -866,6 +869,70 @@ This runs Pi, Claude Code, and Codex across all 10 selected tasks: 30 trials,
 all 30 concurrent. Kimi is the one model that needs no reduction: it draws
 356,251 prompt TPM per trial, the lowest of the three Fireworks models, and the
 2026-08-31 run completed at that setting without a single 429.
+
+### 8. Configure and test GLM-5.3-Flash through Z.AI
+
+The new subscription configuration is deliberately separate from the earlier
+Fireworks route:
+
+```text
+benchmark/configs/glm-5.3-sub.yaml
+benchmark/configs/opencode-v2/glm-5.3-sub.yaml
+```
+
+Set `ZAI_API_KEY` in `benchmark/env.local`, then regenerate and restart
+CLIProxyAPI:
+
+```bash
+python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local
+
+cd benchmark/bridges/codex-cliproxy
+docker compose --env-file ../../env.local up -d --force-recreate
+cd ~/PA1
+```
+
+For this job the routes are intentionally provider-direct:
+
+```text
+Pi          -> Z.AI native provider
+Claude Code -> https://api.z.ai/api/anthropic
+OpenCode V2 -> https://api.z.ai/api/coding/paas/v4
+Codex       -> CLIProxyAPI -> https://api.z.ai/api/coding/paas/v4
+```
+
+The Codex bridge is only the Responses-to-Chat-Completions compatibility layer.
+The `glm-5.3-flash` bridge alias uses `ZAI_API_KEY` and the Z.AI Coding Plan
+endpoint directly; it does **not** route through AiOrbit, the corporate LiteLLM
+gateway, or Fireworks. The older `glm-5p3-flash` alias remains in the bridge
+only so previously collected Fireworks runs stay reproducible.
+
+Run a single pilot task before the primary batch:
+
+```bash
+$PIER job start -c benchmark/generated/glm-5.3-sub.yaml \
+  --env-file benchmark/env.local \
+  --path ../DeepSWE/tasks \
+  --include-task-name anko-default-function-arguments \
+  --job-name acceptance-glm-5.3-sub
+```
+
+If Pi, Claude Code, and Codex complete, run the primary three-harness job:
+
+```bash
+$PIER job start -c benchmark/generated/glm-5.3-sub.yaml \
+  --env-file benchmark/env.local
+```
+
+Run OpenCode V2 separately:
+
+```bash
+$PIER job start -c benchmark/configs/opencode-v2/glm-5.3-sub.yaml \
+  --env-file benchmark/env.local
+```
+
+Both jobs are capped at `n_concurrent_trials: 3`.
+
+### Historical Fireworks GLM route
 
 ### 8. Run the GLM-5.3-Flash gateway acceptance check
 
