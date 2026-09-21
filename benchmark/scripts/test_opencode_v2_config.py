@@ -137,7 +137,7 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
         ).read_text()
         self.assertIn("model_name: openai/gpt-5.6-luna", luna)
         self.assertIn("variant: max", luna)
-        self.assertIn("baseURL: '{env:LITELLM_OPENAI_BASE_URL}'", luna)
+        self.assertIn("baseURL: '{env:CODEX_CLIPROXY_BASE_URL}'", luna)
         self.assertIn("models:\n            gpt-5.6-luna:", luna)
         self.assertIn("max_output_tokens: 128000", luna)
         self.assertIn("websearch: false", luna)
@@ -579,8 +579,8 @@ providers:
     def test_luna_profile_keeps_builtin_identity_and_gateway_override(self) -> None:
         contents = (BENCHMARK / "configs" / "opencode-v2" / "luna.yaml").read_text()
         self.assertIn("model_name: openai/gpt-5.6-luna", contents)
-        self.assertIn("env:\n          - LITELLM_API_KEY", contents)
-        self.assertIn("baseURL: '{env:LITELLM_OPENAI_BASE_URL}'", contents)
+        self.assertIn("env:\n          - CODEX_CLIPROXY_API_KEY", contents)
+        self.assertIn("baseURL: '{env:CODEX_CLIPROXY_BASE_URL}'", contents)
         self.assertIn("models:\n            gpt-5.6-luna:", contents)
         self.assertIn("max_output_tokens: 128000", contents)
 
