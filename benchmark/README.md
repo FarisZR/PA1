@@ -759,8 +759,9 @@ benchmark/generated/codex-glm-zai-models.json       # direct Z.AI GLM Codex cata
 benchmark/generated/codex-opus-models.json          # restricted Codex Opus catalog
 ```
 
-The four generated gateway-backed YAML files correspond to the Kimi, DeepSeek,
-GLM, and Luna source templates in `benchmark/configs/`. Claude Opus 5 is launched
+The generated YAML files include the historical gateway-backed Kimi, DeepSeek,
+GLM, and Luna templates plus the separate direct-Z.AI `glm-5.3-sub` template.
+Claude Opus 5 is launched
 from `benchmark/configs/opus.yaml` and uses the generated restricted Codex Opus
 catalog plus the same CLIProxyAPI deployment. Generation resolves the nested Pi endpoint placeholder,
 writes the Codex provider TOML and the bridge's deployment config, and builds
@@ -777,8 +778,10 @@ generated from the tracked templates in `benchmark/bridges/codex-cliproxy/`
 rather than mounted directly, because CLIProxyAPI does no environment
 interpolation and needs the credentials as literals.
 
-The generated third-party Codex catalog contains DeepSeek, Kimi, and GLM because
-Luna uses Codex's bundled first-party model entry. A separate generated catalog
+The generated historical third-party Codex catalog contains DeepSeek, Kimi, and
+the `glm-5p3-flash` gateway alias because Luna uses Codex's bundled first-party
+model entry. `codex-glm-zai-models.json` contains only the direct upstream
+`glm-5.3-flash` entry used by `glm-5.3-sub`. A separate generated catalog
 contains Claude Opus 5. These non-native entries are derived from the vendored
 GPT-5.6 Sol entry; no upstream file is fetched while generating these artifacts.
 
@@ -934,7 +937,10 @@ Both jobs are capped at `n_concurrent_trials: 3`.
 
 ### Historical Fireworks GLM route
 
-### 8. Run the GLM-5.3-Flash gateway acceptance check
+The following steps are retained only to reproduce the earlier
+AiOrbit/LiteLLM/Fireworks run. They are not used by `glm-5.3-sub`.
+
+#### Historical gateway acceptance check
 
 GLM uses its own gateway alias. Run the pilot-task override before the primary
 laptop batch:
@@ -949,7 +955,7 @@ $PIER job start -c benchmark/generated/glm-5.3-flash.yaml \
 
 If all three trials complete, start the primary GLM job.
 
-### 9. Run GLM-5.3-Flash
+#### Historical primary GLM run
 
 ```bash
 $PIER job start -c benchmark/generated/glm-5.3-flash.yaml \
@@ -964,7 +970,7 @@ a guarantee — at p90 demand the same limit allows only 5.2 trials. That earlie
 cold limit, was throttled by the Fireworks route, and Codex did not survive it.
 Expect roughly **2-3 hours** for the 30 trials.
 
-### 10. Run the DeepSeek gateway acceptance check
+### 9. Run the DeepSeek gateway acceptance check
 
 DeepSeek uses a different gateway alias from Kimi. Before its 30-trial batch,
 run the same pilot-task override:
@@ -979,7 +985,7 @@ $PIER job start -c benchmark/generated/deepseek-v4p1-flash.yaml \
 
 If all three trials complete, start the primary DeepSeek job.
 
-### 11. Run DeepSeek V4.1 Flash
+### 10. Run DeepSeek V4.1 Flash
 
 ```bash
 $PIER job start -c benchmark/generated/deepseek-v4p1-flash.yaml \
@@ -1007,7 +1013,7 @@ the ratio transfers, not the absolute rate. Re-measure from the run's own
 `result.json` files afterwards and replace the estimate in
 `benchmark/scripts/check_rate_headroom.py`.
 
-### 12. Run GPT-5.6 Luna
+### 11. Run GPT-5.6 Luna
 
 Luna is intentionally serial (`n_concurrent_trials: 1`) because all harnesses
 share one ChatGPT subscription through CLIProxyAPI.
