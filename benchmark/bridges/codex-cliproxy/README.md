@@ -14,10 +14,12 @@ CLIProxyAPI v7.2.146 + upstream #5659 backport
   -> Anthropic Messages          -> api.anthropic.com        (Claude Opus 5)
 ```
 
-Pi and Claude Code do not use the bridge. Codex's Luna route does not use it
-either: Luna is OpenAI-backed, its native Responses path works through the
-gateway unchanged, and translating it through Chat Completions would needlessly
-change first-party behavior.
+Pi and Claude Code do not use the bridge for the Fireworks-backed models.
+GPT-5.6 Luna is the exception: Pi, Claude Code, Codex, and OpenCode V2 all use
+this same CLIProxyAPI instance backed by one ChatGPT OAuth credential. CLIProxyAPI
+accepts the harness-native OpenAI/Responses or Anthropic-compatible request and
+translates it to the Codex backend where required. The OAuth files stay in the
+bridge auth directory; Pier receives only the bridge-local API key.
 
 ## The problem this solves
 
@@ -113,6 +115,19 @@ cd ~/PA1/benchmark/bridges/codex-cliproxy
 docker compose --env-file ../../env.local up -d
 docker compose ps          # expect: healthy
 ```
+
+For Luna, authenticate the ChatGPT account once into the persistent auth volume:
+
+```bash
+docker compose run --rm codex-cliproxy ./CLIProxyAPI \
+  -config /CLIProxyAPI/config.yaml -codex-device-login
+docker compose --env-file ../../env.local up -d --force-recreate
+```
+
+The normal service reuses and refreshes that credential. Do not copy the OAuth
+JSON into `benchmark/env.local` or a Pier container. Before a Luna batch,
+confirm that `gpt-5.6-luna` is exposed by the bridge and run the serial Luna
+smoke job.
 
 Restart it after any `prepare_configs.py` run that changes the model set (for
 example enabling Opus):
