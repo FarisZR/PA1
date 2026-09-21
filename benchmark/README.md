@@ -19,9 +19,9 @@ Run the current setup in this order:
 
 1. generate deployment-specific files with `prepare_configs.py --include-opus`
 2. start the Codex compatibility bridge and authenticate the ChatGPT account used for Luna
-3. `benchmark/configs/smoke-test.yaml` — Luna low on one pilot task
-4. run the relevant cheap gateway/provider acceptance checks
-5. `benchmark/generated/glm-5.3-flash.yaml`
+3. `benchmark/generated/smoke-test.yaml` — low-effort pilot across Luna subscription, direct Z.AI, and DeepSeek/LiteLLM routes
+4. run any route-specific acceptance checks still needed
+5. `benchmark/generated/glm-5.3-sub.yaml`
 6. `benchmark/generated/deepseek-v4p1-flash.yaml`
 7. `benchmark/generated/luna.yaml`
 8. `benchmark/configs/opus.yaml`
@@ -39,10 +39,11 @@ bridge files. Opus is a direct-Anthropic source job and is launched from
 
 Pier's `opencode-v2` adapter is exercised separately from the current Pi /
 Claude Code / Codex primary jobs. There are two small jobs under
-`benchmark/configs/opencode-v2/`: `smoke.yaml` covers GLM and Luna, while
-`delegation-smoke.yaml` requires a real GLM native subagent. Both use `low`,
-have zero automatic whole-trial retries, and leave primary reasoning settings
-unchanged.
+`benchmark/configs/opencode-v2/`: `smoke.yaml` covers the three active
+provider surfaces (direct Z.AI GLM, CLIProxyAPI-backed Luna, and DeepSeek
+through LiteLLM), while `delegation-smoke.yaml` retains the historical
+Fireworks GLM delegation check. Both use `low`, have zero automatic
+whole-trial retries, and leave primary reasoning settings unchanged.
 
 Run the deterministic verifier before any gateway call:
 
@@ -68,11 +69,13 @@ env file and must retain Fireworks route provenance; missing provenance is
 reported as blocked, never as a provider pass. Do not launch a full DeepSWE
 job for this gate.
 
-For a cheap real-task check of both supported transports, generate and run the
-dedicated two-trial smoke job. It uses GLM-5.3-Flash Low over Chat Completions
-and GPT-5.6 Luna Low over the frozen binary's built-in OpenAI Responses
-provider; each edits one file in `benchmark/tasks/opencode-v2-smoke`, with
-8192-token request caps and no whole-trial retries:
+For a cheap real-task check of every provider surface used by the current
+OpenCode V2 runs, generate and run the dedicated three-trial smoke job. It
+uses GLM-5.3-Flash Low through the native Z.AI Coding Plan endpoint,
+GPT-5.6 Luna Low through CLIProxyAPI backed by the ChatGPT subscription, and
+DeepSeek V4.1 Flash Low through the LiteLLM proxy. Each edits one file in
+`benchmark/tasks/opencode-v2-smoke`, with 8192-token request caps and no
+whole-trial retries:
 
 ```bash
 python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus
@@ -200,7 +203,7 @@ Later third-party Codex runs use the `v7.2.146` base with only upstream fix
 | Model | Reasoning | Routing | Context behavior |
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
-| GLM-5.3-Flash | max | Existing LiteLLM gateway | Fireworks 1,048,576 context; Pi native entry uses 1,000,000 |
+| GLM-5.3-Flash | max | Direct Z.AI Coding Plan API (Codex via CLIProxyAPI translation) | 1,000,000-token Z.AI model window |
 | DeepSeek V4.1 Flash | max | Existing LiteLLM gateway | Normalized to exactly 1,000,000 across Pi, Claude Code, Codex, and OpenCode V2 |
 | GPT-5.6 Luna | max | CLIProxyAPI -> ChatGPT subscription | 272,000-token benchmark window |
 
@@ -211,8 +214,10 @@ Fireworks advertises a larger 1,048,576-token route limit, but PA1 does not use
 that provider-specific ceiling because doing so would create harness-specific
 context differences for the same benchmark model.
 
-The smoke test is intentionally different: it runs Luna at **low** reasoning to
-validate the environment cheaply before primary spending.
+The general smoke test is intentionally low-effort. It runs one pilot task
+through all nine Pi / Claude Code / Codex combinations for Luna, GLM, and
+DeepSeek so every API surface used by the remaining primary runs is exercised
+before primary spending.
 
 The repository does not change the LiteLLM deployment. DeepSeek/Kimi/GLM vendor
 documentation is used for Claude Code compatibility and model-specific facts
@@ -724,13 +729,14 @@ Run:
 cd ~/PA1
 PIER=~/pier/.venv/bin/pier
 
-$PIER job start -c benchmark/configs/smoke-test.yaml \
+$PIER job start -c benchmark/generated/smoke-test.yaml \
   --env-file benchmark/env.local
 ```
 
-The smoke job requires no generated config. Do not start primary spending until
-all three trials finish, the verifier runs, and
-`benchmark/runs/smoke-luna/` contains the expected result/trajectory data.
+Run the generated smoke job after `prepare_configs.py`; its DeepSeek Pi leg
+needs the resolved LiteLLM endpoint. Do not start primary spending until all
+nine trials finish and `benchmark/runs/smoke-current-routes/` contains the
+expected result/trajectory data.
 
 ### 5. Generate the primary model configs
 
@@ -760,7 +766,9 @@ benchmark/generated/codex-opus-models.json          # restricted Codex Opus cata
 ```
 
 The generated YAML files include the historical gateway-backed Kimi, DeepSeek,
-GLM, and Luna templates plus the separate direct-Z.AI `glm-5.3-sub` template.
+GLM, and Luna templates, the separate direct-Z.AI `glm-5.3-sub` template, and
+the deployment-resolved `smoke-test.yaml` used to exercise all current API
+surfaces.
 Claude Opus 5 is launched
 from `benchmark/configs/opus.yaml` and uses the generated restricted Codex Opus
 catalog plus the same CLIProxyAPI deployment. Generation resolves the nested Pi endpoint placeholder,
