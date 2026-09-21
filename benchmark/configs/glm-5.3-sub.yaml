@@ -47,6 +47,13 @@ agents:
     kwargs:
       version: "0.84.4"
       thinking: max
+      # Keep the native Z.AI model profile, but expose its endpoint to Pier's
+      # filtered-egress discovery. The endpoint is otherwise bundled inside
+      # Pi's model catalog and invisible to the benchmark runner.
+      pi_config:
+        providers:
+          zai:
+            baseUrl: https://api.z.ai/api/coding/paas/v4
 
   - name: claude-code
     # The [1m] suffix is local Claude Code context metadata; the adapter removes
