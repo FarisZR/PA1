@@ -276,33 +276,52 @@ def opus_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
     )
 
 
-def validate_bridge_url(url: str) -> str:
-    """Reject bridge URLs that Pier's egress policy cannot reach."""
+def validate_egress_url(
+    name: str,
+    url: str,
+    *,
+    require_v1: bool = False,
+    allow_localhost: bool = False,
+) -> str:
+    """Reject endpoint URLs that Pier's trial egress proxy cannot reach."""
     parsed = urlparse(url)
     if parsed.scheme not in PIER_EGRESS_PORTS:
-        raise SystemExit(
-            f"CODEX_CLIPROXY_BASE_URL must be http:// or https://, got {url!r}"
-        )
+        raise SystemExit(f"{name} must be http:// or https://, got {url!r}")
     host = (parsed.hostname or "").rstrip(".")
     if not host:
-        raise SystemExit(f"CODEX_CLIPROXY_BASE_URL has no host: {url!r}")
-    # Pier derives the Squid allowlist from this URL's hostname, and a dotless
-    # bare name is discarded there, which would deny every Codex request.
+        raise SystemExit(f"{name} has no host: {url!r}")
+    # Pier derives the Squid allowlist from configured endpoint hostnames.
+    # Dotless names are discarded by hostname_from_url(), so they would make
+    # every request fail at the firewall rather than at the provider.
     if "." not in host and host != "localhost":
         raise SystemExit(
-            f"CODEX_CLIPROXY_BASE_URL host {host!r} is a dotless bare name. Pier "
-            "drops it from the egress allowlist; use an IP address or an FQDN."
+            f"{name} host {host!r} is a dotless bare name. Pier drops it from "
+            "the egress allowlist; use an IP address or an FQDN."
+        )
+    if host == "localhost" and not allow_localhost:
+        raise SystemExit(
+            f"{name} cannot use localhost from a trial container; use the "
+            "gateway IP/FQDN visible from Docker."
         )
     port = parsed.port or PIER_EGRESS_PORTS[parsed.scheme]
     if port != PIER_EGRESS_PORTS[parsed.scheme]:
         raise SystemExit(
-            f"CODEX_CLIPROXY_BASE_URL port {port} is unreachable from a trial "
-            "container. Pier's egress proxy allows only HTTP on 80 and HTTPS "
-            "on 443."
+            f"{name} port {port} is unreachable from a trial container. "
+            "Pier's egress proxy allows only HTTP on 80 and HTTPS on 443."
         )
-    if not parsed.path.rstrip("/").endswith("/v1"):
-        raise SystemExit(f"CODEX_CLIPROXY_BASE_URL should end in /v1, got {url!r}")
+    if require_v1 and not parsed.path.rstrip("/").endswith("/v1"):
+        raise SystemExit(f"{name} should end in /v1, got {url!r}")
     return url.rstrip("/")
+
+
+def validate_bridge_url(url: str) -> str:
+    """Reject bridge URLs that Pier's egress policy cannot reach."""
+    return validate_egress_url(
+        "CODEX_CLIPROXY_BASE_URL",
+        url,
+        require_v1=True,
+        allow_localhost=True,
+    )
 
 
 def yaml_quote(value: str) -> str:
@@ -467,6 +486,45 @@ def render_model_config(path: Path, base_url: str, expected_sentinels: int) -> s
     if PI_BASE_URL_SENTINEL in rendered:
         raise SystemExit(f"{path}: unresolved {PI_BASE_URL_SENTINEL} placeholder")
     return rendered
+
+
+def validate_pi_fireworks_compat(path: Path, rendered: str) -> None:
+    """Keep provider-specific request extensions off Fireworks-backed Pi routes."""
+    if "  - name: pi\n" not in rendered:
+        return
+
+    if "model_name: zai/glm-5p3-flash" in rendered:
+        required = (
+            "thinkingFormat: openai",
+            "zaiToolStream: false",
+        )
+        missing = [item for item in required if item not in rendered]
+        if missing:
+            raise SystemExit(
+                f"{path}: GLM Pi Fireworks profile is missing "
+                + ", ".join(repr(item) for item in missing)
+            )
+        if "zaiToolStream: true" in rendered:
+            raise SystemExit(
+                f"{path}: GLM Pi must not send Z.AI-only tool_stream to Fireworks"
+            )
+
+    if "model_name: deepseek/deepseek-v4p1-flash" in rendered:
+        required = (
+            "thinkingFormat: openai",
+            "requiresReasoningContentOnAssistantMessages: true",
+            "zaiToolStream: false",
+        )
+        missing = [item for item in required if item not in rendered]
+        if missing:
+            raise SystemExit(
+                f"{path}: DeepSeek Pi Fireworks profile is missing "
+                + ", ".join(repr(item) for item in missing)
+            )
+        if "zaiToolStream: true" in rendered:
+            raise SystemExit(
+                f"{path}: DeepSeek Pi must not send Z.AI-only tool_stream to Fireworks"
+            )
 
 
 OPENCODE_V2_AGENT_BLOCK = r"(?ms)^  - name: opencode-v2\b.*?(?=^  - name:|\Z)"
@@ -854,7 +912,15 @@ def main() -> None:
     validate_claude_output_policy()
     validate_primary_opencode_v2_profiles()
 
-    litellm_url = require("LITELLM_OPENAI_BASE_URL")
+    litellm_url = validate_egress_url(
+        "LITELLM_OPENAI_BASE_URL",
+        require("LITELLM_OPENAI_BASE_URL"),
+        require_v1=True,
+    )
+    validate_egress_url(
+        "LITELLM_ANTHROPIC_BASE_URL",
+        require("LITELLM_ANTHROPIC_BASE_URL"),
+    )
     litellm_api_key = require("LITELLM_API_KEY")
     bridge_url = validate_bridge_url(require("CODEX_CLIPROXY_BASE_URL"))
     bridge_api_key = require("CODEX_CLIPROXY_API_KEY")
@@ -871,6 +937,7 @@ def main() -> None:
         source = CONFIG_DIR / name
         destination = GENERATED_DIR / name
         rendered = render_model_config(source, litellm_url, expected_sentinels)
+        validate_pi_fireworks_compat(source, rendered)
         if name.startswith("opencode-v2/"):
             validate_opencode_v2_config(source, rendered)
         rendered_models.append(
