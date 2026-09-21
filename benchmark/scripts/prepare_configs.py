@@ -623,8 +623,8 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
                 for block in blocks
             ):
                 raise SystemExit(
-                    f"{path}: the OpenCode V2 smoke job must cover both "
-                    f"transports; no agent declares {model}"
+                    f"{path}: the OpenCode V2 smoke job must cover every current "
+                    f"provider surface; no agent declares {model}"
                 )
 
     for block in blocks:
