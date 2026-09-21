@@ -10,8 +10,9 @@ which only handled Anthropic.
 Codex 0.151.0
   -> OpenAI Responses            (http://<bridge>/v1/responses)
 CLIProxyAPI v7.2.146 + upstream #5659 backport
-  -> OpenAI Chat Completions     -> existing LiteLLM gateway -> Fireworks
-  -> Anthropic Messages          -> api.anthropic.com        (Claude Opus 5)
+  -> OpenAI Chat Completions     -> existing LiteLLM gateway -> Fireworks (historical routes)
+  -> OpenAI Chat Completions     -> api.z.ai                  (GLM subscription route)
+  -> Anthropic Messages          -> api.anthropic.com         (Claude Opus 5)
 ```
 
 Pi and Claude Code do not use the bridge for the Fireworks-backed models.
@@ -107,6 +108,25 @@ Two properties of the generated config are load-bearing:
   Left at their defaults they would retry failed calls without attribution, take
   the single credential out of service after one transient error, and — in the
   case of `quota-exceeded.switch-preview-model` — answer with a different model.
+
+## Direct Z.AI GLM route
+
+`prepare_configs.py` also writes a dedicated `glm-5.3-flash`
+OpenAI-compatibility alias backed by:
+
+```text
+https://api.z.ai/api/coding/paas/v4
+```
+
+Its credential is `ZAI_API_KEY`. This alias is distinct from the historical
+`glm-5p3-flash` LiteLLM/AiOrbit alias, so a `glm-5.3-sub` Codex run cannot
+silently fall back to Fireworks. Codex still talks Responses to CLIProxyAPI;
+CLIProxyAPI converts the request to Chat Completions and sends it directly to
+Z.AI.
+
+The other GLM harnesses do not need this bridge: Pi uses its native Z.AI
+provider, Claude Code uses `https://api.z.ai/api/anthropic`, and OpenCode V2
+uses the Z.AI Coding Plan endpoint directly.
 
 ## Running it
 
