@@ -21,7 +21,8 @@ CURRENT_MODEL_CONFIGS = {
     "glm-5.3-flash.yaml": 1,
     "glm-5.3-sub.yaml": 0,
     "luna.yaml": 0,
-    "opencode-v2/smoke.yaml": 2,
+    "smoke-test.yaml": 1,
+    "opencode-v2/smoke.yaml": 0,
     "opencode-v2/delegation-smoke.yaml": 1,
 }
 PRIMARY_OPENCODE_V2_MODELS = {
@@ -607,11 +608,14 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
     # Acceptance-only smoke jobs additionally pin the cheap settings their
     # headers document; the primary profiles use their own values.
     is_smoke = "configs/opencode-v2/" in path.as_posix()
-    # The two-model smoke exists to exercise both supported transports, so it
-    # must keep a GLM (Chat Completions) leg; the previous whole-document check
-    # required one implicitly.
+    # The smoke exists to exercise every provider surface used by the current
+    # OpenCode V2 benchmark routes.
     if is_smoke and path.name == "smoke.yaml":
-        for model in ("zai/glm-5.3-flash", "openai/gpt-5.6-luna"):
+        for model in (
+            "zai/glm-5.3-flash",
+            "openai/gpt-5.6-luna",
+            "deepseek/deepseek-v4p1-flash",
+        ):
             if not any(
                 re.search(
                     rf"^\s+model_name: {re.escape(model)}$", block, re.MULTILINE
@@ -648,36 +652,66 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
         )
 
         if re.search(r"^\s+model_name: zai/glm-5\.3-flash$", block, re.MULTILINE):
-            _require(
-                path,
-                "GLM profile",
-                block,
-                [
-                    'package: "@opencode/ai/providers/fireworks"',
-                    "canonical: fireworks",
-                    ("glm-5.3-flash model entry", r"^\s+glm-5\.3-flash:\s*$"),
-                    "modelID: glm-5p3-flash",
-                    "maxTokensField: max_tokens",
-                    "reasoningField: reasoning_content",
-                    ("reasoningEffort:", r"^\s+reasoningEffort: \S+$"),
-                    # PA1 #40: limit.output metadata is not sent on the wire.
-                    ("body max_tokens cap", r"^\s+max_tokens: \d+$"),
-                ],
+            direct_zai = (
+                "ZHIPU_API_KEY: ${ZAI_API_KEY}" in block
+                and "baseURL: https://api.z.ai/api/coding/paas/v4" in block
             )
-            # PA1 #53: the Fireworks route rejects `thinking` alongside
-            # `reasoning_effort`, so GLM must use reasoningEffort alone.
-            if re.search(r"^\s+thinking:", block, re.MULTILINE):
-                raise SystemExit(
-                    f"{path}: GLM must use reasoningEffort alone; "
-                    "do not add a conflicting thinking control"
-                )
-            if is_smoke:
+            if direct_zai:
                 _require(
                     path,
-                    "GLM smoke profile",
+                    "direct Z.AI GLM profile",
                     block,
-                    ["variant: low", "reasoningEffort: low", "max_tokens: 8192"],
+                    [
+                        "ZHIPU_API_KEY: ${ZAI_API_KEY}",
+                        "baseURL: https://api.z.ai/api/coding/paas/v4",
+                        ("glm-5.3-flash model entry", r"^\s+glm-5\.3-flash:\s*$"),
+                        ("body max_tokens cap", r"^\s+max_tokens: \d+$"),
+                    ],
                 )
+                for forbidden in (
+                    '@opencode/ai/providers/fireworks',
+                    "canonical: fireworks",
+                    "modelID: glm-5p3-flash",
+                ):
+                    if forbidden in block:
+                        raise SystemExit(
+                            f"{path}: direct Z.AI GLM smoke must not contain {forbidden!r}"
+                        )
+                if is_smoke:
+                    _require(
+                        path,
+                        "direct Z.AI GLM smoke profile",
+                        block,
+                        ["variant: low", "max_tokens: 8192"],
+                    )
+            else:
+                _require(
+                    path,
+                    "GLM profile",
+                    block,
+                    [
+                        'package: "@opencode/ai/providers/fireworks"',
+                        "canonical: fireworks",
+                        ("glm-5.3-flash model entry", r"^\s+glm-5\.3-flash:\s*$"),
+                        "modelID: glm-5p3-flash",
+                        "maxTokensField: max_tokens",
+                        "reasoningField: reasoning_content",
+                        ("reasoningEffort:", r"^\s+reasoningEffort: \S+$"),
+                        ("body max_tokens cap", r"^\s+max_tokens: \d+$"),
+                    ],
+                )
+                if re.search(r"^\s+thinking:", block, re.MULTILINE):
+                    raise SystemExit(
+                        f"{path}: GLM must use reasoningEffort alone; "
+                        "do not add a conflicting thinking control"
+                    )
+                if is_smoke:
+                    _require(
+                        path,
+                        "GLM smoke profile",
+                        block,
+                        ["variant: low", "reasoningEffort: low", "max_tokens: 8192"],
+                    )
 
         if re.search(r"^\s+model_name: openai/gpt-5\.6-luna$", block, re.MULTILINE):
             _require(
@@ -697,6 +731,33 @@ def validate_opencode_v2_config(path: Path, rendered: str) -> None:
                     "Luna smoke profile",
                     block,
                     ["variant: low", "max_output_tokens: 8192"],
+                )
+
+        if re.search(
+            r"^\s+model_name: deepseek/deepseek-v4p1-flash$",
+            block,
+            re.MULTILINE,
+        ):
+            _require(
+                path,
+                "DeepSeek profile",
+                block,
+                [
+                    'package: "@opencode/ai/providers/fireworks"',
+                    ("DeepSeek model entry", r"^\s+deepseek-v4p1-flash:\s*$"),
+                    "modelID: deepseek-v4p1-flash",
+                    "maxTokensField: max_tokens",
+                    "reasoningField: reasoning_content",
+                    ("reasoningEffort:", r"^\s+reasoningEffort: \S+$"),
+                    ("body max_tokens cap", r"^\s+max_tokens: \d+$"),
+                ],
+            )
+            if is_smoke:
+                _require(
+                    path,
+                    "DeepSeek smoke profile",
+                    block,
+                    ["variant: low", "reasoningEffort: low", "max_tokens: 8192"],
                 )
 
     validate_opencode_v2_tool_stream(path, rendered)
@@ -725,6 +786,10 @@ def validate_opencode_v2_tool_stream(path: Path, rendered: str) -> None:
             if re.search(rf"^\s+{re.escape(provider)}:\s*$", block, re.MULTILINE)
         ]
         if not declared:
+            continue
+        # Native Z.AI Coding Plan routes are allowed to use Z.AI's tool_stream
+        # behavior. Only Fireworks-backed zai identities need the redirect.
+        if "baseURL: https://api.z.ai/api/coding/paas/v4" in block:
             continue
         if not re.search(r"^\s+canonical:\s*fireworks\s*$", block, re.MULTILINE):
             raise SystemExit(
