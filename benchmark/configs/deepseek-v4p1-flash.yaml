@@ -85,9 +85,6 @@ agents:
                   maxTokensField: max_tokens
                   requiresReasoningContentOnAssistantMessages: true
                   thinkingFormat: openai
-                  # Keep the Z.AI-only `tool_stream` extension off this
-                  # Fireworks-backed route as an explicit transport invariant.
-                  zaiToolStream: false
                 # PA1 normalizes DeepSeek to 1,000,000 tokens across harnesses:
                 # DeepSeek documents a 1M window and Pi/OpenCode use 1,000,000.
                 # Fireworks' larger route metadata is deliberately not used here.
