@@ -712,16 +712,14 @@ $EDITOR benchmark/env.local
 Before running anything, verify the runner itself can resolve/reach both gateway
 surfaces and that the aliases listed above exist.
 
-### 4. Run the cheap Luna smoke test
+### 4. Run the cheap route smoke test
 
-The smoke job uses the simple pilot task `anko-default-function-arguments` and
-contains exactly three trials:
+The smoke job uses the synthetic one-line file-edit task under
+`benchmark/tasks/opencode-v2-smoke`. The agent only has to replace
+`/app/answer.txt` with the expected marker and finish. No DeepSWE task is used.
 
-```text
-Pi + GPT-5.6 Luna low
-Claude Code + GPT-5.6 Luna low
-Codex + GPT-5.6 Luna low
-```
+The general smoke contains nine serial trials: Pi, Claude Code, and Codex on
+GPT-5.6 Luna, GLM-5.3-Flash, and DeepSeek V4.1 Flash, all at low reasoning.
 
 Run:
 
