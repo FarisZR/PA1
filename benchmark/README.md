@@ -17,9 +17,9 @@ profiles are active and ready to run.
 
 Run the current setup in this order:
 
-1. `benchmark/configs/smoke-test.yaml` — Luna low on one pilot task
-2. generate deployment-specific files with `prepare_configs.py --include-opus`
-3. start the Codex compatibility bridge
+1. generate deployment-specific files with `prepare_configs.py --include-opus`
+2. start the Codex compatibility bridge and authenticate the ChatGPT account used for Luna
+3. `benchmark/configs/smoke-test.yaml` — Luna low on one pilot task
 4. run the relevant cheap gateway/provider acceptance checks
 5. `benchmark/generated/glm-5.3-flash.yaml`
 6. `benchmark/generated/deepseek-v4p1-flash.yaml`
@@ -202,7 +202,7 @@ Later third-party Codex runs use the `v7.2.146` base with only upstream fix
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
 | GLM-5.3-Flash | max | Existing LiteLLM gateway | Fireworks 1,048,576 context; Pi native entry uses 1,000,000 |
 | DeepSeek V4.1 Flash | max | Existing LiteLLM gateway | Normalized to exactly 1,000,000 across Pi, Claude Code, Codex, and OpenCode V2 |
-| GPT-5.6 Luna | max | Existing LiteLLM gateway | 272,000-token benchmark window |
+| GPT-5.6 Luna | max | CLIProxyAPI -> ChatGPT subscription | 272,000-token benchmark window |
 
 DeepSeek is deliberately normalized to exactly **1,000,000 tokens** across all
 harnesses. DeepSeek documents the model as having a 1M context window, and the
@@ -231,7 +231,8 @@ same model.
 
 `restrict_model_catalog: true` restricts each Codex trial to its selected test
 model. Luna remains Codex's built-in `openai/gpt-5.6-luna` model and only its
-base URL is redirected to LiteLLM, preserving Codex's first-party Luna behavior.
+base URL/authentication path is redirected to the shared CLIProxyAPI instance,
+preserving Codex's first-party Luna profile.
 
 Every non-GPT Codex model uses the exact `gpt-5.6-sol` profile from Codex
 `rust-v0.151.0` as its compatibility base. The complete upstream `models.json`
@@ -269,8 +270,10 @@ Codex -> Responses -> CLIProxyAPI -> Chat Completions -> LiteLLM -> Fireworks
 
 Claude Opus 5 uses the same CLIProxyAPI deployment for Codex, but that route
 translates Responses to Anthropic Messages and calls `api.anthropic.com`
-directly with `ANTHROPIC_API_KEY`. Luna stays on the direct native Responses
-path because it is OpenAI-backed and works unchanged.
+directly with `ANTHROPIC_API_KEY`. Luna instead uses the bridge's ChatGPT
+OAuth credential for all four harnesses; Codex and OpenCode retain their native
+Responses profiles, while Pi uses the OpenAI-compatible surface and Claude Code
+uses CLIProxyAPI's Anthropic-compatible translation.
 
 This is a transport fix, not a harness change: the Codex model catalog, prompt,
 reasoning effort, and reasoning-summary settings are all unchanged, and the
@@ -629,8 +632,9 @@ Fill these values:
 | `LITELLM_OPENAI_BASE_URL` | Pi, bridge | OpenAI-compatible base URL ending in `/v1`; generation rejects dotless hosts, localhost, and non-80/443 ports because Pier's egress proxy would block them. |
 | `LITELLM_ANTHROPIC_BASE_URL` | Claude Code | Anthropic-compatible base URL; generation applies the same host and 80/443 egress checks. |
 | `PIER_EXTRA_CA_CERTS` | all three harnesses | Absolute path to the tracked `benchmark/puki-root-ca-2022.pem` bundle containing both public PUKI Root CA 2022 RSA and EC certificates. Required on this runner: the gateway serves an internal IONOS PUKI certificate that containers do not trust by default, and without it every trial fails its first model call. |
-| `CODEX_CLIPROXY_BASE_URL` | Codex | `/v1` endpoint of the compatibility bridge as seen from a trial container. Must be on port 80 or 443 and must not be a dotless bare hostname; `prepare_configs.py` rejects both. |
-| `CODEX_CLIPROXY_API_KEY` | Codex | Token Codex presents to the bridge. Chosen locally; not a gateway or vendor credential. |
+| `CODEX_CLIPROXY_BASE_URL` | Codex, Pi, OpenCode V2 | `/v1` endpoint of the compatibility bridge as seen from a trial container. Luna uses this route for the ChatGPT subscription. Must be on port 80 or 443 and must not be a dotless bare hostname; `prepare_configs.py` rejects both. |
+| `CODEX_CLIPROXY_ANTHROPIC_BASE_URL` | Claude Code Luna | Anthropic-compatible base URL of the same CLIProxyAPI instance, without the `/v1` suffix. |
+| `CODEX_CLIPROXY_API_KEY` | Codex; all Luna harnesses | Local token presented to the bridge. Chosen locally; it is not the ChatGPT OAuth credential or a vendor credential. |
 | `CODEX_CLIPROXY_BIND`, `CODEX_CLIPROXY_PORT` | bridge | Host address and port the bridge publishes on. Must match `CODEX_CLIPROXY_BASE_URL`. |
 | `CODEX_CLIPROXY_REQUEST_LOG` | bridge | Keep `true` for the current benchmark debugging run. It records every request body, prompt, and authorization header verbatim in the owner-only `benchmark/generated/cliproxy-logs/` directory; do not share those logs. Set `false` only when intentionally disabling capture. |
 | `ANTHROPIC_API_KEY` | Pi, Claude Code, OpenCode V2, bridge | Direct Anthropic API credential for Claude Opus 5. Codex itself receives only the bridge-local `CODEX_CLIPROXY_API_KEY`; CLIProxyAPI holds `ANTHROPIC_API_KEY` for the outbound Anthropic Messages request. |
@@ -777,14 +781,27 @@ GPT-5.6 Sol entry; no upstream file is fetched while generating these artifacts.
 
 ### 5b. Start the Codex compatibility bridge
 
-Required for Codex on Kimi, DeepSeek, GLM, and Claude Opus 5, and before the
-acceptance runs below. Luna does not need it.
+Required for Codex on Kimi, DeepSeek, GLM, and Claude Opus 5, and for every
+GPT-5.6 Luna harness. Luna's ChatGPT OAuth credential is held by this instance.
 
 ```bash
 cd ~/PA1/benchmark/bridges/codex-cliproxy
 docker compose --env-file ../../env.local up -d
 docker compose ps          # expect: healthy
 ```
+
+For Luna, authenticate the ChatGPT account once if the persistent auth volume
+does not already contain the benchmark credential:
+
+```bash
+docker compose run --rm codex-cliproxy ./CLIProxyAPI \
+  -config /CLIProxyAPI/config.yaml -codex-device-login
+docker compose --env-file ../../env.local up -d --force-recreate
+```
+
+Confirm that `gpt-5.6-luna` appears in the bridge model list before running
+the Luna smoke test. The OAuth credential stays in CLIProxyAPI's auth volume and
+is never copied into Pier.
 
 Verify the translation contract and the live gateway before spending:
 
@@ -802,7 +819,7 @@ changes the bridge's model set. See
 
 ### 6. Run the Kimi gateway acceptance check
 
-The Luna smoke test proves the task environment and both LiteLLM surfaces, but it
+The Luna smoke test proves the task environment and the shared subscription route, but it
 does not exercise the third-party Codex profile. Codex 0.151.0 sends normal
 Responses HTTP requests for Kimi/DeepSeek and, under the frozen Sol profile, may
 include Codex tool definitions such as `custom` exec and `web_search`. The
@@ -925,10 +942,16 @@ the ratio transfers, not the absolute rate. Re-measure from the run's own
 
 ### 12. Run GPT-5.6 Luna
 
+Luna is intentionally serial (`n_concurrent_trials: 1`) because all harnesses
+share one ChatGPT subscription through CLIProxyAPI.
+
 ```bash
 $PIER job start -c benchmark/generated/luna.yaml \
   --env-file benchmark/env.local
 ```
+
+Run the OpenCode V2 Luna profile separately; it uses the same subscription route
+and the same serial concurrency.
 
 Keep each complete `benchmark/runs/<job-name>/` directory, especially its
 `lock.json`.
