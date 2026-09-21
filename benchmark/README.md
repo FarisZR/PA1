@@ -713,7 +713,13 @@ git fetch origin
 git checkout 0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea
 ```
 
-### 2. Pin Pier
+### 2. Pin and build Pier
+
+Pier declares Python `>=3.12` in its `pyproject.toml`. The PA1 runner uses
+Python 3.13, but do not assume that a distro-managed interpreter exists at
+`/usr/bin/python3.13`. Let `uv` install and manage the interpreter instead.
+
+Install Python 3.13 once, then create/synchronize Pier's project environment:
 
 ```bash
 cd ~
@@ -721,19 +727,38 @@ git clone https://github.com/FZR-forks/pier.git pier   # skip if present
 cd ~/pier
 git fetch origin
 git checkout ac868ad54893db98143f6e9a2d8c783faeb64a61
-uv sync --python /usr/bin/python3.13
+
+uv python install 3.13
+uv python find 3.13
+uv sync --python 3.13
+
 ~/pier/.venv/bin/pier job start --help
 ```
+
+`uv python install 3.13` installs a uv-managed interpreter if Python 3.13 is
+not already available. Passing `--python 3.13` asks uv to resolve that
+interpreter by version instead of requiring a particular filesystem path.
+Therefore an error such as
+
+```text
+error: No interpreter found at path `/usr/bin/python3.13`
+```
+
+means only that the hard-coded system path does not exist; it does not mean Pier
+requires a distro package at that path.
+
+If a compatible Python is already installed, Pier also supports Python 3.12 or
+newer. For exact PA1 runner reproduction, keep using 3.13.
 
 Run the actual jobs from `~/PA1`, not from the Pier checkout.
 
 To reproduce the completed DeepSeek V4.1 Pi / Claude Code / Codex runs,
-deliberately check out the pre-hotfix checkpoint:
+deliberately check out the pre-hotfix checkpoint and resync the environment:
 
 ```bash
 cd ~/pier
 git checkout 7636cbee99ed947c64e0b350be031ec31e47dfee
-uv sync --python /usr/bin/python3.13
+uv sync --python 3.13
 ```
 
 To reproduce the end-of-August runs instead of starting a new run, deliberately
@@ -742,7 +767,7 @@ check out the historical Pier revision:
 ```bash
 cd ~/pier
 git checkout ff65bae55c9a8ff15ddd3c2967c81a936713dd4d
-uv sync --python /usr/bin/python3.13
+uv sync --python 3.13
 ```
 
 Do not use that historical checkout for OpenCode V2; it predates the adapter.
