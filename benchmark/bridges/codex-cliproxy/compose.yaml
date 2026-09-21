@@ -19,8 +19,8 @@ services:
       # Only used when request-log is on; the live acceptance check reads it
       # from the host. prepare_configs.py creates it mode 0700.
       - ../../generated/cliproxy-logs:/CLIProxyAPI/logs
-      # CLIProxyAPI expects an auth directory even though PA1 uses none: every
-      # upstream credential comes from the generated config file.
+      # Persistent OpenAI OAuth state for the ChatGPT-backed Luna route.
+      # The credential stays on the runner and is never mounted into Pier.
       - codex-cliproxy-auths:/root/.cli-proxy-api
     ports:
       # Must be port 80 (or 443). Pier's egress Squid permits plain HTTP only to

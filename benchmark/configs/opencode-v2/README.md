@@ -18,7 +18,9 @@ Kimi, DeepSeek, GLM, and Luna use the `max` variant through the adapter's
 `benchmark/configs/opencode-v2/` use `low`; both are intentionally separate
 from the primary jobs.
 
-Luna retains the built-in OpenAI Responses profile. Kimi K3, DeepSeek V4.1
+Luna retains the built-in OpenAI Responses profile and redirects only its
+endpoint/key to the shared CLIProxyAPI instance backed by the ChatGPT
+subscription. Kimi K3, DeepSeek V4.1
 Flash, and GLM keep their canonical OpenCode model identities
 (`moonshotai/kimi-k3`, `deepseek/deepseek-v4p1-flash`, and
 `zai/glm-5.3-flash`). Their provider configs override only the transport
