@@ -11,23 +11,33 @@ from scripts.figures import plot_grouped_line, plot_pareto_frontier
 
 ## Excluded GLM-5.3-Flash attempt
 
-GLM-5.3-Flash is not included in the comparative harness results. The initial
-2026-09-20 batch was not a valid model-quality measurement: Pi failed on an
-incompatible request shape, while the original batch concurrency also triggered
-Fireworks rate limiting [@pa1GlmConcurrencyFix]. Both issues were corrected
-before a second max-reasoning attempt.
+GLM-5.3-Flash is excluded from the comparative harness results because the
+available Fireworks-backed inference did not produce a usable benchmark
+condition. The problem was not a low task score or provider rate limiting. The
+recorded trajectories show extreme repetitive behavior and token consumption
+that is inconsistent with the other model runs on the same tasks
+[@pa1GlmBenchmarkData].
 
-The corrected Fireworks-backed attempt still produced prolonged or repetitive
-generations, widespread timeouts or incorrect task outcomes, and unusually high
-token consumption. This consumed most of the remaining experiment budget
-without producing a complete comparable matrix [@pa1GlmExclusion]. The observed
-failure therefore cannot be attributed cleanly to the harnesses: within the
-remaining budget it was not possible to determine whether the behavior was
-intrinsic to GLM-5.3-Flash or specific to the Fireworks inference route. The
-collected GLM data is retained as evidence of the failed experimental condition,
-but it is excluded from the cross-harness performance and cost comparison. This
-exclusion is based on the validity of the experimental condition, not on the
-model's low task score.
+The clearest example is the Codex run on
+`effect-sse-httpapi-streaming`. It reached **780,117,872 input tokens**, of
+which **775,819,264 were cached-input tokens**, and **2,355 agent steps** before
+the three-hour timeout. Within that trajectory, the exact command
+`rg -n "Schema.Simplify" packages/effect/src/Schema.ts` was issued **1,869
+times**. On the same task and harness, DeepSeek V4.1 Flash used 32,137,444
+cached-input tokens and 277 steps, while Kimi K3 used 19,317,706 cached-input
+tokens and 161 steps. A separate Pi GLM run on `scriggo-method-declarations`
+showed the same failure pattern: 302,913,536 cached-input tokens and 1,301
+steps before timeout, including 743 repetitions of the same probe command
+[@pa1GlmBenchmarkData].
+
+These runs consumed most of the remaining experiment budget without yielding a
+complete comparable GLM matrix [@pa1GlmExclusion]. Because no alternative
+GLM-5.3-Flash provider was available, the study could not determine whether the
+pathological behavior originated in the model itself or in the Fireworks
+serving implementation. The Fireworks-backed GLM condition is therefore treated
+as an inference failure, not as a valid harness-performance observation. The
+raw data is retained for transparency but excluded from the cross-harness
+performance and cost analysis.
 
 ## Task success
 
