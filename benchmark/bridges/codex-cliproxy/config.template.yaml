@@ -86,3 +86,19 @@ openai-compatibility:
         input-modalities: [text, image]
         thinking:
           levels: ["low", "high", "max"]
+
+  # Direct Z.AI Coding Plan route used by glm-5.3-sub. Keep this separate from
+  # the historical LiteLLM/AiOrbit/Fireworks alias above so old evidence stays
+  # reproducible while new runs cannot accidentally hit Fireworks.
+  - name: "zai-coding-plan"
+    base-url: "https://api.z.ai/api/coding/paas/v4"
+    api-key-entries:
+      - api-key: "__ZAI_API_KEY__"
+    models:
+      - name: "glm-5.3-flash"
+        alias: "glm-5.3-flash"
+        display-name: "GLM-5.3-Flash"
+        max-context-length: 1000000
+        input-modalities: [text, image]
+        thinking:
+          levels: ["low", "high", "max"]
