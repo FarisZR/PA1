@@ -247,11 +247,11 @@ matched_repeat_streaks = (
 
 The GLM observations in this subsection are diagnostic evidence only and do not enter the comparative benchmark matrix. Eight completed direct-Z.AI observations can be paired with a Fireworks-backed observation from the same task and harness. All figures in this subsection are generated from the committed Pier results and trajectories during the Quarto render [@pa1GlmRouteData].
 
-Across those eight matched pairs, average input-token usage was **221.7 million** tokens on the Fireworks-backed route and **23.6 million** on direct Z.AI. Average agent steps were **861.6** and **175.6**, respectively. Applying the frozen GLM pricing policy to the recorded token categories gives an average normalized cost of **$6.99** per Fireworks-backed observation and **$0.78** per direct-Z.AI observation. @fig-glm-resource-means reports those absolute means directly. Relative to the direct route, the Fireworks-backed route therefore used **9.4 times more input tokens**, **4.9 times more agent steps**, and **9.0 times the normalized cost**.
+Across those eight matched pairs, average input-token usage was **221.7 million** tokens on the Fireworks-backed route and **23.6 million** on direct Z.AI. Average agent steps were **861.6** and **175.6**, respectively. Applying the frozen GLM pricing policy to the recorded token categories gives an average normalized cost of **$6.99** per Fireworks-backed observation and **$0.78** per direct-Z.AI observation. Relative to the direct route, the Fireworks-backed route therefore used **9.4 times more input tokens**, **4.9 times more agent steps**, and **9.0 times the normalized cost**.
 
 ```{python}
 #| label: fig-glm-resource-means
-#| fig-cap: "Average resource consumption across eight matched GLM-5.3-Flash observations. Bars show the absolute mean for each route; relative multiples are reported in the text."
+#| fig-cap: "Average resource consumption across eight matched GLM-5.3-Flash observations."
 
 route_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"][:2]
 route_names = ["Fireworks-backed", "Direct Z.AI"]
@@ -274,13 +274,14 @@ for ax, (column, title, ylabel, formatter) in zip(axes, panels, strict=True):
     )
     ax.set_title(title)
     ax.set_ylabel(ylabel)
+    ax.set_ylim(0, max(values) * 1.12)
     ax.grid(axis="y", alpha=0.2)
     ax.tick_params(axis="x", labelrotation=15)
 
 fig.tight_layout()
 ```
 
-The difference is not produced by a single observation. @fig-glm-input-by-pair shows input-token usage for every matched task--harness pair, ordered by the direct-Z.AI token count. A horizontal grouped bar chart is used so the task and harness labels remain readable. The largest gaps occur in Codex, but the Fireworks-backed route is also substantially higher for several Pi and Claude Code pairs.
+The difference is not produced by a single observation. @fig-glm-input-by-pair shows input-token usage for every matched task--harness pair, ordered by the direct-Z.AI token count. The largest gaps occur in Codex, but the Fireworks-backed route is also substantially higher for several Pi and Claude Code pairs.
 
 ```{python}
 #| label: fig-glm-input-by-pair
@@ -302,7 +303,7 @@ The binary DeepSWE reward also differs descriptively. Three of the eight complet
 
 ```{python}
 #| label: fig-glm-observed-pass-share
-#| fig-cap: "Observed passing share in the GLM-5.3-Flash diagnostic data. The full 30-trial Fireworks batch is visually separated from the two matched samples. The direct Z.AI sample is incomplete and non-random; percentages are descriptive only."
+#| fig-cap: "Observed passing share in the GLM-5.3-Flash diagnostic data. The direct Z.AI sample is incomplete and non-random; percentages are descriptive only."
 
 palette = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 fig, ax = plt.subplots(figsize=(6.8, 3.6))
@@ -318,7 +319,7 @@ ax.bar_label(
     fontsize=8,
 )
 ax.set_ylabel("Passing observations (%)")
-ax.set_ylim(0, 45)
+ax.set_ylim(0, performance_glm["pass_share"].max() * 1.25)
 ax.grid(axis="y", alpha=0.2)
 fig.tight_layout()
 ```
@@ -338,6 +339,10 @@ ax = plot_grouped_bar(
     x_label="Longest identical consecutive tool-call streak",
     annotate=True,
 )
+max_repeat_streak = matched_repeat_streaks[
+    ["Fireworks-backed", "Direct Z.AI"]
+].to_numpy().max()
+ax.set_xlim(0, max_repeat_streak * 1.12)
 ax.figure.set_size_inches(8.6, 5.3)
 ax.figure.tight_layout()
 ```
