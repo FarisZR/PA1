@@ -245,7 +245,7 @@ matched_repeat_streaks = (
 
 ## Excluded GLM-5.3-Flash provider-route diagnostic
 
-The GLM observations in this subsection are diagnostic evidence only and do not enter the comparative benchmark matrix. Eight completed direct-Z.AI observations can be paired with a Fireworks-backed observation from the same task and harness. All figures in this subsection are generated from the committed Pier results and trajectories during the Quarto render [@pa1GlmRouteData].
+The GLM observations in this subsection are diagnostic evidence only and do not enter the comparative benchmark matrix. Eight completed direct-Z.AI observations can be paired with a Fireworks-backed observation from the same task and harness [@pa1GlmRouteData].
 
 Across those eight matched pairs, average input-token usage was **221.7 million** tokens on the Fireworks-backed route and **23.6 million** on direct Z.AI. Average agent steps were **861.6** and **175.6**, respectively. Applying the frozen GLM pricing policy to the recorded token categories gives an average normalized cost of **$6.99** per Fireworks-backed observation and **$0.78** per direct-Z.AI observation. Relative to the direct route, the Fireworks-backed route therefore used **9.4 times more input tokens**, **4.9 times more agent steps**, and **9.0 times the normalized cost**.
 
@@ -281,7 +281,7 @@ for ax, (column, title, ylabel, formatter) in zip(axes, panels, strict=True):
 fig.tight_layout()
 ```
 
-The difference is not produced by a single observation. @fig-glm-input-by-pair shows input-token usage for every matched task--harness pair, ordered by the direct-Z.AI token count. The largest gaps occur in Codex, but the Fireworks-backed route is also substantially higher for several Pi and Claude Code pairs.
+The elevated token usage is not produced by a single observation. The largest gaps occur in Codex, but the Fireworks-backed route is also substantially higher for several Pi and Claude Code pairs.
 
 ```{python}
 #| label: fig-glm-input-by-pair
@@ -299,7 +299,7 @@ ax.figure.set_size_inches(8.4, 5.2)
 ax.figure.tight_layout()
 ```
 
-The binary DeepSWE reward also differs descriptively. Three of the eight completed direct-Z.AI observations passed, compared with one of the same eight Fireworks-backed observations. In the complete 30-trial Fireworks-backed GLM batch, only two trials passed. @fig-glm-observed-pass-share shows these observed shares. The direct-Z.AI batch is incomplete and non-random, so **37.5% is not presented as an estimated GLM success rate**; it is diagnostic evidence that the model can produce successful solutions through a different serving route.
+The binary DeepSWE reward also differs descriptively. Three of the eight completed direct-Z.AI observations passed, compared with one of the same eight Fireworks-backed observations. In the complete 30-trial Fireworks-backed GLM batch, only two trials passed. The direct-Z.AI batch is incomplete and non-random, so **37.5% is not presented as an estimated GLM success rate**; it is diagnostic evidence that the model can produce successful solutions through a different serving route.
 
 ```{python}
 #| label: fig-glm-observed-pass-share
@@ -324,7 +324,7 @@ ax.grid(axis="y", alpha=0.2)
 fig.tight_layout()
 ```
 
-The strongest evidence that the Fireworks-backed measurements are not ordinary task failures is the repeated shell-tool behavior. Because the direct Z.AI batch contains trajectories for all eight matched observations, @fig-glm-repeat-streaks compares the **same task and harness on both routes**. For each trajectory, the figure reports the longest uninterrupted streak of an exactly identical shell-capable tool call. This is a deterministic comparison of the function name and argument object and does not depend on the Jev classifier.
+The strongest evidence that the Fireworks-backed measurements are not ordinary task failures is the repeated shell-tool behavior. For each of the eight matched trajectories, the longest uninterrupted streak of an exactly identical shell-capable tool call was calculated from the function name and argument object. This deterministic metric does not depend on the Jev classifier.
 
 ```{python}
 #| label: fig-glm-repeat-streaks
@@ -349,7 +349,7 @@ ax.figure.tight_layout()
 
 The two strongest matched examples are Codex trials. On `effect-sse-httpapi-streaming`, the Fireworks-backed trajectory issued the exact command `rg -n "Schema.Simplify" packages/effect/src/Schema.ts` **1,869 consecutive times**, whereas the longest identical consecutive shell-tool streak on direct Z.AI was **five calls**. On `python-statemachine-state-data-scoping`, the Fireworks-backed trajectory repeated the same exact shell-edit call **1,837 times**, including a **1,836-call consecutive streak**; the matched direct-Z.AI trajectory had a longest identical streak of **one call** and passed the task [@pa1GlmRouteData].
 
-Additional Fireworks-backed trajectories without a completed direct-Z.AI counterpart show the same general failure mode and are therefore not plotted in the matched figure. Codex on `katex-multicolumn-array-spans` issued the same exact probe **1,388 times**, while Pi on `scriggo-method-declarations` executed one exact Bash probe **743 times**, including **742 consecutive calls**, before its three-hour timeout. The targeted Jev audit independently classified 740 tool calls in the Scriggo trajectory as `repetitive_no_progress`, providing corroborating review evidence for the deterministic repetition counts [@pa1JevAuditData; @pa1JevAuditMethod].
+Additional Fireworks-backed trajectories without a completed direct-Z.AI counterpart show the same general failure mode. Codex on `katex-multicolumn-array-spans` issued the same exact probe **1,388 times**, while Pi on `scriggo-method-declarations` executed one exact Bash probe **743 times**, including **742 consecutive calls**, before its three-hour timeout. The targeted Jev audit independently classified 740 tool calls in the Scriggo trajectory as `repetitive_no_progress`, providing corroborating review evidence for the deterministic repetition counts [@pa1JevAuditData; @pa1JevAuditMethod].
 
 Taken together, the matched resource gap, the successful direct-Z.AI observations, and the disappearance of extreme identical-call loops on the matched direct route provide strong evidence of a **serving-path anomaly** rather than representative GLM-5.3-Flash behavior. The route change does not isolate Fireworks as the sole technical cause because it also removes AiOrbit and route-specific protocol translation. The paper therefore attributes the anomaly to the **Fireworks-backed serving path**, excludes GLM from model--harness performance and ranking results, and retains these observations only as a provider-route diagnostic.
 
