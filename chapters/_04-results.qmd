@@ -241,18 +241,18 @@ matched_repeat_streaks = (
 
 ## Measurement corrections {#sec-measurement-corrections}
 
-Several measurement problems only became visible while analyzing the completed runs, when rerunning the affected trials was no longer possible within the budget. The original Pier outputs are therefore kept unchanged as recorded evidence. The script `scripts/build_corrected_results.py` writes corrected copies next to them: `result.corrected.json` and, where a trajectory had to be rebuilt, `agent/trajectory.corrected.json`. Every corrected file records the original value, the corrected value, its source, and the reason, and each job directory contains a `corrections.json` manifest. The results in this chapter use a corrected file where one exists and the original otherwise. No correction changes a verifier outcome, a retry, or the task set. @tbl-measurement-issues summarizes the issues. They differ in origin and in how noticeable they were from the run output.
+Several measurement problems only became visible while analyzing the completed runs, when rerunning the affected trials was no longer possible within the budget. The original Pier outputs are therefore kept unchanged as recorded evidence. The script `scripts/build_corrected_results.py` writes corrected copies next to them: `result.corrected.json` and, where a trajectory had to be rebuilt, `agent/trajectory.corrected.json`. The corrected files have the same format as the originals. Each job directory contains a `corrections.json` manifest that records every corrected field with its original value, corrected value, source, and reason. The results in this chapter use a corrected file where one exists and the original otherwise. No correction changes a verifier outcome, a retry, or the task set. @tbl-measurement-issues summarizes the issues and their origin.
 
-| Issue | Origin | Obvious | Treatment |
-|:------|:-------|:--------|:----------|
-| Codex context metrics count output tokens | Upstream Pier | No | Recomputed |
-| OpenCode V2 usage totals withheld | PA1 adapter, by design | Yes | Recovered from session records |
-| OpenCode V2 session dump split on U+0085 | PA1 adapter, defect | No | Trajectories rebuilt |
-| Exit status 1 after a recovered step failure | Upstream OpenCode 2.0.8 | No | Disclosed |
-| Retries after non-transport failures | Pier retry rule, PA1 exclusion list | Partly | Disclosed |
-| `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | No | Limitation |
+| Issue | Origin | Treatment |
+|:------|:-------|:----------|
+| Codex context metrics count output tokens | Upstream Pier | Recomputed |
+| OpenCode V2 usage totals withheld | PA1 adapter, by design | Recovered from session records |
+| OpenCode V2 session dump split on U+0085 | PA1 adapter, defect | Trajectories rebuilt |
+| Exit status 1 after a recovered step failure | Upstream OpenCode 2.0.8 | Disclosed |
+| Retries after non-transport failures | Pier retry rule, PA1 exclusion list | Disclosed |
+| `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | Limitation |
 
-: Measurement issues discovered after the benchmark runs. "Obvious" states whether the problem was apparent from the run output. {#tbl-measurement-issues tbl-colwidths="[38,27,11,24]"}
+: Measurement issues discovered after the benchmark runs. {#tbl-measurement-issues tbl-colwidths="[45,30,25]"}
 
 ### Codex context metrics
 

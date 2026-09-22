@@ -9,8 +9,9 @@ full corrected copy next to the original:
     <trial>/result.corrected.json          corrected copy (only if something changed)
     <trial>/agent/trajectory.corrected.json  rebuilt trajectory (only where needed)
 
-Every corrected file carries a ``pa1_correction`` block, and each job directory
-gets a ``corrections.json`` listing every change. Readers should prefer
+Corrected files use exactly the same format as the Pier originals; only the
+corrected values differ. Each job directory gets a ``corrections.json`` listing
+every change (field, original, corrected, source, reason). Readers should prefer
 ``*.corrected.json`` when it exists and fall back to the original otherwise.
 
 Corrections (see "Measurement corrections" in the results chapter):
@@ -116,7 +117,8 @@ def load(path: Path) -> dict[str, Any]:
 
 
 def dump(path: Path, data: dict[str, Any], indent: int) -> None:
-    path.write_text(json.dumps(data, indent=indent, ensure_ascii=False) + "\n")
+    # Same serialization as Pier: ASCII-escaped, no trailing newline.
+    path.write_text(json.dumps(data, indent=indent))
 
 
 def sha256(path: Path) -> str:
@@ -265,25 +267,17 @@ def correct_opencode(
         if pier_python is None:
             raise ValidationError(f"{trial}: stub trajectory needs --pier-python to rebuild")
         corrected_trajectory = rebuild_opencode_trajectory(raw_trial, pier_python)
-        corrected_trajectory["final_metrics"].setdefault("extra", {})
-        corrected_trajectory["final_metrics"]["extra"]["pa1_correction"] = {
-            "reason": (
-                "Published trajectory was a 1-step stub because the PA1 OpenCode V2 adapter read the "
-                "session dump with str.splitlines(), which splits on U+0085 inside JSON strings; "
-                "rebuilt offline with Pier's converter and a newline-only reader"
-            ),
-            "source": totals["dump"],
-            "source_sha256": totals["dump_sha256"],
-            "original_steps": len(trajectory["steps"]),
-            "corrected_steps": len(corrected_trajectory["steps"]),
-            "reference": REFERENCE,
-        }
         changes.append({
             "field": "agent/trajectory.json",
             "original": f"{len(trajectory['steps'])} step stub",
             "corrected": f"{len(corrected_trajectory['steps'])} steps (agent/trajectory.corrected.json)",
-            "reason": "session dump discarded by str.splitlines() on U+0085; rebuilt offline",
+            "reason": (
+                "PA1 OpenCode V2 adapter read the session dump with str.splitlines(), which splits "
+                "on U+0085 inside JSON strings; rebuilt offline with Pier's converter and a "
+                "newline-only reader"
+            ),
             "source": totals["dump"],
+            "source_sha256": totals["dump_sha256"],
         })
         trajectory = corrected_trajectory
         extra = trajectory["final_metrics"].get("extra") or {}
@@ -348,11 +342,10 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
         manifest["attempts"].append(entry)
         if not changes:
             continue
-        result["pa1_correction"] = {"reference": REFERENCE, "changes": changes}
         dump(trial / "result.corrected.json", result, indent=4)
         if corrected_trajectory is not None:
             dump(trial / "agent" / "trajectory.corrected.json", corrected_trajectory, indent=2)
-    dump(job / "corrections.json", manifest, indent=2)
+    (job / "corrections.json").write_text(json.dumps(manifest, indent=2) + "\n")
     return manifest
 
 
