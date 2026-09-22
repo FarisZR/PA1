@@ -21,6 +21,11 @@ logs, agent console logs, session JSONL, sandbox contents, and generated
 binaries remain intentionally excluded. The raw run workspace remains under
 `benchmark/runs/` and is ignored by Git.
 
+The DeepSeek V4.1 Flash OpenCode V2 job is published separately at
+`deepseek-v4p1-flash/opencode-v2/`. It contains the 10 final tasks and 4 retry
+attempts, including each OpenCode adapter `runner-result.json` alongside the
+result, config, and trajectory files.
+
 The analysis scripts can use a model directory directly. Retries are included
 by default; use `--exclude-retries` when only final attempts are required:
 
