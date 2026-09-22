@@ -249,7 +249,7 @@ Several measurement problems only became visible while analyzing the completed r
 | OpenCode V2 usage totals withheld | PA1 adapter, by design | Recovered from session records |
 | OpenCode V2 session dump split on U+0085 | PA1 adapter, defect | Trajectories rebuilt |
 | Exit status 1 after a recovered step failure | Upstream OpenCode 2.0.8 | Disclosed |
-| Retries after non-transport failures | Pier retry rule, PA1 exclusion list | Disclosed |
+| Retries after non-transport failures | Pier retry rule, PA1 exclusion list | Canonical attempt selected by sparse override manifest |
 | `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | Limitation |
 
 : Measurement issues discovered after the benchmark runs. {#tbl-measurement-issues tbl-colwidths="[45,30,25]"}
@@ -268,13 +268,32 @@ For both attempts of the Luna `effect-sse-httpapi-streaming` task, the adapter p
 
 ### OpenCode V2 exit status after recovered errors
 
-OpenCode 2.0.8's non-interactive `run` command sets its exit status to 1 whenever a model step fails, and it does not reset the status when the session recovers [@opencode208NonInteractive]. Four DeepSeek V4.1 Flash attempts each hit one transient connection reset, which OpenCode retried internally. Each session then continued for another 48 to 349 steps, finished successfully, and passed the verifier. The CLI nevertheless exited with status 1. The PA1 runner forwarded that status, and Pier discarded and repeated each trial. Reporting a completed, passing session as failed is an anomaly of the upstream harness, not a transport fault. The repeated trials also passed, so success rates are unaffected. The discarded attempts, however, add USD 1.34 of normalized cost to the USD 3.16 of the ten final DeepSeek OpenCode V2 trials.
+OpenCode 2.0.8's non-interactive `run` command sets its exit status to 1 whenever a model step fails, and it does not reset the status when the session recovers [@opencode208NonInteractive]. Four DeepSeek V4.1 Flash attempts each hit one transient connection reset, which OpenCode retried internally. Each session then continued for another 48 to 349 steps, finished successfully, and passed the verifier. The CLI nevertheless exited with status 1. The PA1 runner forwarded that status, and Pier discarded and repeated each trial. Reporting a completed, passing session as failed is an anomaly of the upstream harness, not a transport fault. The four completed first attempts are therefore the canonical observations for comparative analysis. Their normalized cost totals USD 1.34; the later replacement attempts are retained as experimental overhead rather than added to comparative cost. Because both attempts passed in every case, this selection does not change the success rate.
 
-### Retry eligibility
+### Retry eligibility and canonical attempts
 
-Pier's retry policy excludes a fixed set of exception types and retries every other type. A non-zero harness exit is reported as a single exception type regardless of its cause, so in practice retries were not limited to the transport and gateway failures described in @sec-methodology. Besides the four OpenCode cases above, four GPT-5.6 Luna OpenCode V2 attempts ended after the model used OpenCode's `question` tool to ask for a Git author identity. Nobody can answer that question in a non-interactive run, so the session was shut down. Two DeepSeek V4.1 Flash attempts exceeded the gateway's context limit. Two of these repeated trials turned a failed first attempt into a successful final result. All discarded attempts remain in the published data under `.retry-attempts/`.
+Pier's retry policy excludes a fixed set of exception types and retries every other type. A non-zero harness exit is reported as a single exception type regardless of its cause, so the recorded retries were not limited to transport and gateway failures. The primary analysis therefore follows the selection rule defined in @sec-methodology: Pier's final trial is used by default, while a sparse override selects the earlier attempt when the replacement was triggered by a model- or harness-attributable failure. The file `data/benchmark-results/primary-attempt-overrides.json` contains the exact paths of all such substitutions, and `scripts/benchmark_results.py` applies and validates them [@pa1Issue95RetrySelection].
 
-<!-- TODO(FarisZR/PA1#95): decide how non-transport retries enter the cost and success analysis. -->
+@tbl-primary-attempt-overrides lists every comparative observation for which the earlier recorded attempt is used instead of Pier's final trial. The four DeepSeek OpenCode V2 observations had already completed successfully and passed before the CLI's retained exit status caused Pier to repeat them. Four Luna OpenCode V2 observations ended when the model requested a Git identity through an interactive question tool in a non-interactive run. Two DeepSeek observations exceeded the configured context limit. The latter two groups are valid failures of the evaluated model--harness system and therefore remain failures in the primary analysis, even when Pier's unintended replacement attempt later passed.
+
+| Model | Harness | Task | Canonical reward | Pier final reward | Selection reason |
+|:------|:--------|:-----|:----------------:|:-----------------:|:-----------------|
+| DeepSeek V4.1 Flash | OpenCode V2 | fastapi-implicit-head-options | 1 | 1 | Completed and passed; CLI retained exit status 1 after recovered stream failure |
+| DeepSeek V4.1 Flash | OpenCode V2 | katex-multicolumn-array-spans | 1 | 1 | Completed and passed; CLI retained exit status 1 after recovered stream failure |
+| DeepSeek V4.1 Flash | OpenCode V2 | koota-composite-trait-aspects | 1 | 1 | Completed and passed; CLI retained exit status 1 after recovered stream failure |
+| DeepSeek V4.1 Flash | OpenCode V2 | scriggo-method-declarations | 1 | 1 | Completed and passed; CLI retained exit status 1 after recovered stream failure |
+| GPT-5.6 Luna | OpenCode V2 | effect-sse-httpapi-streaming | 0 | 0 | Interactive Git-identity request in headless execution |
+| GPT-5.6 Luna | OpenCode V2 | expr-try-catch-errors | 0 | 1 | Interactive Git-identity request in headless execution |
+| GPT-5.6 Luna | OpenCode V2 | katex-multicolumn-array-spans | 0 | 0 | Interactive Git-identity request in headless execution |
+| GPT-5.6 Luna | OpenCode V2 | oxvg-structural-selector-preservation | 0 | 0 | Interactive Git-identity request in headless execution |
+| DeepSeek V4.1 Flash | Pi | oxvg-structural-selector-preservation | 0 | 0 | Context-window exhaustion |
+| DeepSeek V4.1 Flash | Codex | python-statemachine-state-data-scoping | 0 | 1 | Context-window exhaustion |
+
+: Primary-attempt overrides applied to comparative benchmark analysis. The canonical attempt is the earlier recorded attempt under `.retry-attempts/`; all observations not listed use Pier's final trial. {#tbl-primary-attempt-overrides tbl-colwidths="[15,12,24,10,10,29]"}
+
+The two reward changes are therefore deliberate consequences of applying one rule consistently: Luna/OpenCode V2 on `expr-try-catch-errors` and DeepSeek/Codex on `python-statemachine-state-data-scoping` are counted as failures in the comparative success analysis. Costs and token usage for all ten rows likewise come from the canonical earlier attempt, using corrected sidecars where available. The replacement attempts remain published as overhead evidence but do not enter comparative cost, token, cache, or success figures.
+
+Transport- and gateway-invalidated attempts do not require an override. In those cases Pier's final replacement remains the canonical observation, which is exactly the manifest default. This applies to the Kimi K3 Pi retries caused by exhausted stream-recovery attempts. The GLM-5.3-Flash retries caused by provider rate limits are retained only in the excluded provider-route diagnostic and do not enter the comparative benchmark matrix.
 
 ### Reasoning effort in Claude Code
 
