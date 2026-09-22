@@ -1,7 +1,8 @@
 # Filtered benchmark results
 
 This directory contains the committed, filtered evidence used for PA1 analysis
-of the primary 30-task jobs for Kimi K3, GLM 5.3 Flash, and DeepSeek V4.1 Flash.
+of the primary 30-task jobs for Kimi K3, GLM 5.3 Flash, DeepSeek V4.1 Flash, and
+GPT-5.6 Luna.
 The directory layout mirrors the corresponding job directories under the local
 `benchmark/runs/` directory, but it is a publication copy rather than a run
 workspace.
@@ -22,9 +23,14 @@ binaries remain intentionally excluded. The raw run workspace remains under
 `benchmark/runs/` and is ignored by Git.
 
 The DeepSeek V4.1 Flash OpenCode V2 job is published separately at
-`deepseek-v4p1-flash/opencode-v2/`. It contains the 10 final tasks and 4 retry
+`opencode-v2-deepseek-v4p1-flash/`; it is a separate run from the primary
+`deepseek-v4p1-flash/` job. It contains the 10 final tasks and 4 retry
 attempts, including each OpenCode adapter `runner-result.json` alongside the
 result, config, and trajectory files.
+
+The GPT-5.6 Luna job is published at `luna/`. It contains all 30 final tasks
+across the Pi, Claude Code, and Codex harnesses. This job recorded no retry
+attempts.
 
 The analysis scripts can use a model directory directly. Retries are included
 by default; use `--exclude-retries` when only final attempts are required:
