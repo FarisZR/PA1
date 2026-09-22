@@ -10,9 +10,10 @@ n_attempts: 1
 n_concurrent_trials: 5
 retry:
   max_retries: 1
-  # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
-  # result on this task set, and verifier/reward failures are grading faults, so
-  # re-running a whole trial for either would corrupt the measurement.
+  # Intent: replace transport/gateway-invalidated attempts. Pier implements
+  # retry eligibility by exclusion, so any exception type not listed below can
+  # still trigger a replacement attempt. Primary analysis resolves accidental
+  # non-transport retries through data/benchmark-results/primary-attempt-overrides.json.
   exclude_exceptions:
     - AgentTimeoutError
     - VerifierTimeoutError
