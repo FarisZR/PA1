@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
-"""Write corrected sidecar copies of Pier result/trajectory files.
+"""Correct known measurement errors in the published Pier result/trajectory files.
 
-The published Pier evidence under ``data/benchmark-results/`` is left untouched.
-Where a recorded value is known to be wrong or missing, this script writes a
-full corrected copy next to the original:
+``result.json`` and ``agent/trajectory.json`` under ``data/benchmark-results/``
+are the files to use for analysis. Where a recorded value is known to be wrong
+or missing, this script writes the corrected values to those canonical names
+and keeps Pier's unmodified output beside them:
 
-    <trial>/result.json                    original Pier output
-    <trial>/result.corrected.json          corrected copy (only if something changed)
-    <trial>/agent/trajectory.corrected.json  rebuilt trajectory (only where needed)
+    <trial>/result.json                     corrected (canonical, use this)
+    <trial>/result.original.json            unmodified Pier output (only where corrected)
+    <trial>/agent/trajectory.json           corrected (canonical, use this)
+    <trial>/agent/trajectory.original.json  unmodified Pier output (only where rebuilt)
 
 Corrected files use exactly the same format as the Pier originals; only the
 corrected values differ. Each job directory gets a ``corrections.json`` listing
-every change (field, original, corrected, source, reason). Readers should prefer
-``*.corrected.json`` when it exists and fall back to the original otherwise.
+every change (field, original, corrected, source, reason). The script always
+reads the ``*.original.json`` file when it exists, so it can be re-run safely.
 
 Corrections (see "Measurement corrections" in the results chapter):
 
@@ -125,6 +127,27 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def original(path: Path) -> Path:
+    """Return Pier's unmodified file: ``<name>.original.json`` if present, else ``path``."""
+    kept = path.with_name(path.stem + ".original.json")
+    return kept if kept.exists() else path
+
+
+def write_corrected(path: Path, data: dict[str, Any], indent: int) -> None:
+    """Keep Pier's original bytes as ``<name>.original.json`` and write ``data`` to ``path``."""
+    kept = path.with_name(path.stem + ".original.json")
+    if not kept.exists():
+        path.rename(kept)
+    dump(path, data, indent)
+
+
+def restore(path: Path) -> None:
+    """Undo an earlier correction that no longer applies."""
+    kept = path.with_name(path.stem + ".original.json")
+    if kept.exists():
+        kept.replace(path)
+
+
 def attempts(job: Path) -> list[Path]:
     finals = sorted(p.parent for p in job.glob("*/result.json"))
     retries = sorted(p.parent for p in job.glob(".retry-attempts/*/attempt-*/result.json"))
@@ -174,7 +197,7 @@ def codex_rollout_compactions(raw_trial: Path) -> int | None:
 
 
 def correct_codex(trial: Path, raw_trial: Path, result: dict[str, Any]) -> list[dict[str, Any]]:
-    trajectory = load(trial / "agent" / "trajectory.json")
+    trajectory = load(original(trial / "agent" / "trajectory.json"))
     peak, compactions = codex_input_metrics(trajectory)
     events = codex_rollout_compactions(raw_trial)
     if events is None:
@@ -259,7 +282,7 @@ def correct_opencode(
         audit["validated_against_pier"] = True
         return [], None, audit
 
-    trajectory = load(trial / "agent" / "trajectory.json")
+    trajectory = load(original(trial / "agent" / "trajectory.json"))
     changes: list[dict[str, Any]] = []
     corrected_trajectory = None
     extra = trajectory["final_metrics"].get("extra") or {}
@@ -270,7 +293,7 @@ def correct_opencode(
         changes.append({
             "field": "agent/trajectory.json",
             "original": f"{len(trajectory['steps'])} step stub",
-            "corrected": f"{len(corrected_trajectory['steps'])} steps (agent/trajectory.corrected.json)",
+            "corrected": f"{len(corrected_trajectory['steps'])} steps (original kept as agent/trajectory.original.json)",
             "reason": (
                 "PA1 OpenCode V2 adapter read the session dump with str.splitlines(), which splits "
                 "on U+0085 inside JSON strings; rebuilt offline with Pier's converter and a "
@@ -324,10 +347,8 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
     for trial in attempts(job):
         rel = trial.relative_to(job)
         raw_trial = raw_job / rel
-        result = load(trial / "result.json")
+        result = load(original(trial / "result.json"))
         harness = result["config"]["agent"]["name"]
-        for stale in (trial / "result.corrected.json", trial / "agent" / "trajectory.corrected.json"):
-            stale.unlink(missing_ok=True)
         corrected_trajectory = None
         audit = None
         if harness == "codex":
@@ -340,11 +361,16 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
         if audit is not None:
             entry["opencode_session_record"] = audit
         manifest["attempts"].append(entry)
-        if not changes:
-            continue
-        dump(trial / "result.corrected.json", result, indent=4)
+        result_path = trial / "result.json"
+        trajectory_path = trial / "agent" / "trajectory.json"
+        if changes:
+            write_corrected(result_path, result, indent=4)
+        else:
+            restore(result_path)
         if corrected_trajectory is not None:
-            dump(trial / "agent" / "trajectory.corrected.json", corrected_trajectory, indent=2)
+            write_corrected(trajectory_path, corrected_trajectory, indent=2)
+        else:
+            restore(trajectory_path)
     (job / "corrections.json").write_text(json.dumps(manifest, indent=2) + "\n")
     return manifest
 

