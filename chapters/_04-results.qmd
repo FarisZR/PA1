@@ -1,9 +1,5 @@
 # Results and Analysis {#sec-results}
 
-> **Status:** The comparative benchmark subsections remain placeholders until the
-> complete retained matrix is frozen. The GLM diagnostic below is separate from
-> that comparison and uses committed raw artifacts and a documented audit.
-
 ```{python}
 #| include: false
 
