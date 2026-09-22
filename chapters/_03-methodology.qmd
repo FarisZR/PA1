@@ -46,7 +46,7 @@ AiOrbit, Fireworks, Anthropic, and CLIProxyAPI are infrastructure outside the ex
 
 ### Provider concurrency
 
-Fireworks-backed jobs use model-specific concurrency caps so provider throttling does not become an experimental variable [@fireworksRateLimits]. The Pi/Claude Code/Codex jobs run up to 30 Kimi K3 trials, eight GLM-5.3-Flash trials, and four DeepSeek V4.1 Flash trials concurrently. OpenCode V2 contains ten trials per model and runs ten Kimi or GLM trials concurrently, but five for DeepSeek. These settings affect job scheduling only; task definitions, model settings, scoring, and reported metrics are unchanged. The exact values are frozen in the benchmark configuration.
+Fireworks-backed jobs use model-specific concurrency caps so provider throttling does not become an experimental variable [@fireworksRateLimits]. The Pi/Claude Code/Codex jobs run up to 30 Kimi K3 trials, eight GLM-5.3-Flash trials, and four DeepSeek V4.1 Flash trials concurrently. OpenCode V2 contains ten trials per model and runs ten Kimi or GLM trials concurrently, but five for DeepSeek. GPT-5.6 Luna uses six concurrent trials in both the Pi/Claude Code/Codex configuration and the separate OpenCode V2 configuration. These settings affect job scheduling only; task definitions, model settings, scoring, and reported metrics are unchanged. The exact values are frozen in the benchmark configuration.
 
 ## Benchmark infrastructure
 
@@ -78,7 +78,7 @@ Compatibility changes are permitted only when they are required to make a harnes
 
 The benchmark uses CLIProxyAPI as a common access layer for GPT-5.6 Luna. Pi and OpenCode V2 use its OpenAI-compatible endpoint, Codex keeps its native OpenAI Responses profile while redirecting the endpoint, and Claude Code uses CLIProxyAPI's Anthropic-compatible translation. All four harnesses therefore reach the same ChatGPT-backed Luna account through the same pinned bridge implementation [@cliproxyCodexOAuth].
 
-The OAuth state is stored in CLIProxyAPI's persistent authentication directory on the benchmark runner. Pier containers receive only a local bridge API key. Luna jobs are run serially so subscription-side concurrency does not become a harness-specific difference. The bridge's retries, credential cooldowns, and model fallbacks remain disabled.
+The OAuth state is stored in CLIProxyAPI's persistent authentication directory on the benchmark runner. Pier containers receive only a local bridge API key. Both Luna configurations run up to six trials concurrently. Pier may repeat a complete trial once for transport or gateway failures; agent timeouts, verifier timeouts, missing or invalid reward outputs, and operator cancellations are excluded from whole-trial retry. CLIProxyAPI's own request retries, credential cooldowns, retry intervals, and quota-triggered model fallbacks remain disabled. This keeps any permitted retry visible in Pier's trial record rather than hiding it inside the bridge.
 
 ### Codex with third-party models
 
