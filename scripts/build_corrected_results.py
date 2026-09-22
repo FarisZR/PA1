@@ -16,6 +16,15 @@ corrected values differ. Each job directory gets a ``corrections.json`` listing
 every change (field, original, corrected, source, reason). The script always
 reads the ``*.original.json`` file when it exists, so it can be re-run safely.
 
+The normal trial directory also always holds the canonical attempt. Pier keeps
+its final trial there, which is wrong where it retried a failure of the
+evaluated model or harness (see ``FIRST_ATTEMPT_CANONICAL``). For those trials
+the first attempt is published as the trial and Pier's retry is kept as
+evidence under ``.retry-attempts/<trial>/attempt-2``:
+
+    <trial>/                                canonical attempt (use this)
+    .retry-attempts/<trial>/attempt-*/      non-canonical attempts (overhead)
+
 Corrections (see "Measurement corrections" in the results chapter):
 
 1. Codex context metrics. Upstream Pier derives ``peak_context_tokens`` and,
@@ -37,6 +46,11 @@ Corrections (see "Measurement corrections" in the results chapter):
    so discarded a valid session record. Affected trajectories are rebuilt
    offline with Pier's own converter and a newline-only reader. No model is
    called; only the recorded dump is read.
+
+4. Canonical attempts. Pier retries every exception type that is not excluded,
+   and a non-zero harness exit is one type whatever its cause. Ten trials were
+   therefore retried after the model or harness failed, not after a transport
+   fault. Their first attempt is the observation and becomes the trial.
 
 Regeneration needs the raw run workspace (``benchmark/runs/``, not tracked by
 Git) and, for correction 3, the pinned Pier checkout:
@@ -69,6 +83,39 @@ JOBS = (
     "opencode-v2-luna",
     "opencode-v2-deepseek-v4p1-flash",
 )
+# Trials that Pier retried after a failure of the evaluated model or harness
+# (issue #95). Transport retries (Kimi K3 Pi, GLM-5.3-Flash Codex) are not
+# listed: there Pier's final trial is the observation.
+OPENCODE_EXIT = (
+    "OpenCode finished and passed after recovering from a transient stream error, but "
+    "OpenCode 2.0.8's non-interactive CLI kept exit status 1, so Pier repeated the trial"
+)
+QUESTION_TOOL = (
+    "The model asked for a Git author identity through OpenCode's interactive question "
+    "tool, which a non-interactive run cannot answer; a failure of the evaluated system"
+)
+CONTEXT_LIMIT = (
+    "A request exceeded the model's context window (ContextWindowExceededError); a "
+    "context-management failure of the evaluated system"
+)
+FIRST_ATTEMPT_CANONICAL = {
+    "deepseek-v4p1-flash": {
+        "oxvg-structural-selector-preserv__Wj9Bxfi": CONTEXT_LIMIT,
+        "python-statemachine-state-data-s__8WwYSfA": CONTEXT_LIMIT,
+    },
+    "opencode-v2-deepseek-v4p1-flash": {
+        "fastapi-implicit-head-options__5UY3Gb3": OPENCODE_EXIT,
+        "katex-multicolumn-array-spans__73HZQ6c": OPENCODE_EXIT,
+        "koota-composite-trait-aspects__KKujPmj": OPENCODE_EXIT,
+        "scriggo-method-declarations__7mKVSxh": OPENCODE_EXIT,
+    },
+    "opencode-v2-luna": {
+        "effect-sse-httpapi-streaming__rL66U8M": QUESTION_TOOL,
+        "expr-try-catch-errors__Uvvi6Eh": QUESTION_TOOL,
+        "katex-multicolumn-array-spans__zipARnF": QUESTION_TOOL,
+        "oxvg-structural-selector-preserv__mGjKfoa": QUESTION_TOOL,
+    },
+}
 # Same threshold as upstream Pier's token-drop heuristic, applied to input only.
 COMPACTION_DROP_TOKENS = 10_000
 REFERENCE = "chapters/_04-results.qmd#sec-measurement-corrections"
@@ -156,6 +203,61 @@ def attempts(job: Path) -> list[Path]:
 
 def agent_steps(trajectory: dict[str, Any]) -> list[dict[str, Any]]:
     return [s for s in trajectory.get("steps", []) if s.get("source") == "agent"]
+
+
+# --- canonical attempts ------------------------------------------------------
+
+
+def pier_path(job_name: str, rel: Path) -> Path:
+    """Map a published attempt back to its location in Pier's run layout."""
+    selected = FIRST_ATTEMPT_CANONICAL.get(job_name, {})
+    if len(rel.parts) == 1 and rel.name in selected:
+        return Path(".retry-attempts", rel.name, "attempt-1")
+    if rel.parts[0] == ".retry-attempts" and rel.parts[1] in selected and rel.name == "attempt-2":
+        return Path(rel.parts[1])
+    return rel
+
+
+def attempt_summary(published: Path, job: Path, raw_job: Path) -> dict[str, Any]:
+    rel = published.relative_to(job)
+    pier = pier_path(job.name, rel)
+    result = load(original(published / "result.json"))
+    raw = load(raw_job / pier / "result.json")
+    if result["id"] != raw["id"]:
+        raise ValidationError(f"{published}: attempt {result['id']} != Pier {pier} {raw['id']}")
+    return {
+        "published": str(rel),
+        "pier": str(pier),
+        "id": result["id"],
+        "reward": ((result.get("verifier_result") or {}).get("rewards") or {}).get("reward"),
+        "exception": (result.get("exception_info") or {}).get("exception_type"),
+    }
+
+
+def select_first_attempts(job: Path, raw_job: Path) -> list[dict[str, Any]]:
+    """Publish the first attempt as the trial and Pier's retry as attempt-2."""
+    selections = []
+    for name, reason in FIRST_ATTEMPT_CANONICAL.get(job.name, {}).items():
+        trial = job / name
+        first = job / ".retry-attempts" / name / "attempt-1"
+        retry = job / ".retry-attempts" / name / "attempt-2"
+        if first.is_dir():
+            if retry.exists():
+                raise ValidationError(f"{retry}: already exists")
+            trial.rename(retry)
+            first.rename(trial)
+        elif not (trial.is_dir() and retry.is_dir()):
+            raise ValidationError(f"{trial}: no retried attempt to select")
+        canonical = attempt_summary(trial, job, raw_job)
+        if canonical["exception"] != "NonZeroAgentExitCodeError":
+            raise ValidationError(f"{trial}: first attempt ended with {canonical['exception']}")
+        selections.append({
+            "trial": name,
+            "canonical": canonical,
+            "pier_final": attempt_summary(retry, job, raw_job),
+            "reason": reason,
+        })
+    return selections
 
 
 # --- Codex -------------------------------------------------------------------
@@ -343,10 +445,15 @@ def correct_opencode(
 def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
     job = PUBLISHED / job_name
     raw_job = RAW / job_name
-    manifest: dict[str, Any] = {"job": job_name, "reference": REFERENCE, "attempts": []}
+    manifest: dict[str, Any] = {
+        "job": job_name,
+        "reference": REFERENCE,
+        "attempt_selection": select_first_attempts(job, raw_job),
+        "attempts": [],
+    }
     for trial in attempts(job):
         rel = trial.relative_to(job)
-        raw_trial = raw_job / rel
+        raw_trial = raw_job / pier_path(job_name, rel)
         result = load(original(trial / "result.json"))
         harness = result["config"]["agent"]["name"]
         corrected_trajectory = None

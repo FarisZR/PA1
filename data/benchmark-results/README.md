@@ -5,35 +5,36 @@ of the primary 30-task jobs for Kimi K3, GLM 5.3 Flash, DeepSeek V4.1 Flash, and
 GPT-5.6 Luna.
 The directory layout mirrors the corresponding job directories under the local
 `benchmark/runs/` directory, but it is a publication copy rather than a run
-workspace.
+workspace: every trial directory holds the canonical attempt (see "Canonical
+attempts" below).
 
 Each model directory contains:
 
 - the job-level `result.json`, `config.json`, and `lock.json`;
-- each final task's `result.json` and `config.json`; and
-- each final task's structured `agent/trajectory.json`; and
-- filtered retry attempts under `.retry-attempts/`, containing the retry
+- each trial's canonical `result.json` and `config.json`; and
+- each trial's structured `agent/trajectory.json`; and
+- every other attempt under `.retry-attempts/`, containing its
   `result.json`, `config.json`, and `agent/trajectory.json` files.
 
 Pier names both the job-level and task-level result files `result.json`; there
 are no `results.json` or `task.json` files in these outputs. Retry attempts are
-included in the same filtered form as final tasks. Request/proxy logs, verifier
+included in the same filtered form as the trials. Request/proxy logs, verifier
 logs, agent console logs, session JSONL, sandbox contents, and generated
 binaries remain intentionally excluded. The raw run workspace remains under
 `benchmark/runs/` and is ignored by Git.
 
 The DeepSeek V4.1 Flash OpenCode V2 job is published separately at
 `opencode-v2-deepseek-v4p1-flash/`; it is a separate run from the primary
-`deepseek-v4p1-flash/` job. It contains the 10 final tasks and 4 retry
+`deepseek-v4p1-flash/` job. It contains the 10 trials and 4 retry
 attempts, including each OpenCode adapter `runner-result.json` alongside the
 result, config, and trajectory files.
 
-The GPT-5.6 Luna job is published at `luna/`. It contains all 30 final tasks
+The GPT-5.6 Luna job is published at `luna/`. It contains all 30 trials
 across the Pi, Claude Code, and Codex harnesses. This job recorded no retry
 attempts.
 
 The completed OpenCode V2 GPT-5.6 Luna run is published separately at
-`opencode-v2-luna/`. It contains the 10 final tasks and 4 retry attempts,
+`opencode-v2-luna/`. It contains the 10 trials and 4 retry attempts,
 including each OpenCode adapter `runner-result.json` alongside the filtered
 result, config, and trajectory files.
 
@@ -43,8 +44,9 @@ including retry attempts, logs, sessions, verifier output, and other run
 artifacts. Unlike the other data directories, no files were selected,
 renamed, redacted, or removed from this snapshot.
 
-The analysis scripts can use a model directory directly. Retries are included
-by default; use `--exclude-retries` when only final attempts are required:
+The analysis scripts can use a model directory directly. They read one
+canonical attempt per trial by default; add `--include-retries` to also count
+the experimental overhead under `.retry-attempts/`:
 
 ```bash
 python3 scripts/analyze_benchmark_costs.py \
@@ -91,5 +93,42 @@ trajectory rebuild, the pinned Pier checkout:
 ```bash
 python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
 ```
+
+## Canonical attempts
+
+Every job allows Pier to repeat a trial once. The retry was meant for
+transport/gateway faults, but Pier retries every exception type that is not
+excluded, and a non-zero harness exit is always `NonZeroAgentExitCodeError`.
+Ten trials were therefore retried after a failure of the model or harness
+([PA1 #95](https://github.com/FarisZR/PA1/issues/95)). For those, the first
+attempt is the observation, not Pier's final one. `scripts/build_corrected_results.py`
+publishes it in the normal trial directory and moves Pier's retry to
+`attempt-2`:
+
+```text
+<trial>/                                canonical attempt; use this
+.retry-attempts/<trial>/attempt-1/      Pier discarded it after a transport fault (Pier's layout)
+.retry-attempts/<trial>/attempt-2/      Pier's final trial after a model/harness failure (moved)
+<job>/corrections.json                  attempt_selection: both attempts' paths, ids, rewards, and the reason
+```
+
+**Glob `*/result.json` for comparative results.** It returns exactly one
+canonical attempt per trial, so success, token, cache, and cost figures describe
+the same attempt. Everything under `.retry-attempts/` is experimental overhead:
+it consumed budget but is not a model–harness observation. The moved files are
+byte-identical to Pier's output; only their location changed.
+
+| Job | Trials | Reason |
+| --- | --- | --- |
+| `opencode-v2-deepseek-v4p1-flash` | fastapi, katex, koota, scriggo | Session finished and passed, but OpenCode 2.0.8 kept exit status 1 after a recovered stream error |
+| `opencode-v2-luna` | effect-sse, expr, katex, oxvg | Model asked for a Git identity through OpenCode's interactive `question` tool |
+| `deepseek-v4p1-flash` | Pi oxvg, Codex python-statemachine | Context window exceeded |
+
+The Kimi K3 Pi and GLM-5.3-Flash Codex retries followed transport faults, so
+Pier's final trial stays canonical there.
+
+The job-level `<job>/result.json` is Pier's run summary. Its `stats` block
+(rewards, errors, token totals) reflects Pier's final trials and uncorrected
+values; do not use it for analysis.
 
 `glm-5.3-sub/` is not corrected.

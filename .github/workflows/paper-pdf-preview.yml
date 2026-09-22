@@ -14,6 +14,7 @@ on:
       - "scripts/figures.py"
       - "scripts/survey_analysis.py"
       - "data/**/*.csv"
+      - "data/benchmark-results/**"
       - ".github/workflows/paper-pdf-preview.yml"
   push:
     branches: [main]
@@ -28,6 +29,7 @@ on:
       - "scripts/figures.py"
       - "scripts/survey_analysis.py"
       - "data/**/*.csv"
+      - "data/benchmark-results/**"
       - ".github/workflows/paper-pdf-preview.yml"
 
 permissions:

@@ -241,15 +241,15 @@ matched_repeat_streaks = (
 
 ## Measurement corrections {#sec-measurement-corrections}
 
-Several measurement problems only became visible while analyzing the completed runs, when rerunning the affected trials was no longer possible within the budget. The script `scripts/build_corrected_results.py` writes the corrected values to the normal Pier file names, `result.json` and, where a trajectory had to be rebuilt, `agent/trajectory.json`, in the same format as Pier's output. Pier's unmodified files are kept beside them as `result.original.json` and `agent/trajectory.original.json` for recorded evidence. Each job directory contains a `corrections.json` manifest that records every corrected field with its original value, corrected value, source, and reason. All results in this chapter use the corrected files. No correction changes a verifier outcome, a retry, or the task set. @tbl-measurement-issues summarizes the issues and their origin.
+Several measurement problems only became visible while analyzing the completed runs, when rerunning the affected trials was no longer possible within the budget. The script `scripts/build_corrected_results.py` writes the corrected values to the normal Pier file names, `result.json` and, where a trajectory had to be rebuilt, `agent/trajectory.json`, in the same format as Pier's output. Pier's unmodified files are kept beside them as `result.original.json` and `agent/trajectory.original.json` for recorded evidence. Each job directory contains a `corrections.json` manifest that records every corrected field with its original value, corrected value, source, and reason. The same script ensures that the normal trial directory holds the canonical attempt defined in @sec-canonical-attempts. Where Pier retried a failure of the evaluated model or harness, the first attempt is published as the trial and Pier's final attempt is kept under `.retry-attempts/`. The moved files are unchanged, and `corrections.json` records both attempts with their identifiers and rewards. All results in this chapter use the corrected files and the canonical attempts. Apart from the attempt selection described in @sec-retry-eligibility, no correction changes a verifier outcome, a retry, or the task set. @tbl-measurement-issues summarizes the issues and their origin.
 
 | Issue | Origin | Treatment |
 |:------|:-------|:----------|
 | Codex context metrics count output tokens | Upstream Pier | Recomputed |
 | OpenCode V2 usage totals withheld | PA1 adapter, by design | Recovered from session records |
 | OpenCode V2 session dump split on U+0085 | PA1 adapter, defect | Trajectories rebuilt |
-| Exit status 1 after a recovered step failure | Upstream OpenCode 2.0.8 | Disclosed |
-| Retries after non-transport failures | Pier retry rule, PA1 exclusion list | Disclosed |
+| Exit status 1 after a recovered step failure | Upstream OpenCode 2.0.8 | First attempt canonical |
+| Retries after non-transport failures | Pier retry rule, PA1 exclusion list | First attempt canonical |
 | `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | Limitation |
 
 : Measurement issues discovered after the benchmark runs. {#tbl-measurement-issues tbl-colwidths="[45,30,25]"}
@@ -260,7 +260,7 @@ When a Codex rollout contains no explicit compaction event, Pier infers compacti
 
 ### Withheld OpenCode V2 usage totals
 
-The PA1 OpenCode V2 adapter reports token and cost totals only when it can show that the complete session tree was collected, as described in @sec-methodology. Trials that reached the agent timeout, and trials whose CLI exited unexpectedly, never reach that state, so their totals were withheld. This affected 12 attempts: four final GPT-5.6 Luna trials and eight repeated trials. Leaving them out would understate OpenCode's cost on the most expensive runs in particular. OpenCode keeps its own running token and cost totals in the session record that the adapter saves after every run. On all 16 attempts for which Pier did report totals, these records match Pier's totals exactly, so they are used for the 12 withheld attempts. For trials terminated at the timeout, a request still in progress at termination is not included, so those values are slight lower bounds.
+The PA1 OpenCode V2 adapter reports token and cost totals only when it can show that the complete session tree was collected, as described in @sec-methodology. Trials that reached the agent timeout, and trials whose CLI exited unexpectedly, never reach that state, so their totals were withheld. This affected 12 attempts: ten canonical attempts, six for GPT-5.6 Luna and four for DeepSeek V4.1 Flash, and two of Pier's non-canonical Luna retries. Leaving them out would understate OpenCode's cost on the most expensive runs in particular. OpenCode keeps its own running token and cost totals in the session record that the adapter saves after every run. On all 16 attempts for which Pier did report totals, these records match Pier's totals exactly, so they are used for the 12 withheld attempts. For trials terminated at the timeout, a request still in progress at termination is not included, so those values are slight lower bounds.
 
 ### OpenCode V2 session reader
 
@@ -268,13 +268,28 @@ For both attempts of the Luna `effect-sse-httpapi-streaming` task, the adapter p
 
 ### OpenCode V2 exit status after recovered errors
 
-OpenCode 2.0.8's non-interactive `run` command sets its exit status to 1 whenever a model step fails, and it does not reset the status when the session recovers [@opencode208NonInteractive]. Four DeepSeek V4.1 Flash attempts each hit one transient connection reset, which OpenCode retried internally. Each session then continued for another 48 to 349 steps, finished successfully, and passed the verifier. The CLI nevertheless exited with status 1. The PA1 runner forwarded that status, and Pier discarded and repeated each trial. Reporting a completed, passing session as failed is an anomaly of the upstream harness, not a transport fault. The repeated trials also passed, so success rates are unaffected. The discarded attempts, however, add USD 1.34 of normalized cost to the USD 3.16 of the ten final DeepSeek OpenCode V2 trials.
+OpenCode 2.0.8's non-interactive `run` command sets its exit status to 1 whenever a model step fails, and it does not reset the status when the session recovers [@opencode208NonInteractive]. Four DeepSeek V4.1 Flash attempts each hit one transient connection reset, which OpenCode retried internally. Each session then continued for another 48 to 349 steps, finished successfully, and passed the verifier. The CLI nevertheless exited with status 1. The PA1 runner forwarded that status, and Pier discarded and repeated each trial. Reporting a completed, passing session as failed is an anomaly of the upstream harness, not a transport fault, so the completed first attempts are the canonical observations. The repeated trials also passed, so success rates are unaffected. The ten canonical DeepSeek OpenCode V2 attempts cost USD 3.12 in normalized terms, compared with USD 3.16 for Pier's final trials. Pier's four repeated trials add USD 1.38 of experimental overhead.
 
-### Retry eligibility
+### Retry eligibility {#sec-retry-eligibility}
 
-Pier's retry policy excludes a fixed set of exception types and retries every other type. A non-zero harness exit is reported as a single exception type regardless of its cause, so in practice retries were not limited to the transport and gateway failures described in @sec-methodology. Besides the four OpenCode cases above, four GPT-5.6 Luna OpenCode V2 attempts ended after the model used OpenCode's `question` tool to ask for a Git author identity. Nobody can answer that question in a non-interactive run, so the session was shut down. Two DeepSeek V4.1 Flash attempts exceeded the gateway's context limit. Two of these repeated trials turned a failed first attempt into a successful final result. All discarded attempts remain in the published data under `.retry-attempts/`.
+Because Pier retries every exception type that is not excluded (@sec-canonical-attempts), retries were not limited to transport and gateway failures. Besides the four OpenCode cases above, four GPT-5.6 Luna OpenCode V2 attempts ended after the model used OpenCode's `question` tool to ask for a Git author identity. Nobody can answer that question in a non-interactive run, so the session was shut down. Two DeepSeek V4.1 Flash attempts exceeded the model's context window. These are failures of the evaluated model--harness system, so the first attempt is canonical for all ten trials listed in @tbl-canonical-attempts.
 
-<!-- TODO(FarisZR/PA1#95): decide how non-transport retries enter the cost and success analysis. -->
+| Model | Harness | Task | Cause of the first attempt's exit | Canonical reward | Pier final reward |
+|:------|:--------|:-----|:----------------------------------|:----------------:|:-----------------:|
+| DeepSeek V4.1 Flash | OpenCode V2 | `fastapi-implicit-head-options` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| DeepSeek V4.1 Flash | OpenCode V2 | `katex-multicolumn-array-spans` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| DeepSeek V4.1 Flash | OpenCode V2 | `koota-composite-trait-aspects` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| DeepSeek V4.1 Flash | OpenCode V2 | `scriggo-method-declarations` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| GPT-5.6 Luna | OpenCode V2 | `effect-sse-httpapi-streaming` | Interactive Git identity question | 0 | 0 |
+| GPT-5.6 Luna | OpenCode V2 | `expr-try-catch-errors` | Interactive Git identity question | 0 | 1 |
+| GPT-5.6 Luna | OpenCode V2 | `katex-multicolumn-array-spans` | Interactive Git identity question | 0 | 0 |
+| GPT-5.6 Luna | OpenCode V2 | `oxvg-structural-selector-preservation` | Interactive Git identity question | 0 | 0 |
+| DeepSeek V4.1 Flash | Pi | `oxvg-structural-selector-preservation` | Context window exceeded | 0 | 0 |
+| DeepSeek V4.1 Flash | Codex | `python-statemachine-state-data-scoping` | Context window exceeded | 0 | 1 |
+
+: Trials whose first attempt is canonical instead of Pier's final attempt. {#tbl-canonical-attempts tbl-colwidths="[15,11,28,26,10,10]"}
+
+Two outcomes differ from Pier's final trials as a result. GPT-5.6 Luna with OpenCode V2 on `expr-try-catch-errors` and DeepSeek V4.1 Flash with Codex on `python-statemachine-state-data-scoping` passed only on Pier's retry, so both count as failures. The only other retries followed transport failures and keep Pier's final attempt: two Kimi K3 Pi trials whose streams were terminated after Pi's own request retries were exhausted, and two GLM-5.3-Flash Codex trials in the excluded provider-route diagnostic that hit provider rate limits. All non-canonical attempts remain in the published data under `.retry-attempts/`.
 
 ### Reasoning effort in Claude Code
 

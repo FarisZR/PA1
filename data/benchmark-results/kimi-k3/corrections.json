@@ -1,6 +1,7 @@
 {
   "job": "kimi-k3",
   "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
+  "attempt_selection": [],
   "attempts": [
     {
       "attempt": "boa-hierarchical-evaluation-canc__v8kdp5C",

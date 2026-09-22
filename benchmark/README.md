@@ -123,12 +123,13 @@ the same rule: web search is disabled except for Kimi K3
 For a model evaluated on all four harnesses, the complete wave is therefore
 **40 planned trials**: 30 from the current Pi / Claude Code / Codex job plus 10
 from the matching OpenCode V2 profile. Each profile uses 1 attempt per task,
-1 automatic retry for transport/gateway faults only, and
+at most 1 automatic whole-trial retry, and
 a per-model `n_concurrent_trials` sized against the model's Fireworks
 token-rate headroom (see "Sizing concurrency against the limit").
 
-Successful trials run once. A trial that fails with a transport/gateway fault is
-discarded and run again once; if the retry also fails, the second failure is final.
+Successful trials run once. The retry is meant for transport/gateway faults: a
+trial that fails with one is discarded and run again once; if the retry also
+fails, the second failure is final.
 
 Agent timeouts and verifier/reward faults are **not** retried
 (`exclude_exceptions` keeps Pier's default non-retryable set). A trial that
@@ -137,9 +138,19 @@ set, not an infrastructure fault, and re-running it would both double the spend
 on the most expensive tasks and erase that result. Verifier and reward-file
 faults are grading faults; re-running a whole trial does not fix them.
 
-Discarded attempts still consume budget. Record their token usage and report
-cost inclusive of them, otherwise the harness that fails more often has its
-wasted spend deleted from the cost metric. Run only one model job at a time.
+Pier retries every exception type that is *not* excluded, however, and a
+non-zero harness exit is always `NonZeroAgentExitCodeError`, whatever caused it.
+The recorded runs therefore also contain retries after failures of the model or
+harness ([PA1 #95](https://github.com/FarisZR/PA1/issues/95)). For those, the
+first attempt is the observation. `scripts/build_corrected_results.py` publishes
+the canonical attempt as the normal trial directory under
+`data/benchmark-results/` and keeps every other attempt under `.retry-attempts/`
+(see `data/benchmark-results/README.md`). Raw runs under `benchmark/runs/` keep
+Pier's layout; analyze the published copy.
+
+Comparative cost uses the canonical attempt only. Discarded attempts still
+consume budget: record their token usage and report it separately as
+experimental overhead. Run only one model job at a time.
 
 ## Frozen versions
 
