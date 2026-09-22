@@ -1,0 +1,384 @@
+{
+  "job": "opencode-v2-deepseek-v4p1-flash",
+  "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
+  "attempts": [
+    {
+      "attempt": "boa-hierarchical-evaluation-canc__95Zq5C9",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 58902989,
+        "cached": 58225800,
+        "output": 179379,
+        "cost": 0.6749523200000002,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/boa-hierarchical-evaluation-canc__95Zq5C9/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "e8a9d55b7206c204067e2be155a252ba9fdf8454b158d92c0c5d3d3463070066",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "csstree-shorthand-expansion-comp__q72TLUx",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 18478210,
+        "cached": 17984222,
+        "output": 176576,
+        "cost": 0.351107074,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/csstree-shorthand-expansion-comp__q72TLUx/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "db45841df2a8272ba8b75a42c78c605898207d8f89397f6903a2b63fea15075f",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "effect-sse-httpapi-streaming__CJjyYe9",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 42688442,
+        "cached": 41852798,
+        "output": 153443,
+        "cost": 0.5780836460000001,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/effect-sse-httpapi-streaming__CJjyYe9/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "6117f9286cce674b884b5512e4c960ebe58d2b370078eb7e788dbbba1b8ae3b9",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "expr-try-catch-errors__VqssK6x",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 34476934,
+        "cached": 33854156,
+        "output": 165931,
+        "cost": 0.48350471199999995,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/expr-try-catch-errors__VqssK6x/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "c567bcf23ebcd71c8033a90c4e4563f7e9a9c3c5b0d5732b1952fa2b016327f2",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "fastapi-implicit-head-options__5UY3Gb3",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 26332404,
+        "cached": 26062264,
+        "output": 144177,
+        "cost": 0.3370234679999999,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/fastapi-implicit-head-options__5UY3Gb3/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "edd8c0a0919f13b9000684d36d9f5a104acfbf44c50216a9e9bb7993bfb92cb4",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "katex-multicolumn-array-spans__73HZQ6c",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 48735020,
+        "cached": 48363378,
+        "output": 205261,
+        "cost": 0.555777146,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/katex-multicolumn-array-spans__73HZQ6c/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "854c4a90521b61e8f1fd55416aea00cd6dd32eabecea8a0716a1e53e3bc2c50a",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "koota-composite-trait-aspects__KKujPmj",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 54870185,
+        "cached": 54475436,
+        "output": 208965,
+        "cost": 0.6060897320000002,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/koota-composite-trait-aspects__KKujPmj/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "4b2778aea46ae9dd3b63ca904865295256c642fe48d677465ed091372f920a67",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "oxvg-structural-selector-preserv__KYpqmMT",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 34576217,
+        "cached": 34220654,
+        "output": 163424,
+        "cost": 0.42562827799999997,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/oxvg-structural-selector-preserv__KYpqmMT/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "2d602e98f4d06731a94ed95277dbc238ee832e05835baf3cf73f5b6f6e5764f6",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "python-statemachine-state-data-s__mC52p3E",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 40530982,
+        "cached": 40187732,
+        "output": 163023,
+        "cost": 0.46442430399999995,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/python-statemachine-state-data-s__mC52p3E/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "ba69df81981e3c0ac110f23c627a3c6cfe1bc9bae2c2262f4c7f2221ce116ace",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "scriggo-method-declarations__7mKVSxh",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 93949025,
+        "cached": 93418314,
+        "output": 236582,
+        "cost": 0.9268287379999998,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/scriggo-method-declarations__7mKVSxh/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "7c668fd3679c106a183cda77de40766b5ed54c52785490d08379953c95f8ea02",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": ".retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-1",
+      "harness": "opencode-v2",
+      "changes": [
+        {
+          "field": "agent_result.n_input_tokens",
+          "original": null,
+          "corrected": 29008317,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.n_cache_tokens",
+          "original": null,
+          "corrected": 28651722,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.n_output_tokens",
+          "original": null,
+          "corrected": 137432,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.cost_usd",
+          "original": null,
+          "corrected": 0.369718074,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": null,
+          "corrected": 250962,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "trajectory final_metrics / steps"
+        }
+      ],
+      "opencode_session_record": {
+        "input": 29008317,
+        "cached": 28651722,
+        "output": 137432,
+        "cost": 0.3697180740000001,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "02d9bab0a799b5d82c4165f80954387c6faeb3210868e3ce7a34d21723bfc7b8",
+        "session_outcomes": [
+          "succeeded"
+        ]
+      }
+    },
+    {
+      "attempt": ".retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-1",
+      "harness": "opencode-v2",
+      "changes": [
+        {
+          "field": "agent_result.n_input_tokens",
+          "original": null,
+          "corrected": 27553650,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.n_cache_tokens",
+          "original": null,
+          "corrected": 27046926,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.n_output_tokens",
+          "original": null,
+          "corrected": 137827,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.cost_usd",
+          "original": null,
+          "corrected": 0.391773582,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": null,
+          "corrected": 285458,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "trajectory final_metrics / steps"
+        }
+      ],
+      "opencode_session_record": {
+        "input": 27553650,
+        "cached": 27046926,
+        "output": 137827,
+        "cost": 0.39177358199999984,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "e36adf1138da8e9249fe68e47bc72a66c5f78981341e276fc6deaa54c3a2f54d",
+        "session_outcomes": [
+          "succeeded"
+        ]
+      }
+    },
+    {
+      "attempt": ".retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1",
+      "harness": "opencode-v2",
+      "changes": [
+        {
+          "field": "agent_result.n_input_tokens",
+          "original": null,
+          "corrected": 40485040,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.n_cache_tokens",
+          "original": null,
+          "corrected": 40125238,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.n_output_tokens",
+          "original": null,
+          "corrected": 201072,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.cost_usd",
+          "original": null,
+          "corrected": 0.492740626,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": null,
+          "corrected": 335647,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "trajectory final_metrics / steps"
+        }
+      ],
+      "opencode_session_record": {
+        "input": 40485040,
+        "cached": 40125238,
+        "output": 201072,
+        "cost": 0.49274062600000007,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "7011a585ffbcb2e9a42bd9577c9bf7cd4122cbddec9919c9203ffa8de939212d",
+        "session_outcomes": [
+          "succeeded"
+        ]
+      }
+    },
+    {
+      "attempt": ".retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-1",
+      "harness": "opencode-v2",
+      "changes": [
+        {
+          "field": "agent_result.n_input_tokens",
+          "original": null,
+          "corrected": 117155959,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.n_cache_tokens",
+          "original": null,
+          "corrected": 116611038,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.n_output_tokens",
+          "original": null,
+          "corrected": 261096,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.cost_usd",
+          "original": null,
+          "corrected": 1.108483246,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl session.tokens / session.cost"
+        },
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": null,
+          "corrected": 496718,
+          "reason": "PA1 OpenCode V2 adapter withholds aggregates when session collection is not provably complete (timeout or CLI exit); taken from OpenCode's own session record",
+          "source": "trajectory final_metrics / steps"
+        }
+      ],
+      "opencode_session_record": {
+        "input": 117155959,
+        "cached": 116611038,
+        "output": 261096,
+        "cost": 1.1084832460000003,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/.retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "922418e91fea1152386055494c66a9c16ca3d4dfbb495dc47b3fd0d278edb2c9",
+        "session_outcomes": [
+          "succeeded"
+        ]
+      }
+    }
+  ]
+}
