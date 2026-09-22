@@ -1029,6 +1029,13 @@ def main() -> None:
     litellm_api_key = require("LITELLM_API_KEY")
     zai_api_key = require("ZAI_API_KEY")
     bridge_url = validate_bridge_url(require("CODEX_CLIPROXY_BASE_URL"))
+    # Claude Code reaches the same bridge without /v1 (Luna and the DeepSeek
+    # CLIProxyAPI rerun), so an unset or unreachable value must fail here.
+    validate_egress_url(
+        "CODEX_CLIPROXY_ANTHROPIC_BASE_URL",
+        require("CODEX_CLIPROXY_ANTHROPIC_BASE_URL"),
+        allow_localhost=True,
+    )
     bridge_api_key = require("CODEX_CLIPROXY_API_KEY")
     request_log = os.environ.get("CODEX_CLIPROXY_REQUEST_LOG", "").strip().lower() in {
         "1",
