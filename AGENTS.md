@@ -26,6 +26,11 @@
 - Do not manually alter generated benchmark figures if a script is responsible for them.
 - Do not invent benchmark results, company facts, observations, or definitions.
 - Keep raw data separate from derived outputs and document the provenance of results.
+- For every comparative benchmark table, figure, aggregate, success rate, cost calculation, token calculation, or other paper analysis, select trials through `scripts/benchmark_results.py`. Do not glob final trial directories or `.retry-attempts/` directly.
+- `data/benchmark-results/primary-attempt-overrides.json` is a sparse selection manifest. Its default is Pier's final trial; an entry exists only when an earlier recorded attempt is the canonical observation. Jobs and observations without an override must remain unchanged.
+- The primary-attempt manifest selects which recorded attempt is analyzed; it does not contain metric corrections. After selecting the attempt, analysis must prefer `result.corrected.json` over `result.json`, which `scripts/benchmark_results.py` does automatically.
+- Do not move, rename, or copy retry attempts out of `.retry-attempts/` to influence analysis. That directory is preserved execution evidence.
+- Run `python3 scripts/benchmark_results.py` after changing the override manifest or benchmark evidence. The validation must pass before using the data in paper figures or tables.
 
 ## Rendering and review
 
