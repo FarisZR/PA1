@@ -21,6 +21,7 @@ CURRENT_MODEL_CONFIGS = {
     "glm-5.3-flash.yaml": 1,
     "glm-5.3-sub.yaml": 0,
     "luna.yaml": 0,
+    "deepseek-claude-code-cliproxy-api.yaml": 0,
     "smoke-test.yaml": 1,
     "opencode-v2/smoke.yaml": 0,
     "opencode-v2/delegation-smoke.yaml": 1,
