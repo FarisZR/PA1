@@ -1,13 +1,357 @@
 # Results and Analysis {#sec-results}
 
-> **Placeholder section:** Do not add results until the underlying data and
-> analysis are available and documented.
+> **Status:** The comparative benchmark subsections remain placeholders until the
+> complete retained matrix is frozen. The GLM diagnostic below is separate from
+> that comparison and uses committed raw artifacts and a documented audit.
 
 ```{python}
 #| include: false
 
-from scripts.figures import plot_grouped_line, plot_pareto_frontier
+from collections import Counter
+import json
+from pathlib import Path
+import re
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+from scripts.figures import plot_grouped_bar, plot_grouped_line, plot_pareto_frontier
+
+
+GLM_FIREWORKS_DIR = Path("data/benchmark-results/glm-5.3-flash")
+GLM_DIRECT_DIR = Path("data/benchmark-results/glm-5.3-sub")
+
+
+def _load_glm_trials(root: Path, route: str) -> pd.DataFrame:
+    rows = []
+    for result_path in sorted(root.glob("*/result.json")):
+        data = json.loads(result_path.read_text())
+        agent_result = data.get("agent_result") or {}
+        if agent_result.get("n_input_tokens") is None:
+            continue
+
+        config = data.get("config") or {}
+        agent = config.get("agent") or {}
+        rewards = (data.get("verifier_result") or {}).get("rewards") or {}
+        exception = data.get("exception_info") or {}
+        task = (data.get("task_name") or result_path.parent.name.split("__", 1)[0]).split("/")[-1]
+
+        rows.append(
+            {
+                "route": route,
+                "trial": result_path.parent.name,
+                "task": task,
+                "harness": agent.get("name"),
+                "input_tokens": int(agent_result.get("n_input_tokens") or 0),
+                "cached_tokens": int(agent_result.get("n_cache_tokens") or 0),
+                "output_tokens": int(agent_result.get("n_output_tokens") or 0),
+                "agent_steps": int(agent_result.get("n_agent_steps") or 0),
+                "reward": float(rewards.get("reward") or 0),
+                "timeout": exception.get("exception_type") == "AgentTimeoutError",
+                "trajectory": result_path.parent / "agent" / "trajectory.json",
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _glm_rates() -> dict[str, float]:
+    text = Path("benchmark/pricing.yaml").read_text()
+    in_glm = False
+    rates = {}
+    for line in text.splitlines():
+        if line.startswith("  glm-5p3-flash:"):
+            in_glm = True
+            continue
+        if in_glm and line.startswith("  ") and not line.startswith("    "):
+            break
+        if not in_glm:
+            continue
+        match = re.match(r"\s{4}(input|cached_input|output):\s*([0-9.]+)", line)
+        if match:
+            rates[match.group(1)] = float(match.group(2))
+    required = {"input", "cached_input", "output"}
+    if set(rates) != required:
+        raise ValueError(f"Could not read GLM pricing rates: {rates}")
+    return rates
+
+
+def _normalized_glm_cost(frame: pd.DataFrame) -> pd.Series:
+    rates = _glm_rates()
+    uncached = (frame["input_tokens"] - frame["cached_tokens"]).clip(lower=0)
+    return (
+        uncached * rates["input"]
+        + frame["cached_tokens"] * rates["cached_input"]
+        + frame["output_tokens"] * rates["output"]
+    ) / 1_000_000
+
+
+def _shell_repeat_stats(path: Path) -> tuple[int, int]:
+    trajectory = json.loads(path.read_text())
+    frequency = Counter()
+    longest_streak = 0
+    previous = None
+    streak = 0
+
+    for step in trajectory.get("steps", []):
+        if step.get("source") != "agent":
+            continue
+        for call in step.get("tool_calls") or []:
+            function_name = str(call.get("function_name") or "").lower()
+            if function_name not in {"bash", "shell", "exec", "exec_command"}:
+                previous = None
+                streak = 0
+                continue
+
+            signature = json.dumps(
+                {
+                    "function_name": call.get("function_name"),
+                    "arguments": call.get("arguments"),
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            frequency[signature] += 1
+
+            if signature == previous:
+                streak += 1
+            else:
+                previous = signature
+                streak = 1
+            longest_streak = max(longest_streak, streak)
+
+    return (max(frequency.values(), default=0), longest_streak)
+
+
+fireworks_glm = _load_glm_trials(GLM_FIREWORKS_DIR, "Fireworks-backed")
+direct_glm = _load_glm_trials(GLM_DIRECT_DIR, "Direct Z.AI")
+fireworks_glm["normalized_cost_usd"] = _normalized_glm_cost(fireworks_glm)
+direct_glm["normalized_cost_usd"] = _normalized_glm_cost(direct_glm)
+
+matched_glm = fireworks_glm.merge(
+    direct_glm,
+    on=["task", "harness"],
+    suffixes=("_fireworks", "_direct"),
+    validate="one_to_one",
+)
+
+if len(fireworks_glm) != 30 or len(direct_glm) != 8 or len(matched_glm) != 8:
+    raise ValueError(
+        "GLM diagnostic snapshot changed: expected 30 Fireworks trials, "
+        "8 direct-Z.AI trials, and 8 matched pairs."
+    )
+
+TASK_LABELS = {
+    "effect-sse-httpapi-streaming": "Effect SSE",
+    "oxvg-structural-selector-preservation": "oxvg selector",
+    "python-statemachine-state-data-scoping": "State machine",
+    "scriggo-method-declarations": "Scriggo methods",
+    "katex-multicolumn-array-spans": "KaTeX array",
+}
+HARNESS_LABELS = {
+    "claude-code": "Claude Code",
+    "codex": "Codex",
+    "pi": "Pi",
+}
+
+matched_glm["observation"] = matched_glm.apply(
+    lambda row: f"{TASK_LABELS.get(row['task'], row['task'])} / "
+    f"{HARNESS_LABELS.get(row['harness'], row['harness'])}",
+    axis=1,
+)
+
+route_averages = pd.DataFrame(
+    [
+        {
+            "route": "Fireworks-backed",
+            "avg_input_m": matched_glm["input_tokens_fireworks"].mean() / 1_000_000,
+            "avg_steps": matched_glm["agent_steps_fireworks"].mean(),
+            "avg_cost": matched_glm["normalized_cost_usd_fireworks"].mean(),
+        },
+        {
+            "route": "Direct Z.AI",
+            "avg_input_m": matched_glm["input_tokens_direct"].mean() / 1_000_000,
+            "avg_steps": matched_glm["agent_steps_direct"].mean(),
+            "avg_cost": matched_glm["normalized_cost_usd_direct"].mean(),
+        },
+    ]
+)
+
+resource_ratios = {
+    "input_tokens": route_averages.loc[0, "avg_input_m"] / route_averages.loc[1, "avg_input_m"],
+    "agent_steps": route_averages.loc[0, "avg_steps"] / route_averages.loc[1, "avg_steps"],
+    "normalized_cost": route_averages.loc[0, "avg_cost"] / route_averages.loc[1, "avg_cost"],
+}
+
+pair_order = matched_glm.sort_values("input_tokens_direct")["observation"].tolist()
+input_by_pair = (
+    matched_glm[
+        ["observation", "input_tokens_fireworks", "input_tokens_direct"]
+    ]
+    .assign(
+        **{
+            "Fireworks-backed": lambda frame: frame["input_tokens_fireworks"] / 1_000_000,
+            "Direct Z.AI": lambda frame: frame["input_tokens_direct"] / 1_000_000,
+        }
+    )
+    [["observation", "Fireworks-backed", "Direct Z.AI"]]
+)
+input_by_pair["observation"] = pd.Categorical(
+    input_by_pair["observation"],
+    categories=pair_order,
+    ordered=True,
+)
+input_by_pair = input_by_pair.sort_values("observation")
+
+performance_glm = pd.DataFrame(
+    [
+        {
+            "sample": "Direct Z.AI\nmatched",
+            "pass_share": 100 * matched_glm["reward_direct"].eq(1).mean(),
+            "label": "3/8\n37.5%",
+        },
+        {
+            "sample": "Fireworks\nmatched",
+            "pass_share": 100 * matched_glm["reward_fireworks"].eq(1).mean(),
+            "label": "1/8\n12.5%",
+        },
+        {
+            "sample": "Fireworks\nfull batch",
+            "pass_share": 100 * fireworks_glm["reward"].eq(1).mean(),
+            "label": "2/30\n6.7%",
+        },
+    ]
+)
+
+repeat_rows = []
+for _, row in matched_glm.iterrows():
+    fw_repetitions, fw_consecutive = _shell_repeat_stats(row["trajectory_fireworks"])
+    direct_repetitions, direct_consecutive = _shell_repeat_stats(row["trajectory_direct"])
+    repeat_rows.append(
+        {
+            "case": row["observation"],
+            "Fireworks-backed": fw_consecutive,
+            "Direct Z.AI": direct_consecutive,
+            "fireworks_exact_repetitions": fw_repetitions,
+            "direct_exact_repetitions": direct_repetitions,
+        }
+    )
+
+matched_repeat_streaks = (
+    pd.DataFrame(repeat_rows)
+    .sort_values("Fireworks-backed", ascending=True)
+)
 ```
+
+## Excluded GLM-5.3-Flash provider-route diagnostic
+
+The GLM observations in this subsection are diagnostic evidence only and do not enter the comparative benchmark matrix. Eight completed direct-Z.AI observations can be paired with a Fireworks-backed observation from the same task and harness [@pa1GlmRouteData].
+
+Across those eight matched pairs, average input-token usage was **221.7 million** tokens on the Fireworks-backed route and **23.6 million** on direct Z.AI. Average agent steps were **861.6** and **175.6**, respectively. Applying the frozen GLM pricing policy to the recorded token categories gives an average normalized cost of **$6.99** per Fireworks-backed observation and **$0.78** per direct-Z.AI observation. Relative to the direct route, the Fireworks-backed route therefore used **9.4 times more input tokens**, **4.9 times more agent steps**, and **9.0 times the normalized cost**.
+
+```{python}
+#| label: fig-glm-resource-means
+#| fig-cap: "Average resource consumption across eight matched GLM-5.3-Flash observations."
+
+route_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"][:2]
+route_names = ["Fireworks-backed", "Direct Z.AI"]
+fig, axes = plt.subplots(1, 3, figsize=(9.2, 3.2))
+
+panels = [
+    ("avg_input_m", "Input tokens", "Million tokens", lambda value: f"{value:.1f} M"),
+    ("avg_steps", "Agent steps", "Steps", lambda value: f"{value:.1f}"),
+    ("avg_cost", "Normalized cost", "USD", lambda value: "$" + f"{value:.2f}"),
+]
+
+for ax, (column, title, ylabel, formatter) in zip(axes, panels, strict=True):
+    values = route_averages[column].tolist()
+    bars = ax.bar(route_names, values, color=route_colors)
+    ax.bar_label(
+        bars,
+        labels=[formatter(value) for value in values],
+        padding=3,
+        fontsize=8,
+    )
+    ax.set_title(title)
+    ax.set_ylabel(ylabel)
+    ax.set_ylim(0, max(values) * 1.12)
+    ax.grid(axis="y", alpha=0.2)
+    ax.tick_params(axis="x", labelrotation=15)
+
+fig.tight_layout()
+```
+
+The elevated token usage is not produced by a single observation. The largest gaps occur in Codex, but the Fireworks-backed route is also substantially higher for several Pi and Claude Code pairs.
+
+```{python}
+#| label: fig-glm-input-by-pair
+#| fig-cap: "Input-token usage for each matched GLM-5.3-Flash task--harness observation. Pairs are ordered by direct Z.AI token usage."
+
+ax = plot_grouped_bar(
+    input_by_pair,
+    category_col="observation",
+    value_cols=["Fireworks-backed", "Direct Z.AI"],
+    series_labels=["Fireworks-backed", "Direct Z.AI"],
+    horizontal=True,
+    x_label="Input tokens (million)",
+)
+ax.figure.set_size_inches(8.4, 5.2)
+ax.figure.tight_layout()
+```
+
+The binary DeepSWE reward also differs descriptively. Three of the eight completed direct-Z.AI observations passed, compared with one of the same eight Fireworks-backed observations. In the complete 30-trial Fireworks-backed GLM batch, only two trials passed. The direct-Z.AI batch is incomplete and non-random, so **37.5% is not presented as an estimated GLM success rate**; it is diagnostic evidence that the model can produce successful solutions through a different serving route.
+
+```{python}
+#| label: fig-glm-observed-pass-share
+#| fig-cap: "Observed passing share in the GLM-5.3-Flash diagnostic data. The direct Z.AI sample is incomplete and non-random; percentages are descriptive only."
+
+palette = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+fig, ax = plt.subplots(figsize=(6.8, 3.6))
+bars = ax.bar(
+    performance_glm["sample"],
+    performance_glm["pass_share"],
+    color=[palette[1], palette[0], palette[2]],
+)
+ax.bar_label(
+    bars,
+    labels=performance_glm["label"].tolist(),
+    padding=3,
+    fontsize=8,
+)
+ax.set_ylabel("Passing observations (%)")
+ax.set_ylim(0, performance_glm["pass_share"].max() * 1.25)
+ax.grid(axis="y", alpha=0.2)
+fig.tight_layout()
+```
+
+The strongest evidence that the Fireworks-backed measurements are not ordinary task failures is the repeated shell-tool behavior. For each of the eight matched trajectories, the longest uninterrupted streak of an exactly identical shell-capable tool call was calculated from the function name and argument object. This deterministic metric does not depend on the Jev classifier.
+
+```{python}
+#| label: fig-glm-repeat-streaks
+#| fig-cap: "Longest uninterrupted streak of an identical shell-capable tool call for each matched GLM-5.3-Flash task--harness observation."
+
+ax = plot_grouped_bar(
+    matched_repeat_streaks,
+    category_col="case",
+    value_cols=["Fireworks-backed", "Direct Z.AI"],
+    series_labels=["Fireworks-backed", "Direct Z.AI"],
+    horizontal=True,
+    x_label="Longest identical consecutive tool-call streak",
+    annotate=True,
+)
+max_repeat_streak = matched_repeat_streaks[
+    ["Fireworks-backed", "Direct Z.AI"]
+].to_numpy().max()
+ax.set_xlim(0, max_repeat_streak * 1.12)
+ax.figure.set_size_inches(8.6, 5.3)
+ax.figure.tight_layout()
+```
+
+The two strongest matched examples are Codex trials. On `effect-sse-httpapi-streaming`, the Fireworks-backed trajectory issued the exact command `rg -n "Schema.Simplify" packages/effect/src/Schema.ts` **1,869 consecutive times**, whereas the longest identical consecutive shell-tool streak on direct Z.AI was **five calls**. On `python-statemachine-state-data-scoping`, the Fireworks-backed trajectory repeated the same exact shell-edit call **1,837 times**, including a **1,836-call consecutive streak**; the matched direct-Z.AI trajectory had a longest identical streak of **one call** and passed the task [@pa1GlmRouteData].
+
+Additional Fireworks-backed trajectories without a completed direct-Z.AI counterpart show the same general failure mode. Codex on `katex-multicolumn-array-spans` issued the same exact probe **1,388 times**, while Pi on `scriggo-method-declarations` executed one exact Bash probe **743 times**, including **742 consecutive calls**, before its three-hour timeout. The targeted Jev audit independently classified 740 tool calls in the Scriggo trajectory as `repetitive_no_progress`, providing corroborating review evidence for the deterministic repetition counts [@pa1JevAuditData; @pa1JevAuditMethod].
+
+Taken together, the matched resource gap, the successful direct-Z.AI observations, and the disappearance of extreme identical-call loops on the matched direct route provide strong evidence of a **serving-path anomaly** rather than representative GLM-5.3-Flash behavior. The route change does not isolate Fireworks as the sole technical cause because it also removes AiOrbit and route-specific protocol translation. The paper therefore attributes the anomaly to the **Fireworks-backed serving path**, excludes GLM from model--harness performance and ranking results, and retains these observations only as a provider-route diagnostic.
 
 ## Task success
 
