@@ -18,12 +18,9 @@ CONFIG_DIR = BENCHMARK_DIR / "configs"
 CURRENT_MODEL_CONFIGS = {
     "kimi-k3.yaml": 1,
     "deepseek-v4p1-flash.yaml": 1,
-    "glm-5.3-flash.yaml": 1,
-    "glm-5.3-sub.yaml": 0,
     "luna.yaml": 0,
     "smoke-test.yaml": 1,
     "opencode-v2/smoke.yaml": 0,
-    "opencode-v2/delegation-smoke.yaml": 1,
 }
 PRIMARY_OPENCODE_V2_MODELS = {
     "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
@@ -393,8 +390,6 @@ def cliproxy_config(
     litellm_url: str,
     litellm_api_key: str,
     thirdparty_entries: list[dict[str, object]],
-    zai_entry: dict[str, object],
-    zai_api_key: str,
     opus_entry: dict[str, object] | None,
     anthropic_api_key: str | None,
     request_log: bool,
@@ -414,15 +409,12 @@ def cliproxy_config(
 
     template = template_body(CLIPROXY_TEMPLATE, CLIPROXY_TEMPLATE.read_text())
     template = "\n".join(CLIPROXY_GENERATED_HEADER) + "\n" + template
-    verify_cliproxy_models(
-        CLIPROXY_TEMPLATE, template, [*thirdparty_entries, zai_entry]
-    )
+    verify_cliproxy_models(CLIPROXY_TEMPLATE, template, thirdparty_entries)
 
     values = {
         "__CODEX_CLIPROXY_API_KEY__": bridge_api_key,
         "__LITELLM_API_KEY__": litellm_api_key,
         "__LITELLM_OPENAI_BASE_URL__": litellm_url.rstrip("/"),
-        "__ZAI_API_KEY__": zai_api_key,
         "__REQUEST_LOG__": request_log,
     }
 
@@ -976,8 +968,6 @@ def validate_primary_opencode_v2_profiles() -> None:
             require_input=filename == "luna.yaml",
         )
     explicit_profiles = {
-        "glm-5.3-flash.yaml": ("zai/glm-5.3-flash", "max"),
-        "glm-5.3-sub.yaml": ("zai/glm-5.3-flash", "max"),
         "opus.yaml": ("anthropic/claude-opus-5", "medium"),
     }
     for filename, (model_ref, variant) in explicit_profiles.items():
@@ -1026,7 +1016,6 @@ def main() -> None:
         require("LITELLM_ANTHROPIC_BASE_URL"),
     )
     litellm_api_key = require("LITELLM_API_KEY")
-    zai_api_key = require("ZAI_API_KEY")
     bridge_url = validate_bridge_url(require("CODEX_CLIPROXY_BASE_URL"))
     bridge_api_key = require("CODEX_CLIPROXY_API_KEY")
     request_log = os.environ.get("CODEX_CLIPROXY_REQUEST_LOG", "").strip().lower() in {
@@ -1056,11 +1045,8 @@ def main() -> None:
     thirdparty_entries = [
         deepseek_codex_entry(sol_profile),
         kimi_codex_entry(sol_profile),
-        glm_codex_entry(sol_profile),
     ]
     catalog_json = json.dumps({"models": thirdparty_entries}, indent=2) + "\n"
-    zai_entry = glm_zai_codex_entry(sol_profile)
-    zai_catalog_json = json.dumps({"models": [zai_entry]}, indent=2) + "\n"
 
     # Retained as the control for issue #31: this is the direct corporate-gateway
     # Codex route that Fireworks rejects. No current job references it.
@@ -1098,8 +1084,6 @@ def main() -> None:
         litellm_url=litellm_url,
         litellm_api_key=litellm_api_key,
         thirdparty_entries=thirdparty_entries,
-        zai_entry=zai_entry,
-        zai_api_key=zai_api_key,
         opus_entry=opus_entry,
         anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", "").strip() or None,
         request_log=request_log,
@@ -1115,6 +1099,10 @@ def main() -> None:
         "pi.yaml",
         "codex-provenance.json",
         "codex-opus.toml",
+        "codex-glm-zai-models.json",
+        "glm-5.3-flash.yaml",
+        "glm-5.3-sub.yaml",
+        "opencode-v2/delegation-smoke.yaml",
     ):
         (GENERATED_DIR / obsolete).unlink(missing_ok=True)
 
@@ -1129,7 +1117,6 @@ def main() -> None:
         ("codex-cliproxy.toml", bridge_toml),
         ("codex-cliproxy-no-web-search.toml", bridge_no_web_search_toml),
         ("codex-thirdparty-models.json", catalog_json),
-        ("codex-glm-zai-models.json", zai_catalog_json),
     ):
         path = GENERATED_DIR / name
         path.write_text(contents)

@@ -1,9 +1,8 @@
 # Tiny real-task smoke for the OpenCode V2 adapter. It exercises every
-# provider surface used by the remaining benchmark routes on one trivial task:
-# GLM-5.3-Flash through the direct Z.AI Coding Plan API, GPT-5.6 Luna through
-# the shared CLIProxyAPI/ChatGPT subscription, and DeepSeek V4.1 Flash through
-# the corporate LiteLLM proxy. All legs use low effort, an 8192-token output
-# cap, no whole-trial retries, and serial execution.
+# provider surface used by the current benchmark routes on one trivial task:
+# GPT-5.6 Luna through the shared CLIProxyAPI/ChatGPT subscription and
+# DeepSeek V4.1 Flash through the corporate LiteLLM proxy. Both legs use low
+# effort, an 8192-token output cap, no whole-trial retries, and serial execution.
 job_name: opencode-v2-current-routes-low-smoke
 jobs_dir: benchmark/runs
 n_attempts: 1
@@ -18,32 +17,6 @@ tasks:
   - path: benchmark/tasks/opencode-v2-smoke
 
 agents:
-  - name: opencode-v2
-    model_name: zai/glm-5.3-flash
-    env:
-      # OpenCode 2.0.8's frozen zai provider reads ZHIPU_API_KEY.
-      ZHIPU_API_KEY: ${ZAI_API_KEY}
-    kwargs:
-      variant: low
-      version: "2.0.8"
-      opencode_v2_checksums:
-        linux-x64: 8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625
-        linux-arm64: 957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce
-      restrict_model: true
-      model_catalog_file: benchmark/references/opencode-v2-model-catalog-2.0.8.json
-      opencode_v2_config:
-        update: disable
-        share: disabled
-        websearch: false
-        providers:
-          zai:
-            settings:
-              baseURL: https://api.z.ai/api/coding/paas/v4
-            models:
-              glm-5.3-flash:
-                body:
-                  max_tokens: 8192
-
   - name: opencode-v2
     model_name: openai/gpt-5.6-luna
     env:

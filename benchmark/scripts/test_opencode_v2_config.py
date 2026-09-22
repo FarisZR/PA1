@@ -252,8 +252,8 @@ providers:
             source, "https://gateway.example/v1", expected_sentinels=0
         )
         prepare_configs.validate_opencode_v2_config(source, rendered)
-        self.assertIn("ZHIPU_API_KEY: ${ZAI_API_KEY}", rendered)
-        self.assertIn("baseURL: https://api.z.ai/api/coding/paas/v4", rendered)
+        self.assertNotIn("model_name: zai/glm-5.3-flash", rendered)
+        self.assertIn("model_name: openai/gpt-5.6-luna", rendered)
         self.assertIn("model_name: deepseek/deepseek-v4p1-flash", rendered)
         self.assertIn('package: "@opencode/ai/providers/fireworks"', rendered)
         self.assertIn("reasoningEffort: low", rendered)
@@ -365,7 +365,6 @@ providers:
                             "LITELLM_OPENAI_BASE_URL=https://gateway.example/v1",
                             "LITELLM_ANTHROPIC_BASE_URL=https://gateway.example",
                             "LITELLM_API_KEY=test-gateway-key",
-                            "ZAI_API_KEY=test-zai-key",
                             "CODEX_CLIPROXY_BASE_URL=https://bridge.example/v1",
                             "CODEX_CLIPROXY_API_KEY=test-bridge-key",
                         ]
@@ -379,34 +378,32 @@ providers:
                     str(env_file),
                 ]
                 prepare_configs.main()
-                generated = target / "opencode-v2" / "delegation-smoke.yaml"
-                self.assertTrue(generated.exists())
-                contents = generated.read_text()
-                self.assertIn("baseURL: https://gateway.example/v1", contents)
-                self.assertIn("reasoningEffort: low", contents)
-                self.assertIn("restrict_model: true", contents)
-                self.assertIn("opencode_v2_checksums:", contents)
-                self.assertNotIn("thinking:", contents)
+                self.assertFalse((target / "glm-5.3-flash.yaml").exists())
+                self.assertFalse((target / "glm-5.3-sub.yaml").exists())
+                self.assertFalse((target / "codex-glm-zai-models.json").exists())
+                self.assertFalse(
+                    (target / "opencode-v2" / "delegation-smoke.yaml").exists()
+                )
+
                 smoke = target / "opencode-v2" / "smoke.yaml"
                 self.assertTrue(smoke.exists())
                 smoke_contents = smoke.read_text()
-                self.assertIn("model_name: zai/glm-5.3-flash", smoke_contents)
+                self.assertNotIn("model_name: zai/glm-5.3-flash", smoke_contents)
                 self.assertIn("model_name: openai/gpt-5.6-luna", smoke_contents)
                 self.assertIn("model_name: deepseek/deepseek-v4p1-flash", smoke_contents)
                 self.assertIn("variant: low", smoke_contents)
                 self.assertIn("max_tokens: 8192", smoke_contents)
                 self.assertIn("max_output_tokens: 8192", smoke_contents)
-                self.assertIn("baseURL: https://api.z.ai/api/coding/paas/v4", smoke_contents)
-                self.assertNotIn("canonical: fireworks", smoke_contents)
+                self.assertNotIn("api.z.ai", smoke_contents)
                 self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", smoke_contents)
 
                 general_smoke = target / "smoke-test.yaml"
                 self.assertTrue(general_smoke.exists())
                 general_contents = general_smoke.read_text()
-                self.assertEqual(general_contents.count("  - name: pi\n"), 3)
-                self.assertEqual(general_contents.count("  - name: claude-code\n"), 3)
-                self.assertEqual(general_contents.count("  - name: codex\n"), 3)
-                self.assertIn("https://api.z.ai/api/coding/paas/v4", general_contents)
+                self.assertEqual(general_contents.count("  - name: pi\n"), 2)
+                self.assertEqual(general_contents.count("  - name: claude-code\n"), 2)
+                self.assertEqual(general_contents.count("  - name: codex\n"), 2)
+                self.assertNotIn("api.z.ai", general_contents)
                 self.assertIn("https://gateway.example/v1", general_contents)
                 self.assertNotIn("__LITELLM_OPENAI_BASE_URL__", general_contents)
         finally:

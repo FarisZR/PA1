@@ -9,6 +9,14 @@
 from scripts.figures import plot_grouped_line, plot_pareto_frontier
 ```
 
+## Excluded GLM-5.3-Flash attempt
+
+GLM-5.3-Flash is excluded from the benchmark matrix and comparative harness results because the available Fireworks-backed inference did not produce a usable benchmark condition. The recorded trajectories show extreme repetitive behavior and token consumption that is inconsistent with the other model runs on the same tasks [@pa1GlmBenchmarkData].
+
+The clearest example is the Codex run on `effect-sse-httpapi-streaming`. It reached **780,117,872 input tokens**, of which **775,819,264 were cached-input tokens**, and **2,355 agent steps** before the three-hour timeout. Within that trajectory, the exact command `rg -n "Schema.Simplify" packages/effect/src/Schema.ts` was issued **1,869 times**. On the same task and harness, DeepSeek V4.1 Flash used 32,137,444 cached-input tokens and 277 steps, while Kimi K3 used 19,317,706 cached-input tokens and 161 steps. A separate Pi GLM run on `scriggo-method-declarations` showed the same failure pattern: 302,913,536 cached-input tokens and 1,301 steps before timeout, including 743 repetitions of the same probe command [@pa1GlmBenchmarkData].
+
+A direct Z.AI Coding Plan route was prepared after the Fireworks failure, but a complete comparable GLM matrix was not collected before the model was dropped. The raw Fireworks and partial Z.AI observations are retained for transparency, but neither route contributes to the cross-harness performance, token, or cost analysis [@pa1GlmExclusion].
+
 ## Task success
 
 - TODO: Report task-success results from the recorded data.

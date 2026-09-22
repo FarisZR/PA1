@@ -2,7 +2,6 @@
 # One pilot task is run through every API surface used by the current
 # Pi / Claude Code / Codex benchmark routes:
 # - GPT-5.6 Luna via CLIProxyAPI backed by the ChatGPT subscription
-# - GLM-5.3-Flash via the direct Z.AI Coding Plan API
 # - DeepSeek V4.1 Flash via the corporate LiteLLM proxy
 # All agents use low reasoning and serial execution.
 job_name: smoke-current-routes
@@ -63,48 +62,6 @@ agents:
       reasoning_effort: low
       restrict_model_catalog: true
       config_toml_file: benchmark/generated/codex-openai-no-web-search.toml
-
-  # GLM: Pi native Z.AI Coding Plan surface.
-  - name: pi
-    model_name: zai/glm-5.3-flash
-    env:
-      ZAI_API_KEY: ${ZAI_API_KEY}
-    kwargs:
-      version: "0.84.4"
-      thinking: low
-      pi_config:
-        providers:
-          zai:
-            baseUrl: https://api.z.ai/api/coding/paas/v4
-
-  # GLM: Z.AI Anthropic-compatible surface.
-  - name: claude-code
-    model_name: glm-5.3-flash[1m]
-    env:
-      ANTHROPIC_AUTH_TOKEN: ${ZAI_API_KEY}
-      ANTHROPIC_BASE_URL: https://api.z.ai/api/anthropic
-      ANTHROPIC_DEFAULT_FABLE_MODEL: glm-5.3-flash[1m]
-      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1000000"
-      API_FORCE_IDLE_TIMEOUT: "0"
-      CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
-      DISABLE_AUTOUPDATER: "1"
-    kwargs:
-      version: "2.1.251"
-      reasoning_effort: low
-      disallowed_tools: "EnterPlanMode,WebSearch"
-
-  # GLM: Codex Responses -> CLIProxyAPI -> direct Z.AI Coding Plan.
-  - name: codex
-    model_name: zai/glm-5.3-flash
-    env:
-      CODEX_CLIPROXY_API_KEY: ${CODEX_CLIPROXY_API_KEY}
-    kwargs:
-      version: "0.151.0"
-      command_model_name: glm-5.3-flash
-      reasoning_effort: low
-      restrict_model_catalog: true
-      model_catalog_file: benchmark/generated/codex-glm-zai-models.json
-      config_toml_file: benchmark/generated/codex-cliproxy-no-web-search.toml
 
   # DeepSeek: OpenAI-compatible LiteLLM surface.
   - name: pi

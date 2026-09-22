@@ -19,31 +19,36 @@ Run the current setup in this order:
 
 1. generate deployment-specific files with `prepare_configs.py --include-opus`
 2. start the Codex compatibility bridge and authenticate the ChatGPT account used for Luna
-3. `benchmark/generated/smoke-test.yaml` — low-effort pilot across Luna subscription, direct Z.AI, and DeepSeek/LiteLLM routes
+3. `benchmark/generated/smoke-test.yaml` — low-effort pilot across the Luna subscription and DeepSeek/LiteLLM routes
 4. run any route-specific acceptance checks still needed
-5. `benchmark/generated/glm-5.3-sub.yaml`
-6. `benchmark/generated/deepseek-v4p1-flash.yaml`
-7. `benchmark/generated/luna.yaml`
-8. `benchmark/configs/opus.yaml`
-9. run the matching `benchmark/configs/opencode-v2/<model>.yaml` job for the
+5. `benchmark/generated/deepseek-v4p1-flash.yaml`
+6. `benchmark/generated/luna.yaml`
+7. `benchmark/configs/opus.yaml`
+8. run the matching `benchmark/configs/opencode-v2/<model>.yaml` job for the
    OpenCode V2 result of each model. Kimi's OpenCode V2 profile preserves the
    continuity policy from the 2026-08-31 configuration.
 
 The source templates for the gateway-backed Pi / Claude Code / Codex jobs remain
-under `benchmark/configs/`; use the generated files for GLM, DeepSeek, Luna,
-and Kimi because generation resolves deployment-specific endpoints and Codex
-bridge files. Opus is a direct-Anthropic source job and is launched from
+under `benchmark/configs/`; use the generated files for DeepSeek, Luna, and
+Kimi because generation resolves deployment-specific endpoints and Codex bridge
+files. Opus is a direct-Anthropic source job and is launched from
 `benchmark/configs/opus.yaml`.
+
+GLM-5.3-Flash is no longer part of the current benchmark matrix.
+`glm-5.3-flash.yaml`, `glm-5.3-sub.yaml`, their OpenCode profiles, and the
+retained run artifacts remain in the repository only to reproduce and document
+the excluded attempt. `prepare_configs.py` no longer generates GLM jobs and
+the current smoke tests do not execute GLM.
 
 ## OpenCode V2 verification, smoke tests, and primary profiles
 
 Pier's `opencode-v2` adapter is exercised separately from the current Pi /
-Claude Code / Codex primary jobs. There are two small jobs under
-`benchmark/configs/opencode-v2/`: `smoke.yaml` covers the three active
-provider surfaces (direct Z.AI GLM, CLIProxyAPI-backed Luna, and DeepSeek
-through LiteLLM), while `delegation-smoke.yaml` retains the historical
-Fireworks GLM delegation check. Both use `low`, have zero automatic
-whole-trial retries, and leave primary reasoning settings unchanged.
+Claude Code / Codex primary jobs. The current
+`benchmark/configs/opencode-v2/smoke.yaml` covers the two active provider
+surfaces that still need a cheap route check: CLIProxyAPI-backed Luna and
+DeepSeek through LiteLLM. It uses `low`, has zero automatic whole-trial
+retries, and leaves primary reasoning settings unchanged. The GLM delegation
+smoke remains tracked only as historical reproducibility material.
 
 Run the deterministic verifier before any gateway call:
 
@@ -52,27 +57,18 @@ python3 benchmark/scripts/verify_opencode_v2.py \
   --pier-root /absolute/path/to/pier \
   --mode offline \
   --output-dir /absolute/path/to/evidence/offline
-python3 benchmark/scripts/verify_opencode_v2.py \
-  --pier-root /absolute/path/to/pier \
-  --mode live \
-  --env-file benchmark/env.local \
-  --model glm-5p3-flash --variant low --max-cost-usd 2 \
-  --output-dir /absolute/path/to/evidence/live
 ```
 
 The verifier reads the release version and archive checksum from the smoke YAML
 and checks them against the reference provenance and other OpenCode job
 configs. It uses a disposable loopback fake provider and the pinned
 `@opencode/cli-linux-x64` 2.0.8 bytes. It never reads `benchmark/env.local` in
-offline mode. Live mode accepts credentials only from an explicitly supplied
-env file and must retain Fireworks route provenance; missing provenance is
-reported as blocked, never as a provider pass. Do not launch a full DeepSWE
-job for this gate.
+offline mode. The older GLM live-provider gate remains available only for
+reproducing the excluded attempt and is not part of the current benchmark gate.
 
 For a cheap real-task check of every provider surface used by the current
-OpenCode V2 runs, generate and run the dedicated three-trial smoke job. It
-uses GLM-5.3-Flash Low through the native Z.AI Coding Plan endpoint,
-GPT-5.6 Luna Low through CLIProxyAPI backed by the ChatGPT subscription, and
+OpenCode V2 runs, generate and run the dedicated two-trial smoke job. It uses
+GPT-5.6 Luna Low through CLIProxyAPI backed by the ChatGPT subscription and
 DeepSeek V4.1 Flash Low through the LiteLLM proxy. Each edits one file in
 `benchmark/tasks/opencode-v2-smoke`, with 8192-token request caps and no
 whole-trial retries:
@@ -89,9 +85,9 @@ levels or task selection.
 
 The per-model primary profiles are under
 [`benchmark/configs/opencode-v2/`](configs/opencode-v2/). They are launched as separate primary jobs and use the same scoring and
-pricing policy as the other harnesses. Use `benchmark/references/opencode-v2-glm-5.3-flash.json` to verify the
-frozen binary/profile provenance and `benchmark/pricing.yaml` for PA1's existing
-normalized cost policy.
+pricing policy as the other harnesses. The frozen binary and catalogue
+provenance remains under `benchmark/references/`; `benchmark/pricing.yaml`
+contains PA1's normalized cost policy.
 
 Tracked decisions and regressions for this gate:
 [PA1 #41](https://github.com/FarisZR/PA1/issues/41) (OpenCode V2 adapter
@@ -111,8 +107,8 @@ about launch/config organization; it does not make the three-harness jobs
 historical.
 
 Kimi K3 alone keeps the web-tool behavior of the completed 2026-08-31 run for
-continuity. GLM-5.3-Flash, DeepSeek V4.1 Flash, and GPT-5.6 Luna use the updated
-configuration with web-search tooling disabled. The OpenCode V2 profiles follow
+continuity. DeepSeek V4.1 Flash and GPT-5.6 Luna use the updated configuration
+with web-search tooling disabled. The OpenCode V2 profiles follow
 the same rule: web search is disabled except for Kimi K3
 ([PA1 #48](https://github.com/FarisZR/PA1/issues/48),
 [PA1 #54](https://github.com/FarisZR/PA1/issues/54)).
@@ -241,7 +237,6 @@ Later third-party Codex runs use the `v7.2.146` base with only upstream fix
 | Model | Reasoning | Routing | Context behavior |
 | --- | --- | --- | --- |
 | Kimi K3 | max | Existing LiteLLM gateway | Native 1,048,576 context |
-| GLM-5.3-Flash | max | Direct Z.AI Coding Plan API (Codex via CLIProxyAPI translation) | 1,000,000-token Z.AI model window |
 | DeepSeek V4.1 Flash | max | Existing LiteLLM gateway | Normalized to exactly 1,000,000 across Pi, Claude Code, Codex, and OpenCode V2 |
 | GPT-5.6 Luna | max | CLIProxyAPI -> ChatGPT subscription | 272,000-token benchmark window |
 
@@ -253,11 +248,11 @@ that provider-specific ceiling because doing so would create harness-specific
 context differences for the same benchmark model.
 
 The general smoke test is intentionally low-effort. It runs one pilot task
-through all nine Pi / Claude Code / Codex combinations for Luna, GLM, and
-DeepSeek so every API surface used by the remaining primary runs is exercised
-before primary spending.
+through all six Pi / Claude Code / Codex combinations for Luna and DeepSeek so
+every API surface used by the remaining primary runs is exercised before
+primary spending.
 
-The repository does not change the LiteLLM deployment. DeepSeek/Kimi/GLM vendor
+The repository does not change the LiteLLM deployment. DeepSeek/Kimi vendor
 documentation is used for Claude Code compatibility and model-specific facts
 such as context/modality, not for vendor API endpoints or credentials. Codex
 behavior comes from the frozen GPT-5.6 Sol profile described below.
@@ -284,7 +279,7 @@ is frozen in this repository at
 `eb0d7b9a5dcaf103895c5f8a14c16b269df46e039b375a55ba97f6238542d2ed`.
 Generation reads only this local file.
 
-For Claude Opus 5, DeepSeek, Kimi, and GLM, the Sol profile is preserved except for:
+For Claude Opus 5, DeepSeek, and Kimi, the Sol profile is preserved except for:
 
 - model identity/display metadata;
 - model-specific context, modality, and supported reasoning metadata;
@@ -304,7 +299,7 @@ Codex's Responses requests are **not** sent to the LiteLLM gateway for the
 third-party models. Codex 0.151.0 unconditionally attaches `client_metadata`,
 and the gateway forwards the Responses `reasoning` object into `reasoning_effort`
 as an object, so the Fireworks-backed routes reject every request (PA1 issue
-[#31](https://github.com/FarisZR/PA1/issues/31)). DeepSeek, Kimi, and GLM therefore route through a pinned CLIProxyAPI instance
+[#31](https://github.com/FarisZR/PA1/issues/31)). DeepSeek and Kimi therefore route through a pinned CLIProxyAPI instance
 that translates Responses to Chat Completions in front of the same gateway:
 
 ```text
@@ -337,7 +332,7 @@ Opus/Sonnet/Haiku aliases, legacy small/fast alias, and
 Therefore Claude Code may use its normal internal agent behavior, but every LLM
 call in a trial remains on the model being benchmarked.
 
-The third-party `[1m]` aliases are retained for DeepSeek/Kimi/GLM compatibility.
+The third-party `[1m]` aliases are retained for DeepSeek/Kimi compatibility.
 Luna also uses `[1m]`, then explicitly lowers its compaction window to 272,000.
 Kimi keeps its 1,048,576 declared context. DeepSeek instead explicitly sets a
 1,000,000-token Claude Code auto-compaction window so it matches Pi, Codex, and
@@ -405,33 +400,11 @@ pricing metadata remain intact:
 ```text
 moonshotai/kimi-k3
 deepseek/deepseek-v4p1-flash
-zai/glm-5p3-flash
 openai/gpt-5.6-luna
 ```
 
-The gateway exposes GLM-5.3-Flash as `glm-5p3-flash`. Pi therefore registers that
-transport alias as a custom `zai` model while copying Pi 0.84.4's built-in
-`zai/glm-5.3-flash` metadata: text-and-image input, `low`/`high`/`max`
-reasoning, a 1,000,000-token context window, a 131,072-token output ceiling,
-and the built-in cost metadata. The Fireworks route advertises 1,048,576
-context, which is used for Codex, Claude Code's declared compaction window, and
-cost normalization.
-
-Two Z.AI transport settings are overridden for the Fireworks-backed gateway.
-`thinkingFormat` is set to `"openai"` so Pi sends only `reasoning_effort`;
-the bundled `"zai"` format sends `thinking` as well and the gateway rejects
-that pair. `zaiToolStream` is set to `false` because Pi otherwise adds the
-Z.AI-only `tool_stream: true` field whenever tools are present, which Fireworks
-also rejects with HTTP 400. Generation now validates both invariants before any
-benchmark file is written.
-
 Pi has no native subagent system in this benchmark setup. Pier launches the
 selected provider/model explicitly in non-interactive print mode.
-
-OpenCode V2 keeps the same canonical `zai/glm-5.3-flash` model metadata, but
-uses its native Fireworks transport for the PA1 gateway route. This avoids the
-Z.AI transport emitting both `thinking` and `reasoning_effort` (PA1 #53) while
-preserving the upstream context window and normalized pricing.
 
 DeepSeek V4.1 Flash is newer than the frozen Pi 0.84.4 catalog, so
 `benchmark/configs/deepseek-v4p1-flash.yaml` declares its model explicitly. The
@@ -445,10 +418,9 @@ alternative `thinking: {type: "enabled"}` plus `reasoning_effort` pair with HTTP
 
 The underlying rule is a property of the gateway's Fireworks route, not of one
 model: it rejects `thinking` and `reasoning_effort` together, and accepts either
-one alone. All three Fireworks-backed aliases were probed directly against the
-gateway, and all behave identically — `deepseek-v4p1-flash`, `kimi-k3`, and
-`glm-5p3-flash` each return HTTP 200 for `reasoning_effort` alone and HTTP 400
-for the pair. Any further Fireworks model added to Pi must therefore be checked
+one alone. Both Fireworks-backed aliases were probed directly against the gateway, and
+both behave identically — `deepseek-v4p1-flash` and `kimi-k3` return HTTP
+200 for `reasoning_effort` alone and HTTP 400 for the pair. Any further Fireworks model added to Pi must therefore be checked
 for a bundled `thinkingFormat` that emits two controls.
 
 Kimi K3 needs no override: its bundled entry already declares
@@ -495,7 +467,6 @@ Anthropic-compatible surface.
 gpt-5.6-luna
 deepseek-v4p1-flash
 kimi-k3
-glm-5p3-flash
 ```
 
 `deepseek-v4p1-flash` is the stable DeepSeek model ID used by all three
