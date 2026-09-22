@@ -50,11 +50,11 @@ Run the deterministic verifier before any gateway call:
 
 ```bash
 python3 benchmark/scripts/verify_opencode_v2.py \
-  --pier-root /absolute/path/to/pier \
+  --pier-root ~/pier \
   --mode offline \
   --output-dir /absolute/path/to/evidence/offline
 python3 benchmark/scripts/verify_opencode_v2.py \
-  --pier-root /absolute/path/to/pier \
+  --pier-root ~/pier \
   --mode live \
   --env-file benchmark/env.local \
   --model glm-5p3-flash --variant low --max-cost-usd 2 \
@@ -80,7 +80,9 @@ whole-trial retries:
 
 ```bash
 python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus
-/absolute/path/to/pier/.venv/bin/pier run \
+PIER=~/pier/.venv/bin/pier
+
+$PIER run \
   -c benchmark/generated/opencode-v2/smoke.yaml \
   --env-file benchmark/env.local --yes
 ```
@@ -1190,19 +1192,25 @@ leg and replaces the Claude Code result from `deepseek-v4p1-flash.yaml`. It uses
 the same bridge environment as Claude Code × Luna (`CODEX_CLIPROXY_API_KEY`,
 `CODEX_CLIPROXY_ANTHROPIC_BASE_URL`). The bridge must be running and must
 declare `max` for `deepseek-v4p1-flash` (see `bridges/codex-cliproxy/config.template.yaml`).
+The smoke command overrides the configured DeepSWE dataset with the synthetic
+OpenCode V2 placeholder task, so it checks the route without paying for an
+actual benchmark task; the full rerun still uses the ten configured tasks.
 
 ```bash
 python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus
-# one-task smoke first
-/absolute/path/to/pier/.venv/bin/pier run \
+PIER=~/pier/.venv/bin/pier
+
+# one-task placeholder smoke first
+$PIER run \
   -c benchmark/generated/deepseek-claude-code-cliproxy-api.yaml \
   --env-file benchmark/env.local --yes \
-  --job-name deepseek-claude-code-cliproxy-api-smoke -i expr-try-catch-errors
+  --job-name deepseek-claude-code-cliproxy-api-smoke \
+  --path benchmark/tasks/opencode-v2-smoke
 # verify every upstream DeepSeek request carried max
 grep -l '"model":"deepseek-v4p1-flash"' benchmark/generated/cliproxy-logs/v1-messages-* \
   | xargs grep -ho '"reasoning_effort":"[a-z]*"' | sort | uniq -c
 # full rerun
-/absolute/path/to/pier/.venv/bin/pier run \
+$PIER run \
   -c benchmark/generated/deepseek-claude-code-cliproxy-api.yaml \
   --env-file benchmark/env.local --yes
 ```
