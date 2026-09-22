@@ -1,4 +1,4 @@
-# Results and Analysis {#sec-results}
+# Results {#sec-results}
 
 ```{python}
 #| include: false
@@ -239,7 +239,25 @@ matched_repeat_streaks = (
 )
 ```
 
-## Excluded GLM-5.3-Flash provider-route diagnostic
+## Benchmark coverage
+
+- TODO: Summarize the retained benchmark matrix, completed observations, and exclusions.
+
+## Kimi K3
+
+- TODO: Report and analyze the Kimi K3 results by harness, including task success, cost, token usage, and cache behavior.
+
+## DeepSeek V4.1 Flash
+
+- TODO: Report and analyze the DeepSeek V4.1 Flash results by harness, including task success, cost, token usage, and cache behavior.
+
+## GPT-5.6 Luna
+
+- TODO: Report and analyze the GPT-5.6 Luna results by harness, including task success, cost, token usage, and cache behavior.
+
+## Additional diagnostics
+
+### Excluded GLM-5.3-Flash provider-route diagnostic
 
 The GLM observations in this subsection are diagnostic evidence only and do not enter the comparative benchmark matrix. Eight completed direct-Z.AI observations can be paired with a Fireworks-backed observation from the same task and harness [@pa1GlmRouteData].
 
@@ -348,29 +366,3 @@ The two strongest matched examples are Codex trials. On `effect-sse-httpapi-stre
 Additional Fireworks-backed trajectories without a completed direct-Z.AI counterpart show the same general failure mode. Codex on `katex-multicolumn-array-spans` issued the same exact probe **1,388 times**, while Pi on `scriggo-method-declarations` executed one exact Bash probe **743 times**, including **742 consecutive calls**, before its three-hour timeout. The targeted Jev audit independently classified 740 tool calls in the Scriggo trajectory as `repetitive_no_progress`, providing corroborating review evidence for the deterministic repetition counts [@pa1JevAuditData; @pa1JevAuditMethod].
 
 Taken together, the matched resource gap, the successful direct-Z.AI observations, and the disappearance of extreme identical-call loops on the matched direct route provide strong evidence of a **serving-path anomaly** rather than representative GLM-5.3-Flash behavior. The route change does not isolate Fireworks as the sole technical cause because it also removes AiOrbit and route-specific protocol translation. The paper therefore attributes the anomaly to the **Fireworks-backed serving path**, excludes GLM from model--harness performance and ranking results, and retains these observations only as a provider-route diagnostic.
-
-## Task success
-
-- TODO: Report task-success results from the recorded data.
-
-## Cost
-
-- TODO: Report cost results from the recorded data.
-
-## Token usage
-
-- TODO: Report token-usage results from the recorded data.
-
-## Cache usage
-
-- TODO: Report cache-usage results from the recorded data.
-
-## Runtime
-
-- TODO: Report runtime results from the recorded data.
-
-## Comparative analysis
-
-- TODO: Compare the results using the defined methodology and metrics.
-- TODO: Add executable Quarto figure cells here once the benchmark result data
-  is frozen. See `scripts/README-figures.md` for the Pareto-frontier and line-chart patterns.
