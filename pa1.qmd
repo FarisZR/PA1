@@ -39,4 +39,6 @@ Quarto 1.10 exposes `lof` and `lot` as Typst options, but its stock Typst
 
 {{< include chapters/_04-results.qmd >}}
 
-{{< include chapters/_05-conclusion.qmd >}}
+{{< include chapters/_05-discussion.qmd >}}
+
+{{< include chapters/_06-conclusion.qmd >}}
