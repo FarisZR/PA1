@@ -123,23 +123,39 @@ the same rule: web search is disabled except for Kimi K3
 For a model evaluated on all four harnesses, the complete wave is therefore
 **40 planned trials**: 30 from the current Pi / Claude Code / Codex job plus 10
 from the matching OpenCode V2 profile. Each profile uses 1 attempt per task,
-1 automatic retry for transport/gateway faults only, and
-a per-model `n_concurrent_trials` sized against the model's Fireworks
-token-rate headroom (see "Sizing concurrency against the limit").
+permits at most 1 automatic whole-trial retry, and has a per-model
+`n_concurrent_trials` sized against the model's Fireworks token-rate headroom
+(see "Sizing concurrency against the limit").
 
-Successful trials run once. A trial that fails with a transport/gateway fault is
-discarded and run again once; if the retry also fails, the second failure is final.
+The retry configuration was designed to replace transport/gateway-invalidated
+attempts while keeping agent timeouts, verifier/reward faults, and operator
+cancellations final. Pier implements this through an exclusion list, however:
+every exception type not listed in `exclude_exceptions` is retryable. A
+non-zero harness exit is represented as `NonZeroAgentExitCodeError` regardless
+of its underlying cause, so some recorded runs received a replacement attempt
+for model- or harness-attributable failures as well. Issue #95 documents the
+observed cases.
 
-Agent timeouts and verifier/reward faults are **not** retried
-(`exclude_exceptions` keeps Pier's default non-retryable set). A trial that
-exhausts the 10,800-second budget is a genuine efficiency result on this task
-set, not an infrastructure fault, and re-running it would both double the spend
-on the most expensive tasks and erase that result. Verifier and reward-file
-faults are grading faults; re-running a whole trial does not fix them.
+Published evidence is not rewritten to hide those retries. Primary comparative
+analysis uses Pier's final trial by default and applies the sparse exceptions in
+`data/benchmark-results/primary-attempt-overrides.json`. Use
+`scripts/benchmark_results.py` for paper analysis; it selects the canonical
+attempt and then prefers `result.corrected.json` when present. Earlier attempts
+selected by the manifest remain the primary failure or success observation;
+their later replacement attempts are experimental overhead. Genuine
+transport/gateway-invalidated first attempts use Pier's final replacement by
+default.
 
-Discarded attempts still consume budget. Record their token usage and report
-cost inclusive of them, otherwise the harness that fails more often has its
-wasted spend deleted from the cost metric. Run only one model job at a time.
+Agent timeouts and verifier/reward faults are **not** retried by the current
+configuration. A trial that exhausts the 10,800-second budget is a genuine
+efficiency result on this task set, not an infrastructure fault. Verifier and
+reward-file faults are grading faults; re-running a whole trial does not fix
+them.
+
+All attempts still consume actual experiment budget. Comparative cost, however,
+uses only the canonical attempt selected by the policy above. Non-canonical
+replacement attempts and invalidated transport attempts may be reported
+separately as experimental overhead. Run only one model job at a time.
 
 ## Frozen versions
 
