@@ -1,0 +1,12 @@
+# Conclusion {#sec-conclusion}
+
+> **Placeholder section:** Add conclusions only after the research question has
+> been addressed by the documented results and cross-model discussion.
+
+## Answer to research question
+
+- TODO: Answer the research question concisely based on the established findings.
+
+## Outlook
+
+- TODO: Identify appropriate future work.
