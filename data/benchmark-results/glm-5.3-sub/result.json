@@ -1,0 +1,309 @@
+{
+    "id": "d2eebbea-00df-4f95-933c-f83ec0548d2c",
+    "started_at": "2026-09-21T22:01:34.649280",
+    "updated_at": "2026-09-22T13:47:04.401068Z",
+    "finished_at": null,
+    "n_total_trials": 30,
+    "stats": {
+        "n_completed_trials": 8,
+        "n_errored_trials": 0,
+        "n_running_trials": 3,
+        "n_pending_trials": 19,
+        "n_cancelled_trials": 0,
+        "n_retries": 24,
+        "evals": {
+            "codex__glm-5.3-flash__tasks": {
+                "n_trials": 3,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "f2p": 0.8392434988179668,
+                        "f2p_passed": 38.666666666666664,
+                        "f2p_total": 41.666666666666664,
+                        "p2p": 0.9946236559139785,
+                        "p2p_passed": 472.3333333333333,
+                        "p2p_total": 472.6666666666667,
+                        "partial": 0.9653510977040388,
+                        "reward": 0.3333333333333333
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "1": [
+                            "python-statemachine-state-data-s__UvyBreP"
+                        ],
+                        "0": [
+                            "oxvg-structural-selector-preserv__9Px8myf",
+                            "effect-sse-httpapi-streaming__TGSyqEb"
+                        ]
+                    },
+                    "f2p_total": {
+                        "72": [
+                            "python-statemachine-state-data-s__UvyBreP"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__9Px8myf"
+                        ],
+                        "47": [
+                            "effect-sse-httpapi-streaming__TGSyqEb"
+                        ]
+                    },
+                    "f2p_passed": {
+                        "72": [
+                            "python-statemachine-state-data-s__UvyBreP"
+                        ],
+                        "4": [
+                            "oxvg-structural-selector-preserv__9Px8myf"
+                        ],
+                        "40": [
+                            "effect-sse-httpapi-streaming__TGSyqEb"
+                        ]
+                    },
+                    "p2p_total": {
+                        "1286": [
+                            "python-statemachine-state-data-s__UvyBreP"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__9Px8myf"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__TGSyqEb"
+                        ]
+                    },
+                    "p2p_passed": {
+                        "1286": [
+                            "python-statemachine-state-data-s__UvyBreP"
+                        ],
+                        "61": [
+                            "oxvg-structural-selector-preserv__9Px8myf"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__TGSyqEb"
+                        ]
+                    },
+                    "f2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__UvyBreP"
+                        ],
+                        "0.6666666666666666": [
+                            "oxvg-structural-selector-preserv__9Px8myf"
+                        ],
+                        "0.851063829787234": [
+                            "effect-sse-httpapi-streaming__TGSyqEb"
+                        ]
+                    },
+                    "p2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__UvyBreP",
+                            "effect-sse-httpapi-streaming__TGSyqEb"
+                        ],
+                        "0.9838709677419355": [
+                            "oxvg-structural-selector-preserv__9Px8myf"
+                        ]
+                    },
+                    "partial": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__UvyBreP"
+                        ],
+                        "0.9558823529411765": [
+                            "oxvg-structural-selector-preserv__9Px8myf"
+                        ],
+                        "0.9401709401709402": [
+                            "effect-sse-httpapi-streaming__TGSyqEb"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            },
+            "pi__glm-5.3-flash__tasks": {
+                "n_trials": 3,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "f2p": 0.8796296296296297,
+                        "f2p_passed": 40.333333333333336,
+                        "f2p_total": 41.666666666666664,
+                        "p2p": 1.0,
+                        "p2p_passed": 472.6666666666667,
+                        "p2p_total": 472.6666666666667,
+                        "partial": 0.9897051604146814,
+                        "reward": 0.3333333333333333
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "1": [
+                            "effect-sse-httpapi-streaming__S3tUJ79"
+                        ],
+                        "0": [
+                            "oxvg-structural-selector-preserv__jD3ZTi2",
+                            "python-statemachine-state-data-s__RBh3mAL"
+                        ]
+                    },
+                    "f2p_total": {
+                        "47": [
+                            "effect-sse-httpapi-streaming__S3tUJ79"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__jD3ZTi2"
+                        ],
+                        "72": [
+                            "python-statemachine-state-data-s__RBh3mAL"
+                        ]
+                    },
+                    "f2p_passed": {
+                        "47": [
+                            "effect-sse-httpapi-streaming__S3tUJ79"
+                        ],
+                        "4": [
+                            "oxvg-structural-selector-preserv__jD3ZTi2"
+                        ],
+                        "70": [
+                            "python-statemachine-state-data-s__RBh3mAL"
+                        ]
+                    },
+                    "p2p_total": {
+                        "70": [
+                            "effect-sse-httpapi-streaming__S3tUJ79"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__jD3ZTi2"
+                        ],
+                        "1286": [
+                            "python-statemachine-state-data-s__RBh3mAL"
+                        ]
+                    },
+                    "p2p_passed": {
+                        "70": [
+                            "effect-sse-httpapi-streaming__S3tUJ79"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__jD3ZTi2"
+                        ],
+                        "1286": [
+                            "python-statemachine-state-data-s__RBh3mAL"
+                        ]
+                    },
+                    "f2p": {
+                        "1.0": [
+                            "effect-sse-httpapi-streaming__S3tUJ79"
+                        ],
+                        "0.6666666666666666": [
+                            "oxvg-structural-selector-preserv__jD3ZTi2"
+                        ],
+                        "0.9722222222222222": [
+                            "python-statemachine-state-data-s__RBh3mAL"
+                        ]
+                    },
+                    "p2p": {
+                        "1.0": [
+                            "effect-sse-httpapi-streaming__S3tUJ79",
+                            "oxvg-structural-selector-preserv__jD3ZTi2",
+                            "python-statemachine-state-data-s__RBh3mAL"
+                        ]
+                    },
+                    "partial": {
+                        "1.0": [
+                            "effect-sse-httpapi-streaming__S3tUJ79"
+                        ],
+                        "0.9705882352941176": [
+                            "oxvg-structural-selector-preserv__jD3ZTi2"
+                        ],
+                        "0.9985272459499264": [
+                            "python-statemachine-state-data-s__RBh3mAL"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            },
+            "claude-code__glm-5.3-flash[1m]__tasks": {
+                "n_trials": 2,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "f2p": 0.8333333333333333,
+                        "f2p_passed": 38.0,
+                        "f2p_total": 39.0,
+                        "p2p": 1.0,
+                        "p2p_passed": 674.0,
+                        "p2p_total": 674.0,
+                        "partial": 0.9852941176470589,
+                        "reward": 0.5
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "1": [
+                            "python-statemachine-state-data-s__5U4b7FL"
+                        ],
+                        "0": [
+                            "oxvg-structural-selector-preserv__kMwQBum"
+                        ]
+                    },
+                    "f2p_total": {
+                        "72": [
+                            "python-statemachine-state-data-s__5U4b7FL"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__kMwQBum"
+                        ]
+                    },
+                    "f2p_passed": {
+                        "72": [
+                            "python-statemachine-state-data-s__5U4b7FL"
+                        ],
+                        "4": [
+                            "oxvg-structural-selector-preserv__kMwQBum"
+                        ]
+                    },
+                    "p2p_total": {
+                        "1286": [
+                            "python-statemachine-state-data-s__5U4b7FL"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__kMwQBum"
+                        ]
+                    },
+                    "p2p_passed": {
+                        "1286": [
+                            "python-statemachine-state-data-s__5U4b7FL"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__kMwQBum"
+                        ]
+                    },
+                    "f2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__5U4b7FL"
+                        ],
+                        "0.6666666666666666": [
+                            "oxvg-structural-selector-preserv__kMwQBum"
+                        ]
+                    },
+                    "p2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__5U4b7FL",
+                            "oxvg-structural-selector-preserv__kMwQBum"
+                        ]
+                    },
+                    "partial": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__5U4b7FL"
+                        ],
+                        "0.9705882352941176": [
+                            "oxvg-structural-selector-preserv__kMwQBum"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        },
+        "n_input_tokens": 188646161,
+        "n_cache_tokens": 186918016,
+        "n_output_tokens": 715349,
+        "cost_usd": 34.116330755
+    }
+}

