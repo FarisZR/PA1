@@ -22,7 +22,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from scripts.benchmark_results import iter_primary_trials, load_result
+try:
+    from scripts.benchmark_results import iter_primary_trials, load_result
+except ModuleNotFoundError:
+    from benchmark_results import iter_primary_trials, load_result
 
 INPUT_RATE = 3.0
 CACHED_INPUT_RATE = 0.3
