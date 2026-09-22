@@ -143,9 +143,9 @@ def report(rows: list[dict[str, Any]], view: str) -> dict[str, Any]:
 def print_text(result: dict[str, Any]) -> None:
     p = result["pricing"]
     print(
-        "Pricing: \${input_usd_per_million:.2f}/M input, "
-        "\${cached_input_usd_per_million:.2f}/M cached input, "
-        "\${output_usd_per_million:.2f}/M output".format(**p)
+        "Pricing: ${input_usd_per_million:.2f}/M input, "
+        "${cached_input_usd_per_million:.2f}/M cached input, "
+        "${output_usd_per_million:.2f}/M output".format(**p)
     )
     print(f"Attempt view: {result['view']}")
     print()
@@ -156,7 +156,7 @@ def print_text(result: dict[str, Any]) -> None:
     print(
         "  "
         + "  ".join(
-            f"\${result['agents'][agent]['cost_usd']:>13,.6f}" for agent in agents
+            f"${result['agents'][agent]['cost_usd']:>13,.6f}" for agent in agents
         )
     )
     print(
@@ -171,7 +171,7 @@ def print_text(result: dict[str, Any]) -> None:
     print("Cost by task (USD)")
     print(f"{'task':<45}" + "".join(f"{agent:>16}" for agent in agents))
     for task, costs in result["by_task"].items():
-        print(f"{task:<45}" + "".join(f"\${costs[agent]:>15,.6f}" for agent in agents))
+        print(f"{task:<45}" + "".join(f"${costs[agent]:>15,.6f}" for agent in agents))
 
 
 def main() -> None:
