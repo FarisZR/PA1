@@ -43,13 +43,43 @@ including retry attempts, logs, sessions, verifier output, and other run
 artifacts. Unlike the other data directories, no files were selected,
 renamed, redacted, or removed from this snapshot.
 
-The analysis scripts can use a model directory directly. Retries are included
-by default; use `--exclude-retries` when only final attempts are required:
+## Primary-attempt selection
+
+The published directory structure preserves what Pier recorded. A normal trial
+directory is Pier's final attempt, while discarded attempts remain under
+`.retry-attempts/`. Analysis must not infer the canonical benchmark observation
+from directory location alone.
+
+Primary comparative analysis uses a sparse override manifest at
+`primary-attempt-overrides.json`. The default is Pier's final trial. Only
+observations for which Pier repeated a trial for a non-transport cause are
+listed as overrides; those entries select the earlier recorded attempt. A job or
+observation with no override is therefore parsed exactly as Pier published it.
+
+Use `scripts/benchmark_results.py` as the selection layer for paper analysis:
+
+```python
+from pathlib import Path
+from scripts.benchmark_results import iter_primary_trials
+
+for trial_dir, result in iter_primary_trials(
+    Path("data/benchmark-results/opencode-v2-luna")
+):
+    ...
+```
+
+The loader validates that every override points to an existing attempt with the
+same job, harness, and task, rejects duplicate overrides, and prefers
+`result.corrected.json` when a corrected sidecar exists. Validate the complete
+manifest with:
 
 ```bash
-python3 scripts/analyze_benchmark_costs.py \
-  data/benchmark-results/kimi-k3
+python3 scripts/benchmark_results.py
 ```
+
+Do not move retry files into normal trial directories. Their location is part of
+the preserved execution evidence; selection is expressed only through the sparse
+manifest.
 
 ## Corrected sidecar files
 
