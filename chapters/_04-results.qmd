@@ -1,13 +1,39 @@
 # Results and Analysis {#sec-results}
 
-> **Placeholder section:** Do not add results until the underlying data and
-> analysis are available and documented.
+> **Status:** The comparative benchmark subsections remain placeholders until the
+> complete retained matrix is frozen. The GLM diagnostic below is separate from
+> that comparison and uses committed raw artifacts and a documented audit.
 
 ```{python}
 #| include: false
 
 from scripts.figures import plot_grouped_line, plot_pareto_frontier
 ```
+
+## Excluded GLM-5.3-Flash provider-route diagnostic
+
+The GLM observations in this subsection are diagnostic evidence only and do not enter the comparative benchmark matrix. @tbl-glm-route-comparison contains all eight completed direct-Z.AI observations for which a Fireworks-backed run exists with the same task and harness. The table reports Pier's recorded agent-step count and total input-token count. A completed DeepSWE reward of one is shown as pass; an agent timeout is shown separately [@pa1GlmRouteData].
+
+| Task | Harness | Fireworks: steps / input | Direct Z.AI: steps / input | Fireworks outcome | Direct Z.AI outcome |
+|---|---|---:|---:|---|---|
+| `effect-sse-httpapi-streaming` | Pi | 674 / 97.1 M | 179 / 21.6 M | timeout | pass |
+| `effect-sse-httpapi-streaming` | Codex | 2,355 / 780.1 M | 246 / 32.3 M | timeout | reward 0 |
+| `oxvg-structural-selector-preservation` | Pi | 241 / 18.6 M | 196 / 24.1 M | timeout | reward 0 |
+| `oxvg-structural-selector-preservation` | Codex | 363 / 49.3 M | 148 / 19.5 M | reward 0 | reward 0 |
+| `oxvg-structural-selector-preservation` | Claude Code | 455 / 75.9 M | 150 / 19.7 M | reward 0 | reward 0 |
+| `python-statemachine-state-data-scoping` | Pi | 285 / 30.6 M | 174 / 23.0 M | reward 0 | reward 0 |
+| `python-statemachine-state-data-scoping` | Codex | 2,189 / 674.5 M | 125 / 16.1 M | timeout | pass |
+| `python-statemachine-state-data-scoping` | Claude Code | 331 / 47.3 M | 187 / 32.2 M | pass | pass |
+
+: Matched GLM-5.3-Flash observations on the Fireworks-backed and direct Z.AI routes. {#tbl-glm-route-comparison}
+
+Across these eight matched pairs, the Fireworks-backed runs used 6,893 agent steps and 1.774 billion input tokens, compared with 1,405 steps and 188.6 million input tokens on the direct Z.AI route. This corresponds to 4.9 times as many steps and 9.4 times as many input tokens. Cached-input totals show the same pattern: 1.756 billion versus 186.9 million. Four of the eight Fireworks-backed observations reached the agent timeout, while none of the eight direct observations did. The direct observations are not used to estimate a GLM success rate because the sample is incomplete and non-random [@pa1GlmRouteData].
+
+The clearest matched example is Codex on `effect-sse-httpapi-streaming`. The Fireworks-backed trajectory reached 2,355 agent steps, 780.1 million input tokens, and 775.8 million cached-input tokens before timing out. The exact command `rg -n "Schema.Simplify" packages/effect/src/Schema.ts` was then issued 1,869 consecutive times. On the direct Z.AI route, the same task and harness completed after 246 agent steps with 32.3 million input tokens and 32.1 million cached-input tokens; its longest identical consecutive tool-call streak was five. Codex on `python-statemachine-state-data-scoping` shows a similar contrast: 2,189 steps and 674.5 million input tokens before timeout through the Fireworks-backed route, versus 125 steps, 16.1 million input tokens, and a passing reward through direct Z.AI [@pa1GlmRouteData].
+
+The targeted Jev audit independently highlights the same repetitive pattern on the Fireworks-backed Pi run for `scriggo-method-declarations`. That trajectory contains 1,301 agent steps and 1,300 tool calls and reached the three-hour timeout after 307.5 million input tokens, including 302.9 million cached-input tokens. One exact Bash probe occurred 743 times in total, including a 742-call consecutive streak. Jev classified 740 tool calls as `repetitive_no_progress`. The deterministic repetition counts and raw trajectory remain the primary evidence; the Jev classification is used only as corroborating review evidence [@pa1JevAuditData; @pa1JevAuditMethod].
+
+The comparison therefore supports a route-specific serving anomaly rather than treating the Fireworks measurements as representative GLM-5.3-Flash performance. It does not isolate Fireworks itself as the sole cause, because changing to the direct Z.AI route also removes AiOrbit and route-specific protocol translation. The paper therefore attributes the anomaly to the Fireworks-backed serving path and excludes GLM from all model--harness performance, cost, and ranking comparisons.
 
 ## Task success
 
