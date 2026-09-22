@@ -3,7 +3,7 @@
 job_name: opencode-v2-luna
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 1
+n_concurrent_trials: 6
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
