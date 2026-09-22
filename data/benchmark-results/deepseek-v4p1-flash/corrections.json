@@ -1,0 +1,198 @@
+{
+  "job": "deepseek-v4p1-flash",
+  "reference": "chapters/_03-methodology.qmd#sec-measurement-corrections",
+  "attempts": [
+    {
+      "attempt": "boa-hierarchical-evaluation-canc__T2STcwb",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 184829,
+          "corrected": 140336,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 21,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "csstree-shorthand-expansion-comp__KzAaBD2",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 201165,
+          "corrected": 200296,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "effect-sse-httpapi-streaming__oS7GKyx",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 184711,
+          "corrected": 184601,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 16,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "expr-try-catch-errors__EbwFJsC",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 723819,
+          "corrected": 721687,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 12,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "fastapi-implicit-head-options__pWtMJk5",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 198584,
+          "corrected": 197721,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 1,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "katex-multicolumn-array-spans__oHdn7io",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 360177,
+          "corrected": 358895,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "koota-composite-trait-aspects__evigSAQ",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 286323,
+          "corrected": 285537,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "oxvg-structural-selector-preserv__fJTZ3tJ",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 234549,
+          "corrected": 175478,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 19,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "python-statemachine-state-data-s__8WwYSfA",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 236770,
+          "corrected": 235567,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 14,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "scriggo-method-declarations__4CAMyqS",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 486173,
+          "corrected": 485166,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": ".retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-1",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 249731,
+          "corrected": 248558,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 12,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    }
+  ]
+}

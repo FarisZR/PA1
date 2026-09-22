@@ -50,3 +50,49 @@ by default; use `--exclude-retries` when only final attempts are required:
 python3 scripts/analyze_benchmark_costs.py \
   data/benchmark-results/kimi-k3
 ```
+
+## Corrected sidecar files
+
+Some recorded values are known to be wrong or missing (see "Measurement
+corrections and anomalies" in `chapters/_03-methodology.qmd`). The original
+Pier files are never modified. Instead, `scripts/build_corrected_results.py`
+writes a full corrected copy next to the original wherever something changes:
+
+```text
+<trial>/result.json                       original Pier output
+<trial>/result.corrected.json             corrected copy (only where changed)
+<trial>/agent/trajectory.json             original Pier trajectory
+<trial>/agent/trajectory.corrected.json   rebuilt trajectory (only where needed)
+<job>/corrections.json                    every change: field, original, corrected, source, reason
+```
+
+Analysis code should prefer the corrected file when it exists:
+
+```python
+def load_result(trial_dir):
+    corrected = trial_dir / "result.corrected.json"
+    path = corrected if corrected.exists() else trial_dir / "result.json"
+    return json.loads(path.read_text())
+```
+
+Take token, cost, and context metrics from `result*.json`. Use trajectories only
+for step-level analysis. The Codex trajectories are not duplicated, so their
+`final_metrics` still contain the original context values.
+
+| Correction | Files |
+| --- | --- |
+| Codex peak context and compaction count recomputed from per-call input tokens (upstream Pier counted output tokens) | `result.corrected.json` for all 43 Codex attempts |
+| OpenCode V2 token and cost totals withheld by the adapter, taken from OpenCode's session records | `result.corrected.json` for 12 OpenCode V2 attempts |
+| OpenCode V2 trajectories lost to the adapter's `splitlines()` reader, rebuilt offline | `agent/trajectory.corrected.json` for both Luna `effect-sse-httpapi-streaming` attempts |
+
+The script validates every correction before writing it. The Codex counts must
+equal the explicit compaction events in the raw rollouts. The OpenCode session
+totals must equal Pier's totals on every attempt where Pier reported them.
+Regeneration needs the raw run workspace (`benchmark/runs/`) and, for the
+trajectory rebuild, the pinned Pier checkout:
+
+```bash
+python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
+```
+
+`glm-5.3-sub/` is not corrected.

