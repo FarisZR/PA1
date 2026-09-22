@@ -1,0 +1,71 @@
+# Claude Code x DeepSeek V4.1 Flash rerun through the pinned CLIProxyAPI bridge.
+#
+# AiOrbit's LiteLLM /v1/messages adapter downgrades Claude Code's
+# output_config.effort "max" to "high" because the Fireworks deployment does not
+# declare max support (issue #94; verified on the live gateway with
+# deterministic temperature-0 probes). CLIProxyAPI instead translates the
+# Anthropic request to Chat Completions and forwards reasoning_effort "max"
+# unchanged, the same AiOrbit surface Pi, Codex, and OpenCode V2 use. This job
+# replaces the Claude Code leg of deepseek-v4p1-flash.yaml; the Pi and Codex
+# legs are unaffected and are not rerun.
+job_name: deepseek-claude-code-cliproxy-api
+jobs_dir: benchmark/runs
+n_attempts: 1
+# Calibrated against upstream DeepSWE v1.1 trial data rather than assumed from
+# GLM. On our ten tasks, DeepSeek Flash draws 2.05x GLM-5.3-Flash's prompt TPM
+# (1,032,494 vs 503,080 median, mini-swe-agent, n=40/39) because it takes far
+# more steps per trial. Scaling our own measured GLM rate of 736,678 TPM/trial
+# by that ratio gives roughly 1,510,190 TPM/trial, so the 7.2M cold
+# total-prompt limit caps a cold start at 4.8 trials. Four leaves ~16% headroom;
+# six would have been 126% of the limit.
+#
+# Upstream measures deepseek-v4-flash and this job runs v4.1; the ratio is
+# assumed to carry across the point release.
+n_concurrent_trials: 4
+retry:
+  max_retries: 1
+  # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
+  # result on this task set, and verifier/reward failures are grading faults, so
+  # re-running a whole trial for either would corrupt the measurement.
+  exclude_exceptions:
+    - AgentTimeoutError
+    - VerifierTimeoutError
+    - RewardFileNotFoundError
+    - RewardFileEmptyError
+    - VerifierOutputParseError
+    # An operator interrupt (Ctrl-C) surfaces as CancelledError. It is not a
+    # transport fault, and retrying it relaunches every in-flight trial.
+    - CancelledError
+
+environment:
+  type: docker
+
+datasets:
+  - path: ../DeepSWE/tasks
+    task_names:
+      - expr-try-catch-errors
+      - katex-multicolumn-array-spans
+      - python-statemachine-state-data-scoping
+      - oxvg-structural-selector-preservation
+      - effect-sse-httpapi-streaming
+      - scriggo-method-declarations
+      - csstree-shorthand-expansion-compression
+      - fastapi-implicit-head-options
+      - boa-hierarchical-evaluation-cancellation
+      - koota-composite-trait-aspects
+
+agents:
+  - name: claude-code
+    model_name: deepseek-v4p1-flash[1m]
+    env:
+      ANTHROPIC_AUTH_TOKEN: ${CODEX_CLIPROXY_API_KEY}
+      ANTHROPIC_BASE_URL: ${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}
+      ANTHROPIC_DEFAULT_FABLE_MODEL: deepseek-v4p1-flash[1m]
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1000000"
+      API_FORCE_IDLE_TIMEOUT: "0"
+      CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
+      DISABLE_AUTOUPDATER: "1"
+    kwargs:
+      version: "2.1.251"
+      reasoning_effort: max
+      disallowed_tools: "EnterPlanMode,WebSearch"

@@ -24,6 +24,7 @@ Run the current setup in this order:
 5. `benchmark/generated/glm-5.3-sub.yaml`
 6. `benchmark/generated/deepseek-v4p1-flash.yaml`
 7. `benchmark/generated/luna.yaml`
+   - `benchmark/generated/deepseek-claude-code-cliproxy-api.yaml` — Claude Code × DeepSeek rerun at true `max` (see below)
 8. `benchmark/configs/opus.yaml`
 9. run the matching `benchmark/configs/opencode-v2/<model>.yaml` job for the
    OpenCode V2 result of each model. Kimi's OpenCode V2 profile preserves the
@@ -1172,3 +1173,36 @@ active batch routes through the existing LiteLLM gateway.
 
 - DeepSeek Claude Code: https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/
 - Kimi Claude Code: https://platform.kimi.ai/docs/guide/claude-code-kimi
+
+## Claude Code × DeepSeek via CLIProxyAPI (issue #94)
+
+AiOrbit's LiteLLM `/v1/messages` adapter lowers Claude Code's
+`output_config.effort: "max"` to `reasoning_effort: "high"` for the Fireworks
+deployments, because they do not declare max support. Deterministic
+temperature-0 probes on the live gateway returned byte-identical output for
+`high`, `xhigh`, and `max` on DeepSeek and GLM. Routing the same Anthropic
+requests through the pinned CLIProxyAPI bridge sends `reasoning_effort: "max"`
+to AiOrbit's Chat Completions surface, which forwards it unchanged. The bridge
+request logs confirm this. The Pi, Codex, and OpenCode V2 legs are unaffected.
+
+`configs/deepseek-claude-code-cliproxy-api.yaml` contains only the Claude Code
+leg and replaces the Claude Code result from `deepseek-v4p1-flash.yaml`. It uses
+the same bridge environment as Claude Code × Luna (`CODEX_CLIPROXY_API_KEY`,
+`CODEX_CLIPROXY_ANTHROPIC_BASE_URL`). The bridge must be running and must
+declare `max` for `deepseek-v4p1-flash` (see `bridges/codex-cliproxy/config.template.yaml`).
+
+```bash
+python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus
+# one-task smoke first
+/absolute/path/to/pier/.venv/bin/pier run \
+  -c benchmark/generated/deepseek-claude-code-cliproxy-api.yaml \
+  --env-file benchmark/env.local --yes \
+  --job-name deepseek-claude-code-cliproxy-api-smoke -i expr-try-catch-errors
+# verify every upstream DeepSeek request carried max
+grep -l '"model":"deepseek-v4p1-flash"' benchmark/generated/cliproxy-logs/v1-messages-* \
+  | xargs grep -ho '"reasoning_effort":"[a-z]*"' | sort | uniq -c
+# full rerun
+/absolute/path/to/pier/.venv/bin/pier run \
+  -c benchmark/generated/deepseek-claude-code-cliproxy-api.yaml \
+  --env-file benchmark/env.local --yes
+```
