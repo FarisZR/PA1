@@ -32,6 +32,11 @@ The GPT-5.6 Luna job is published at `luna/`. It contains all 30 final tasks
 across the Pi, Claude Code, and Codex harnesses. This job recorded no retry
 attempts.
 
+The completed OpenCode V2 GPT-5.6 Luna run is published separately at
+`opencode-v2-luna/`. It contains the 10 final tasks and 4 retry attempts,
+including each OpenCode adapter `runner-result.json` alongside the filtered
+result, config, and trajectory files.
+
 The current GLM 5.3 Flash sub-run is published as an **unfiltered snapshot**
 at `glm-5.3-sub/`. Its 814 files are copied from the run directory as-is,
 including retry attempts, logs, sessions, verifier output, and other run

