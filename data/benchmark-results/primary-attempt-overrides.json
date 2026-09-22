@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "default": "pier-final",
+  "description": "Sparse overrides for primary comparative analysis. If no override exists for a job, harness, and task, use Pier's final trial. Overrides select an earlier recorded attempt when Pier repeated a trial for a non-transport cause.",
+  "overrides": [
+    {
+      "job": "opencode-v2-deepseek-v4p1-flash",
+      "harness": "opencode-v2",
+      "task": "fastapi-implicit-head-options",
+      "primary_attempt": ".retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-1",
+      "reason": "OpenCode completed and passed after recovering from a transient stream failure, but its non-interactive CLI retained exit status 1 and Pier repeated the trial.",
+      "issue": 95
+    },
+    {
+      "job": "opencode-v2-deepseek-v4p1-flash",
+      "harness": "opencode-v2",
+      "task": "katex-multicolumn-array-spans",
+      "primary_attempt": ".retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-1",
+      "reason": "OpenCode completed and passed after recovering from a transient stream failure, but its non-interactive CLI retained exit status 1 and Pier repeated the trial.",
+      "issue": 95
+    },
+    {
+      "job": "opencode-v2-deepseek-v4p1-flash",
+      "harness": "opencode-v2",
+      "task": "koota-composite-trait-aspects",
+      "primary_attempt": ".retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1",
+      "reason": "OpenCode completed and passed after recovering from a transient stream failure, but its non-interactive CLI retained exit status 1 and Pier repeated the trial.",
+      "issue": 95
+    },
+    {
+      "job": "opencode-v2-deepseek-v4p1-flash",
+      "harness": "opencode-v2",
+      "task": "scriggo-method-declarations",
+      "primary_attempt": ".retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-1",
+      "reason": "OpenCode completed and passed after recovering from a transient stream failure, but its non-interactive CLI retained exit status 1 and Pier repeated the trial.",
+      "issue": 95
+    },
+    {
+      "job": "opencode-v2-luna",
+      "harness": "opencode-v2",
+      "task": "effect-sse-httpapi-streaming",
+      "primary_attempt": ".retry-attempts/effect-sse-httpapi-streaming__rL66U8M/attempt-1",
+      "reason": "OpenCode stopped after the model requested an interactive Git author identity in a non-interactive run; this is model/harness behavior rather than a transport failure.",
+      "issue": 95
+    },
+    {
+      "job": "opencode-v2-luna",
+      "harness": "opencode-v2",
+      "task": "expr-try-catch-errors",
+      "primary_attempt": ".retry-attempts/expr-try-catch-errors__Uvvi6Eh/attempt-1",
+      "reason": "OpenCode stopped after the model requested an interactive Git author identity in a non-interactive run; this is model/harness behavior rather than a transport failure.",
+      "issue": 95
+    },
+    {
+      "job": "opencode-v2-luna",
+      "harness": "opencode-v2",
+      "task": "katex-multicolumn-array-spans",
+      "primary_attempt": ".retry-attempts/katex-multicolumn-array-spans__zipARnF/attempt-1",
+      "reason": "OpenCode stopped after the model requested an interactive Git author identity in a non-interactive run; this is model/harness behavior rather than a transport failure.",
+      "issue": 95
+    },
+    {
+      "job": "opencode-v2-luna",
+      "harness": "opencode-v2",
+      "task": "oxvg-structural-selector-preservation",
+      "primary_attempt": ".retry-attempts/oxvg-structural-selector-preserv__mGjKfoa/attempt-1",
+      "reason": "OpenCode stopped after the model requested an interactive Git author identity in a non-interactive run; this is model/harness behavior rather than a transport failure.",
+      "issue": 95
+    },
+    {
+      "job": "deepseek-v4p1-flash",
+      "harness": "pi",
+      "task": "oxvg-structural-selector-preservation",
+      "primary_attempt": ".retry-attempts/oxvg-structural-selector-preserv__Wj9Bxfi/attempt-1",
+      "reason": "The attempt exceeded the configured context limit; this is an agent/context-management failure rather than a transport failure.",
+      "issue": 95
+    },
+    {
+      "job": "deepseek-v4p1-flash",
+      "harness": "codex",
+      "task": "python-statemachine-state-data-scoping",
+      "primary_attempt": ".retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-1",
+      "reason": "The attempt exceeded the configured context limit; this is an agent/context-management failure rather than a transport failure.",
+      "issue": 95
+    }
+  ]
+}
