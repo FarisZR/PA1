@@ -13,7 +13,7 @@ Every corrected file carries a ``pa1_correction`` block, and each job directory
 gets a ``corrections.json`` listing every change. Readers should prefer
 ``*.corrected.json`` when it exists and fall back to the original otherwise.
 
-Corrections (see "Measurement corrections" in the methodology chapter):
+Corrections (see "Measurement corrections" in the results chapter):
 
 1. Codex context metrics. Upstream Pier derives ``peak_context_tokens`` and,
    when a rollout has no explicit compaction events, ``summarization_count``
@@ -68,7 +68,7 @@ JOBS = (
 )
 # Same threshold as upstream Pier's token-drop heuristic, applied to input only.
 COMPACTION_DROP_TOKENS = 10_000
-REFERENCE = "chapters/_03-methodology.qmd#sec-measurement-corrections"
+REFERENCE = "chapters/_04-results.qmd#sec-measurement-corrections"
 
 RECONVERT = r"""
 import json, sys

@@ -24,6 +24,8 @@ Quarto 1.10 exposes `lof` and `lot` as Typst options, but its stock Typst
 -->
 
 ```{=typst}
+// Justified text leaves large gaps in narrow table columns.
+#show table: set par(justify: false)
 #pagebreak()
 #outline(target: figure.where(kind: "quarto-float-fig"), title: [List of Figures])
 #pagebreak()

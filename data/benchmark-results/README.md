@@ -54,7 +54,7 @@ python3 scripts/analyze_benchmark_costs.py \
 ## Corrected sidecar files
 
 Some recorded values are known to be wrong or missing (see "Measurement
-corrections and anomalies" in `chapters/_03-methodology.qmd`). The original
+corrections" in `chapters/_04-results.qmd`). The original
 Pier files are never modified. Instead, `scripts/build_corrected_results.py`
 writes a full corrected copy next to the original wherever something changes:
 

