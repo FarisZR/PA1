@@ -85,7 +85,7 @@
         {
           "field": "agent/trajectory.json",
           "original": "1 step stub",
-          "corrected": "497 steps (agent/trajectory.corrected.json)",
+          "corrected": "497 steps (original kept as agent/trajectory.original.json)",
           "reason": "PA1 OpenCode V2 adapter read the session dump with str.splitlines(), which splits on U+0085 inside JSON strings; rebuilt offline with Pier's converter and a newline-only reader",
           "source": "benchmark/runs/opencode-v2-luna/effect-sse-httpapi-streaming__rL66U8M/agent/opencode-v2/opencode-v2-sessions.jsonl",
           "source_sha256": "bd702ec515ffd87ea23808883e6ab50687ce3cbe68ac0a993cee69122f3081aa"
@@ -362,7 +362,7 @@
         {
           "field": "agent/trajectory.json",
           "original": "1 step stub",
-          "corrected": "465 steps (agent/trajectory.corrected.json)",
+          "corrected": "465 steps (original kept as agent/trajectory.original.json)",
           "reason": "PA1 OpenCode V2 adapter read the session dump with str.splitlines(), which splits on U+0085 inside JSON strings; rebuilt offline with Pier's converter and a newline-only reader",
           "source": "benchmark/runs/opencode-v2-luna/.retry-attempts/effect-sse-httpapi-streaming__rL66U8M/attempt-1/agent/opencode-v2/opencode-v2-sessions.jsonl",
           "source_sha256": "60de3535c40b9cfb3cbfd18312ebb63f4b734903ab6081c74c250db7485d427c"

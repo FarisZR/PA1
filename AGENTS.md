@@ -26,6 +26,7 @@
 - Do not manually alter generated benchmark figures if a script is responsible for them.
 - Do not invent benchmark results, company facts, observations, or definitions.
 - Keep raw data separate from derived outputs and document the provenance of results.
+- In `data/benchmark-results/`, always read `result.json` and `agent/trajectory.json`; they contain the corrected values. `*.original.json` files are unmodified Pier output kept only as evidence and must not be used for analysis or figures (see `data/benchmark-results/README.md`).
 
 ## Rendering and review
 
