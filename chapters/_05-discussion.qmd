@@ -1,0 +1,29 @@
+# Cross-Model Analysis and Discussion {#sec-discussion}
+
+> **Placeholder section:** Add cross-model synthesis only after the retained
+> benchmark results have been reported in @sec-results.
+
+## Harness effects across models
+
+- TODO: Compare whether harness-level task-solving differences persist across the evaluated models.
+- TODO: Use cross-model visualizations only where they reveal relationships that are not already visible in the model-specific results.
+
+## Resource and cache-efficiency patterns
+
+- TODO: Analyze cross-model patterns in token consumption, cache utilization, and cost.
+- TODO: Distinguish model-specific effects from recurring harness-level behavior.
+
+## Cost--performance trade-off
+
+- TODO: Use the cost--performance Pareto frontier as the principal cross-model figure.
+- TODO: Identify dominated and non-dominated model--harness configurations without introducing a weighted composite score.
+- TODO: Interpret the trade-offs using the task-solving performance and normalized cost metrics defined in the methodology.
+
+## Practical implications
+
+- TODO: Relate the cross-model findings to the company context and the observed internal harness usage.
+- TODO: Derive practical implications only from findings established in the results and cross-model analysis.
+
+## Limitations and threats to validity
+
+- TODO: Describe methodological, measurement, infrastructure, and generalizability limitations.
