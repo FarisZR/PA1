@@ -334,11 +334,19 @@ def render_input_changed(paths: set[str]) -> bool:
         "requirements.txt",
         "benchmark/pricing.yaml",
     }
+    review_only_scripts = {
+        "scripts/build_review_paper.py",
+        "scripts/mark_visual_pdf_changes.py",
+    }
     return any(
         path in exact
         or path.startswith("data/")
         or path.startswith("figures/")
-        or (path.startswith("scripts/") and path.endswith(".py"))
+        or (
+            path.startswith("scripts/")
+            and path.endswith(".py")
+            and path not in review_only_scripts
+        )
         for path in paths
     )
 
@@ -392,6 +400,16 @@ def main() -> None:
         review_root,
     )
     (ROOT / args.output_root).write_text(review_root, encoding="utf-8")
+
+    # A Quarto profile makes the generated review document part of the project
+    # for this render only, so it inherits the paper's Typst format, bibliography,
+    # CSL, language, and output directory without duplicating _quarto.yml.
+    review_profile = (
+        "project:\n"
+        "  render:\n"
+        f"    - {Path(args.output_root).as_posix()}\n"
+    )
+    (ROOT / "_quarto-review.yml").write_text(review_profile, encoding="utf-8")
 
     for relative, review_text in annotated.items():
         if not relative.startswith("chapters/"):
