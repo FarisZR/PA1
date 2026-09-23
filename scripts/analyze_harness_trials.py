@@ -67,7 +67,7 @@ CATEGORY_TOOLS = {
 SHELL_TOOLS = {"Bash", "bash", "shell", "exec_command"}
 # Calls whose failures are not attributed to the model's tool invocation.
 EXCLUDED_FROM_ERRORS = {
-    "WebFetch", "webfetch", "Skill", "Agent", "SendMessage", "TaskStop",
+    "WebFetch", "webfetch", "Skill", "Agent", "Task", "SendMessage", "TaskStop",
     "TaskOutput", "ListAgents", "ScheduleWakeup", "question",
 }
 OPENCODE_RIPGREP_TOOLS = {"grep", "glob"}
@@ -302,6 +302,11 @@ def load_trials(model: str, job_dirs: list[Path]) -> list[dict[str, Any]]:
     return rows
 
 
+def _present(group: list[dict[str, Any]], key: str) -> list[Any]:
+    """Values of one metric, without trials whose agent result did not record it."""
+    return [row[key] for row in group if row[key] is not None]
+
+
 def summarize(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     """Aggregate the per-trial rows by harness."""
     summary = {}
@@ -311,6 +316,8 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             continue
         passing = [row for row in group if row["passed"]]
         total_input = sum(row["input_tokens"] for row in group)
+        peaks = _present(group, "peak_context_tokens")
+        steps = _present(group, "agent_steps")
         summary[harness] = {
             "trials": len(group),
             "passed": len(passing),
@@ -320,13 +327,11 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             "median_input_tokens": statistics.median(row["input_tokens"] for row in group),
             "median_output_tokens": statistics.median(row["output_tokens"] for row in group),
             "cache_hit_share": sum(row["cached_tokens"] for row in group) / total_input,
-            "median_peak_context_tokens": statistics.median(
-                row["peak_context_tokens"] for row in group
-            ),
-            "max_peak_context_tokens": max(row["peak_context_tokens"] for row in group),
+            "median_peak_context_tokens": statistics.median(peaks) if peaks else None,
+            "max_peak_context_tokens": max(peaks) if peaks else None,
             "compactions": sum(row["compactions"] for row in group),
             "median_agent_minutes": statistics.median(row["agent_minutes"] for row in group),
-            "median_agent_steps": statistics.median(row["agent_steps"] for row in group),
+            "median_agent_steps": statistics.median(steps) if steps else None,
             "tool_calls": sum(row["tool_calls"] for row in group),
             "invocation_error_share": sum(row["invocation_errors"] for row in group)
             / sum(row["error_denominator"] for row in group),

@@ -287,8 +287,9 @@ def plot_subagent_tokens(frame: pd.DataFrame, harness: str = "claude-code", ax=N
         ax.barh(position, sub, left=main, height=0.62, color=color, alpha=0.4,
                 edgecolor="white", linewidth=1.5, hatch="////")
         mark = "✓ " if row["passed"] else ""
-        ax.text(main + sub + 8, position, f"{mark}{int(row['subagent_spawns'])} subagents",
-                va="center", fontsize=7, color=INK)
+        ax.annotate(f"{mark}{int(row['subagent_spawns'])} subagents", (main + sub, position),
+                    xytext=(4, 0), textcoords="offset points", va="center", fontsize=7,
+                    color=INK)
     ax.set_yticks(range(len(order)), [task["label"] for task in order])
     ax.invert_yaxis()
     ax.set_xlabel("Input tokens (million)", fontsize=8)
