@@ -250,9 +250,9 @@ Several measurement problems only became visible while analyzing the completed r
 | OpenCode V2 session dump split on U+0085 | PA1 adapter, defect | Trajectories rebuilt |
 | Exit status 1 after a recovered step failure | Upstream OpenCode 2.0.8 | First attempt canonical |
 | Retries after non-transport failures | Pier retry rule, PA1 exclusion list | First attempt canonical |
-| `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | Kimi run excluded; DeepSeek limitation |
-| Earlier reasoning not passed back to the model in Claude Code | LiteLLM gateway; CLIProxyAPI default configuration | Kimi run excluded; DeepSeek limitation |
-| Earlier reasoning removed before reaching Fireworks | Upstream LiteLLM gateway | Codex trials superseded, rerun pending; Pi excluded |
+| `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | Kimi run excluded; DeepSeek run repeated |
+| Earlier reasoning not passed back to the model in Claude Code | LiteLLM gateway; CLIProxyAPI default configuration | Kimi run excluded; DeepSeek run repeated |
+| Earlier reasoning removed before reaching Fireworks | Upstream LiteLLM gateway | Codex trials repeated; Pi excluded |
 | OpenCode V2 `grep` and `glob` fail without ripgrep | Upstream OpenCode 2.0.8; sandbox egress policy | Disclosed; excluded from error rates |
 | OpenCode V2 Luna input limit of 144,000 tokens | PA1 configuration | Disclosed |
 
@@ -260,7 +260,7 @@ Several measurement problems only became visible while analyzing the completed r
 
 ### Codex context metrics
 
-When a Codex rollout contains no explicit compaction event, Pier infers compactions from drops in `last_token_usage.total_tokens`, and it also derives the peak context from this value [@pierUpstreamCodexContextMetrics]. The value includes the output tokens of the call. A long reasoning response followed by a short one therefore looks like a shrinking context and is counted as a compaction, and the peak is inflated by the output of the largest call. This logic is upstream Pier behavior and was not changed in the PA1 fork. The error is not apparent from the recorded numbers. DeepSeek V4.1 Flash produced up to about 60,000 output tokens in single Codex calls and was recorded with 95 compactions across its Codex attempts, although its rollouts contain no compaction event and its input size never decreased. The corrected files recompute both values from the per-call input tokens in the committed trajectories. For all 43 Codex attempts, including the excluded GLM-5.3-Flash batch, the recomputed counts equal the explicit compaction events in the raw rollouts: eight compactions for GPT-5.6 Luna and none for the other models.
+When a Codex rollout contains no explicit compaction event, Pier infers compactions from drops in `last_token_usage.total_tokens`, and it also derives the peak context from this value [@pierUpstreamCodexContextMetrics]. The value includes the output tokens of the call. A long reasoning response followed by a short one therefore looks like a shrinking context and is counted as a compaction, and the peak is inflated by the output of the largest call. This logic is upstream Pier behavior and was not changed in the PA1 fork. The error is not apparent from the recorded numbers. DeepSeek V4.1 Flash produced up to about 60,000 output tokens in single Codex calls and was recorded with 95 compactions across its Codex attempts, although its rollouts contain no compaction event and its input size never decreased. The corrected files recompute both values from the per-call input tokens in the committed trajectories. For all 48 Codex attempts, including the excluded GLM-5.3-Flash batch, the recomputed counts equal the explicit compaction events in the raw rollouts: eight compactions for GPT-5.6 Luna and none for the other models.
 
 ### Withheld OpenCode V2 usage totals
 
@@ -386,12 +386,12 @@ _check(
     "Retention groups",
 )
 
-original_claude = [
+original_claude = load_rows(RESULTS_DIR / ".excluded/deepseek-v4p1-flash/claude-code-litellm")
+default_claude = load_rows(RESULTS_DIR / ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default")
+fixed_claude = [
     row for row in load_rows(RESULTS_DIR / "deepseek-v4p1-flash")
     if row["harness"] == "claude-code"
 ]
-default_claude = load_rows(RESULTS_DIR / "deepseek-claude-code-cliproxy-api")
-fixed_claude = load_rows(RESULTS_DIR / "deepseek-claude-code-cliproxy-api-fixed-thinking")
 _check(
     len(original_claude) == len(default_claude) == len(fixed_claude) == 10
     and all(row["retention"] is not None for row in original_claude + default_claude + fixed_claude)
@@ -404,6 +404,47 @@ _check(
     and all(row["started_at"] > "2026-09-21T12:02:00Z" for row in default_claude)
     and all(row["retained"] for row in fixed_claude),
     "DeepSeek Claude Code route split",
+)
+
+# The Codex rerun of the affected trials, compared with the trials it replaced.
+codex_rerun = [
+    row for row in load_rows(RESULTS_DIR / "deepseek-v4p1-flash")
+    if row["job"] == "deepseek-codex-rerun"
+]
+codex_superseded = load_rows(RESULTS_DIR / ".superseded/issue-111/deepseek-v4p1-flash/codex")
+_check(
+    len(codex_rerun) == 5
+    and {row["task"] for row in codex_rerun} == {row["task"] for row in codex_superseded}
+    and round(min(row["retention"] for row in codex_rerun)) == 112
+    and round(max(row["retention"] for row in codex_rerun)) == 155
+    and sum(row["reward"] == 1 for row in codex_rerun) == 3
+    and not any(row["exception"] for row in codex_rerun)
+    and sum(row["reward"] == 1 for row in codex_superseded) == 1
+    and all(row["exception"] == "AgentTimeoutError" for row in codex_superseded),
+    "Codex rerun",
+)
+_rerun_output = {
+    label: statistics.median(
+        json.loads((path / row["trial"] / "result.json").read_text())["agent_result"]["n_output_tokens"]
+        / json.loads((path / row["trial"] / "result.json").read_text())["agent_result"]["n_agent_steps"]
+        for row in rows
+    )
+    for label, path, rows in (
+        ("superseded", RESULTS_DIR / ".superseded/issue-111/deepseek-v4p1-flash/codex", codex_superseded),
+        ("rerun", RESULTS_DIR / "deepseek-v4p1-flash", codex_rerun),
+    )
+}
+_check(round(_rerun_output["superseded"]) == 5661 and round(_rerun_output["rerun"]) == 641,
+       "Codex output per step")
+pi_rerun = [
+    json.loads(path.read_text())
+    for path in (RESULTS_DIR / ".excluded/deepseek-v4p1-flash/pi-rerun").rglob("result.json")
+    if path.parent.name != "pi-rerun"
+]
+_check(
+    len(pi_rerun) == 6
+    and all("budget_exceeded" in row["exception_info"]["exception_message"] for row in pi_rerun),
+    "Pi rerun",
 )
 
 # The two example calls quoted in the text.
@@ -575,21 +616,19 @@ fig.tight_layout(h_pad=2.3)
 
 The defect had a visible effect on outcomes. Among the DeepSeek Codex and Pi trials, the eleven without earlier reasoning passed three times and reached the three-hour timeout eight times. The nine with earlier reasoning passed eight times and never timed out. The jobs started their tasks in nearly the same order, so the two groups contain different tasks and the comparison is descriptive only. All affected trials started before the upgrade. One Codex trial that started ten minutes earlier ran mostly afterwards and kept its reasoning.
 
-The other runs in @tbl-reasoning-history are unaffected. Kimi K3's Pi and Codex runs used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs are corrected separately.
+The other runs in @tbl-reasoning-history are unaffected. Kimi K3's Pi and Codex runs used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs had further route defects and are treated in the next subsection.
 
-All affected observations are removed from the normal data path, so the comparative analysis cannot include them by accident. The five affected Codex trials are repeated with the unchanged configuration, including the one that passed, so that the selection depends on when a trial ran and not on its outcome. A bridge setting added since then affects only Claude Code requests, so the Codex route is the same as before. The repeated trials replace the original ones only after the same check confirms that their reasoning reached the model.
+All affected observations are removed from the normal data path, so the comparative analysis cannot include them by accident. The five affected Codex trials were repeated with the unchanged configuration, including the one that passed, so that the selection depended on when a trial ran and not on its outcome. A bridge setting added in the meantime affects only Claude Code requests, so the Codex route was the same as before. The repeated trials replaced the original ones only after the same check confirmed that their reasoning had reached the model: their prompt-growth ratios were between 112% and 155%. The repeated trials passed three of the five tasks and none reached the timeout, whereas the original trials passed one and all five timed out. Their median output per agent step fell from 5,661 to 641 tokens. The same tasks and configuration thus behaved very differently once the model received its earlier reasoning.
 
-The six affected Pi trials are not repeated within the available budget. With only four valid trials left, DeepSeek with Pi cannot be compared with the complete ten-task conditions. It is therefore excluded from the quantitative comparison and kept only as diagnostic evidence.
-
-<!-- TODO(FarisZR/PA1#111): run benchmark/generated/deepseek-codex-rerun.yaml and scripts/build_corrected_results.py, then report the rerun's retention and outcomes. If the six Pi trials are rerun, restore the DeepSeek Pi condition. -->
+The six affected Pi trials could not be repeated. A repetition of three of them ran out of gateway budget: each first attempt stopped after 16 to 18 minutes when the gateway rejected further requests, and Pier's retries were rejected at once. With only four valid trials left, DeepSeek with Pi cannot be compared with the complete ten-task conditions. It is therefore excluded from the quantitative comparison and kept only as diagnostic evidence, together with the stopped repetition.
 
 ### Reasoning effort and reasoning history in Claude Code
 
-The original LiteLLM-routed Claude Code runs retain an effort-mapping limitation. Claude Code requests reasoning effort through the Anthropic `output_config.effort` field. For the Fireworks-routed models, these requests pass through LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway. That translation maps the field to `reasoning_effort` and lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101]. A local reproduction used the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) with deployment metadata matching what the gateway advertises. It forwarded `high` for both models, and for the excluded GLM-5.3-Flash batch. The original LiteLLM-routed Claude Code runs of Kimi K3 and DeepSeek V4.1 Flash were therefore most likely executed at `high` rather than the intended `max`, whereas Pi, Codex, OpenCode V2, and the later DeepSeek CLIProxyAPI runs sent `max` directly. The gateway's deployment configuration during the runs could not be inspected directly.
+The original LiteLLM-routed Claude Code runs have an effort-mapping defect. Claude Code requests reasoning effort through the Anthropic `output_config.effort` field. For the Fireworks-routed models, these requests pass through LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway. That translation maps the field to `reasoning_effort` and lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101]. A local reproduction used the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) with deployment metadata matching what the gateway advertises. It forwarded `high` for both models, and for the excluded GLM-5.3-Flash batch. The original LiteLLM-routed Claude Code runs of Kimi K3 and DeepSeek V4.1 Flash were therefore most likely executed at `high` rather than the intended `max`, whereas Pi, Codex, OpenCode V2, and the later DeepSeek CLIProxyAPI runs sent `max` directly. The gateway's deployment configuration during the runs could not be inspected directly.
 
 Claude Code sends its earlier thinking blocks back in the conversation history. The original LiteLLM-routed DeepSeek Claude Code job had six pre-upgrade trials with median growth ratios below 50% and four post-upgrade trials above it; the pre-upgrade loss matches the Fireworks gateway defect described in @sec-gateway-reasoning-history [@pa1Issue111]. The later DeepSeek CLIProxyAPI job started after that upgrade, but its default translation without `is-compat` omitted earlier thinking: all ten trial medians were below 50%. In the separate `is-compat: true` rerun, all ten exceeded 50% [@pa1Issue102].
 
-DeepSeek requires the earlier `reasoning_content` to be passed back whenever tools are used, and its own API rejects requests without it [@deepseekThinkingMode]. Fireworks accepted these requests without an error, so the runs completed normally. Pi, Codex, and OpenCode V2 pass the earlier reasoning back, although the gateway removed it for part of the DeepSeek runs (@sec-gateway-reasoning-history), and GPT-5.6 Luna keeps it under Claude Code because its signed thinking blocks are converted to encrypted reasoning items. The original LiteLLM-routed and default CLIProxyAPI DeepSeek jobs remain qualified by their respective retention defects; the fixed-thinking CLIProxyAPI rerun retained earlier reasoning.
+DeepSeek requires the earlier `reasoning_content` to be passed back whenever tools are used, and its own API rejects requests without it [@deepseekThinkingMode]. Fireworks accepted these requests without an error, so the runs completed normally. Pi, Codex, and OpenCode V2 pass the earlier reasoning back, although the gateway removed it for part of the DeepSeek runs (@sec-gateway-reasoning-history), and GPT-5.6 Luna keeps it under Claude Code because its signed thinking blocks are converted to encrypted reasoning items. For DeepSeek, Claude Code was therefore run three times. The LiteLLM-routed run and the first CLIProxyAPI run are excluded from the comparative results and kept for audit under `data/benchmark-results/.excluded/deepseek-v4p1-flash/`. The DeepSeek Claude Code results use the `is-compat` rerun, which requested `max` effort and retained earlier reasoning in all ten trials. @sec-deepseek-claude-routes compares the three runs.
 
 A local replay of LiteLLM 1.98.0 found that its Anthropic-to-Chat Completions adapter omitted Kimi K3 Claude Code thinking blocks [@pa1Issue102]. Whether Kimi K3 depends on the earlier reasoning as strongly as DeepSeek was not verified. Both the lowered effort and missing reasoning history prevent the completed Kimi Claude Code run from representing the intended `max`-effort condition. Its outcomes, tokens, cache usage, and cost are excluded from comparative results and cross-model figures; the published trial files remain available for audit [@pa1Issue108]. The CLIProxyAPI bridge now sets `is-compat: true` for the three LiteLLM-backed models.
 
@@ -615,7 +654,407 @@ Only the Pi and Codex Kimi K3 runs enter the comparative benchmark. The earlier 
 
 ## DeepSeek V4.1 Flash
 
-- TODO: Report and analyze the DeepSeek V4.1 Flash results by harness, including task success, cost, token usage, and cache behavior.
+```{python}
+#| include: false
+
+from scripts.analyze_harness_trials import (
+    HARNESS_LABELS,
+    load_trials,
+    model_rates,
+    paired_ratio,
+    summarize,
+)
+from scripts.analyze_reasoning_retention import RETAINED_THRESHOLD_PERCENT, load_rows
+from scripts.harness_figures import (
+    HARNESS_MARKERS,
+    outcome_legend,
+    plot_invocation_errors,
+    plot_task_costs,
+    plot_task_outcomes,
+    plot_tool_mix,
+    plot_trial_strip,
+)
+
+DEEPSEEK_JOBS = [
+    Path("data/benchmark-results/deepseek-v4p1-flash"),
+    Path("data/benchmark-results/opencode-v2-deepseek-v4p1-flash"),
+]
+ds_rows = load_trials("deepseek-v4p1-flash", DEEPSEEK_JOBS)
+ds = pd.DataFrame(ds_rows)
+ds_summary = summarize(ds_rows)
+_ds_rates = model_rates("deepseek-v4p1-flash")
+_ds_retention = [row for job in DEEPSEEK_JOBS for row in load_rows(job)]
+_ds_passed = ds.pivot(index="task", columns="harness", values="passed")
+_ds_failed = ds[~ds["passed"]]
+
+
+def _ds_ratio(metric: str, harness: str) -> float:
+    return round(paired_ratio(ds_rows, metric, harness, "codex"), 2)
+
+
+def _ds_cost_shares(group: pd.DataFrame) -> tuple[int, int, int]:
+    uncached = ((group["input_tokens"] - group["cached_tokens"]) * _ds_rates["input"]).sum()
+    cached = (group["cached_tokens"] * _ds_rates["cached_input"]).sum()
+    output = (group["output_tokens"] * _ds_rates["output"]).sum()
+    total = uncached + cached + output
+    return tuple(round(100 * part / total) for part in (uncached, cached, output))
+
+
+def _ds_call_share(group: pd.DataFrame, category: str) -> int:
+    return round(100 * sum(calls[category] for calls in group["calls_by_category"]) / group["tool_calls"].sum())
+
+
+_ds_harnesses = ("claude-code", "opencode-v2")
+ds_quoted = {
+    "trials": len(ds),
+    "jobs": sorted(Path(json.loads((job / row["trial"] / "config.json").read_text())["trials_dir"]).name
+                   for job in DEEPSEEK_JOBS for row in load_rows(job)).count("deepseek-codex-rerun"),
+    "min_retention": round(min(row["retention"] for row in _ds_retention)),
+    "passed": {h: s["passed"] for h, s in ds_summary.items()},
+    "timeouts": sum(s["timeouts"] for s in ds_summary.values()),
+    "solved_by_all": sorted(_ds_passed.index[_ds_passed.all(axis=1)]),
+    "solved_by_none": sorted(_ds_passed.index[~_ds_passed.any(axis=1)]),
+    "min_failed_f2p_share": round(100 * (_ds_failed["f2p_passed"] / _ds_failed["f2p_total"]).min()),
+    "failed_f2p": {f"{r.harness}/{r.task}": (r.f2p_passed, r.f2p_total, r.p2p_passed, r.p2p_total)
+                   for r in _ds_failed.itertuples()},
+    "cost": {h: round(s["cost_usd"], 2) for h, s in ds_summary.items()},
+    "trial_cost_range": (round(ds["cost_usd"].min(), 2), round(ds["cost_usd"].max(), 2)),
+    "cost_ratio": {h: _ds_ratio("cost_usd", h) for h in _ds_harnesses},
+    "input_ratio": {h: _ds_ratio("input_tokens", h) for h in _ds_harnesses},
+    "output_ratio": {h: _ds_ratio("output_tokens", h) for h in _ds_harnesses},
+    "steps_ratio": {h: _ds_ratio("agent_steps", h) for h in _ds_harnesses},
+    "minutes_ratio": {h: _ds_ratio("agent_minutes", h) for h in _ds_harnesses},
+    "median_minutes": {h: round(s["median_agent_minutes"]) for h, s in ds_summary.items()},
+    "cache": {h: round(100 * s["cache_hit_share"], 1) for h, s in ds_summary.items()},
+    "cost_shares": {h: _ds_cost_shares(g) for h, g in ds.groupby("harness")},
+    "max_context": {h: s["max_peak_context_tokens"] for h, s in ds_summary.items()},
+    "max_context_task": sorted(set(ds.loc[ds.groupby("harness")["peak_context_tokens"].idxmax(), "task"])),
+    "max_cost_task": sorted(set(ds.loc[ds.groupby("harness")["cost_usd"].idxmax(), "task"])),
+    "median_context": {h: round(s["median_peak_context_tokens"]) for h, s in ds_summary.items()},
+    "compactions": sum(s["compactions"] for s in ds_summary.values()),
+    "shell_share": {h: _ds_call_share(g, "shell") for h, g in ds.groupby("harness")},
+    "read_share": {h: _ds_call_share(g, "read") for h, g in ds.groupby("harness")},
+    "planning_calls": {h: sum(c["planning"] for c in g["calls_by_category"]) for h, g in ds.groupby("harness")},
+    "spawns": int(ds["subagent_spawns"].sum()),
+    "web_fetches": {h: s["web_fetches"] for h, s in ds_summary.items()},
+    "call_errors": {h: round(100 * s["invocation_error_share"], 1) for h, s in ds_summary.items()},
+    "edit_errors": {h: round(100 * s["edit_error_share"], 1) for h, s in ds_summary.items()},
+    "errors": {h: int(g["invocation_errors"].sum()) for h, g in ds.groupby("harness")},
+    "codex_scriggo_errors": ds.query("harness == 'codex' and task == 'scriggo-method-declarations'")
+    .iloc[0]["errors_by_class"],
+}
+ds_expected = {
+    "trials": 30,
+    "jobs": 5,
+    "min_retention": 107,
+    "passed": {"codex": 7, "claude-code": 8, "opencode-v2": 7},
+    "timeouts": 0,
+    "solved_by_all": [
+        "boa-hierarchical-evaluation-cancellation",
+        "expr-try-catch-errors",
+        "katex-multicolumn-array-spans",
+        "koota-composite-trait-aspects",
+        "scriggo-method-declarations",
+    ],
+    "solved_by_none": ["effect-sse-httpapi-streaming"],
+    "min_failed_f2p_share": 88,
+    "failed_f2p": {
+        "codex/effect-sse-httpapi-streaming": (46, 47, 70, 70),
+        "codex/fastapi-implicit-head-options": (38, 43, 3134, 3134),
+        "codex/oxvg-structural-selector-preservation": (6, 6, 61, 62),
+        "claude-code/effect-sse-httpapi-streaming": (45, 47, 70, 70),
+        "claude-code/fastapi-implicit-head-options": (41, 43, 3134, 3134),
+        "opencode-v2/csstree-shorthand-expansion-compression": (78, 79, 16715, 16715),
+        "opencode-v2/effect-sse-httpapi-streaming": (46, 47, 70, 70),
+        "opencode-v2/python-statemachine-state-data-scoping": (70, 72, 1286, 1286),
+    },
+    "cost": {"codex": 3.67, "claude-code": 4.01, "opencode-v2": 3.12},
+    "trial_cost_range": (0.19, 0.83),
+    "cost_ratio": {"claude-code": 1.1, "opencode-v2": 0.89},
+    "input_ratio": {"claude-code": 0.76, "opencode-v2": 0.95},
+    "output_ratio": {"claude-code": 0.92, "opencode-v2": 1.02},
+    "steps_ratio": {"claude-code": 0.79, "opencode-v2": 0.87},
+    "minutes_ratio": {"claude-code": 0.82, "opencode-v2": 1.26},
+    "median_minutes": {"codex": 56, "claude-code": 37, "opencode-v2": 68},
+    "cache": {"codex": 98.5, "claude-code": 97.0, "opencode-v2": 98.9},
+    "cost_shares": {"claude-code": (47, 30, 24), "codex": (30, 41, 29), "opencode-v2": (24, 42, 33)},
+    "max_context": {"codex": 485166, "claude-code": 492169, "opencode-v2": 496718},
+    "max_context_task": ["scriggo-method-declarations"],
+    "max_cost_task": ["scriggo-method-declarations"],
+    "median_context": {"codex": 308581, "claude-code": 271288, "opencode-v2": 317777},
+    "compactions": 0,
+    "shell_share": {"claude-code": 57, "codex": 70, "opencode-v2": 52},
+    "read_share": {"claude-code": 11, "codex": 0, "opencode-v2": 17},
+    "planning_calls": {"claude-code": 120, "codex": 13, "opencode-v2": 0},
+    "spawns": 0,
+    "web_fetches": {"codex": 0, "claude-code": 5, "opencode-v2": 26},
+    "call_errors": {"codex": 1.7, "claude-code": 0.4, "opencode-v2": 0.6},
+    "edit_errors": {"codex": 5.3, "claude-code": 1.6, "opencode-v2": 1.8},
+    "errors": {"claude-code": 10, "codex": 42, "opencode-v2": 13},
+    "codex_scriggo_errors": {"edit_mismatch": 5, "invalid_call": 15},
+}
+if ds_quoted != ds_expected:
+    raise ValueError(f"DeepSeek V4.1 Flash data changed; update the text: {ds_quoted}")
+```
+
+DeepSeek V4.1 Flash is compared in three harnesses: Codex, Claude Code, and OpenCode V2. The Pi condition is excluded because six of its ten trials never gave the model its earlier reasoning and could not be repeated (@sec-gateway-reasoning-history). The 30 canonical trials come from four Pier jobs. Five Codex trials are from the original job, and the five Codex trials affected by the gateway defect were repeated. The Claude Code trials are from the `is-compat` rerun described in the preceding section, and the OpenCode V2 trials are from their own job. Every trial requested `max` reasoning effort, and in every trial the prompts grew by at least 107% of the preceding reasoning, so the model received its earlier reasoning throughout. All harnesses were configured with DeepSeek's documented context window of 1,000,000 tokens. The applied corrections are the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials (@sec-measurement-corrections). All values in this section are computed from the committed trial files in `data/benchmark-results/deepseek-v4p1-flash/` and `data/benchmark-results/opencode-v2-deepseek-v4p1-flash/` by `scripts/analyze_harness_trials.py`. Each harness ran each of the ten tasks once, so every comparison rests on ten paired observations and is reported descriptively.
+
+### Task success {#sec-deepseek-success}
+
+@tbl-deepseek-overview summarizes the three DeepSeek conditions. Claude Code passed eight of the ten tasks, and Codex and OpenCode V2 seven each. The harnesses therefore differ by at most one solved task. No trial reached the three-hour agent timeout, and the total cost of the ten trials ranged only from USD 3.12 to 4.01.
+
+```{python}
+#| label: tbl-deepseek-overview
+#| tbl-cap: "DeepSeek V4.1 Flash results per harness over the ten canonical trials. Cost is the normalized API-equivalent cost in USD. Input, output, and agent time are medians per trial; cache hits are the share of all input tokens read from the cache."
+#| tbl-colwidths: [19, 10, 11, 10, 10, 9, 10, 10, 11]
+
+_overview = ["| Harness | Passed | Timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
+             "|:--|--:|--:|--:|--:|--:|--:|--:|--:|"]
+for harness, stats in ds_summary.items():
+    _overview.append(
+        f"| {HARNESS_LABELS[harness]} | {stats['passed']}/{stats['trials']} | {stats['timeouts']} "
+        f"| {stats['cost_usd']:.2f} | {stats['cost_usd'] / stats['passed']:.2f} "
+        f"| {stats['median_input_tokens'] / 1e6:.1f} | {stats['median_output_tokens'] / 1e3:.0f} "
+        f"| {stats['cache_hit_share']:.1%} | {stats['median_agent_minutes']:.0f} |"
+    )
+Markdown("\n".join(_overview))
+```
+
+@fig-deepseek-task-outcomes shows the result of every trial. Five tasks were solved in all three harnesses: `boa`, `expr`, `katex`, `koota`, and `scriggo`. The hard task `effect` was solved in none; each harness stopped one or two fail-to-pass tests short, at 45 or 46 of 47. The remaining four tasks account for all differences between the harnesses. Of these, Claude Code failed only `fastapi`, with 41 of 43 fail-to-pass tests. Codex also failed `fastapi` and, on `oxvg`, passed all six fail-to-pass tests but broke one of 62 previously passing tests. OpenCode V2 was the only harness to solve `fastapi`, but it failed `csstree` by one test and `python-statemachine` by two. Every failing trial passed at least 88% of its fail-to-pass tests. The failures of DeepSeek were therefore near misses, and which harness missed a task varied from task to task.
+
+```{python}
+#| label: fig-deepseek-task-outcomes
+#| fig-cap: "Fail-to-pass tests passed by DeepSeek V4.1 Flash per task and harness. Green cells are passing trials; blue cells are failing trials, shaded by the share of fail-to-pass tests passed. \"regr.\" denotes a failing trial that passed all fail-to-pass tests but broke previously passing tests. Hard tasks are listed above the line."
+
+_ax = plot_task_outcomes(ds)
+_ax.figure.set_size_inches(6.3, 5.4)
+_ax.figure.tight_layout()
+```
+
+The excluded Pi condition does not change this picture. Its four trials that kept their reasoning, all on medium tasks, passed. They are not counted in @tbl-deepseek-overview, because a four-task sample cannot be compared with the ten-task conditions.
+
+### Cost and token usage {#sec-deepseek-cost}
+
+The three harnesses cost similar amounts in total (@tbl-deepseek-overview), and @fig-deepseek-cost shows that this also holds task by task. The 30 trials cost between USD 0.19 and 0.83 each. The most expensive task, `scriggo`, was the most expensive one in every harness. As a geometric mean of the per-task ratios relative to Codex, Claude Code cost 1.10 times as much and OpenCode V2 0.89 times.
+
+```{python}
+#| label: fig-deepseek-cost
+#| fig-cap: "Normalized cost of each DeepSeek V4.1 Flash trial per task and harness. Solid bars are passing trials, marked with a check mark; hatched bars are failing trials. The cost axis is logarithmic."
+
+_ax = plot_task_costs(ds)
+_ax.figure.set_size_inches(6.3, 3.5)
+_ax.figure.tight_layout()
+```
+
+Claude Code used the fewest resources. Relative to Codex, it used 0.76 times the input tokens and 0.92 times the output tokens, took 0.79 times the agent steps, and ran 0.82 times as long (per-task geometric means). Its median trial took 37 minutes, compared with 56 minutes for Codex and 68 minutes for OpenCode V2 (@fig-deepseek-tokens). OpenCode V2 used about as many tokens as Codex but ran 1.26 times as long.
+
+Claude Code nevertheless cost slightly more than Codex because of the cache. DeepSeek bills a cached input token at USD 0.003 per million, 2% of the USD 0.15 for an uncached one. Claude Code read 97.0% of its input from the cache, Codex 98.5%, and OpenCode V2 98.9%. The remaining uncached input accounts for 47% of Claude Code's cost, compared with 30% for Codex and 24% for OpenCode V2. A difference of 1.5 percentage points in the cache-hit share thus outweighed Claude Code's lower token use.
+
+```{python}
+#| label: fig-deepseek-tokens
+#| fig-cap: "Input tokens, output tokens, and largest prompt per DeepSeek V4.1 Flash trial. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. The token axes in (a) and (b) are logarithmic; the dashed line in (c) marks the configured 1,000,000-token window."
+
+fig, axes = plt.subplots(1, 3, figsize=(6.3, 3.1))
+plot_trial_strip(ds, "input_tokens", ax=axes[0], scale=1e6, log=True,
+                 ylabel="(a) Input tokens per trial (million)")
+plot_trial_strip(ds, "output_tokens", ax=axes[1], scale=1e3, log=True,
+                 ylabel="(b) Output tokens per trial (thousand)")
+plot_trial_strip(ds, "peak_context_tokens", ax=axes[2], scale=1e3,
+                 ylabel="(c) Largest prompt (thousand tokens)",
+                 reference=1000, reference_label="1M window")
+axes[2].set_ylim(0, 1080)
+for _ax in axes:
+    _ax.tick_params(axis="x", labelrotation=30)
+    plt.setp(_ax.get_xticklabels(), ha="right", rotation_mode="anchor")
+outcome_legend(axes[2], loc="upper right", bbox_to_anchor=(1.0, 0.9))
+fig.tight_layout()
+```
+
+### Context and compaction {#sec-deepseek-context}
+
+No DeepSeek trial compacted its context in any harness. The largest prompts reached between 485,166 and 496,718 tokens, all on `scriggo`, and the median of the trials' largest prompts was between 271,288 tokens (Claude Code) and 317,777 tokens (OpenCode V2), as panel (c) of @fig-deepseek-tokens shows. Every prompt therefore stayed below half of the configured 1,000,000-token window, and context management played no role in the DeepSeek results.
+
+### Tool use and invocation errors {#sec-deepseek-tools}
+
+@fig-deepseek-tool-mix shows how DeepSeek used the tools of each harness. Shell calls dominated everywhere: 70% of Codex's calls, 57% of Claude Code's, and 52% of OpenCode V2's. Claude Code read files with its `Read` tool in 11% of its calls but never called `Grep` or `Glob`; searches ran through the shell. It also created and updated task lists in 120 calls. The OpenCode V2 read share of 17% includes 20 `grep` and `glob` calls that failed without ripgrep (@sec-opencode-ripgrep). Claude Code and OpenCode V2 attempted 5 and 26 web fetches, which the sandbox blocked.
+
+```{python}
+#| label: fig-deepseek-tool-mix
+#| fig-cap: "Tool calls of DeepSeek V4.1 Flash by category and harness. A Codex call is one JavaScript cell. No harness started a subagent."
+
+_ax = plot_tool_mix(ds)
+_ax.figure.set_size_inches(6.3, 2.5)
+_ax.figure.tight_layout()
+```
+
+DeepSeek started no subagent in any harness, although Claude Code, Codex, and OpenCode V2 all offered delegation. All three harnesses therefore ran as single-agent systems with this model, and delegation did not contribute to any of the differences reported in this section.
+
+An invocation error is a tool call that the tool rejected because of the call itself: invalid arguments or script syntax, an edit whose old text was not found or not unique, or a missing file. Non-zero shell exits, blocked web fetches, and the failed OpenCode V2 searches are not counted; `scripts/analyze_harness_trials.py` implements these rules. @fig-deepseek-invocation-errors shows the rates. Codex had the highest rate, 1.7% of its counted calls, against 0.4% for Claude Code and 0.6% for OpenCode V2. Of Codex's 42 rejected calls, 20 came from the single `scriggo` trial, 15 of them script errors in the JavaScript cells that apply patches. Between 1.6% (Claude Code) and 5.3% (Codex) of DeepSeek's edits were rejected, most often because the text to be replaced did not match the file.
+
+```{python}
+#| label: fig-deepseek-invocation-errors
+#| fig-cap: "Share of DeepSeek V4.1 Flash's tool calls rejected as invalid invocations per harness, divided by the tool category of the rejected calls. Segment labels give each category's share of the harness's errors; the label above each bar gives the rate and the number of rejected and counted calls. Shell exits, blocked web fetches, and the failed OpenCode V2 searches are not counted."
+
+_ax = plot_invocation_errors(ds)
+_ax.figure.set_size_inches(6.3, 3.2)
+_ax.figure.tight_layout()
+```
+
+### Claude Code routes {#sec-deepseek-claude-routes}
+
+```{python}
+#| include: false
+
+# The only analysis that reads the excluded Claude Code runs: it documents what
+# the route defects changed. No other result in this chapter uses them.
+_EXCLUDED_DEEPSEEK = Path("data/benchmark-results/.excluded/deepseek-v4p1-flash")
+CLAUDE_ROUTES = {
+    "litellm": _EXCLUDED_DEEPSEEK / "claude-code-litellm",
+    "cliproxy-default": _EXCLUDED_DEEPSEEK / "claude-code-cliproxy-default",
+    "cliproxy-compat": Path("data/benchmark-results/deepseek-v4p1-flash"),
+}
+ROUTE_LABELS = {
+    "litellm": "LiteLLM",
+    "cliproxy-default": "CLIProxyAPI\ndefault",
+    "cliproxy-compat": "CLIProxyAPI\nis-compat",
+}
+# An ordinal ramp in Claude Code's hue, from the first to the canonical run.
+ROUTE_COLORS = {"litellm": "#e9a384", "cliproxy-default": "#c9643f", "cliproxy-compat": "#8f3517"}
+ROUTE_MARKERS = dict.fromkeys(CLAUDE_ROUTES, HARNESS_MARKERS["claude-code"])
+
+_route_rows = []
+for _route, _job in CLAUDE_ROUTES.items():
+    _checks = {row["trial"]: row for row in load_rows(_job)}
+    for row in load_trials("deepseek-v4p1-flash", [_job]):
+        if row["harness"] == "claude-code":
+            row.update(route=_route, retention=_checks[row["trial"]]["retention"],
+                       started_at=_checks[row["trial"]]["started_at"])
+            _route_rows.append(row)
+cc_routes = pd.DataFrame(_route_rows)
+cc_routes["retained"] = cc_routes["retention"] >= RETAINED_THRESHOLD_PERCENT
+cc_routes["output_per_step"] = cc_routes["output_tokens"] / cc_routes["agent_steps"]
+_routes = {route: group for route, group in cc_routes.groupby("route")}
+_litellm_early = _routes["litellm"]["started_at"] < "2026-09-21T12:03:00Z"
+_early_tasks = set(_routes["litellm"][_litellm_early]["task"])
+_route_output = cc_routes.pivot(index="task", columns="route", values="output_tokens")
+_default_vs_compat = _route_output["cliproxy-default"] / _route_output["cliproxy-compat"]
+
+cc_quoted = {
+    "trials": {r: len(g) for r, g in _routes.items()},
+    "passed": {r: int(g["passed"].sum()) for r, g in _routes.items()},
+    "retained": {r: int(g["retained"].sum()) for r, g in _routes.items()},
+    "retention_median": {r: round(g["retention"].median()) for r, g in _routes.items()},
+    "exceptions": {r: sorted(g["exception"].dropna()) for r, g in _routes.items()},
+    "cost": {r: round(g["cost_usd"].sum(), 2) for r, g in _routes.items()},
+    "median_output_k": {r: round(g["output_tokens"].median() / 1e3) for r, g in _routes.items()},
+    "output_per_step": {r: round(g["output_per_step"].median()) for r, g in _routes.items()},
+    "median_steps": {r: round(g["agent_steps"].median()) for r, g in _routes.items()},
+    "median_minutes": {r: round(g["agent_minutes"].median()) for r, g in _routes.items()},
+    "litellm_split": (int(_litellm_early.sum()), int(_routes["litellm"][_litellm_early]["passed"].sum()),
+                      int(_routes["litellm"][~_litellm_early]["passed"].sum())),
+    "default_on_early_tasks": int(_routes["cliproxy-default"][
+        _routes["cliproxy-default"]["task"].isin(_early_tasks)]["passed"].sum()),
+    "default_passed": sorted(_routes["cliproxy-default"].query("passed")["task"]),
+    "default_zero_f2p": int((_routes["cliproxy-default"]["f2p_passed"] == 0).sum()),
+    "default_vs_compat_output": (round(_default_vs_compat.min(), 1), round(_default_vs_compat.max(), 1)),
+    "default_spawns": int(_routes["cliproxy-default"]["subagent_spawns"].sum()),
+    "compat_only": sorted(set(_routes["cliproxy-compat"].query("passed")["task"])
+                          - set(_routes["litellm"].query("passed")["task"])),
+    "litellm_only": sorted(set(_routes["litellm"].query("passed")["task"])
+                           - set(_routes["cliproxy-compat"].query("passed")["task"])),
+    "litellm_scriggo": tuple(int(v) for v in _routes["litellm"].query("task == 'scriggo-method-declarations'")
+                             [["f2p_passed", "f2p_total", "p2p_passed", "p2p_total"]].iloc[0]),
+}
+cc_expected = {
+    "trials": {"cliproxy-compat": 10, "cliproxy-default": 10, "litellm": 10},
+    "passed": {"cliproxy-compat": 8, "cliproxy-default": 1, "litellm": 6},
+    "retained": {"cliproxy-compat": 10, "cliproxy-default": 0, "litellm": 4},
+    "retention_median": {"cliproxy-compat": 134, "cliproxy-default": 12, "litellm": 25},
+    "exceptions": {
+        "cliproxy-compat": [],
+        "cliproxy-default": ["AgentTimeoutError", "VerifierTimeoutError"],
+        "litellm": ["AgentTimeoutError"],
+    },
+    "cost": {"cliproxy-compat": 4.01, "cliproxy-default": 7.59, "litellm": 3.45},
+    "median_output_k": {"cliproxy-compat": 146, "cliproxy-default": 539, "litellm": 184},
+    "output_per_step": {"cliproxy-compat": 941, "cliproxy-default": 1491, "litellm": 669},
+    "median_steps": {"cliproxy-compat": 164, "cliproxy-default": 282, "litellm": 236},
+    "median_minutes": {"cliproxy-compat": 37, "cliproxy-default": 106, "litellm": 57},
+    "litellm_split": (6, 3, 3),
+    "default_on_early_tasks": 0,
+    "default_passed": ["csstree-shorthand-expansion-compression"],
+    "default_zero_f2p": 3,
+    "default_vs_compat_output": (1.2, 7.5),
+    "default_spawns": 6,
+    "compat_only": ["expr-try-catch-errors", "oxvg-structural-selector-preservation",
+                    "scriggo-method-declarations"],
+    "litellm_only": ["fastapi-implicit-head-options"],
+    "litellm_scriggo": (47, 48, 1048, 1049),
+}
+if cc_quoted != cc_expected:
+    raise ValueError(f"DeepSeek Claude Code route data changed; update the text: {cc_quoted}")
+```
+
+Claude Code reached DeepSeek through three routes in succession, because the first two turned out to be defective (@sec-measurement-corrections) [@pa1Issue102; @pa1Issue111]. The first run went through LiteLLM's Anthropic adapter, which most likely lowered the requested `max` effort to `high`; in its six trials that started before the gateway upgrade, the earlier reasoning also never reached the model. The second run went through CLIProxyAPI, which forwarded `max`, but in its default configuration CLIProxyAPI dropped Claude Code's earlier thinking blocks in every trial. The third run used CLIProxyAPI with `is-compat` and is the canonical Claude Code condition reported above. The tasks, the Claude Code version, and the context window were the same in all three runs. This subsection compares the three runs to show how much the route defects changed the measured results. It is the only analysis that uses the two excluded runs.
+
+@tbl-deepseek-claude-routes summarizes the runs. The prompt-growth check of @sec-gateway-reasoning-history confirms the route defects. In the canonical run, all ten trials had a prompt-growth ratio above 50%, with a median of 134%. In the second run, no trial reached 50%, and the median was 12%. In the first run, exactly the four trials that started after the gateway upgrade exceeded 50%.
+
+```{python}
+#| label: tbl-deepseek-claude-routes
+#| tbl-cap: "The three DeepSeek V4.1 Flash runs in Claude Code. Effort is the effort forwarded to the model; for the LiteLLM run it is taken from the local reproduction, because all three runs requested `max`. \"Earlier reasoning\" counts the trials whose prompts grew by at least half of the preceding reasoning. Cost is the normalized cost of the ten trials in USD; output tokens, output per agent step, and agent time are medians per trial."
+#| tbl-colwidths: [25, 8, 12, 9, 11, 7, 9, 10, 9]
+
+_route_table = ["| Route | Effort | Earlier reasoning | Passed | Timeouts | Cost | Output (k) | Output per step | Time (min) |",
+                "|:--|:--|--:|--:|--:|--:|--:|--:|--:|"]
+for _route, _effort in (("litellm", "high"), ("cliproxy-default", "max"), ("cliproxy-compat", "max")):
+    _g = _routes[_route]
+    _route_table.append(
+        f"| {ROUTE_LABELS[_route].replace(chr(10), ', ')} | `{_effort}` | {int(_g['retained'].sum())}/{len(_g)} "
+        f"| {int(_g['passed'].sum())}/{len(_g)} | {int(_g['timeout'].sum())} | {_g['cost_usd'].sum():.2f} "
+        f"| {_g['output_tokens'].median() / 1e3:.0f} | {_g['output_per_step'].median():,.0f} "
+        f"| {_g['agent_minutes'].median():.0f} |"
+    )
+Markdown("\n".join(_route_table))
+```
+
+The three runs passed six, one, and eight tasks. The second run, at `max` effort without earlier reasoning, performed worst on every measure (@fig-deepseek-claude-routes). Its median trial produced 539,000 output tokens, 3.7 times as many as the canonical run, and on every task it produced between 1.2 and 7.5 times as many. It took more agent steps (median 282 against 164) and produced more output per step (1,491 against 941 tokens). Its median trial ran for 106 minutes, compared with 37 minutes in the canonical run. One trial reached the three-hour agent timeout, and the verifier of another timed out, so that trial has no result. The run cost USD 7.59, 1.9 times the canonical run, and solved only `csstree`. In three of its failing trials, not a single fail-to-pass test passed.
+
+```{python}
+#| label: fig-deepseek-claude-routes
+#| fig-cap: "The three DeepSeek V4.1 Flash runs in Claude Code, one marker per trial. (a) Median prompt growth relative to the preceding reasoning; the dashed line marks the 50% threshold below which the earlier reasoning did not reach the model. (b) Output tokens per trial, logarithmic axis. (c) Agent time per trial; the dashed line marks the three-hour timeout. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. The first run requested `max` effort but was most likely executed at `high`."
+
+fig, axes = plt.subplots(1, 3, figsize=(6.3, 3.2))
+_route_style = dict(column="route", order=list(CLAUDE_ROUTES),
+                    labels={r: label.replace("\n", " ") for r, label in ROUTE_LABELS.items()},
+                    colors=ROUTE_COLORS, markers=ROUTE_MARKERS)
+plot_trial_strip(cc_routes, "retention", ax=axes[0], ylabel="(a) Prompt growth / reasoning (%)",
+                 reference=RETAINED_THRESHOLD_PERCENT, reference_label="50%", **_route_style)
+axes[0].set_ylim(0, 165)
+plot_trial_strip(cc_routes, "output_tokens", ax=axes[1], scale=1e3, log=True,
+                 ylabel="(b) Output tokens per trial (thousand)", **_route_style)
+plot_trial_strip(cc_routes, "agent_minutes", ax=axes[2], ylabel="(c) Agent time per trial (min)",
+                 reference=180, reference_label="timeout", **_route_style)
+axes[2].set_ylim(0, 200)
+for _ax in axes:
+    _ax.tick_params(axis="x", labelsize=7, labelrotation=30)
+    plt.setp(_ax.get_xticklabels(), ha="right", rotation_mode="anchor")
+outcome_legend(axes[0], loc="center left", bbox_to_anchor=(0.0, 0.52))
+fig.tight_layout()
+```
+
+The first run lies between the other two. Its six trials without earlier reasoning passed three tasks, and its four trials with earlier reasoning passed three more. On the same six tasks, the second run, which also lacked the earlier reasoning but ran at `max` effort, passed none. The first run was also the cheapest, at USD 3.45, and produced the least output per step, 669 tokens. @fig-deepseek-claude-route-outcomes compares the runs task by task. The canonical run solved five of the six tasks that the first run had solved, all except `fastapi`, and additionally `expr`, `oxvg`, and `scriggo`. The first run had missed `scriggo` narrowly, by one fail-to-pass test and one previously passing test.
+
+```{python}
+#| label: fig-deepseek-claude-route-outcomes
+#| fig-cap: "Fail-to-pass tests passed by DeepSeek V4.1 Flash per task in the three Claude Code runs. Colors and markings as in @fig-deepseek-task-outcomes; \"no result\" denotes a trial whose verifier timed out."
+
+_ax = plot_task_outcomes(cc_routes, column="route", order=list(CLAUDE_ROUTES), labels=ROUTE_LABELS)
+_ax.tick_params(axis="x", labelsize=7.5)
+_ax.figure.set_size_inches(6.3, 5.6)
+_ax.figure.tight_layout()
+```
+
+The same pattern appeared in Codex. There, the five trials without earlier reasoning produced a median of 5,661 output tokens per agent step and all reached the timeout, whereas their repetitions with the reasoning produced 641 tokens per step and passed three tasks (@sec-gateway-reasoning-history). In both harnesses, the trials without earlier reasoning produced more output and solved fewer tasks. The runs differ in their dates and gateway state as well as in their route, and each run covers ten tasks, so the comparison does not isolate a cause. That the effect was much larger at `max` effort than at `high` effort is an observation from one pair of runs, not a tested relationship. The comparison does show that the route defects, which produced no error message, changed the measured success of DeepSeek in Claude Code from eight solved tasks to between one and six.
 
 ## GPT-5.6 Luna
 
