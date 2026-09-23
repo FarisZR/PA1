@@ -46,6 +46,10 @@ fixed-thinking rerun is published separately at
 `deepseek-claude-code-cliproxy-api-fixed-thinking/` with the same filtered
 artifact set.
 
+The DeepSeek Codex rerun replacing the superseded Codex trials is published at
+`deepseek-codex-rerun/`. It currently contains five completed task results,
+configs, and structured trajectories, plus the job metadata.
+
 The current GLM 5.3 Flash sub-run is published as an **unfiltered snapshot**
 at `glm-5.3-sub/`. Its 814 files are copied from the run directory as-is,
 including retry attempts, logs, sessions, verifier output, and other run
@@ -65,9 +69,10 @@ comparative results out of the job directories, so the normal
   earlier reasoning (#111), and they are not rerun. A condition with four valid
   trials cannot be compared with complete ten-task conditions.
 - `.superseded/issue-111/deepseek-v4p1-flash/codex/`: the five DeepSeek Codex
-  trials affected by #111. The rerun job `deepseek-codex-rerun` replaces them;
-  once it has run, the same script publishes its trials in
-  `deepseek-v4p1-flash/` after checking that the reasoning reached the model.
+  trials affected by #111. The rerun job `deepseek-codex-rerun` is published
+  separately under `deepseek-codex-rerun/` after checking that the reasoning
+  reached the model; it does not replace the superseded observations in the
+  canonical comparative directory.
 
 The moved files are unchanged, and each job's `corrections.json` lists every
 moved trial with its location and reason. The evidence for #111 is in

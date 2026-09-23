@@ -1,0 +1,155 @@
+{
+    "id": "0fd3d65e-e783-4073-8ee2-548961fd4e95",
+    "started_at": "2026-09-23T18:22:31.014955",
+    "updated_at": "2026-09-23T19:32:35.857355",
+    "finished_at": "2026-09-23T19:32:35.857355",
+    "n_total_trials": 5,
+    "stats": {
+        "n_completed_trials": 5,
+        "n_errored_trials": 0,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "codex__deepseek-v4p1-flash__tasks": {
+                "n_trials": 5,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "f2p": 0.9957446808510639,
+                        "f2p_passed": 44.0,
+                        "f2p_total": 44.2,
+                        "p2p": 0.9967741935483871,
+                        "p2p_passed": 13537.8,
+                        "p2p_total": 13538.0,
+                        "partial": 0.9953494218200101,
+                        "reward": 0.6
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "1": [
+                            "python-statemachine-state-data-s__VgrK3jb",
+                            "boa-hierarchical-evaluation-canc__bujBCDU",
+                            "expr-try-catch-errors__Z8Wjqhh"
+                        ],
+                        "0": [
+                            "oxvg-structural-selector-preserv__RLzXULE",
+                            "effect-sse-httpapi-streaming__pM6HK7p"
+                        ]
+                    },
+                    "f2p_total": {
+                        "72": [
+                            "python-statemachine-state-data-s__VgrK3jb"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__RLzXULE"
+                        ],
+                        "47": [
+                            "effect-sse-httpapi-streaming__pM6HK7p"
+                        ],
+                        "17": [
+                            "boa-hierarchical-evaluation-canc__bujBCDU"
+                        ],
+                        "79": [
+                            "expr-try-catch-errors__Z8Wjqhh"
+                        ]
+                    },
+                    "f2p_passed": {
+                        "72": [
+                            "python-statemachine-state-data-s__VgrK3jb"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__RLzXULE"
+                        ],
+                        "46": [
+                            "effect-sse-httpapi-streaming__pM6HK7p"
+                        ],
+                        "17": [
+                            "boa-hierarchical-evaluation-canc__bujBCDU"
+                        ],
+                        "79": [
+                            "expr-try-catch-errors__Z8Wjqhh"
+                        ]
+                    },
+                    "p2p_total": {
+                        "1286": [
+                            "python-statemachine-state-data-s__VgrK3jb"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__RLzXULE"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__pM6HK7p"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__bujBCDU"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__Z8Wjqhh"
+                        ]
+                    },
+                    "p2p_passed": {
+                        "1286": [
+                            "python-statemachine-state-data-s__VgrK3jb"
+                        ],
+                        "61": [
+                            "oxvg-structural-selector-preserv__RLzXULE"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__pM6HK7p"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__bujBCDU"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__Z8Wjqhh"
+                        ]
+                    },
+                    "f2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__VgrK3jb",
+                            "oxvg-structural-selector-preserv__RLzXULE",
+                            "boa-hierarchical-evaluation-canc__bujBCDU",
+                            "expr-try-catch-errors__Z8Wjqhh"
+                        ],
+                        "0.9787234042553191": [
+                            "effect-sse-httpapi-streaming__pM6HK7p"
+                        ]
+                    },
+                    "p2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__VgrK3jb",
+                            "effect-sse-httpapi-streaming__pM6HK7p",
+                            "boa-hierarchical-evaluation-canc__bujBCDU",
+                            "expr-try-catch-errors__Z8Wjqhh"
+                        ],
+                        "0.9838709677419355": [
+                            "oxvg-structural-selector-preserv__RLzXULE"
+                        ]
+                    },
+                    "partial": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__VgrK3jb",
+                            "boa-hierarchical-evaluation-canc__bujBCDU",
+                            "expr-try-catch-errors__Z8Wjqhh"
+                        ],
+                        "0.9852941176470589": [
+                            "oxvg-structural-selector-preserv__RLzXULE"
+                        ],
+                        "0.9914529914529915": [
+                            "effect-sse-httpapi-streaming__pM6HK7p"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        },
+        "n_input_tokens": 257412665,
+        "n_cache_tokens": 254189602,
+        "n_output_tokens": 758404,
+        "cost_usd": null
+    }
+}
