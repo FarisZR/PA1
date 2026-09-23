@@ -51,6 +51,7 @@ SHARE_CMAP = LinearSegmentedColormap.from_list(
 INK = "#1a1a19"
 MUTED = "#6f6e69"
 GRID = "#e4e3de"
+PASSED_COLOR = "#008300"
 
 
 def harnesses_in(frame: pd.DataFrame) -> list[str]:
@@ -70,10 +71,11 @@ def _style_axis(ax, grid_axis: str = "y") -> None:
 
 
 def plot_task_outcomes(frame: pd.DataFrame, ax=None):
-    """Task-by-harness matrix of fail-to-pass tests passed; passing trials get a check mark.
+    """Task-by-harness matrix of fail-to-pass tests passed; passing trials are green.
 
-    A cell whose fail-to-pass tests all pass but which still failed broke
-    previously passing tests and is marked "regr.".
+    Failing trials are shaded blue by their share of fail-to-pass tests passed.
+    A failing cell whose fail-to-pass tests all pass broke previously passing
+    tests and is marked "regr.".
     """
     harnesses = harnesses_in(frame)
     catalog = [task for task in task_catalog() if task["task"] in set(frame["task"])]
@@ -81,6 +83,7 @@ def plot_task_outcomes(frame: pd.DataFrame, ax=None):
         _, ax = plt.subplots(figsize=(6.3, 0.42 * len(catalog) + 1.2))
 
     shares = np.full((len(catalog), len(harnesses)), np.nan)
+    passed_cells = np.zeros((len(catalog), len(harnesses)), dtype=bool)
     for i, task in enumerate(catalog):
         for j, harness in enumerate(harnesses):
             row = frame[(frame["task"] == task["task"]) & (frame["harness"] == harness)]
@@ -96,14 +99,18 @@ def plot_task_outcomes(frame: pd.DataFrame, ax=None):
             else:
                 label = f"{int(passed)}/{int(total)}"
                 if row["passed"]:
-                    label = "✓ " + label
+                    passed_cells[i, j] = True
                 elif share == 1:
                     label += " regr."
             ax.text(j, i, label, ha="center", va="center", fontsize=7.5,
                     color="white" if share >= 0.55 else INK,
                     fontweight="bold" if row["passed"] else "normal")
 
-    image = ax.imshow(shares, cmap=SHARE_CMAP, vmin=0, vmax=1, aspect="auto")
+    image = ax.imshow(np.where(passed_cells, np.nan, shares), cmap=SHARE_CMAP, vmin=0, vmax=1,
+                      aspect="auto")
+    ax.imshow(np.where(passed_cells, 1.0, np.nan),
+              cmap=LinearSegmentedColormap.from_list("passed", [PASSED_COLOR, PASSED_COLOR]),
+              vmin=0, vmax=1, aspect="auto")
     ax.set_xticks(range(len(harnesses)), [HARNESS_LABELS[h] for h in harnesses])
     ax.set_yticks(range(len(catalog)), [task["label"] for task in catalog])
     ax.xaxis.tick_top()
@@ -125,6 +132,9 @@ def plot_task_outcomes(frame: pd.DataFrame, ax=None):
     colorbar.set_label("Share of fail-to-pass tests passed", fontsize=8)
     colorbar.ax.tick_params(labelsize=7)
     colorbar.outline.set_visible(False)
+    colorbar.ax.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=PASSED_COLOR)],
+                       labels=["passed trial"], loc="upper right", bbox_to_anchor=(1.0, -1.1),
+                       frameon=False, fontsize=7.5, handlelength=1.2)
     return ax
 
 

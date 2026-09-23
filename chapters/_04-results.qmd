@@ -791,7 +791,7 @@ Markdown("\n".join(_overview))
 
 ```{python}
 #| label: fig-luna-task-outcomes
-#| fig-cap: "Fail-to-pass tests passed by GPT-5.6 Luna per task and harness. A check mark denotes a passing trial; \"regr.\" denotes a trial that passed all fail-to-pass tests but broke previously passing tests. Hard tasks are listed above the line."
+#| fig-cap: "Fail-to-pass tests passed by GPT-5.6 Luna per task and harness. Green cells are passing trials; blue cells are failing trials, shaded by the share of fail-to-pass tests passed. \"regr.\" denotes a failing trial that passed all fail-to-pass tests but broke previously passing tests. Hard tasks are listed above the line."
 
 _ax = plot_task_outcomes(luna)
 _ax.figure.set_size_inches(6.3, 5.4)
