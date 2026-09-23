@@ -58,6 +58,18 @@ Corrections (see "Measurement corrections" in the results chapter):
    ``data/benchmark-results/.excluded/kimi-k3/``. The normal Kimi trial glob
    then contains only the twenty Pi and Codex observations.
 
+6. Reasoning history removed by the gateway (issue #111). AiOrbit's LiteLLM
+   1.101.0 removed ``reasoning_content`` before forwarding to Fireworks until
+   about 2026-09-21 12:02 UTC. The script first checks that the listed DeepSeek
+   V4.1 Flash trials are exactly those whose trajectories show the removal
+   (``scripts/analyze_reasoning_retention.py``). The five affected Codex trials
+   move to ``data/benchmark-results/.superseded/issue-111/``; once the rerun job
+   ``benchmark/runs/deepseek-codex-rerun`` exists, its trials are published in
+   their place after the same check shows the reasoning was kept. The Pi
+   condition (six of ten trials affected, no rerun) moves to
+   ``data/benchmark-results/.excluded/deepseek-v4p1-flash/pi/``. The DeepSeek
+   Claude Code runs are handled separately.
+
 Regeneration needs the raw run workspace (``benchmark/runs/``, not tracked by
 Git) and, for correction 3, the pinned Pier checkout:
 
@@ -76,6 +88,8 @@ import sys
 import tempfile
 from pathlib import Path
 from typing import Any
+
+from analyze_reasoning_retention import RETAINED_THRESHOLD_PERCENT, load_rows, trial_retention
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLISHED = ROOT / "data" / "benchmark-results"
@@ -131,6 +145,56 @@ KIMI_EXCLUSION_REASON = (
     "LiteLLM translated Claude Code's requested max reasoning effort to high "
     "and omitted earlier reasoning from subsequent model requests (PA1 #108)"
 )
+# Issue #111: DeepSeek V4.1 Flash trials whose earlier reasoning never reached the
+# model because AiOrbit's LiteLLM 1.101.0 removed it. Validated on every run.
+DEEPSEEK_JOB = "deepseek-v4p1-flash"
+DEEPSEEK_RERUN_JOB = "deepseek-codex-rerun"
+ISSUE_111_UPGRADE = "2026-09-21T12:03:00Z"
+ISSUE_111_AFFECTED = {
+    "codex": frozenset({
+        "boa-hierarchical-evaluation-canc__T2STcwb",
+        "effect-sse-httpapi-streaming__oS7GKyx",
+        "expr-try-catch-errors__EbwFJsC",
+        "oxvg-structural-selector-preserv__fJTZ3tJ",
+        "python-statemachine-state-data-s__8WwYSfA",
+    }),
+    "pi": frozenset({
+        "boa-hierarchical-evaluation-canc__N52iXaG",
+        "effect-sse-httpapi-streaming__wCEWaFQ",
+        "expr-try-catch-errors__JfyamVz",
+        "katex-multicolumn-array-spans__2cKox7Q",
+        "oxvg-structural-selector-preserv__Wj9Bxfi",
+        "python-statemachine-state-data-s__YgjNuga",
+    }),
+}
+DEEPSEEK_EXCLUDED = {
+    "pi": frozenset({
+        "boa-hierarchical-evaluation-canc__N52iXaG",
+        "csstree-shorthand-expansion-comp__m5utCSB",
+        "effect-sse-httpapi-streaming__wCEWaFQ",
+        "expr-try-catch-errors__JfyamVz",
+        "fastapi-implicit-head-options__6GzpTbm",
+        "katex-multicolumn-array-spans__2cKox7Q",
+        "koota-composite-trait-aspects__foRHbWR",
+        "oxvg-structural-selector-preserv__Wj9Bxfi",
+        "python-statemachine-state-data-s__YgjNuga",
+        "scriggo-method-declarations__fkDTXz8",
+    }),
+}
+ISSUE_111_REASON = (
+    "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, "
+    "so the model never received its earlier reasoning (PA1 #111); rerun in "
+    f"benchmark/runs/{DEEPSEEK_RERUN_JOB}"
+)
+DEEPSEEK_EXCLUSION_REASONS = {
+    "pi": (
+        "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the "
+        "model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    ),
+}
+SUPERSEDED_CODEX = PUBLISHED / ".superseded" / "issue-111" / DEEPSEEK_JOB / "codex"
+EXCLUDED_DEEPSEEK = PUBLISHED / ".excluded" / DEEPSEEK_JOB
+PUBLISHED_FILES = ("result.json", "config.json", "agent/trajectory.json")
 # Same threshold as upstream Pier's token-drop heuristic, applied to input only.
 COMPACTION_DROP_TOKENS = 10_000
 REFERENCE = "chapters/_04-results.qmd#sec-measurement-corrections"
@@ -267,6 +331,136 @@ def exclude_kimi_claude(job: Path) -> list[dict[str, str]]:
         }
         for name in sorted(KIMI_CLAUDE_TRIALS)
     ]
+
+
+# --- issue #111 ---------------------------------------------------------------
+
+
+def move_trial(job: Path, name: str, archive: Path, harness: str) -> None:
+    """Move a trial and its retry attempts out of the job directory (idempotent)."""
+    trial, target = job / name, archive / name
+    if trial.is_dir() and target.exists():
+        raise ValidationError(f"{name}: present in both {job} and {archive}")
+    source = trial if trial.is_dir() else target
+    if not (source / "result.json").exists():
+        raise ValidationError(f"{name}: found in neither {job} nor {archive}")
+    if load(source / "result.json")["config"]["agent"]["name"] != harness:
+        raise ValidationError(f"{source}: expected {harness}")
+    if source == trial:
+        archive.mkdir(parents=True, exist_ok=True)
+        trial.rename(target)
+    retries, archived_retries = job / ".retry-attempts" / name, archive / ".retry-attempts" / name
+    if retries.is_dir():
+        if archived_retries.exists():
+            raise ValidationError(f"{name}: retry attempts present in both locations")
+        archived_retries.parent.mkdir(parents=True, exist_ok=True)
+        retries.rename(archived_retries)
+
+
+def check_issue_111(job: Path) -> None:
+    """Require the listed trials to be exactly those whose earlier reasoning was removed."""
+    locations = [job, SUPERSEDED_CODEX, EXCLUDED_DEEPSEEK / "pi"]
+    for harness, affected in ISSUE_111_AFFECTED.items():
+        rows = [
+            row
+            for location in locations
+            if location.is_dir()
+            for row in load_rows(location)
+            if row["harness"] == harness and row["job"] == DEEPSEEK_JOB
+        ]
+        if len(rows) != 10 or any(row["retained"] is None for row in rows):
+            raise ValidationError(f"Expected ten measurable original DeepSeek {harness} trials")
+        removed = {row["trial"] for row in rows if not row["retained"]}
+        if removed != affected:
+            raise ValidationError(f"DeepSeek {harness}: removed-reasoning trials {sorted(removed)} != listed")
+        late = [row["trial"] for row in rows if row["trial"] in affected and row["started_at"] >= ISSUE_111_UPGRADE]
+        if late:
+            raise ValidationError(f"Affected trials started after the gateway upgrade: {late}")
+
+
+def archive_issue_111(job: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Move the affected Codex trials and the DeepSeek Pi condition out of the job."""
+    check_issue_111(job)
+    superseded = []
+    for name in sorted(ISSUE_111_AFFECTED["codex"]):
+        move_trial(job, name, SUPERSEDED_CODEX, "codex")
+        superseded.append({
+            "trial": name,
+            "harness": "codex",
+            "task": load(SUPERSEDED_CODEX / name / "result.json")["task_name"].split("/")[-1],
+            "published": str((SUPERSEDED_CODEX / name).relative_to(PUBLISHED)),
+            "reason": ISSUE_111_REASON,
+        })
+    excluded = []
+    for harness, names in DEEPSEEK_EXCLUDED.items():
+        archive = EXCLUDED_DEEPSEEK / harness
+        for name in sorted(names):
+            move_trial(job, name, archive, harness)
+            excluded.append({
+                "trial": name,
+                "harness": harness,
+                "published": str((archive / name).relative_to(PUBLISHED)),
+                "issue_111_affected": name in ISSUE_111_AFFECTED[harness],
+                "reason": DEEPSEEK_EXCLUSION_REASONS[harness],
+            })
+    retries = job / ".retry-attempts"
+    if retries.is_dir() and not any(retries.iterdir()):
+        retries.rmdir()
+    for trial in job.glob("*/result.json"):
+        if load(trial)["config"]["agent"]["name"] == "pi":
+            raise ValidationError(f"{trial}: DeepSeek Pi trial left in the comparative data")
+    return superseded, excluded
+
+
+def copy_published_files(source: Path, target: Path) -> None:
+    for rel in PUBLISHED_FILES:
+        if not (source / rel).exists():
+            raise ValidationError(f"{source / rel}: missing")
+        (target / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source / rel, target / rel)
+
+
+def publish_codex_rerun(job: Path, superseded: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Path]]:
+    """Publish the issue #111 Codex rerun as the canonical trials, once it has run."""
+    raw_rerun = RAW / DEEPSEEK_RERUN_JOB
+    if not raw_rerun.is_dir():
+        print(f"{DEEPSEEK_JOB}: {DEEPSEEK_RERUN_JOB} not found; five Codex trials pending (#111)")
+        return [], {}
+    replaces = {entry["task"]: entry["trial"] for entry in superseded}
+    reruns: dict[str, Path] = {}
+    for result_path in sorted(raw_rerun.glob("*/result.json")):
+        result = load(result_path)
+        task = result["task_name"].split("/")[-1]
+        if result["config"]["agent"]["name"] != "codex" or task not in replaces or task in reruns:
+            raise ValidationError(f"{result_path}: not one Codex trial per affected task")
+        if result["started_at"] < ISSUE_111_UPGRADE:
+            raise ValidationError(f"{result_path}: started before the gateway upgrade")
+        reruns[task] = result_path.parent
+    if set(reruns) != set(replaces):
+        raise ValidationError(f"{raw_rerun}: missing reruns for {sorted(set(replaces) - set(reruns))}")
+
+    replacements, raw_overrides = [], {}
+    for task, raw_trial in sorted(reruns.items()):
+        # Check before publishing, so a failed rerun never enters the comparative data.
+        retention = trial_retention(raw_trial / "agent" / "trajectory.json")
+        if retention is None or retention < RETAINED_THRESHOLD_PERCENT:
+            raise ValidationError(f"{raw_trial}: earlier reasoning still missing (retention {retention})")
+        trial = job / raw_trial.name
+        if not trial.exists():
+            copy_published_files(raw_trial, trial)
+            for attempt in sorted(raw_rerun.glob(f".retry-attempts/{raw_trial.name}/attempt-*")):
+                copy_published_files(attempt, job / ".retry-attempts" / raw_trial.name / attempt.name)
+        elif load(original(trial / "result.json"))["id"] != load(raw_trial / "result.json")["id"]:
+            raise ValidationError(f"{trial}: published trial differs from {raw_trial}")
+        raw_overrides[raw_trial.name] = raw_rerun
+        replacements.append({
+            "trial": raw_trial.name,
+            "task": task,
+            "replaces": replaces[task],
+            "pier_job": DEEPSEEK_RERUN_JOB,
+            "reasoning_retention": round(retention, 2),
+        })
+    return replacements, raw_overrides
 
 
 def agent_steps(trajectory: dict[str, Any]) -> list[dict[str, Any]]:
@@ -519,9 +713,21 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
         "attempt_selection": select_first_attempts(job, raw_job),
         "attempts": [],
     }
-    for trial in attempts(job):
-        rel = trial.relative_to(job)
-        raw_trial = raw_job / pier_path(job_name, rel)
+    raw_overrides: dict[str, Path] = {}
+    archives: list[Path] = []
+    if job_name == DEEPSEEK_JOB:
+        superseded, excluded = archive_issue_111(job)
+        replacements, raw_overrides = publish_codex_rerun(job, superseded)
+        manifest["superseded_trials"] = superseded
+        manifest["replacement_trials"] = replacements
+        manifest["excluded_runs"] = excluded
+        archives = [SUPERSEDED_CODEX]
+    located = [(job, trial) for trial in attempts(job)]
+    located += [(archive, trial) for archive in archives for trial in attempts(archive)]
+    for base, trial in located:
+        rel = trial.relative_to(base)
+        name = rel.parts[1] if rel.parts[0] == ".retry-attempts" else rel.parts[0]
+        raw_trial = raw_overrides.get(name, raw_job) / pier_path(job_name, rel)
         result = load(original(trial / "result.json"))
         harness = result["config"]["agent"]["name"]
         corrected_trajectory = None
@@ -533,6 +739,8 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
         else:
             continue
         entry: dict[str, Any] = {"attempt": str(rel), "harness": harness, "changes": changes}
+        if base != job:
+            entry["published"] = str(trial.relative_to(PUBLISHED))
         if audit is not None:
             entry["opencode_session_record"] = audit
         manifest["attempts"].append(entry)

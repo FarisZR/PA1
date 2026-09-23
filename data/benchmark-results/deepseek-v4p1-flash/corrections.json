@@ -4,26 +4,6 @@
   "attempt_selection": [],
   "attempts": [
     {
-      "attempt": "boa-hierarchical-evaluation-canc__T2STcwb",
-      "harness": "codex",
-      "changes": [
-        {
-          "field": "agent_result.peak_context_tokens",
-          "original": 184829,
-          "corrected": 140336,
-          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
-          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
-        },
-        {
-          "field": "agent_result.summarization_count",
-          "original": 21,
-          "corrected": 0,
-          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
-          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
-        }
-      ]
-    },
-    {
       "attempt": "csstree-shorthand-expansion-comp__KzAaBD2",
       "harness": "codex",
       "changes": [
@@ -31,46 +11,6 @@
           "field": "agent_result.peak_context_tokens",
           "original": 201165,
           "corrected": 200296,
-          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
-          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
-        }
-      ]
-    },
-    {
-      "attempt": "effect-sse-httpapi-streaming__oS7GKyx",
-      "harness": "codex",
-      "changes": [
-        {
-          "field": "agent_result.peak_context_tokens",
-          "original": 184711,
-          "corrected": 184601,
-          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
-          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
-        },
-        {
-          "field": "agent_result.summarization_count",
-          "original": 16,
-          "corrected": 0,
-          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
-          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
-        }
-      ]
-    },
-    {
-      "attempt": "expr-try-catch-errors__EbwFJsC",
-      "harness": "codex",
-      "changes": [
-        {
-          "field": "agent_result.peak_context_tokens",
-          "original": 723819,
-          "corrected": 721687,
-          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
-          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
-        },
-        {
-          "field": "agent_result.summarization_count",
-          "original": 12,
-          "corrected": 0,
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
@@ -123,6 +63,82 @@
       ]
     },
     {
+      "attempt": "scriggo-method-declarations__4CAMyqS",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 486173,
+          "corrected": 485166,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "boa-hierarchical-evaluation-canc__T2STcwb",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 184829,
+          "corrected": 140336,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 21,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ],
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/boa-hierarchical-evaluation-canc__T2STcwb"
+    },
+    {
+      "attempt": "effect-sse-httpapi-streaming__oS7GKyx",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 184711,
+          "corrected": 184601,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 16,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ],
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/effect-sse-httpapi-streaming__oS7GKyx"
+    },
+    {
+      "attempt": "expr-try-catch-errors__EbwFJsC",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 723819,
+          "corrected": 721687,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        },
+        {
+          "field": "agent_result.summarization_count",
+          "original": 12,
+          "corrected": 0,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ],
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/expr-try-catch-errors__EbwFJsC"
+    },
+    {
       "attempt": "oxvg-structural-selector-preserv__fJTZ3tJ",
       "harness": "codex",
       "changes": [
@@ -140,7 +156,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/oxvg-structural-selector-preserv__fJTZ3tJ"
     },
     {
       "attempt": "python-statemachine-state-data-s__8WwYSfA",
@@ -160,20 +177,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
-    },
-    {
-      "attempt": "scriggo-method-declarations__4CAMyqS",
-      "harness": "codex",
-      "changes": [
-        {
-          "field": "agent_result.peak_context_tokens",
-          "original": 486173,
-          "corrected": 485166,
-          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
-          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
-        }
-      ]
+      ],
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/python-statemachine-state-data-s__8WwYSfA"
     },
     {
       "attempt": ".retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-1",
@@ -193,7 +198,118 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/.retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-1"
+    }
+  ],
+  "superseded_trials": [
+    {
+      "trial": "boa-hierarchical-evaluation-canc__T2STcwb",
+      "harness": "codex",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/boa-hierarchical-evaluation-canc__T2STcwb",
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__oS7GKyx",
+      "harness": "codex",
+      "task": "effect-sse-httpapi-streaming",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/effect-sse-httpapi-streaming__oS7GKyx",
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
+    },
+    {
+      "trial": "expr-try-catch-errors__EbwFJsC",
+      "harness": "codex",
+      "task": "expr-try-catch-errors",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/expr-try-catch-errors__EbwFJsC",
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__fJTZ3tJ",
+      "harness": "codex",
+      "task": "oxvg-structural-selector-preservation",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/oxvg-structural-selector-preserv__fJTZ3tJ",
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__8WwYSfA",
+      "harness": "codex",
+      "task": "python-statemachine-state-data-scoping",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/python-statemachine-state-data-s__8WwYSfA",
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
+    }
+  ],
+  "replacement_trials": [],
+  "excluded_runs": [
+    {
+      "trial": "boa-hierarchical-evaluation-canc__N52iXaG",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/boa-hierarchical-evaluation-canc__N52iXaG",
+      "issue_111_affected": true,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__m5utCSB",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/csstree-shorthand-expansion-comp__m5utCSB",
+      "issue_111_affected": false,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__wCEWaFQ",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/effect-sse-httpapi-streaming__wCEWaFQ",
+      "issue_111_affected": true,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    },
+    {
+      "trial": "expr-try-catch-errors__JfyamVz",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/expr-try-catch-errors__JfyamVz",
+      "issue_111_affected": true,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    },
+    {
+      "trial": "fastapi-implicit-head-options__6GzpTbm",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/fastapi-implicit-head-options__6GzpTbm",
+      "issue_111_affected": false,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__2cKox7Q",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/katex-multicolumn-array-spans__2cKox7Q",
+      "issue_111_affected": true,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__foRHbWR",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/koota-composite-trait-aspects__foRHbWR",
+      "issue_111_affected": false,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__Wj9Bxfi",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/oxvg-structural-selector-preserv__Wj9Bxfi",
+      "issue_111_affected": true,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__YgjNuga",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/python-statemachine-state-data-s__YgjNuga",
+      "issue_111_affected": true,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+    },
+    {
+      "trial": "scriggo-method-declarations__fkDTXz8",
+      "harness": "pi",
+      "published": ".excluded/deepseek-v4p1-flash/pi/scriggo-method-declarations__fkDTXz8",
+      "issue_111_affected": false,
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
     }
   ]
 }

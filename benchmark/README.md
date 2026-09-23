@@ -25,6 +25,7 @@ Run the current setup in this order:
 6. `benchmark/generated/deepseek-v4p1-flash.yaml`
 7. `benchmark/generated/luna.yaml`
    - `benchmark/generated/deepseek-claude-code-cliproxy-api.yaml` — Claude Code × DeepSeek rerun at true `max` (see below)
+   - `benchmark/generated/deepseek-codex-rerun.yaml` — rerun of the five Codex × DeepSeek trials affected by issue #111 (see below)
 8. `benchmark/configs/opus.yaml`
 9. run the matching `benchmark/configs/opencode-v2/<model>.yaml` job for the
    OpenCode V2 result of each model. Kimi's OpenCode V2 profile preserves the
@@ -1233,4 +1234,37 @@ grep -l '"model":"deepseek-v4p1-flash"' benchmark/generated/cliproxy-logs/v1-mes
 $PIER run \
   -c benchmark/generated/deepseek-claude-code-cliproxy-api.yaml \
   --env-file benchmark/env.local --yes
+```
+
+## Codex × DeepSeek rerun of the issue #111 trials
+
+AiOrbit ran LiteLLM 1.101.0 until about 2026-09-21 12:02 UTC. Its Fireworks
+provider removed `reasoning_content` from every message before forwarding, so
+the earlier reasoning that Codex, Pi, and Claude Code sent back never reached
+the model (issue #111; LiteLLM `32bf1aba`, fixed by LiteLLM PR #40682 in
+1.102.0). Five of the ten Codex trials in `deepseek-v4p1-flash.yaml` ran before
+the upgrade. `configs/deepseek-codex-rerun.yaml` reruns exactly those five
+tasks with the Codex leg copied unchanged, including the one trial that passed,
+so the selection follows the run time rather than the outcome. The other five
+Codex trials are kept. The six affected Pi trials are not rerun by this job;
+the DeepSeek Pi condition is excluded from the comparative data instead.
+
+The bridge's `is-compat: true` setting, added after the original run, only
+changes Claude-format translation. With `optimize-multi-agent-v2: false`, the
+Codex Responses → Chat Completions route is the same as in the original run.
+
+```bash
+python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus
+PIER=~/pier/.venv/bin/pier
+$PIER run \
+  -c benchmark/generated/deepseek-codex-rerun.yaml \
+  --env-file benchmark/env.local --yes
+# after the first requests: AiOrbit must report LiteLLM >= 1.102.0
+# (needs CODEX_CLIPROXY_REQUEST_LOG=true when the configs were generated)
+ls -t benchmark/generated/cliproxy-logs/v1-responses-* | head -20 \
+  | xargs grep -ah -m1 -o 'X-Litellm-Version: [0-9.]*' | sort | uniq -c
+# after the job: every trial must show retention above 100% (a few percent means removed)
+python3 scripts/analyze_reasoning_retention.py benchmark/runs/deepseek-codex-rerun
+# publish the rerun in place of the superseded trials (checks retention again)
+python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
 ```
