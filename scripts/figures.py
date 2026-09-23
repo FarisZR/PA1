@@ -269,3 +269,99 @@ def plot_stacked_percent(
     _place_legend_above(ax, labels)
     fig.tight_layout()
     return ax
+
+def _pie_autopct(min_label_percent: float):
+    def formatter(percent: float) -> str:
+        if percent < min_label_percent:
+            return ""
+        return f"{percent:.1f}%"
+
+    return formatter
+
+
+def plot_pie(
+    data: pd.DataFrame,
+    *,
+    category_col: str,
+    value_col: str,
+    title: str | None = None,
+    legend_title: str | None = None,
+    min_label_percent: float = 3.0,
+):
+    """Plot a single pie chart with percentages on sufficiently large slices."""
+    frame = data[[category_col, value_col]].copy()
+    frame[value_col] = frame[value_col].astype(float)
+    frame = frame[frame[value_col] > 0]
+    if frame.empty:
+        raise ValueError("plot_pie requires at least one positive value")
+
+    fig, ax = plt.subplots()
+    wedges, _, _ = ax.pie(
+        frame[value_col],
+        startangle=90,
+        counterclock=False,
+        autopct=_pie_autopct(min_label_percent),
+        textprops={"fontsize": 8},
+    )
+    ax.legend(
+        wedges,
+        frame[category_col].astype(str).tolist(),
+        title=legend_title,
+        loc="center left",
+        bbox_to_anchor=(1.0, 0.5),
+        frameon=False,
+    )
+    if title:
+        ax.set_title(title)
+    ax.axis("equal")
+    fig.tight_layout()
+    return ax
+
+
+def plot_pie_comparison(
+    data: pd.DataFrame,
+    *,
+    category_col: str,
+    value_cols: Sequence[str],
+    series_labels: Sequence[str] | None = None,
+    min_label_percent: float = 3.0,
+):
+    """Plot one pie per row using a shared legend for the value columns."""
+    frame = data[[category_col, *value_cols]].copy()
+    if frame.empty:
+        raise ValueError("plot_pie_comparison requires at least one row")
+
+    labels = list(series_labels or value_cols)
+    if len(labels) != len(value_cols):
+        raise ValueError("series_labels must match value_cols")
+
+    fig, axes = plt.subplots(1, len(frame), squeeze=False)
+    axes = axes[0]
+    legend_wedges = None
+
+    for ax, (_, row) in zip(axes, frame.iterrows(), strict=True):
+        values = [float(row[column]) for column in value_cols]
+        wedges, _, _ = ax.pie(
+            values,
+            startangle=90,
+            counterclock=False,
+            autopct=_pie_autopct(min_label_percent),
+            textprops={"fontsize": 8},
+        )
+        legend_wedges = wedges
+        ax.set_title(str(row[category_col]))
+        ax.axis("equal")
+
+    if legend_wedges is not None:
+        fig.legend(
+            legend_wedges,
+            labels,
+            loc="upper center",
+            bbox_to_anchor=(0.5, 1.0),
+            ncols=min(len(labels), 4),
+            frameon=False,
+        )
+
+    fig.tight_layout(rect=(0, 0, 1, 0.9))
+    return axes
+
