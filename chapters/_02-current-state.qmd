@@ -12,7 +12,12 @@ The model list was fixed when the survey was published and was not updated for l
 ```{python}
 #| include: false
 
-from scripts.figures import plot_grouped_bar, plot_stacked_percent
+from scripts.figures import (
+    plot_grouped_bar,
+    plot_pie,
+    plot_pie_comparison,
+    plot_stacked_percent,
+)
 from scripts.survey_analysis import (
     configuration_usage,
     harness_tier_distribution,
@@ -110,30 +115,26 @@ plot_grouped_bar(
 
 *Source: own analysis of the internal survey. Unnamed models are omitted.*
 
-Non-Anthropic models were common but rarely used alone. Of the 57 respondents, 27 (47.4%) reported only named Anthropic models, 24 (42.1%) combined Anthropic with another provider, and 5 (8.8%) used only non-Anthropic models. One response could not be classified by provider. @fig-survey-provider-diversification shows the three classifiable groups.
+Non-Anthropic models were common but rarely used alone. Of the 57 respondents, 27 (47.4%) reported only named Anthropic models, 24 (42.1%) combined Anthropic with another provider, and 5 (8.8%) used only non-Anthropic models. One response could not be classified by provider. @fig-survey-provider-diversification shows the resulting provider-use groups.
 
 ```{python}
 #| label: fig-survey-provider-diversification
 #| fig-cap: "Anthropic-only and alternative-provider model use among survey respondents."
-#| fig-alt: "Three-bar chart showing 47.4 percent Anthropic-only use, 42.1 percent combined Anthropic and alternative-provider use, and 8.8 percent alternative-provider-only use."
+#| fig-alt: "Pie chart showing 47.4 percent Anthropic-only use, 42.1 percent combined Anthropic and alternative-provider use, 8.8 percent alternative-provider-only use, and one unclassified response."
 #| fig-width: 6.5
 #| fig-format: svg
-#| fig-height: 4.2
+#| fig-height: 4.4
 
 provider_groups = provider_diversification(survey)
-provider_groups = provider_groups[provider_groups["category"] != "Unclassified"]
-plot_grouped_bar(
+plot_pie(
     provider_groups,
     category_col="category",
-    value_cols=["percentage"],
-    horizontal=False,
-    y_label="Respondents (%)",
-    percentage_axis=True,
-    annotate=True,
+    value_col="respondents",
+    min_label_percent=3.0,
 )
 ```
 
-*Source: own analysis of the internal survey. One respondent (1.8%) is omitted because no named model provider could be identified.*
+*Source: own analysis of the internal survey. One respondent (1.8%) could not be classified because no named model provider could be identified.*
 
 Among these respondents, alternative providers therefore mostly complement rather than replace Anthropic.
 
@@ -174,22 +175,21 @@ Cost tier also differs between primary and secondary configurations. High-cost m
 ```{python}
 #| label: fig-survey-role-cost-tier
 #| fig-cap: "Model cost-tier distribution for primary and secondary survey configurations."
-#| fig-alt: "One-hundred-percent stacked bars comparing primary and secondary configurations. Primary configurations are 81.1 percent high, 7.5 percent medium, and 11.3 percent low cost. Secondary configurations are 55.1 percent high, 34.7 percent medium, and 10.2 percent low cost after including Claude Haiku 4.5 in the medium tier."
-#| fig-width: 6.2
+#| fig-alt: "Two pie charts comparing primary and secondary configurations. Primary configurations are 81.1 percent high, 7.5 percent medium, and 11.3 percent low cost. Secondary configurations are 55.1 percent high, 34.7 percent medium, and 10.2 percent low cost after including Claude Haiku 4.5 in the medium tier."
+#| fig-width: 7.2
 #| fig-format: svg
-#| fig-height: 4.6
+#| fig-height: 4.4
 
 role_tiers = role_tier_distribution(survey, model_tiers)
-plot_stacked_percent(
+plot_pie_comparison(
     role_tiers,
     category_col="role_label",
     value_cols=["High cost", "Medium cost", "Low cost"],
-    horizontal=False,
     min_label_percent=3.0,
 )
 ```
 
-*Source: own analysis of the internal survey. Primary and secondary bars contain 53 and 49 classifiable configurations, respectively.*
+*Source: own analysis of the internal survey. Primary and secondary pies contain 53 and 49 classifiable configurations, respectively.*
 
 The respondent-level data show the same association. Of the 17 respondents using at least one medium-cost model, 13 (76.5%) used multiple named providers and 13 (76.5%) used multiple harnesses. Among the 40 respondents without a medium-cost model, 11 (27.5%) used multiple named providers. This exploratory result suggests that medium-cost models are more common in diversified workflows.
 
@@ -200,18 +200,16 @@ Monthly coding-agent cost was reported in categories rather than exact amounts. 
 ```{python}
 #| label: fig-survey-reported-cost
 #| fig-cap: "Reported monthly AI coding-agent cost categories among survey respondents (n = 57)."
-#| fig-alt: "Horizontal bar chart of the original monthly cost response categories. Flat-rate subscription is the most common category, followed by EUR 100-199, EUR 20-49, EUR 200-499, and unknown cost."
+#| fig-alt: "Pie chart of the original monthly cost response categories. Flat-rate subscription is the most common category, followed by EUR 100-199, EUR 20-49, EUR 200-499, and unknown cost."
 #| fig-width: 7.0
 #| fig-format: svg
-#| fig-height: 4.8
+#| fig-height: 5.0
 
-plot_grouped_bar(
+plot_pie(
     reported_cost_distribution(survey),
     category_col="category",
-    value_cols=["respondents"],
-    horizontal=True,
-    x_label="Respondents",
-    annotate=True,
+    value_col="respondents",
+    min_label_percent=3.0,
 )
 ```
 
