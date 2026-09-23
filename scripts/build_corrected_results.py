@@ -48,9 +48,9 @@ Corrections (see "Measurement corrections" in the results chapter):
    called; only the recorded dump is read.
 
 4. Canonical attempts. Pier retries every exception type that is not excluded,
-   and a non-zero harness exit is one type whatever its cause. Ten trials were
+   and a non-zero harness exit is one type whatever its cause. Eight trials were
    therefore retried after the model or harness failed, not after a transport
-   fault. Their first attempt is the observation and becomes the trial.
+   or gateway fault. Their first attempt is the observation and becomes the trial.
 
 Regeneration needs the raw run workspace (``benchmark/runs/``, not tracked by
 Git) and, for correction 3, the pinned Pier checkout:
@@ -84,8 +84,9 @@ JOBS = (
     "opencode-v2-deepseek-v4p1-flash",
 )
 # Trials that Pier retried after a failure of the evaluated model or harness
-# (issue #95). Transport retries (Kimi K3 Pi, GLM-5.3-Flash Codex) are not
-# listed: there Pier's final trial is the observation.
+# (issue #95). Retries after transport or gateway faults (Kimi K3 Pi, GLM-5.3-Flash
+# Codex, and the DeepSeek V4.1 Flash context-window rejections) are not listed:
+# there Pier's final trial is the observation.
 OPENCODE_EXIT = (
     "OpenCode finished and passed after recovering from a transient stream error, but "
     "OpenCode 2.0.8's non-interactive CLI kept exit status 1, so Pier repeated the trial"
@@ -94,15 +95,7 @@ QUESTION_TOOL = (
     "The model asked for a Git author identity through OpenCode's interactive question "
     "tool, which a non-interactive run cannot answer; a failure of the evaluated system"
 )
-CONTEXT_LIMIT = (
-    "A request exceeded the model's context window (ContextWindowExceededError); a "
-    "context-management failure of the evaluated system"
-)
 FIRST_ATTEMPT_CANONICAL = {
-    "deepseek-v4p1-flash": {
-        "oxvg-structural-selector-preserv__Wj9Bxfi": CONTEXT_LIMIT,
-        "python-statemachine-state-data-s__8WwYSfA": CONTEXT_LIMIT,
-    },
     "opencode-v2-deepseek-v4p1-flash": {
         "fastapi-implicit-head-options__5UY3Gb3": OPENCODE_EXIT,
         "katex-multicolumn-array-spans__73HZQ6c": OPENCODE_EXIT,

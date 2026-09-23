@@ -99,7 +99,7 @@ python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
 Every job allows Pier to repeat a trial once. The retry was meant for
 transport/gateway faults, but Pier retries every exception type that is not
 excluded, and a non-zero harness exit is always `NonZeroAgentExitCodeError`.
-Ten trials were therefore retried after a failure of the model or harness
+Eight OpenCode V2 trials were therefore retried after a failure of the model or harness
 ([PA1 #95](https://github.com/FarisZR/PA1/issues/95)). For those, the first
 attempt is the observation, not Pier's final one. `scripts/build_corrected_results.py`
 publishes it in the normal trial directory and moves Pier's retry to
@@ -122,10 +122,10 @@ byte-identical to Pier's output; only their location changed.
 | --- | --- | --- |
 | `opencode-v2-deepseek-v4p1-flash` | fastapi, katex, koota, scriggo | Session finished and passed, but OpenCode 2.0.8 kept exit status 1 after a recovered stream error |
 | `opencode-v2-luna` | effect-sse, expr, katex, oxvg | Model asked for a Git identity through OpenCode's interactive `question` tool |
-| `deepseek-v4p1-flash` | Pi oxvg, Codex python-statemachine | Context window exceeded |
 
-The Kimi K3 Pi and GLM-5.3-Flash Codex retries followed transport faults, so
-Pier's final trial stays canonical there.
+The Kimi K3 Pi, GLM-5.3-Flash Codex, and DeepSeek V4.1 Flash Pi/Codex retries
+followed transport or gateway faults (the DeepSeek ones are gateway
+context-window rejections), so Pier's final trial stays canonical there.
 
 The job-level `<job>/result.json` is Pier's run summary. Its `stats` block
 (rewards, errors, token totals) reflects Pier's final trials and uncorrected

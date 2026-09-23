@@ -272,24 +272,24 @@ OpenCode 2.0.8's non-interactive `run` command sets its exit status to 1 wheneve
 
 ### Retry eligibility {#sec-retry-eligibility}
 
-Because Pier retries every exception type that is not excluded (@sec-canonical-attempts), retries were not limited to transport and gateway failures. Besides the four OpenCode cases above, four GPT-5.6 Luna OpenCode V2 attempts ended after the model used OpenCode's `question` tool to ask for a Git author identity. Nobody can answer that question in a non-interactive run, so the session was shut down. Two DeepSeek V4.1 Flash attempts exceeded the model's context window. These are failures of the evaluated model--harness system, so the first attempt is canonical for all ten trials listed in @tbl-canonical-attempts.
+Because Pier retries every exception type that is not excluded (@sec-canonical-attempts), retries were not limited to transport and gateway failures. Besides the four OpenCode cases above, four GPT-5.6 Luna OpenCode V2 attempts ended after the model used OpenCode's `question` tool to ask for a Git author identity. Nobody can answer that question in a non-interactive run, so the session was shut down. These are failures of the evaluated model--harness system, so the first attempt is canonical for all eight OpenCode V2 trials listed in @tbl-canonical-attempts.
 
-| Model | Harness | Task | Cause of the first attempt's exit | Canonical reward | Pier final reward |
-|:------|:--------|:-----|:----------------------------------|:----------------:|:-----------------:|
-| DeepSeek V4.1 Flash | OpenCode V2 | `fastapi-implicit-head-options` | Exit status 1 kept after a recovered stream error | 1 | 1 |
-| DeepSeek V4.1 Flash | OpenCode V2 | `katex-multicolumn-array-spans` | Exit status 1 kept after a recovered stream error | 1 | 1 |
-| DeepSeek V4.1 Flash | OpenCode V2 | `koota-composite-trait-aspects` | Exit status 1 kept after a recovered stream error | 1 | 1 |
-| DeepSeek V4.1 Flash | OpenCode V2 | `scriggo-method-declarations` | Exit status 1 kept after a recovered stream error | 1 | 1 |
-| GPT-5.6 Luna | OpenCode V2 | `effect-sse-httpapi-streaming` | Interactive Git identity question | 0 | 0 |
-| GPT-5.6 Luna | OpenCode V2 | `expr-try-catch-errors` | Interactive Git identity question | 0 | 1 |
-| GPT-5.6 Luna | OpenCode V2 | `katex-multicolumn-array-spans` | Interactive Git identity question | 0 | 0 |
-| GPT-5.6 Luna | OpenCode V2 | `oxvg-structural-selector-preservation` | Interactive Git identity question | 0 | 0 |
-| DeepSeek V4.1 Flash | Pi | `oxvg-structural-selector-preservation` | Context window exceeded | 0 | 0 |
-| DeepSeek V4.1 Flash | Codex | `python-statemachine-state-data-scoping` | Context window exceeded | 0 | 1 |
+| Model | Task | Cause of the first attempt's exit | Canonical reward | Pier final reward |
+|:------|:-----|:----------------------------------|:----------------:|:-----------------:|
+| DeepSeek V4.1 Flash | `fastapi-implicit-head-options` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| DeepSeek V4.1 Flash | `katex-multicolumn-array-spans` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| DeepSeek V4.1 Flash | `koota-composite-trait-aspects` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| DeepSeek V4.1 Flash | `scriggo-method-declarations` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| GPT-5.6 Luna | `effect-sse-httpapi-streaming` | Interactive Git identity question | 0 | 0 |
+| GPT-5.6 Luna | `expr-try-catch-errors` | Interactive Git identity question | 0 | 1 |
+| GPT-5.6 Luna | `katex-multicolumn-array-spans` | Interactive Git identity question | 0 | 0 |
+| GPT-5.6 Luna | `oxvg-structural-selector-preservation` | Interactive Git identity question | 0 | 0 |
 
-: Trials whose first attempt is canonical instead of Pier's final attempt. {#tbl-canonical-attempts tbl-colwidths="[15,11,28,26,10,10]"}
+: OpenCode V2 trials whose first attempt is canonical instead of Pier's final attempt. {#tbl-canonical-attempts tbl-colwidths="[18,38,24,10,10]"}
 
-Two outcomes differ from Pier's final trials as a result. GPT-5.6 Luna with OpenCode V2 on `expr-try-catch-errors` and DeepSeek V4.1 Flash with Codex on `python-statemachine-state-data-scoping` passed only on Pier's retry, so both count as failures. The only other retries followed transport failures and keep Pier's final attempt: two Kimi K3 Pi trials whose streams were terminated after Pi's own request retries were exhausted, and two GLM-5.3-Flash Codex trials in the excluded provider-route diagnostic that hit provider rate limits. All non-canonical attempts remain in the published data under `.retry-attempts/`.
+One outcome differs from Pier's final trials as a result: GPT-5.6 Luna with OpenCode V2 on `expr-try-catch-errors` passed only on Pier's retry, so it counts as a failure.
+
+The remaining retries followed transport or gateway failures and keep Pier's final attempt. Two DeepSeek V4.1 Flash attempts, one with Pi and one with Codex, were rejected by the gateway with a context-window error. Because the same rejection occurred in two harnesses that manage their context independently, it is attributed to the gateway's token counting rather than to the evaluated systems. The other retries were two Kimi K3 Pi trials whose streams were terminated after Pi's own request retries were exhausted, and two GLM-5.3-Flash Codex trials in the excluded provider-route diagnostic that hit provider rate limits. All non-canonical attempts remain in the published data under `.retry-attempts/`.
 
 ### Reasoning effort in Claude Code
 
