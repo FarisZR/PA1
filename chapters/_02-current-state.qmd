@@ -140,9 +140,28 @@ Among these respondents, alternative providers therefore mostly complement rathe
 
 ## Model Cost Tiers
 
-Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. MiniMax M3 has no comparable DeepSWE result and is classified as low cost from its official API pricing [@minimaxM3Pricing2026]. Claude Haiku 4.5 also lacks a comparable DeepSWE result. It is manually assigned to the medium-cost tier based on its official API price of USD 1 per million input tokens and USD 5 per million output tokens [@anthropicHaiku45Pricing2025]. This is a pricing-based fallback rather than a DeepSWE-derived classification. Unnamed models remain excluded.
+Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. Where no comparable DeepSWE result exists, official API pricing is used as a fallback. @tbl-model-cost-tiers documents the classification basis for each model. Unnamed models remain excluded.
 
-The high-cost tier contains Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Fable 5, Claude Opus 4.8, and GPT-5.6 Sol. The medium-cost tier contains GPT-5.6 Terra, Gemini 3.1 Pro, Gemini 3.6 Flash, Kimi K3, and Claude Haiku 4.5. The low-cost tier contains GPT-5.6 Luna, DeepSeek V4 Flash 0731, and MiniMax M3.
+| Model | Tier | Classification basis |
+|---|---|---|
+| Claude Opus 5 | High cost | DeepSWE average cost: USD 11.84/task; above the USD 5 high-cost threshold. |
+| Claude Sonnet 5 | High cost | DeepSWE average cost: USD 26.40/task; above the USD 5 high-cost threshold. |
+| Claude Sonnet 4.6 | High cost | DeepSWE average cost: USD 5.52/task; above the USD 5 high-cost threshold. |
+| Claude Fable 5 | High cost | DeepSWE average cost: USD 13.41/task; above the USD 5 high-cost threshold. |
+| Claude Opus 4.8 | High cost | DeepSWE average cost: USD 13.22/task; above the USD 5 high-cost threshold. |
+| GPT-5.6 Sol | High cost | DeepSWE average cost: USD 6.46/task; above the USD 5 high-cost threshold. |
+| GPT-5.6 Terra | Medium cost | DeepSWE average cost: USD 4.95/task; within the USD 2 to below USD 5 medium-cost range. |
+| Gemini 3.1 Pro | Medium cost | DeepSWE average cost: USD 2.14/task; within the USD 2 to below USD 5 medium-cost range. |
+| Gemini 3.6 Flash | Medium cost | DeepSWE average cost: USD 2.21/task; within the USD 2 to below USD 5 medium-cost range. |
+| Kimi K3 | Medium cost | DeepSWE average cost: USD 4.65/task; within the USD 2 to below USD 5 medium-cost range. |
+| Claude Haiku 4.5 | Medium cost | No comparable DeepSWE result; pricing fallback based on USD 1/M input and USD 5/M output tokens [@anthropicHaiku45Pricing2025]. |
+| GPT-5.6 Luna | Low cost | DeepSWE average cost: USD 0.61/task; below the USD 2 low-cost threshold. |
+| DeepSeek V4 Flash 0731 | Low cost | DeepSWE average cost: USD 0.46/task; below the USD 2 low-cost threshold. |
+| MiniMax M3 | Low cost | No comparable DeepSWE result; pricing fallback based on official M3 API pricing of USD 0.30/M input and USD 1.20/M output tokens at up to 512K context [@minimaxM3Pricing2026]. |
+
+: Model cost-tier classification and basis. {#tbl-model-cost-tiers}
+
+*Source: DeepSWE v1.1 average cost per task [@deepsweLeaderboard2026], with pricing-based fallbacks for Claude Haiku 4.5 [@anthropicHaiku45Pricing2025] and MiniMax M3 [@minimaxM3Pricing2026].*
 
 Model cost differs by harness. In @fig-survey-harness-cost-tier, 55 of 57 classifiable Claude Code configurations (96.5%) use high-cost models and 2 (3.5%) use medium-cost models. OpenCode spans all three tiers: 40.0% high, 33.3% medium, and 26.7% low cost. Three of the four classifiable Pi configurations are low cost. Small samples for less common harnesses limit these comparisons.
 
