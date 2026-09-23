@@ -682,6 +682,16 @@ luna_quoted = {
     "call_errors": {h: round(100 * s["invocation_error_share"], 1) for h, s in luna_summary.items()},
     "edit_errors": {h: round(100 * s["edit_error_share"], 1) for h, s in luna_summary.items()},
     "web_fetches": {h: s["web_fetches"] for h, s in luna_summary.items()},
+    "error_category_share": {
+        h: {
+            c: round(100 * n / sum(totals.values()))
+            for c, n in totals.items() if n
+        }
+        for h, totals in (
+            (h, {c: sum(d[c] for d in g["errors_by_category"]) for c in ("read", "edit", "shell")})
+            for h, g in luna.groupby("harness")
+        )
+    },
     "spawns": int(luna_cc["subagent_spawns"].sum()),
     "spawn_range": (int(luna_cc["subagent_spawns"].min()), int(luna_cc["subagent_spawns"].max())),
     "background_spawns": int(luna_cc["background_spawns"].sum()),
@@ -714,8 +724,14 @@ luna_expected = {
     "max_context": {"codex": 244582, "pi": 255403, "claude-code": 239619, "opencode-v2": 126444},
     "compactions": {"codex": 8, "pi": 5, "claude-code": 79, "opencode-v2": 142},
     "call_errors": {"codex": 2.3, "pi": 3.6, "claude-code": 1.4, "opencode-v2": 2.9},
-    "edit_errors": {"codex": 7.9, "pi": 6.9, "claude-code": 6.0, "opencode-v2": 9.1},
+    "edit_errors": {"codex": 7.9, "pi": 9.4, "claude-code": 8.0, "opencode-v2": 9.1},
     "web_fetches": {"codex": 0, "pi": 0, "claude-code": 114, "opencode-v2": 165},
+    "error_category_share": {
+        "codex": {"edit": 84, "shell": 16},
+        "pi": {"read": 23, "edit": 77},
+        "claude-code": {"read": 59, "edit": 41},
+        "opencode-v2": {"read": 91, "edit": 9},
+    },
     "spawns": 324,
     "spawn_range": (4, 69),
     "background_spawns": 320,
@@ -838,15 +854,15 @@ _ax.figure.set_size_inches(6.3, 2.9)
 _ax.figure.tight_layout()
 ```
 
-An invocation error is a tool call that the tool rejected because of the call itself: invalid arguments or script syntax, an edit whose old text was not found or not unique, or a missing file or out-of-range offset. Non-zero shell exits are not counted, because a failing test or an empty search is often the intended result. Blocked web fetches, the failed OpenCode V2 searches, and delegation bookkeeping calls are excluded as well. The script `scripts/analyze_harness_trials.py` implements these rules. @fig-luna-invocation-errors shows the resulting rates. Error rates ranged from 1.4% of calls in Claude Code to 3.6% in Pi. Edits were the most error-prone calls in every harness. Between 6.0% (Claude Code) and 9.1% (OpenCode V2) of Luna's edit calls failed, most often because the text to be replaced did not match the file. The edit failure rate varies little between the four harnesses, which indicates a property of Luna's edits rather than of the harness.
+An invocation error is a tool call that the tool rejected because of the call itself: invalid arguments or script syntax, an edit whose old text was not found or not unique, or a missing file or out-of-range offset. Non-zero shell exits are not counted, because a failing test or an empty search is often the intended result. Blocked web fetches, the failed OpenCode V2 searches, and delegation bookkeeping calls are excluded as well. The script `scripts/analyze_harness_trials.py` implements these rules. @fig-luna-invocation-errors shows the resulting rates and which tools the rejected calls belonged to. Error rates ranged from 1.4% of calls in Claude Code to 3.6% in Pi. Edits and reads account for almost all errors. In Codex and Pi, 84% and 77% of the rejected calls were edits; in Codex, the remainder were script syntax errors in shell cells. In Claude Code and OpenCode V2, rejected reads made up 59% and 91%, mostly of files that did not exist. Between 7.9% (Codex) and 9.4% (Pi) of Luna's edit calls were rejected, most often because the text to be replaced did not match the file. The edit failure rate varies little between the four harnesses, which indicates a property of Luna's edits rather than of the harness.
 
 ```{python}
 #| label: fig-luna-invocation-errors
-#| fig-cap: "Share of GPT-5.6 Luna's tool calls rejected as invalid invocations per harness, (a) over all counted calls and (b) over edit calls. Labels give the rate and the number of rejected and counted calls. Shell exits, blocked web fetches, the failed OpenCode V2 searches, and delegation bookkeeping calls are not counted."
+#| fig-cap: "Share of GPT-5.6 Luna's tool calls rejected as invalid invocations per harness, divided by the tool category of the rejected calls. Segment labels give each category's share of the harness's errors; the label above each bar gives the rate and the number of rejected and counted calls. Shell exits, blocked web fetches, the failed OpenCode V2 searches, and delegation bookkeeping calls are not counted; the Codex shell errors are script syntax errors."
 
-fig, axes = plt.subplots(1, 2, figsize=(6.3, 2.9))
-plot_invocation_errors(luna, axes=axes)
-fig.tight_layout()
+_ax = plot_invocation_errors(luna)
+_ax.figure.set_size_inches(6.3, 3.2)
+_ax.figure.tight_layout()
 ```
 
 ### Delegation in Claude Code {#sec-luna-delegation}

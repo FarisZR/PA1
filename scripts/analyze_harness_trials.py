@@ -184,6 +184,7 @@ def trajectory_metrics(harness: str, path: Path) -> dict[str, Any]:
     trajectory = json.loads(path.read_text())
     categories = dict.fromkeys(CATEGORY_ORDER, 0)
     errors: dict[str, int] = {}
+    errors_by_category = dict.fromkeys(CATEGORY_ORDER, 0)
     counted_calls = 0
     edit_calls = 0
     edit_errors = 0
@@ -234,7 +235,8 @@ def trajectory_metrics(harness: str, path: Path) -> dict[str, Any]:
             error = _invocation_error(harness, call, by_call.get(call.get("tool_call_id")) or {})
             if error:
                 errors[error] = errors.get(error, 0) + 1
-                edit_errors += error == "edit_mismatch"
+                errors_by_category[category] += 1
+                edit_errors += category == "edit"
 
     return {
         "tool_calls": sum(categories.values()),
@@ -242,6 +244,7 @@ def trajectory_metrics(harness: str, path: Path) -> dict[str, Any]:
         "error_denominator": counted_calls,
         "invocation_errors": sum(errors.values()),
         "errors_by_class": errors,
+        "errors_by_category": errors_by_category,
         "edit_calls": edit_calls,
         "edit_errors": edit_errors,
         "subagent_spawns": spawns,

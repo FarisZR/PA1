@@ -266,37 +266,55 @@ def plot_tool_mix(frame: pd.DataFrame, ax=None):
     return ax
 
 
-def plot_invocation_errors(frame: pd.DataFrame, axes=None):
-    """Two panels of invocation-error rates per harness: all counted calls, and edit calls.
+def plot_invocation_errors(frame: pd.DataFrame, ax=None):
+    """Invocation-error rate per harness, stacked by the tool category of the rejected calls.
 
-    Each bar is labeled with the rate and the underlying counts.
+    The bar height is the share of all counted calls rejected as invalid; each
+    segment is one tool category, labeled with its share of the harness's errors.
+    Category colors match `plot_tool_mix`. The y-axis starts at zero but ends just
+    above the highest rate, so small differences stay visible.
     """
     harnesses = harnesses_in(frame)
-    if axes is None:
-        _, axes = plt.subplots(1, 2, figsize=(6.3, 2.8))
-    panels = [
-        ("invocation_errors", "error_denominator", "(a) All counted tool calls"),
-        ("edit_errors", "edit_calls", "(b) Edit calls"),
-    ]
-    for ax, (errors_col, calls_col, title) in zip(axes, panels, strict=True):
-        rates = []
-        for position, harness in enumerate(harnesses):
-            group = frame[frame["harness"] == harness]
-            errors, calls = int(group[errors_col].sum()), int(group[calls_col].sum())
-            rate = errors / calls if calls else 0.0
-            rates.append(rate)
-            ax.bar(position, rate, width=0.62, color=HARNESS_COLORS[harness], zorder=3)
-            ax.annotate(f"{rate:.1%}\n{errors:,}/{calls:,}", (position, rate),
-                        xytext=(0, 3), textcoords="offset points", ha="center", va="bottom",
-                        fontsize=7, color=INK)
-        ax.set_xticks(range(len(harnesses)), [HARNESS_LABELS[h] for h in harnesses],
-                      rotation=20)
-        ax.set_ylim(0, max(rates) * 1.35)
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
-        ax.set_title(title, loc="left", fontsize=8, fontweight="bold")
-        _style_axis(ax)
-    axes[0].set_ylabel("Calls rejected as invalid", fontsize=8)
-    return axes
+    if ax is None:
+        _, ax = plt.subplots(figsize=(6.3, 3.2))
+    used: set[str] = set()
+    top = 0.0
+    for position, harness in enumerate(harnesses):
+        group = frame[frame["harness"] == harness]
+        calls = int(group["error_denominator"].sum())
+        by_category = {c: sum(row[c] for row in group["errors_by_category"]) for c in CATEGORY_ORDER}
+        errors = sum(by_category.values())
+        bottom = 0.0
+        for category in CATEGORY_ORDER:
+            count = by_category[category]
+            if count == 0:
+                continue
+            used.add(category)
+            height = count / calls
+            ax.bar(position, height, bottom=bottom, width=0.62, color=CATEGORY_COLORS[category],
+                   edgecolor="white", linewidth=1.5, zorder=3)
+            share = count / errors
+            if height >= 0.0025:
+                ax.text(position, bottom + height / 2, f"{share:.0%}", ha="center", va="center",
+                        fontsize=7, color="white" if category in {"read", "planning"} else INK,
+                        zorder=4)
+            bottom += height
+        top = max(top, bottom)
+        ax.annotate(f"{bottom:.1%}\n{errors:,} of {calls:,}", (position, bottom), xytext=(0, 3),
+                    textcoords="offset points", ha="center", va="bottom", fontsize=7.5,
+                    color=INK, fontweight="bold")
+    ax.set_xticks(range(len(harnesses)), [HARNESS_LABELS[h] for h in harnesses])
+    ax.set_xlim(-0.6, len(harnesses) - 0.4)
+    ax.set_ylim(0, top * 1.25)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.1%}"))
+    ax.set_ylabel("Tool calls rejected as invalid", fontsize=8)
+    order = [c for c in CATEGORY_ORDER if c in used]
+    handles = [plt.Rectangle((0, 0), 1, 1, color=CATEGORY_COLORS[c]) for c in order]
+    ax.legend(handles, [CATEGORY_LABELS[c] for c in order], loc="lower center",
+              bbox_to_anchor=(0.5, 1.0), ncols=len(order), frameon=False, fontsize=7,
+              handlelength=1, columnspacing=1)
+    _style_axis(ax)
+    return ax
 
 
 def plot_subagent_tokens(frame: pd.DataFrame, harness: str = "claude-code", ax=None):
