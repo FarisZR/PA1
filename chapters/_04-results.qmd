@@ -633,7 +633,6 @@ from scripts.harness_figures import (
     plot_task_costs,
     plot_cache_tokens,
     plot_invocation_errors,
-    plot_paired_metric,
     plot_subagent_tokens,
     plot_task_outcomes,
     plot_tool_mix,
@@ -891,22 +890,18 @@ _ax.figure.tight_layout()
 
 Claude Code was the only harness in which Luna delegated work; in the other three harnesses it started no subagent. In Claude Code, Luna started 324 subagents in ten trials, between 4 and 69 per trial, and 320 of them ran in the background. Claude Code rejected 77 further requests because the limit on concurrent subagents was reached. For the started subagents, Luna requested the `opus` model 163 times, `sonnet` 130 times, and `haiku` 22 times. The same-model control described in @sec-methodology ran all of them on Luna.
 
-The subagents consumed most of the tokens. They account for 72% of Claude Code's input tokens and 86% of its output tokens. Each subagent starts with its own context, and only 85% of the subagents' input came from the cache, compared with 96% in the root sessions. No subagent prompt exceeded 239,619 tokens, so delegation did not bypass the 272,000-token window. @fig-luna-delegation shows how the subagent share grows with the number of subagents, and how the cost compares with Codex task by task.
+The subagents consumed most of the tokens. They account for 72% of Claude Code's input tokens and 86% of its output tokens. Each subagent starts with its own context, and only 85% of the subagents' input came from the cache, compared with 96% in the root sessions. No subagent prompt exceeded 239,619 tokens, so delegation did not bypass the 272,000-token window. @fig-luna-delegation shows this split for every task, together with the number of subagents started.
 
 ```{python}
 #| label: fig-luna-delegation
-#| fig-cap: "Delegation by GPT-5.6 Luna in Claude Code. (a) Input tokens of the root session and of its subagents per task, with the number of subagents started; a check mark denotes a passing trial. (b) Normalized cost per task in Claude Code against Codex; filled markers are tasks passed in Claude Code."
+#| fig-cap: "Input tokens of GPT-5.6 Luna's root session and of its subagents per task in Claude Code, with the number of subagents started. A check mark denotes a passing trial."
 
-fig, axes = plt.subplots(1, 2, figsize=(6.3, 3.6), gridspec_kw={"width_ratios": [1.45, 1]})
-plot_subagent_tokens(luna, ax=axes[0])
-plot_paired_metric(luna, "cost_usd", harness="claude-code", reference="codex",
-                   ax=axes[1], label="cost per task (USD)")
-for _ax, _letter in zip(axes, "ab", strict=True):
-    _ax.set_title(f"({_letter})", loc="left", fontsize=9, fontweight="bold")
-fig.tight_layout()
+_ax = plot_subagent_tokens(luna)
+_ax.figure.set_size_inches(6.3, 3.6)
+_ax.figure.tight_layout()
 ```
 
-The additional work did not produce additional solutions. Claude Code cost between 3.9 and 52.4 times as much as Codex on every task, and every point in @fig-luna-delegation (b) lies above the parity line. It passed three tasks, compared with five for Codex, and none that Codex or Pi had not also solved. The four trials with the most subagents all failed. The `koota` trial started 69 subagents and reached the three-hour timeout without passing a single fail-to-pass test, although Codex, Pi, and OpenCode V2 all solved `koota`. The three trials with only four subagents cost between USD 3.70 and 7.12 each. For Luna, Claude Code's delegation multiplied the cost and duration of a trial without improving its outcome.
+The additional work did not produce additional solutions. Claude Code cost between 3.9 and 52.4 times as much as Codex on every task, and it was the most expensive harness on every task (@fig-luna-cost-success). It passed three tasks, compared with five for Codex, and none that Codex or Pi had not also solved. The four trials with the most subagents all failed. The `koota` trial started 69 subagents and reached the three-hour timeout without passing a single fail-to-pass test, although Codex, Pi, and OpenCode V2 all solved `koota`. The three trials with only four subagents cost between USD 3.70 and 7.12 each. For Luna, Claude Code's delegation multiplied the cost and duration of a trial without improving its outcome.
 
 ## Additional diagnostics
 

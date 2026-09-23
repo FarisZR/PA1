@@ -404,49 +404,11 @@ def plot_subagent_tokens(frame: pd.DataFrame, harness: str = "claude-code", ax=N
     return ax
 
 
-def plot_paired_metric(
-    frame: pd.DataFrame,
-    value_col: str,
-    *,
-    harness: str,
-    reference: str,
-    ax,
-    label: str,
-):
-    """Per-task comparison of two harnesses on log axes, with the parity line.
-
-    Points above the line are tasks on which `harness` used more than
-    `reference`. Filled markers are tasks that `harness` passed.
-    """
-    pivot = frame.pivot(index="task", columns="harness", values=value_col)
-    passed = frame[frame["harness"] == harness].set_index("task")["passed"]
-    color = HARNESS_COLORS[harness]
-    for task, row in pivot.iterrows():
-        ax.scatter(row[reference], row[harness], s=36, marker=HARNESS_MARKERS[harness],
-                   facecolor=color if passed[task] else "white", edgecolor=color,
-                   linewidth=1.3, zorder=3)
-    low = min(pivot[reference].min(), pivot[harness].min()) / 1.5
-    high = max(pivot[reference].max(), pivot[harness].max()) * 1.5
-    ax.plot([low, high], [low, high], color=MUTED, linewidth=1, linestyle="--", zorder=2)
-    ax.text(high / 1.2, high / 1.2, "parity", rotation=45, ha="right", va="bottom",
-            fontsize=7, color=MUTED, rotation_mode="anchor")
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_xlim(low, high)
-    ax.set_ylim(low, high)
-    ax.set_aspect("equal")
-    ax.set_xlabel(f"{HARNESS_LABELS[reference]}: {label}", fontsize=8)
-    ax.set_ylabel(f"{HARNESS_LABELS[harness]}: {label}", fontsize=8)
-    _style_axis(ax, grid_axis="both")
-    return ax
-
-
 __all__: Sequence[str] = [
     "HARNESS_COLORS",
     "HARNESS_MARKERS",
     "harnesses_in",
     "outcome_legend",
-    "plot_paired_metric",
     "plot_cache_tokens",
     "plot_invocation_errors",
     "plot_subagent_tokens",
