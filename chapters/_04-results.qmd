@@ -630,7 +630,7 @@ from scripts.analyze_harness_trials import (
 )
 from scripts.harness_figures import (
     outcome_legend,
-    plot_cost_success,
+    plot_task_costs,
     plot_paired_metric,
     plot_subagent_tokens,
     plot_task_outcomes,
@@ -774,14 +774,14 @@ OpenCode V2 differs from the other harnesses. Six of its ten trials ended with n
 
 ### Cost and token usage {#sec-luna-cost}
 
-@fig-luna-cost-success relates the total cost of each harness to its number of passing trials. Codex was the cheapest harness and, together with Pi, the most successful. Pi reached the same success for USD 0.35 more. OpenCode V2 cost more than both and passed fewer tasks. Claude Code cost USD 139.21, 16.5 times as much as Codex, and passed two tasks fewer.
+Over all ten trials, Codex was the cheapest harness and, together with Pi, the most successful (@tbl-luna-overview). Pi reached the same success for USD 0.35 more. OpenCode V2 cost more than both and passed fewer tasks. Claude Code cost USD 139.21, 16.5 times as much as Codex, and passed two tasks fewer. @fig-luna-cost-success breaks the cost down by task. Of the 30 trials in Codex, Pi, and OpenCode V2, 28 cost between USD 0.24 and 2.00; the most expensive, OpenCode V2 on `scriggo`, cost USD 4.22. Claude Code was the most expensive harness on every task, including the three it passed.
 
 ```{python}
 #| label: fig-luna-cost-success
-#| fig-cap: "Total normalized cost and passing trials of GPT-5.6 Luna per harness. The cost axis is logarithmic."
+#| fig-cap: "Normalized cost of each GPT-5.6 Luna trial per task and harness. Filled bars are passing trials, marked with a check mark; hollow bars are failing trials. The cost axis is logarithmic."
 
-_ax = plot_cost_success(luna)
-_ax.figure.set_size_inches(6.3, 3.0)
+_ax = plot_task_costs(luna)
+_ax.figure.set_size_inches(6.3, 3.5)
 _ax.figure.tight_layout()
 ```
 

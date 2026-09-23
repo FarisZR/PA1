@@ -185,52 +185,49 @@ def outcome_legend(ax, **kwargs) -> None:
     ax.legend(handles=handles, frameon=False, fontsize=7, **kwargs)
 
 
-def plot_cost_success(frame: pd.DataFrame, ax=None):
-    """Total normalized cost against passing trials, one point per harness.
+def plot_task_costs(frame: pd.DataFrame, ax=None, value_col: str = "cost_usd"):
+    """Grouped bars of the normalized cost per task, one bar per harness.
 
-    The line joins the harnesses that no other harness beats on both cost and
-    success. The cost axis is logarithmic.
+    The cost axis is logarithmic. A check mark above a bar denotes a passing
+    trial; failing trials are drawn as hollow bars.
     """
     harnesses = harnesses_in(frame)
-    points = pd.DataFrame(
-        {
-            "harness": harnesses,
-            "cost": [frame.loc[frame["harness"] == h, "cost_usd"].sum() for h in harnesses],
-            "passed": [int(frame.loc[frame["harness"] == h, "passed"].sum()) for h in harnesses],
-        }
-    )
+    catalog = [task for task in task_catalog() if task["task"] in set(frame["task"])]
+    pivot = frame.pivot(index="task", columns="harness", values=value_col)
+    passed = frame.pivot(index="task", columns="harness", values="passed")
     if ax is None:
-        _, ax = plt.subplots(figsize=(6.3, 3.2))
-    frontier, best = [], -1
-    for _, row in points.sort_values(["cost", "passed"], ascending=[True, False]).iterrows():
-        if row["passed"] > best:
-            frontier.append(row)
-            best = row["passed"]
-    frontier = pd.DataFrame(frontier)
-    if len(frontier) > 1:
-        ax.plot(frontier["cost"], frontier["passed"], color=MUTED, linewidth=1.2,
-                linestyle="--", zorder=2, label="non-dominated harnesses")
-    placed: list[tuple[float, int]] = []
-    for _, row in points.sort_values("cost").iterrows():
-        ax.scatter(row["cost"], row["passed"], s=70, marker=HARNESS_MARKERS[row["harness"]],
-                   color=HARNESS_COLORS[row["harness"]], zorder=3, edgecolor="white", linewidth=1.5)
-        # Put the label above the point when a cheaper point with the same success is close by.
-        crowded = any(p == row["passed"] and row["cost"] / c < 1.6 for c, p in placed)
-        placed.append((row["cost"], row["passed"]))
-        ax.annotate(f"{HARNESS_LABELS[row['harness']]} (USD {row['cost']:.2f})",
-                    (row["cost"], row["passed"]), xytext=(6, 9 if crowded else -9),
-                    textcoords="offset points", fontsize=7.5, color=INK,
-                    va="bottom" if crowded else "top")
-    ax.set_xscale("log")
-    ax.set_xlim(points["cost"].min() / 1.6, points["cost"].max() * 3)
-    trials = frame.groupby("harness").size().max()
-    ax.set_ylim(-0.5, trials + 0.5)
-    ax.set_yticks(range(0, trials + 1, 2))
-    ax.set_xlabel("Total normalized cost of all trials (USD, log scale)", fontsize=8)
-    ax.set_ylabel(f"Passing trials (of {trials})", fontsize=8)
-    if len(frontier) > 1:
-        ax.legend(frameon=False, fontsize=7, loc="upper left")
-    _style_axis(ax, grid_axis="both")
+        _, ax = plt.subplots(figsize=(6.3, 3.4))
+    width = 0.8 / len(harnesses)
+    for offset, harness in enumerate(harnesses):
+        color = HARNESS_COLORS[harness]
+        for position, task in enumerate(catalog):
+            value = pivot.loc[task["task"], harness]
+            ok = bool(passed.loc[task["task"], harness])
+            x = position - 0.4 + width * (offset + 0.5)
+            ax.bar(x, value, width=width * 0.9, color=color if ok else "white",
+                   edgecolor=color, linewidth=1.1, zorder=3)
+            if ok:
+                ax.text(x, value * 1.15, "\u2713", ha="center", va="bottom",
+                        fontsize=7, color=INK, zorder=4)
+    ax.set_yscale("log")
+    ax.set_ylim(pivot.min().min() / 2, pivot.max().max() * 3)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:g}"))
+    hard = sum(task["stratum"] == "hard" for task in catalog)
+    if 0 < hard < len(catalog):
+        ax.axvline(hard - 0.5, color=MUTED, linewidth=0.8, linestyle=":")
+        for label, middle in (("hard", (hard - 1) / 2), ("medium", (hard + len(catalog) - 1) / 2)):
+            ax.text(middle, pivot.max().max() * 2.4, label, ha="center", va="top",
+                    fontsize=7, color=MUTED)
+    ax.set_xticks(range(len(catalog)), [task["label"].split(" (")[0] for task in catalog],
+                  rotation=35, ha="right")
+    ax.set_xlim(-0.6, len(catalog) - 0.4)
+    ax.set_ylabel("Normalized cost of the trial (USD, log scale)", fontsize=8)
+    handles = [plt.Rectangle((0, 0), 1, 1, color=HARNESS_COLORS[h]) for h in harnesses]
+    handles.append(plt.Rectangle((0, 0), 1, 1, facecolor="white", edgecolor=MUTED))
+    ax.legend(handles, [HARNESS_LABELS[h] for h in harnesses] + ["failed (hollow)"],
+              loc="lower center", bbox_to_anchor=(0.5, 1.0), ncols=len(handles),
+              frameon=False, fontsize=7, handlelength=1.2, columnspacing=1.0)
+    _style_axis(ax)
     return ax
 
 
@@ -348,9 +345,9 @@ __all__: Sequence[str] = [
     "HARNESS_MARKERS",
     "harnesses_in",
     "outcome_legend",
-    "plot_cost_success",
     "plot_paired_metric",
     "plot_subagent_tokens",
+    "plot_task_costs",
     "plot_task_outcomes",
     "plot_tool_mix",
     "plot_trial_strip",
