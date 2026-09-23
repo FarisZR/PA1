@@ -46,6 +46,8 @@ GPT-5.6 Luna is accessed through the researcher's personal ChatGPT subscription 
 
 AiOrbit, Fireworks, and CLIProxyAPI are infrastructure outside the experimental manipulation. They may transform requests or introduce provider-side failures that the study cannot control. The results therefore characterize the harnesses under these documented deployment paths rather than an abstract provider-independent environment.
 
+A route-specific limitation affects Claude Code on the non-Anthropic thinking models. Claude Code sends prior thinking blocks back as part of the conversation on later tool turns, but the generic Anthropic-to-OpenAI translation path can silently omit those blocks from the upstream assistant messages; no API error identifies the loss [@pa1Issue102]. This is distinct from the separate `max`-to-`high` effort mapping described in the results. The retained observations are therefore conditional on the exact gateway behavior used when they were collected.
+
 ### Provider concurrency
 
 Fireworks-backed comparative jobs use model-specific concurrency caps so provider throttling does not become an experimental variable [@fireworksRateLimits]. The Pi/Claude Code/Codex jobs run up to 30 Kimi K3 trials and four DeepSeek V4.1 Flash trials concurrently. The OpenCode V2 configurations set ten concurrent Kimi trials and five concurrent DeepSeek trials; the Kimi/OpenCode V2 batch was not executed because of the budget constraint described above. GPT-5.6 Luna uses six concurrent trials in both the Pi/Claude Code/Codex configuration and the separate OpenCode V2 configuration. These settings affect job scheduling only; task definitions, model settings, scoring, and reported metrics are unchanged. The exact values are frozen in the benchmark configuration.
@@ -91,6 +93,8 @@ Codex 0.151.0 uses the OpenAI Responses protocol, while the Fireworks-backed mod
 The bridge performs protocol translation only. Its own retries, credential cooldowns, and model fallbacks are disabled so it cannot improve the measured harness behavior.
 
 During the benchmark period, an upstream CLIProxyAPI defect was identified in which a streamed chunk containing both `reasoning_content` and visible `content` could produce an invalid Responses item order [@cliproxyIssue5659]. Rather than upgrade the complete bridge and introduce unrelated changes, the benchmark keeps the frozen v7.2.146 base and backports only the upstream fix [@cliproxyFix5659]. Logs from the completed 2026-08-31 Kimi K3 trial runs showed that the defect's triggering condition did not occur, so those runs were retained.
+
+A second bridge setting is required for the Claude Code rerun path. The three LiteLLM-backed `openai-compatibility` model entries set `is-compat: true`, which tells CLIProxyAPI to preserve Claude Code's thinking and tool-call history when translating Anthropic requests to Chat Completions. Without it, the bridge can accept the request while silently dropping prior `reasoning_content` from later assistant messages [@pa1Issue102]. The one-task smoke using the OpenCode V2 placeholder task is used as a cheap integration check; it verifies the task result and the upstream request log before any full rerun is considered. The retained Claude Code observations from the generic LiteLLM route are not retroactively rewritten.
 
 ## Excluded GLM-5.3-Flash provider-route diagnostic
 

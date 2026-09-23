@@ -39,6 +39,7 @@ GATEWAY_KEY = "pa1-generated-config-upstream-key"
 GATEWAY_URL = "https://gateway.invalid/v1"
 ZAI_KEY = "pa1-generated-config-zai-key"
 BRIDGE_URL = "http://172.17.0.1/v1"
+BRIDGE_ANTHROPIC_URL = "http://172.17.0.1"
 ANTHROPIC_KEY = "sk-ant-pa1-generated-config-test"
 CONTAINER = "pa1-generated-config-test"
 HOST_PORT = 18998
@@ -96,6 +97,7 @@ def write_env(path: Path, include_opus: bool) -> None:
         f"ZAI_API_KEY={ZAI_KEY}",
         "LITELLM_ANTHROPIC_BASE_URL=https://gateway.invalid",
         f"CODEX_CLIPROXY_BASE_URL={BRIDGE_URL}",
+        f"CODEX_CLIPROXY_ANTHROPIC_BASE_URL={BRIDGE_ANTHROPIC_URL}",
         f"CODEX_CLIPROXY_API_KEY={BRIDGE_KEY}",
         "CODEX_CLIPROXY_REQUEST_LOG=false",
     ]
@@ -144,6 +146,16 @@ def static_checks(config: str, target: Path, include_opus: bool) -> None:
             f'{label}: {model} declares "max" reasoning',
             levels.group(0) if levels else "model block not found",
         )
+        if model != "glm-5.3-flash":
+            model_block = re.search(
+                rf'(?ms)^      - name: "{re.escape(model)}"\n.*?(?=^      - name: |\Z)',
+                config,
+            )
+            check(
+                model_block is not None and "is-compat: true" in model_block.group(0),
+                f"{label}: {model} preserves Claude thinking/tool-call history",
+                model_block.group(0) if model_block else "model block not found",
+            )
 
     direct_zai = config.split('- name: "zai-coding-plan"', 1)
     check(

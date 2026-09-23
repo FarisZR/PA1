@@ -251,6 +251,7 @@ Several measurement problems only became visible while analyzing the completed r
 | Exit status 1 after a recovered step failure | Upstream OpenCode 2.0.8 | First attempt canonical |
 | Retries after non-transport failures | Pier retry rule, PA1 exclusion list | First attempt canonical |
 | `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | Limitation |
+| Prior Claude Code `reasoning_content` omitted on later tool turns | Anthropic-to-OpenAI translation layer | Limitation; not retroactively corrected |
 
 : Measurement issues discovered after the benchmark runs. {#tbl-measurement-issues tbl-colwidths="[45,30,25]"}
 
@@ -291,9 +292,11 @@ One outcome differs from Pier's final trials as a result: GPT-5.6 Luna with Open
 
 The remaining retries followed transport or gateway failures and keep Pier's final attempt. Two DeepSeek V4.1 Flash attempts, one with Pi and one with Codex, were rejected by the gateway with a context-window error. Because the same rejection occurred in two harnesses that manage their context independently, it is attributed to the gateway's token counting rather than to the evaluated systems. The other retries were two Kimi K3 Pi trials whose streams were terminated after Pi's own request retries were exhausted, and two GLM-5.3-Flash Codex trials in the excluded provider-route diagnostic that hit provider rate limits. All non-canonical attempts remain in the published data under `.retry-attempts/`.
 
-### Reasoning effort in Claude Code
+### Reasoning effort and replay in Claude Code
 
-This issue cannot be corrected. Claude Code requests reasoning effort through the Anthropic `output_config.effort` field. For the Fireworks-routed models, these requests pass through LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway. That translation maps the field to `reasoning_effort` and lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101]. A local reproduction used the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) with deployment metadata matching what the gateway advertises. It forwarded `high` for both models, and for the excluded GLM-5.3-Flash batch. The Claude Code runs of Kimi K3 and DeepSeek V4.1 Flash were therefore most likely executed at `high` rather than the intended `max`, whereas Pi, Codex, and OpenCode V2 sent `max` directly. The gateway's deployment configuration during the runs could not be inspected directly.
+The effort-mapping issue cannot be corrected in the retained data. Claude Code requests reasoning effort through the Anthropic `output_config.effort` field. For the Fireworks-routed models, these requests pass through LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway. That translation maps the field to `reasoning_effort` and lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101]. A local reproduction used the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) with deployment metadata matching what the gateway advertises. It forwarded `high` for both models, and for the excluded GLM-5.3-Flash batch. The Claude Code runs of Kimi K3 and DeepSeek V4.1 Flash were therefore most likely executed at `high` rather than the intended `max`, whereas Pi, Codex, and OpenCode V2 sent `max` directly. The gateway's deployment configuration during the runs could not be inspected directly.
+
+A separate request-body audit found that the same generic Anthropic-to-OpenAI path omitted Claude Code's prior thinking blocks from assistant messages on later tool turns [@pa1Issue102]. The omission is silent: the gateway accepts the request, but the model does not receive its earlier `reasoning_content`. This affects the interpretation of the retained Claude Code trajectories in addition to the effort downgrade. The CLIProxyAPI rerun configuration sets `is-compat: true` for the three LiteLLM-backed aliases and the placeholder-task smoke checks the resulting upstream request bodies. That fixes the route for new runs; it does not alter the already retained observations.
 
 ## Benchmark coverage
 

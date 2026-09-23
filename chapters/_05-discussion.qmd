@@ -26,4 +26,6 @@
 
 ## Limitations and threats to validity
 
-- TODO: Describe methodological, measurement, infrastructure, and generalizability limitations.
+- The Fireworks-backed Claude Code observations are route-specific. A generic OpenAI-compatible translation layer can silently omit prior `reasoning_content` from later assistant tool turns, so those measurements do not represent a provider-native Anthropic integration or a bridge configured with explicit reasoning preservation [@pa1Issue102].
+- The retained Claude Code observations also used a gateway deployment that mapped the requested `max` effort to `high`; the reasoning-history fix does not retroactively change those observations.
+- TODO: Describe the remaining methodological, measurement, infrastructure, and generalizability limitations.

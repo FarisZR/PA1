@@ -367,6 +367,7 @@ providers:
                             "LITELLM_API_KEY=test-gateway-key",
                             "ZAI_API_KEY=test-zai-key",
                             "CODEX_CLIPROXY_BASE_URL=https://bridge.example/v1",
+                            "CODEX_CLIPROXY_ANTHROPIC_BASE_URL=https://bridge.example",
                             "CODEX_CLIPROXY_API_KEY=test-bridge-key",
                         ]
                     )
