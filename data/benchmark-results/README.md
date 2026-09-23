@@ -38,6 +38,12 @@ The completed OpenCode V2 GPT-5.6 Luna run is published separately at
 including each OpenCode adapter `runner-result.json` alongside the filtered
 result, config, and trajectory files.
 
+The completed DeepSeek Claude Code CLIProxy API run is published separately at
+`deepseek-claude-code-cliproxy-api/`. It contains the 10 trials with the job
+metadata, task results/configs, and structured trajectories. The separate
+`deepseek-claude-code-cliproxy-api-fixed-thinking/` run is intentionally not
+included because it is still running.
+
 The current GLM 5.3 Flash sub-run is published as an **unfiltered snapshot**
 at `glm-5.3-sub/`. Its 814 files are copied from the run directory as-is,
 including retry attempts, logs, sessions, verifier output, and other run
