@@ -1246,7 +1246,8 @@ the model (issue #111; LiteLLM `32bf1aba`, fixed by LiteLLM PR #40682 in
 the upgrade. `configs/deepseek-codex-rerun.yaml` reruns exactly those five
 tasks with the Codex leg copied unchanged, including the one trial that passed,
 so the selection follows the run time rather than the outcome. The other five
-Codex trials are kept. The six affected Pi trials are not rerun by this job.
+Codex trials are kept. The six affected Pi trials are not rerun by this job;
+the DeepSeek Pi condition is excluded from the comparative data instead.
 
 The bridge's `is-compat: true` setting, added after the original run, only
 changes Claude-format translation. With `optimize-multi-agent-v2: false`, the
@@ -1264,4 +1265,6 @@ ls -t benchmark/generated/cliproxy-logs/v1-responses-* | head -20 \
   | xargs grep -ah -m1 -o 'X-Litellm-Version: [0-9.]*' | sort | uniq -c
 # after the job: every trial must show retention >= 1 (about 0.1 means removed)
 python3 scripts/analyze_reasoning_retention.py benchmark/runs/deepseek-codex-rerun
+# publish the rerun in place of the superseded trials (checks retention again)
+python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
 ```

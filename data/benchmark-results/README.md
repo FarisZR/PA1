@@ -52,6 +52,27 @@ including retry attempts, logs, sessions, verifier output, and other run
 artifacts. Unlike the other data directories, no files were selected,
 renamed, redacted, or removed from this snapshot.
 
+## Observations outside the comparative data
+
+`scripts/build_corrected_results.py` moves observations that must not enter
+comparative results out of the job directories, so the normal
+`<job>/*/result.json` glob never returns them:
+
+- `.excluded/kimi-k3/claude-code/`: the Kimi K3 Claude Code run (effort lowered
+  to `high`, #108).
+- `.excluded/deepseek-v4p1-flash/pi/`: all ten DeepSeek V4.1 Flash Pi trials.
+  Six of them ran before AiOrbit's LiteLLM upgrade and never gave the model its
+  earlier reasoning (#111), and they are not rerun. A condition with four valid
+  trials cannot be compared with complete ten-task conditions.
+- `.superseded/issue-111/deepseek-v4p1-flash/codex/`: the five DeepSeek Codex
+  trials affected by #111. The rerun job `deepseek-codex-rerun` replaces them;
+  once it has run, the same script publishes its trials in
+  `deepseek-v4p1-flash/` after checking that the reasoning reached the model.
+
+The moved files are unchanged, and each job's `corrections.json` lists every
+moved trial with its location and reason. The evidence for #111 is in
+`../litellm-reasoning-audit/`.
+
 The analysis scripts can use a model directory directly. The Kimi K3 directory
 contains twenty eligible Pi and Codex trials by default. They read one
 canonical attempt per trial by default; add `--include-retries` to also count

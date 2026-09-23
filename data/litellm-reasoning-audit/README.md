@@ -1,0 +1,44 @@
+# LiteLLM reasoning-history audit (issue #111)
+
+Evidence that AiOrbit's LiteLLM 1.101.0 removed `reasoning_content` from
+requests to Fireworks until about 2026-09-21 12:02 UTC. The results chapter
+describes the defect in "Reasoning history removed by the gateway".
+
+| File | Content | Produced by |
+| --- | --- | --- |
+| `replay-request.json` | Upstream Chat Completions body of one DeepSeek V4.1 Flash Codex request (2026-09-21T12:01:40Z, first 12 messages) | Taken from the bridge log named in the file |
+| `replay-results.jsonl` | Reasoning fields forwarded by LiteLLM 1.98.0, 1.101.0, and 1.102.0 for that request | `scripts/replay_litellm_fireworks.py` |
+| `bridge-requests.csv` | Per-request metadata for the 2,469 DeepSeek requests of the Codex job | `scripts/extract_bridge_reasoning_audit.py` |
+
+## Sanitization
+
+The bridge request logs under `benchmark/generated/cliproxy-logs/` contain
+complete prompts and credentials and are not published.
+
+- `replay-request.json` keeps the message roles, tool calls, tool-call ids,
+  and `reasoning_content` of the recorded request unchanged. Other message
+  contents longer than 400 characters are shortened, and the tool definitions
+  are omitted; neither affects the message transform under test.
+- `bridge-requests.csv` contains no prompt text. Each row records the request
+  time (UTC), the Codex session id and the published trial it belongs to, the
+  `X-Litellm-Version` header, the prompt and cached token counts returned by
+  Fireworks, the number of earlier assistant messages that carried
+  `reasoning_content` upstream, the reasoning characters sent and streamed back,
+  and the source log's file name and SHA-256 hash. The hashes let a supervisor
+  match every row to the retained private log.
+
+One row (`sess-1`, 2026-09-20T23:52Z) is a single 339-token probe before the
+job started and belongs to no trial.
+
+## Reproduction
+
+```bash
+for v in 1.98.0 1.101.0 1.102.0; do
+  LITELLM_LOCAL_MODEL_COST_MAP=True uv run --no-project --with "litellm==$v" \
+    python scripts/replay_litellm_fireworks.py \
+    data/litellm-reasoning-audit/replay-request.json
+done
+# needs the private bridge logs
+python3 scripts/extract_bridge_reasoning_audit.py \
+  --out data/litellm-reasoning-audit/bridge-requests.csv
+```
