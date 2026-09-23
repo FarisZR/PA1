@@ -26,6 +26,7 @@ Run the current setup in this order:
 7. `benchmark/generated/luna.yaml`
    - `benchmark/generated/deepseek-claude-code-cliproxy-api.yaml` — Claude Code × DeepSeek rerun at true `max` (see below)
    - `benchmark/generated/deepseek-codex-rerun.yaml` — rerun of the five Codex × DeepSeek trials affected by issue #111 (see below)
+   - `benchmark/generated/deepseek-pi-rerun.yaml` — rerun of three of the six Pi × DeepSeek trials affected by issue #111 (see below)
 8. `benchmark/configs/opus.yaml`
 9. run the matching `benchmark/configs/opencode-v2/<model>.yaml` job for the
    OpenCode V2 result of each model. Kimi's OpenCode V2 profile preserves the
@@ -1267,4 +1268,33 @@ ls -t benchmark/generated/cliproxy-logs/v1-responses-* | head -20 \
 python3 scripts/analyze_reasoning_retention.py benchmark/runs/deepseek-codex-rerun
 # publish the rerun in place of the superseded trials (checks retention again)
 python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
+```
+
+## Pi × DeepSeek rerun of three issue #111 trials
+
+Six of the ten Pi trials in `deepseek-v4p1-flash.yaml` ran before AiOrbit's
+LiteLLM upgrade and never gave the model its earlier reasoning (issue #111).
+The four clean Pi trials are all medium tasks, so the remaining budget is used
+for the hard task of each language whose medium task already has a clean Pi
+trial. Of the four such languages, the three cheapest by the cost of the same
+task in the harnesses that kept their reasoning are chosen: TypeScript
+(`effect-sse-httpapi-streaming`), JavaScript (`katex-multicolumn-array-spans`),
+and Go (`expr-try-catch-errors`). The selection uses language, difficulty, and
+cost only, not Pi's outcomes. With the clean trials, this gives three complete
+hard/medium language pairs for a task-matched comparison. The estimated cost is
+about USD 1.02 (worst case about USD 1.22).
+
+`configs/deepseek-pi-rerun.yaml` copies the Pi leg of `deepseek-v4p1-flash.yaml`
+unchanged. Pi reaches AiOrbit directly, not through the bridge, so the bridge
+setting added since the original run does not apply. Like the Codex rerun, the
+result is published separately as `data/benchmark-results/deepseek-pi-rerun/`.
+
+```bash
+python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus
+PIER=~/pier/.venv/bin/pier
+$PIER run \
+  -c benchmark/generated/deepseek-pi-rerun.yaml \
+  --env-file benchmark/env.local --yes
+# after the job: every trial must show retention above 100% (a few percent means removed)
+python3 scripts/analyze_reasoning_retention.py benchmark/runs/deepseek-pi-rerun
 ```

@@ -1,0 +1,93 @@
+# Pi x DeepSeek V4.1 Flash rerun of three trials affected by issue #111.
+#
+# AiOrbit ran LiteLLM 1.101.0 until about 2026-09-21 12:02 UTC. Its Fireworks
+# provider removed reasoning_content from every message before forwarding, so
+# in six of the ten Pi trials of deepseek-v4p1-flash.yaml the model never
+# received its earlier reasoning. The four clean Pi trials are all medium tasks.
+#
+# The remaining budget covers three reruns. This job reruns the hard task of
+# each language whose medium task already has a clean Pi trial, taking the three
+# cheapest by the cost of the same task in the harnesses that kept their
+# reasoning: TypeScript (effect-sse), JavaScript (katex), and Go (expr). The
+# choice depends on language, difficulty, and cost only, not on Pi's outcomes.
+# Together with the clean trials this gives three complete hard/medium language
+# pairs for a task-matched comparison. The Pi leg is copied unchanged from
+# deepseek-v4p1-flash.yaml; the rerun is published separately, like
+# deepseek-codex-rerun.
+job_name: deepseek-pi-rerun
+jobs_dir: benchmark/runs
+n_attempts: 1
+# All three trials run at once, below the four-trial cold-start cap calibrated
+# in deepseek-v4p1-flash.yaml.
+n_concurrent_trials: 3
+retry:
+  max_retries: 1
+  # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
+  # result on this task set, and verifier/reward failures are grading faults, so
+  # re-running a whole trial for either would corrupt the measurement.
+  exclude_exceptions:
+    - AgentTimeoutError
+    - VerifierTimeoutError
+    - RewardFileNotFoundError
+    - RewardFileEmptyError
+    - VerifierOutputParseError
+    # An operator interrupt (Ctrl-C) surfaces as CancelledError. It is not a
+    # transport fault, and retrying it relaunches every in-flight trial.
+    - CancelledError
+
+environment:
+  type: docker
+
+datasets:
+  - path: ../DeepSWE/tasks
+    task_names:
+      - expr-try-catch-errors
+      - katex-multicolumn-array-spans
+      - effect-sse-httpapi-streaming
+
+agents:
+  - name: pi
+    model_name: deepseek/deepseek-v4p1-flash
+    env:
+      DEEPSEEK_API_KEY: ${LITELLM_API_KEY}
+    kwargs:
+      version: "0.84.4"
+      thinking: max
+      pi_config:
+        providers:
+          deepseek:
+            baseUrl: __LITELLM_OPENAI_BASE_URL__
+            apiKey: $DEEPSEEK_API_KEY
+            models:
+              # DeepSeek V4.1 Flash is newer than the frozen Pi catalog. Keep
+              # its native DeepSeek reasoning-content compatibility while using
+              # the single reasoning_effort control accepted by Fireworks.
+              - id: deepseek-v4p1-flash
+                name: DeepSeek V4.1 Flash
+                api: openai-completions
+                reasoning: true
+                thinkingLevelMap:
+                  minimal: null
+                  low: low
+                  medium: null
+                  high: high
+                  xhigh: null
+                  max: max
+                input: [text, image]
+                cost:
+                  input: 0.15
+                  output: 0.60
+                  cacheRead: 0.003
+                  cacheWrite: 0
+                compat:
+                  supportsStore: false
+                  supportsDeveloperRole: false
+                  supportsReasoningEffort: true
+                  maxTokensField: max_tokens
+                  requiresReasoningContentOnAssistantMessages: true
+                  thinkingFormat: openai
+                # PA1 normalizes DeepSeek to 1,000,000 tokens across harnesses:
+                # DeepSeek documents a 1M window and Pi/OpenCode use 1,000,000.
+                # Fireworks' larger route metadata is deliberately not used here.
+                contextWindow: 1000000
+                maxTokens: 384000
