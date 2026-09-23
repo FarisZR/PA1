@@ -126,7 +126,7 @@ Non-Anthropic models were common but rarely used alone. Of the 57 respondents, 2
 #| fig-height: 4.4
 
 provider_groups = provider_diversification(survey)
-plot_pie(
+_ = plot_pie(
     provider_groups,
     category_col="category",
     value_col="respondents",
@@ -176,12 +176,12 @@ Cost tier also differs between primary and secondary configurations. High-cost m
 #| label: fig-survey-role-cost-tier
 #| fig-cap: "Model cost-tier distribution for primary and secondary survey configurations."
 #| fig-alt: "Two pie charts comparing primary and secondary configurations. Primary configurations are 81.1 percent high, 7.5 percent medium, and 11.3 percent low cost. Secondary configurations are 55.1 percent high, 34.7 percent medium, and 10.2 percent low cost after including Claude Haiku 4.5 in the medium tier."
-#| fig-width: 7.2
+#| fig-width: 6.8
 #| fig-format: svg
-#| fig-height: 4.4
+#| fig-height: 3.6
 
 role_tiers = role_tier_distribution(survey, model_tiers)
-plot_pie_comparison(
+_ = plot_pie_comparison(
     role_tiers,
     category_col="role_label",
     value_cols=["High cost", "Medium cost", "Low cost"],
@@ -205,7 +205,7 @@ Monthly coding-agent cost was reported in categories rather than exact amounts. 
 #| fig-format: svg
 #| fig-height: 5.0
 
-plot_pie(
+_ = plot_pie(
     reported_cost_distribution(survey),
     category_col="category",
     value_col="respondents",
