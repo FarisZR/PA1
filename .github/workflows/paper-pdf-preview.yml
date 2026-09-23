@@ -10,11 +10,12 @@ on:
       - "references.bib"
       - "ieee.csl"
       - "requirements.txt"
+      - "requirements-review.txt"
       - "figures/**"
-      - "scripts/figures.py"
-      - "scripts/survey_analysis.py"
+      - "scripts/**/*.py"
       - "data/**/*.csv"
       - "data/benchmark-results/**"
+      - "benchmark/pricing.yaml"
       - ".github/workflows/paper-pdf-preview.yml"
   push:
     branches: [main]
@@ -25,11 +26,12 @@ on:
       - "references.bib"
       - "ieee.csl"
       - "requirements.txt"
+      - "requirements-review.txt"
       - "figures/**"
-      - "scripts/figures.py"
-      - "scripts/survey_analysis.py"
+      - "scripts/**/*.py"
       - "data/**/*.csv"
       - "data/benchmark-results/**"
+      - "benchmark/pricing.yaml"
       - ".github/workflows/paper-pdf-preview.yml"
 
 permissions:
@@ -55,16 +57,31 @@ jobs:
         uses: actions/checkout@v7
         with:
           persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements-review.txt
 
       - name: Install paper dependencies
         run: python -m pip install -r requirements.txt
+
+      - name: Install review dependencies
+        if: github.event_name == 'pull_request'
+        run: python -m pip install -r requirements-review.txt
+
+      - name: Check review scripts
+        if: github.event_name == 'pull_request'
+        run: >-
+          python -m py_compile
+          scripts/build_review_paper.py
+          scripts/mark_visual_pdf_changes.py
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -78,6 +95,103 @@ jobs:
 
       - name: Verify rendered PDF
         run: test -s _output/pa1.pdf
+
+      - name: Build review source
+        if: github.event_name == 'pull_request'
+        run: >-
+          python scripts/build_review_paper.py
+          --base "${{ github.event.pull_request.base.sha }}"
+          --head "${{ github.event.pull_request.head.sha }}"
+
+      - name: Render review PDF
+        if: github.event_name == 'pull_request'
+        run: quarto render pa1-review.qmd
+
+      - name: Verify review PDF
+        if: github.event_name == 'pull_request'
+        run: test -s _output/pa1-review.pdf
+
+      - name: Read visual comparison eligibility
+        id: review-flags
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          manifest = json.loads(Path(".review/manifest.json").read_text())
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              print(
+                  f"visual={str(manifest['visual_compare_eligible']).lower()}",
+                  file=output,
+              )
+          PY
+
+      - name: Render base paper for visual comparison
+        id: base-render
+        if: steps.review-flags.outputs.visual == 'true'
+        continue-on-error: true
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: |
+          git worktree add --detach .review-base "$BASE_SHA"
+          (
+            cd .review-base
+            quarto render pa1.qmd
+          )
+          test -s .review-base/_output/pa1.pdf
+
+      - name: Mark visually changed pages
+        if: >-
+          steps.review-flags.outputs.visual == 'true' &&
+          steps.base-render.outcome == 'success'
+        run: >-
+          python scripts/mark_visual_pdf_changes.py
+          --base .review-base/_output/pa1.pdf
+          --head _output/pa1.pdf
+          --review _output/pa1-review.pdf
+          --manifest .review/manifest.json
+
+      - name: Read review metadata
+        id: review
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_RENDER_OUTCOME: ${{ steps.base-render.outcome }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          manifest = json.loads(Path(".review/manifest.json").read_text())
+          pages = manifest.get("visual_changed_pages", [])
+          eligible = bool(manifest.get("visual_compare_eligible"))
+          base_outcome = os.environ.get("BASE_RENDER_OUTCOME", "")
+
+          if not eligible:
+              visual_status = "not-needed"
+          elif base_outcome == "success":
+              visual_status = "complete"
+          else:
+              visual_status = "unavailable"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              print(f"source_markers={manifest['source_marker_count']}", file=output)
+              print(
+                  f"generated_markers={manifest['generated_marker_count']}",
+                  file=output,
+              )
+              print(f"visual_page_count={len(pages)}", file=output)
+              print(
+                  "visual_pages=" + (", ".join(map(str, pages)) if pages else "none"),
+                  file=output,
+              )
+              print(f"visual_status={visual_status}", file=output)
+          PY
 
       - name: Set preview metadata
         id: preview
@@ -93,7 +207,20 @@ jobs:
             echo "commit=${{ github.sha }}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Upload rendered PDF
+      - name: Upload PR PDFs
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.preview.outputs.artifact }}
+          path: |
+            _output/pa1.pdf
+            _output/pa1-review.pdf
+            .review/manifest.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload main PDF
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.preview.outputs.artifact }}
@@ -102,10 +229,49 @@ jobs:
           retention-days: 30
 
       - name: Prepare browser preview
+        shell: bash
         run: |
           mkdir -p _preview
           cp _output/pa1.pdf _preview/pa1.pdf
-          cat > _preview/index.html <<'EOF'
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            cp _output/pa1-review.pdf _preview/pa1-review.pdf
+            cp .review/manifest.json _preview/review-manifest.json
+            cat > _preview/index.html <<EOF
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>PA1 PDF preview</title>
+              <style>
+                body { font: 16px/1.5 system-ui, sans-serif; max-width: 760px; margin: 48px auto; padding: 0 20px; }
+                a { font-weight: 650; }
+                li { margin: 10px 0; }
+                code { background: #f2f2f2; padding: 2px 5px; border-radius: 4px; }
+              </style>
+            </head>
+            <body>
+              <h1>PA1 paper preview</h1>
+              <ul>
+                <li><a href="pa1.pdf">Normal PDF</a> - clean paper output.</li>
+                <li><a href="pa1-review.pdf">Review PDF</a> - change markers for this pull request.</li>
+              </ul>
+              <p>
+                Review markers: red left-margin bars mark changed source blocks;
+                amber left-margin bars mark generated blocks whose dependencies changed;
+                amber right-edge bars mark pages detected by the rendered PDF comparison.
+              </p>
+              <p>
+                Source markers: <strong>${{ steps.review.outputs.source_markers }}</strong>.
+                Generated-output markers: <strong>${{ steps.review.outputs.generated_markers }}</strong>.
+                Visual-diff pages: <strong>${{ steps.review.outputs.visual_pages }}</strong>.
+              </p>
+            </body>
+          </html>
+          EOF
+          else
+            cat > _preview/index.html <<'EOF'
           <!doctype html>
           <html lang="en">
             <head>
@@ -119,6 +285,7 @@ jobs:
             </body>
           </html>
           EOF
+          fi
 
       - name: Deploy to Cloudflare Pages
         id: deploy
@@ -147,13 +314,33 @@ jobs:
         uses: actions/github-script@v9
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url || steps.deploy.outputs.deployment-url }}
+          SOURCE_MARKERS: ${{ steps.review.outputs.source_markers }}
+          GENERATED_MARKERS: ${{ steps.review.outputs.generated_markers }}
+          VISUAL_PAGES: ${{ steps.review.outputs.visual_pages }}
+          VISUAL_STATUS: ${{ steps.review.outputs.visual_status }}
         with:
           script: |
             const marker = '<!-- cloudflare-pages-pdf-preview -->';
-            const body = `${marker}
-            **Rendered PDF preview:** ${process.env.PREVIEW_URL}
+            const preview = process.env.PREVIEW_URL.replace(/\/$/, '');
+            let visualLine;
+            if (process.env.VISUAL_STATUS === 'complete') {
+              visualLine = `Rendered visual comparison: ${process.env.VISUAL_PAGES} changed page(s).`;
+            } else if (process.env.VISUAL_STATUS === 'unavailable') {
+              visualLine = 'Rendered visual comparison could not be produced; source/dependency markers are still available.';
+            } else {
+              visualLine = 'Rendered visual comparison was not needed because the QMD source changed directly.';
+            }
 
-            This preview is generated from the current pull request by Quarto and deployed to Cloudflare Pages.`;
+            const body = `${marker}
+            **Paper previews**
+
+            - [Normal PDF](${preview}/pa1.pdf)
+            - [Review PDF with change markers](${preview}/pa1-review.pdf)
+            - [Preview landing page](${preview}/)
+
+            Review PDF markers: ${process.env.SOURCE_MARKERS} changed source block(s), ${process.env.GENERATED_MARKERS} generated-output block(s). ${visualLine}
+
+            Red left-margin bars mark changed source blocks. Amber left-margin bars mark generated blocks whose dependencies changed. Amber right-edge bars mark pages detected by the rendered PDF comparison.`;
 
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
