@@ -423,19 +423,6 @@ _check(
     and all(row["exception"] == "AgentTimeoutError" for row in codex_superseded),
     "Codex rerun",
 )
-_rerun_output = {
-    label: statistics.median(
-        json.loads((path / row["trial"] / "result.json").read_text())["agent_result"]["n_output_tokens"]
-        / json.loads((path / row["trial"] / "result.json").read_text())["agent_result"]["n_agent_steps"]
-        for row in rows
-    )
-    for label, path, rows in (
-        ("superseded", RESULTS_DIR / ".superseded/issue-111/deepseek-v4p1-flash/codex", codex_superseded),
-        ("rerun", RESULTS_DIR / "deepseek-v4p1-flash", codex_rerun),
-    )
-}
-_check(round(_rerun_output["superseded"]) == 5661 and round(_rerun_output["rerun"]) == 641,
-       "Codex output per step")
 pi_rerun = [
     json.loads(path.read_text())
     for path in (RESULTS_DIR / ".excluded/deepseek-v4p1-flash/pi-rerun").rglob("result.json")
@@ -677,7 +664,7 @@ The defect had a visible effect on outcomes. Among the DeepSeek Codex and Pi tri
 
 The other runs in @tbl-reasoning-history are unaffected. Kimi K3's Pi and Codex runs used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs had further route defects and are treated in the next subsection.
 
-All affected observations are removed from the normal data path, so the comparative analysis cannot include them by accident. The five affected Codex trials were repeated with the unchanged configuration, including the one that passed, so that the selection depended on when a trial ran and not on its outcome. A bridge setting added in the meantime affects only Claude Code requests, so the Codex route was the same as before. The repeated trials replaced the original ones only after the same check confirmed that their reasoning had reached the model: their prompt-growth ratios were between 112% and 155%. The repeated trials passed three of the five tasks and none reached the timeout, whereas the original trials passed one and all five timed out. Their median output per agent step fell from 5,661 to 641 tokens. The same tasks and configuration thus behaved very differently once the model received its earlier reasoning.
+All affected observations are removed from the normal data path, so the comparative analysis cannot include them by accident. The five affected Codex trials were repeated with the unchanged configuration, including the one that passed, so that the selection depended on when a trial ran and not on its outcome. A bridge setting added in the meantime affects only Claude Code requests, so the Codex route was the same as before. The repeated trials replaced the original ones only after the same check confirmed that their reasoning had reached the model: their prompt-growth ratios were between 112% and 155%. @sec-deepseek-codex-reasoning compares the original and repeated trials.
 
 The six affected Pi trials could not be repeated. A repetition of three of them ran out of gateway budget: each first attempt stopped after 16 to 18 minutes when the gateway rejected further requests, and Pier's retries were rejected at once. With only four valid trials left, DeepSeek with Pi cannot be compared with the complete ten-task conditions. It is therefore excluded from the quantitative comparison and kept only as diagnostic evidence, together with the stopped repetition.
 
@@ -1270,7 +1257,7 @@ _ax.figure.set_size_inches(6.3, 5.6)
 _ax.figure.tight_layout()
 ```
 
-The runs differ in their dates and gateway state as well as in their route, and each run covers ten tasks, so the comparison does not isolate a cause. That the effect was much larger at `max` effort than at `high` effort is an observation from one pair of runs, not a tested relationship. The runs with documented route defects, which produced no error message, solved one and six tasks, compared with eight in the corrected run. These differences cannot be attributed exclusively to the defects.
+The runs differ in their dates and gateway state as well as in their route, and each run covers ten tasks, so the comparison does not isolate a cause. The runs with documented route defects, which produced no error message, solved one and six tasks, compared with eight in the corrected run. These differences cannot be attributed exclusively to the defects.
 
 ### Codex with and without earlier reasoning {#sec-deepseek-codex-reasoning}
 
@@ -1278,7 +1265,7 @@ The runs differ in their dates and gateway state as well as in their route, and 
 #| include: false
 
 _SUPERSEDED_CODEX = Path("data/benchmark-results/.superseded/issue-111/deepseek-v4p1-flash/codex")
-CODEX_CONDITIONS = {"removed": "reasoning removed", "kept": "reasoning kept"}
+CODEX_CONDITIONS = {"removed": "affected originals", "kept": "repetitions"}
 # The same ordinal logic as for the Claude Code routes, in Codex's hue.
 CODEX_CONDITION_COLORS = {"removed": "#8f8d86", "kept": HARNESS_COLORS["codex"]}
 CODEX_CONDITION_MARKERS = dict.fromkeys(CODEX_CONDITIONS, HARNESS_MARKERS["codex"])
@@ -1349,16 +1336,16 @@ if codex_reasoning_quoted != codex_reasoning_expected:
     raise ValueError(f"DeepSeek Codex reasoning comparison changed; update the text: {codex_reasoning_quoted}")
 ```
 
-The gateway defect of @sec-gateway-reasoning-history also allows a comparison within Codex. The five Codex trials that ran before the gateway upgrade were repeated with the same configuration on the same tasks. The two sets of trials therefore differ mainly in whether the gateway passed the earlier reasoning on to the model; the date and the job concurrency also differed. The original trials are superseded and enter no other result, and their repetitions are the canonical Codex trials for these tasks. In the original trials, the prompts grew by only 3% to 9% of the preceding reasoning; in the repetitions, by 112% to 155%. @tbl-deepseek-codex-reasoning compares the two sets.
+The gateway defect of @sec-gateway-reasoning-history also allows a comparison within Codex. The five Codex trials that ran before the gateway upgrade were repeated with the same configuration on the same tasks. The two sets of trials therefore differ mainly in whether the gateway passed the earlier reasoning on to the model; the date and the job concurrency also differed. The original trials ran under LiteLLM 1.101.0; one of them continued for three minutes after the upgrade to 1.102.0. According to the bridge request logs, all requests of the repetitions were handled by LiteLLM 1.102.1. The original trials are superseded and enter no other result, and their repetitions are the canonical Codex trials for these tasks. In the original trials, the prompts grew by only 3% to 9% of the preceding reasoning; in the repetitions, by 112% to 155%. @tbl-deepseek-codex-reasoning compares the two sets.
 
 ```{python}
 #| label: tbl-deepseek-codex-reasoning
-#| tbl-cap: "DeepSeek V4.1 Flash in Codex on the same five tasks, with the earlier reasoning removed by the gateway and kept after the upgrade. Cost is the normalized cost of the five trials in USD; output tokens, output per agent step, agent steps, and agent time are medians per trial. The trials without earlier reasoning stopped at the timeout, so their totals are lower bounds."
+#| tbl-cap: "DeepSeek V4.1 Flash in Codex on the same five tasks: the original trials affected by the gateway defect and their repetitions. Cost is the normalized cost of the five trials in USD; output tokens, output per agent step, agent steps, and agent time are medians per trial. The trials without earlier reasoning stopped at the timeout, so their totals are lower bounds."
 #| tbl-colwidths: [22, 10, 11, 8, 11, 11, 10, 17]
 
-_codex_table = ["| Earlier reasoning | Passed | Timeouts | Cost | Output (k) | Output per step | Steps | Time (min) |",
+_codex_table = ["| Trials | Passed | Timeouts | Cost | Output (k) | Output per step | Steps | Time (min) |",
                 "|:--|--:|--:|--:|--:|--:|--:|--:|"]
-for _condition, _label in (("removed", "Removed (LiteLLM 1.101.0)"), ("kept", "Kept (LiteLLM 1.102.0)")):
+for _condition, _label in (("removed", "Affected original trials"), ("kept", "Repetitions")):
     _g = _by_condition[_condition]
     _codex_table.append(
         f"| {_label} | {int(_g['passed'].sum())}/{len(_g)} | {int(_g['timeout'].sum())} "
@@ -1375,7 +1362,7 @@ Without its earlier reasoning, DeepSeek passed one of the five tasks, and all fi
 
 ```{python}
 #| label: fig-deepseek-codex-reasoning
-#| fig-cap: "DeepSeek V4.1 Flash in Codex on the same five tasks, with the earlier reasoning removed by the gateway and kept after the upgrade, one marker per trial. (a) Median prompt growth relative to the preceding reasoning; the dashed line marks the 50% threshold. (b) Output tokens per agent step, logarithmic axis. (c) Agent time per trial; the dashed line marks the three-hour timeout. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median."
+#| fig-cap: "DeepSeek V4.1 Flash in Codex on the same five tasks: the original trials affected by the gateway defect and their repetitions, one marker per trial. (a) Median prompt growth relative to the preceding reasoning; the dashed line marks the 50% threshold. (b) Output tokens per agent step, logarithmic axis. (c) Agent time per trial; the dashed line marks the three-hour timeout. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median."
 
 fig, axes = plt.subplots(1, 3, figsize=(6.3, 3.0))
 _codex_style = dict(column="condition", order=list(CODEX_CONDITIONS), labels=CODEX_CONDITIONS,
