@@ -253,6 +253,8 @@ Several measurement problems only became visible while analyzing the completed r
 | `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | Kimi run excluded; DeepSeek limitation |
 | Earlier reasoning not passed back to the model in Claude Code | LiteLLM gateway; CLIProxyAPI default configuration | Kimi run excluded; DeepSeek limitation |
 | Earlier reasoning removed before reaching Fireworks | Upstream LiteLLM gateway | Codex trials superseded, rerun pending; Pi excluded |
+| OpenCode V2 `grep` and `glob` fail without ripgrep | Upstream OpenCode 2.0.8; sandbox egress policy | Disclosed; excluded from error rates |
+| OpenCode V2 Luna input limit of 144,000 tokens | PA1 configuration | Disclosed |
 
 : Measurement issues discovered after the benchmark runs. {#tbl-measurement-issues tbl-colwidths="[45,30,25]"}
 
@@ -591,6 +593,16 @@ DeepSeek requires the earlier `reasoning_content` to be passed back whenever too
 
 A local replay of LiteLLM 1.98.0 found that its Anthropic-to-Chat Completions adapter omitted Kimi K3 Claude Code thinking blocks [@pa1Issue102]. Whether Kimi K3 depends on the earlier reasoning as strongly as DeepSeek was not verified. Both the lowered effort and missing reasoning history prevent the completed Kimi Claude Code run from representing the intended `max`-effort condition. Its outcomes, tokens, cache usage, and cost are excluded from comparative results and cross-model figures; the published trial files remain available for audit [@pa1Issue108]. The CLIProxyAPI bridge now sets `is-compat: true` for the three LiteLLM-backed models.
 
+### OpenCode V2 search tools without ripgrep {#sec-opencode-ripgrep}
+
+OpenCode 2.0.8 runs its `grep` and `glob` tools through ripgrep. If no `rg` binary is found on the `PATH` or in OpenCode's data directory, it downloads ripgrep 15.1.0 from GitHub on first use. None of the ten task images contains `rg`, and the sandbox's egress proxy admits only the configured model endpoints, so the download failed. The OpenCode server logs retained for four Luna trials each record a single download attempt at the first search call. That call and every later one failed immediately with the generic message `ripgrep execution failed`, which does not reveal the failed download. All 697 `grep` and `glob` calls in the GPT-5.6 Luna run and all 20 in the DeepSeek V4.1 Flash run failed in this way. The models could still search through the shell with `grep` and `find`.
+
+Correcting the condition requires sandbox access to GitHub, which also gives the agent external retrieval. It is therefore disclosed rather than repeated. OpenCode V2 was evaluated without working native search tools, and these calls are excluded from the tool-invocation error rates.
+
+### OpenCode V2 input limit for GPT-5.6 Luna {#sec-opencode-input-limit}
+
+OpenCode's model profiles state a context window and a separate input limit that reserves room for the output. Luna's catalogue entry lists a context of 1,050,000 tokens and an input limit of 922,000 tokens, which leaves the 128,000-token output limit. To apply the common 272,000-token window, the PA1 profile set the context to 272,000 tokens and, following the same convention, the input limit to 144,000 tokens. Codex, Claude Code, and Pi instead allowed prompts close to 272,000 tokens. No OpenCode V2 Luna trial exceeded 126,444 prompt tokens, whereas the largest prompts in the other three harnesses were between 239,619 and 255,403 tokens (@sec-luna-context). OpenCode therefore compacted Luna's context much earlier and more often. The configuration is part of the evaluated OpenCode condition and is disclosed rather than corrected.
+
 ## Benchmark coverage
 
 - TODO: Summarize the retained benchmark matrix, completed observations, and exclusions. Count Kimi K3 only for Pi and Codex; the Claude Code trial files are audit evidence, and no OpenCode V2 batch was run. Count DeepSeek V4.1 Flash without Pi (@sec-gateway-reasoning-history).
@@ -607,7 +619,289 @@ Only the Pi and Codex Kimi K3 runs enter the comparative benchmark. The earlier 
 
 ## GPT-5.6 Luna
 
-- TODO: Report and analyze the GPT-5.6 Luna results by harness, including task success, cost, token usage, and cache behavior.
+```{python}
+#| include: false
+
+from scripts.analyze_harness_trials import (
+    HARNESS_LABELS,
+    load_trials,
+    paired_ratio,
+    summarize,
+)
+from scripts.harness_figures import (
+    outcome_legend,
+    plot_task_costs,
+    plot_cache_tokens,
+    plot_invocation_errors,
+    plot_subagent_tokens,
+    plot_task_outcomes,
+    plot_tool_mix,
+    plot_trial_strip,
+)
+
+LUNA_JOBS = [
+    Path("data/benchmark-results/luna"),
+    Path("data/benchmark-results/opencode-v2-luna"),
+]
+luna_rows = load_trials("gpt-5.6-luna", LUNA_JOBS)
+luna = pd.DataFrame(luna_rows)
+luna_summary = summarize(luna_rows)
+luna_cc = luna[luna["harness"] == "claude-code"]
+
+
+def _luna_ratio(metric: str, harness: str) -> float:
+    return round(paired_ratio(luna_rows, metric, harness, "codex"), 2)
+
+
+_cc_sub_input = luna_cc["subagent_input_tokens"].sum()
+_cc_root_cached = luna_cc["cached_tokens"].sum() - luna_cc["subagent_cached_tokens"].sum()
+_cc_cost_vs_codex = (
+    luna.pivot(index="task", columns="harness", values="cost_usd")
+    .eval("`claude-code` / codex")
+)
+_spawn_models = Counter()
+for models in luna_cc["spawn_models"]:
+    _spawn_models.update(models)
+
+# The prose below quotes these values. A change in the committed data stops the
+# render here instead of leaving the text out of date.
+luna_quoted = {
+    "trials": len(luna),
+    "passed": {h: s["passed"] for h, s in luna_summary.items()},
+    "cost": {h: round(s["cost_usd"], 2) for h, s in luna_summary.items()},
+    "cost_ratio": {h: _luna_ratio("cost_usd", h) for h in ("pi", "claude-code", "opencode-v2")},
+    "input_ratio_cc": _luna_ratio("input_tokens", "claude-code"),
+    "output_ratio_cc": _luna_ratio("output_tokens", "claude-code"),
+    "steps_ratio_cc": _luna_ratio("agent_steps", "claude-code"),
+    "minutes_ratio_cc": _luna_ratio("agent_minutes", "claude-code"),
+    "input_ratio_oc": _luna_ratio("input_tokens", "opencode-v2"),
+    "output_ratio_oc": _luna_ratio("output_tokens", "opencode-v2"),
+    "cache": {h: round(100 * s["cache_hit_share"], 1) for h, s in luna_summary.items()},
+    "max_context": {h: s["max_peak_context_tokens"] for h, s in luna_summary.items()},
+    "compactions": {h: s["compactions"] for h, s in luna_summary.items()},
+    "call_errors": {h: round(100 * s["invocation_error_share"], 1) for h, s in luna_summary.items()},
+    "edit_errors": {h: round(100 * s["edit_error_share"], 1) for h, s in luna_summary.items()},
+    "web_fetches": {h: s["web_fetches"] for h, s in luna_summary.items()},
+    "cache_range": {
+        h: (round(100 * c.min(), 1), round(100 * c.max(), 1))
+        for h, c in (luna["cached_tokens"] / luna["input_tokens"]).groupby(luna["harness"])
+    },
+    "error_category_share": {
+        h: {
+            c: round(100 * n / sum(totals.values()))
+            for c, n in totals.items() if n
+        }
+        for h, totals in (
+            (h, {c: sum(d[c] for d in g["errors_by_category"]) for c in ("read", "edit", "shell")})
+            for h, g in luna.groupby("harness")
+        )
+    },
+    "spawns": int(luna_cc["subagent_spawns"].sum()),
+    "spawn_range": (int(luna_cc["subagent_spawns"].min()), int(luna_cc["subagent_spawns"].max())),
+    "background_spawns": int(luna_cc["background_spawns"].sum()),
+    "spawn_limit_rejections": int(luna_cc["spawn_limit_rejections"].sum()),
+    "spawn_models": dict(_spawn_models),
+    "sub_input_share": round(100 * _cc_sub_input / luna_cc["input_tokens"].sum()),
+    "sub_output_share": round(
+        100 * luna_cc["subagent_output_tokens"].sum() / luna_cc["output_tokens"].sum()
+    ),
+    "sub_cache": round(100 * luna_cc["subagent_cached_tokens"].sum() / _cc_sub_input),
+    "root_cache": round(100 * _cc_root_cached / luna_cc["main_input_tokens"].sum()),
+    "sub_peak": int(luna_cc["subagent_peak_context_tokens"].max()),
+    "cc_vs_codex_cost": (round(_cc_cost_vs_codex.min(), 1), round(_cc_cost_vs_codex.max(), 1)),
+    "cc_peak_range": (int(luna_cc["peak_context_tokens"].min()), int(luna_cc["peak_context_tokens"].max())),
+    "cc_max_input": round(luna_cc["input_tokens"].max() / 1e6),
+    "cc_top4_spawns_failed": not luna_cc.nlargest(4, "subagent_spawns")["passed"].any(),
+}
+luna_expected = {
+    "trials": 40,
+    "passed": {"codex": 5, "pi": 5, "claude-code": 3, "opencode-v2": 1},
+    "cost": {"codex": 8.44, "pi": 8.79, "claude-code": 139.21, "opencode-v2": 11.63},
+    "cost_ratio": {"pi": 0.96, "claude-code": 13.71, "opencode-v2": 1.04},
+    "input_ratio_cc": 8.73,
+    "output_ratio_cc": 7.85,
+    "steps_ratio_cc": 11.0,
+    "minutes_ratio_cc": 2.13,
+    "input_ratio_oc": 0.73,
+    "output_ratio_oc": 1.36,
+    "cache": {"codex": 98.4, "pi": 98.5, "claude-code": 88.2, "opencode-v2": 92.7},
+    "max_context": {"codex": 244582, "pi": 255403, "claude-code": 239619, "opencode-v2": 126444},
+    "compactions": {"codex": 8, "pi": 5, "claude-code": 79, "opencode-v2": 142},
+    "call_errors": {"codex": 2.3, "pi": 3.6, "claude-code": 1.4, "opencode-v2": 2.9},
+    "edit_errors": {"codex": 7.9, "pi": 9.4, "claude-code": 8.0, "opencode-v2": 9.1},
+    "web_fetches": {"codex": 0, "pi": 0, "claude-code": 114, "opencode-v2": 165},
+    "cache_range": {
+        "claude-code": (86.1, 92.8),
+        "codex": (96.8, 98.6),
+        "opencode-v2": (90.7, 97.0),
+        "pi": (97.0, 98.8),
+    },
+    "error_category_share": {
+        "codex": {"edit": 84, "shell": 16},
+        "pi": {"read": 23, "edit": 77},
+        "claude-code": {"read": 59, "edit": 41},
+        "opencode-v2": {"read": 91, "edit": 9},
+    },
+    "spawns": 324,
+    "spawn_range": (4, 69),
+    "background_spawns": 320,
+    "spawn_limit_rejections": 77,
+    "spawn_models": {"opus": 163, "sonnet": 130, "haiku": 22, "default": 9},
+    "sub_input_share": 72,
+    "sub_output_share": 86,
+    "sub_cache": 85,
+    "root_cache": 96,
+    "sub_peak": 239619,
+    "cc_vs_codex_cost": (3.9, 52.4),
+    "cc_peak_range": (237738, 239619),
+    "cc_max_input": 642,
+    "cc_top4_spawns_failed": True,
+}
+if luna_quoted != luna_expected:
+    raise ValueError(f"GPT-5.6 Luna data changed; update the text: {luna_quoted}")
+```
+
+GPT-5.6 Luna is the only model with a complete and comparable run in all four harnesses. All 40 canonical trials reached Luna through the same ChatGPT-backed CLIProxyAPI route, and none of the gateway defects described in @sec-measurement-corrections affected it. Three corrections apply: the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials. Two properties of the OpenCode V2 condition also shape the results below: its native search tools did not work (@sec-opencode-ripgrep), and its input limit was lower than in the other harnesses (@sec-opencode-input-limit). All values in this section are computed from the committed trial files in `data/benchmark-results/luna/` and `data/benchmark-results/opencode-v2-luna/` by `scripts/analyze_harness_trials.py`. Each harness ran each of the ten tasks once, so every comparison rests on ten paired observations. Even the largest difference in success, between Codex and OpenCode V2, rests on four tasks that only Codex solved. An exact two-sided sign test over these four tasks gives p = 0.125. Differences in success are therefore reported descriptively.
+
+### Task success {#sec-luna-success}
+
+@tbl-luna-overview summarizes the four Luna conditions. Codex and Pi each passed five of the ten tasks, Claude Code three, and OpenCode V2 one. Codex and Pi also used almost the same resources. Claude Code used more than ten times their cost, and OpenCode V2 ended six trials without passing a single fail-to-pass test.
+
+```{python}
+#| label: tbl-luna-overview
+#| tbl-cap: "GPT-5.6 Luna results per harness over the ten canonical trials. Cost is the normalized API-equivalent cost in USD. Input, output, and agent time are medians per trial; cache hits are the share of all input tokens read from the cache."
+#| tbl-colwidths: [19, 10, 11, 10, 10, 9, 10, 10, 11]
+
+from IPython.display import Markdown
+
+_overview = ["| Harness | Passed | Timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
+             "|:--|--:|--:|--:|--:|--:|--:|--:|--:|"]
+for harness, stats in luna_summary.items():
+    _overview.append(
+        f"| {HARNESS_LABELS[harness]} | {stats['passed']}/{stats['trials']} | {stats['timeouts']} "
+        f"| {stats['cost_usd']:.2f} | {stats['cost_usd'] / stats['passed']:.2f} "
+        f"| {stats['median_input_tokens'] / 1e6:.1f} | {stats['median_output_tokens'] / 1e3:.0f} "
+        f"| {stats['cache_hit_share']:.1%} | {stats['median_agent_minutes']:.0f} |"
+    )
+Markdown("\n".join(_overview))
+```
+
+@fig-luna-task-outcomes shows the result of every trial. Each cell gives the number of fail-to-pass tests that passed, which measures how close a failed trial came to a solution. Six tasks were solved in at least one harness. The hard tasks `expr`, `python-statemachine`, and `effect` and the medium task `csstree` were solved in none. In these four tasks, Codex, Pi, and Claude Code stopped at almost the same test count, for example 46 of 47 tests for `effect` and 69 of 72 for `python-statemachine`. The same few tests therefore defeated Luna regardless of the harness. Two failures passed every fail-to-pass test but broke existing behavior: Claude Code on `oxvg` passed 60 of 62 previously passing tests, and Pi on `scriggo` 775 of 1,049.
+
+```{python}
+#| label: fig-luna-task-outcomes
+#| fig-cap: "Fail-to-pass tests passed by GPT-5.6 Luna per task and harness. Green cells are passing trials; blue cells are failing trials, shaded by the share of fail-to-pass tests passed. \"regr.\" denotes a failing trial that passed all fail-to-pass tests but broke previously passing tests. Hard tasks are listed above the line."
+
+_ax = plot_task_outcomes(luna)
+_ax.figure.set_size_inches(6.3, 5.4)
+_ax.figure.tight_layout()
+```
+
+OpenCode V2 differs from the other harnesses. Six of its ten trials ended with no fail-to-pass test passed. Four of them stopped when Luna used OpenCode's `question` tool to ask for a Git author identity, which a non-interactive run cannot answer (@sec-retry-eligibility). The other two reached the three-hour agent timeout. No task was solved only in Claude Code: each of its three passes was also achieved by Codex or Pi.
+
+### Cost and token usage {#sec-luna-cost}
+
+Over all ten trials, Codex was the cheapest harness and, together with Pi, the most successful (@tbl-luna-overview). Pi reached the same success for USD 0.35 more. OpenCode V2 cost more than both and passed fewer tasks. Claude Code cost USD 139.21, 16.5 times as much as Codex, and passed two tasks fewer. @fig-luna-cost-success breaks the cost down by task. Of the 30 trials in Codex, Pi, and OpenCode V2, 28 cost between USD 0.24 and 2.00; the most expensive, OpenCode V2 on `scriggo`, cost USD 4.22. Claude Code was the most expensive harness on every task, including the three it passed.
+
+```{python}
+#| label: fig-luna-cost-success
+#| fig-cap: "Normalized cost of each GPT-5.6 Luna trial per task and harness. Solid bars are passing trials, marked with a check mark; hatched bars are failing trials. The cost axis is logarithmic."
+
+_ax = plot_task_costs(luna)
+_ax.figure.set_size_inches(6.3, 3.5)
+_ax.figure.tight_layout()
+```
+
+Totals can be dominated by single expensive tasks. The trials are therefore also compared task by task, as the geometric mean of the per-task ratios relative to Codex. By this measure, Pi cost 0.96 times as much as Codex and OpenCode V2 1.04 times. Claude Code cost 13.7 times as much, used 8.7 times the input tokens and 7.9 times the output tokens, took 11.0 times the agent steps, and ran 2.1 times as long.
+
+@fig-luna-tokens shows the tokens of every trial. Input tokens dominate the cost, but most of them were cache reads. Codex and Pi read 98.4% and 98.5% of their input tokens from the cache, OpenCode V2 92.7%, and Claude Code 88.2%. The lower cache share raises Claude Code's cost beyond its token volume. OpenCode V2 used fewer input tokens than Codex (0.73 times, per-task geometric mean) but more output tokens (1.36 times); its prompts were limited to a smaller window (@sec-luna-context). Within Claude Code, the trial with the most input tokens, 642 million, failed.
+
+```{python}
+#| label: fig-luna-tokens
+#| fig-cap: "Input and output tokens per GPT-5.6 Luna trial. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. Both axes are logarithmic."
+
+fig, axes = plt.subplots(1, 2, figsize=(6.3, 3.1))
+plot_trial_strip(luna, "input_tokens", ax=axes[0], scale=1e6, log=True,
+                 ylabel="Input tokens per trial (million)")
+plot_trial_strip(luna, "output_tokens", ax=axes[1], scale=1e3, log=True,
+                 ylabel="Output tokens per trial (thousand)")
+for _ax in axes:
+    _ax.tick_params(axis="x", labelrotation=20)
+outcome_legend(axes[0], loc="upper left")
+fig.tight_layout()
+```
+
+@fig-luna-cache relates each trial's input tokens to its cache-hit share; trials toward the top left used few tokens and read most of them from the cache. The harnesses occupy almost separate ranges. Claude Code's trials read between 86.1% and 92.8% of their input from the cache and OpenCode V2's between 90.7% and 97.0%. Codex and Pi stayed between 96.8% and 98.8%. Within each harness, the cache-hit share varied by at most seven percentage points, so it depends mainly on the harness rather than on the task.
+
+```{python}
+#| label: fig-luna-cache
+#| fig-cap: "Input tokens and cache-hit share of each GPT-5.6 Luna trial. Each point is one task; lines join the trials of the same harness in order of their input tokens. Few tokens and a high cache-hit share (top left) is best. Filled markers are passing trials. The token axis is logarithmic."
+
+_ax = plot_cache_tokens(luna)
+_ax.figure.set_size_inches(6.3, 3.4)
+_ax.figure.tight_layout()
+```
+
+### Context and compaction {#sec-luna-context}
+
+All four harnesses were configured for the same 272,000-token window, but they used different parts of it (@fig-luna-context). The largest prompts in Codex, Pi, and Claude Code reached between 239,619 and 255,403 tokens. Claude Code's largest prompt was almost the same in every trial, between 237,738 and 239,619 tokens. OpenCode V2 never exceeded 126,444 tokens, because its profile reserved the output limit from the window (@sec-opencode-input-limit). It compacted 142 times in ten trials, compared with 8 times for Codex and 5 times for Pi. Its two timeouts had 19 and 63 compactions. Claude Code compacted 79 times, including the compactions of its subagents.
+
+```{python}
+#| label: fig-luna-context
+#| fig-cap: "Largest prompt and number of compactions per GPT-5.6 Luna trial. The dashed line marks the configured 272,000-token window. Filled markers are passing trials."
+
+fig, axes = plt.subplots(1, 2, figsize=(6.3, 3.1))
+plot_trial_strip(luna, "peak_context_tokens", ax=axes[0], scale=1e3,
+                 ylabel="Largest prompt (thousand tokens)",
+                 reference=272, reference_label="272k window")
+axes[0].set_ylim(0, 300)
+plot_trial_strip(luna, "compactions", ax=axes[1], ylabel="Compactions per trial")
+for _ax in axes:
+    _ax.tick_params(axis="x", labelrotation=20)
+outcome_legend(axes[1], loc="upper left")
+fig.tight_layout()
+```
+
+### Tool use and invocation errors {#sec-luna-tools}
+
+The mix of tool calls differs strongly between the harnesses (@fig-luna-tool-mix). Codex has no separate read tool. Its calls are JavaScript cells that run shell commands or apply patches, so 74% of them are shell calls. Pi's calls are 26% reads, 30% edits, and 44% shell calls. Claude Code and OpenCode V2 read files with dedicated tools, which makes up 41% and 63% of their calls. The OpenCode V2 share includes the 697 search calls that failed without ripgrep (@sec-opencode-ripgrep). Claude Code spent 9% of its calls on delegation, described in @sec-luna-delegation. Claude Code and OpenCode V2 also attempted 114 and 165 web fetches, mostly of GitHub pages. The sandbox blocked all of them.
+
+```{python}
+#| label: fig-luna-tool-mix
+#| fig-cap: "Tool calls of GPT-5.6 Luna by category and harness. A Codex call is one JavaScript cell; Claude Code includes the calls of its subagents."
+
+_ax = plot_tool_mix(luna)
+_ax.figure.set_size_inches(6.3, 2.9)
+_ax.figure.tight_layout()
+```
+
+An invocation error is a tool call that the tool rejected because of the call itself: invalid arguments or script syntax, an edit whose old text was not found or not unique, or a missing file or out-of-range offset. Non-zero shell exits are not counted, because a failing test or an empty search is often the intended result. Blocked web fetches, the failed OpenCode V2 searches, and delegation bookkeeping calls are excluded as well. The script `scripts/analyze_harness_trials.py` implements these rules. @fig-luna-invocation-errors shows the resulting rates and which tools the rejected calls belonged to. Error rates ranged from 1.4% of calls in Claude Code to 3.6% in Pi. Edits and reads account for almost all errors. In Codex and Pi, 84% and 77% of the rejected calls were edits; in Codex, the remainder were script syntax errors in shell cells. In Claude Code and OpenCode V2, rejected reads made up 59% and 91%, mostly of files that did not exist. Between 7.9% (Codex) and 9.4% (Pi) of Luna's edit calls were rejected, most often because the text to be replaced did not match the file. The edit failure rate varies little between the four harnesses, which indicates a property of Luna's edits rather than of the harness.
+
+```{python}
+#| label: fig-luna-invocation-errors
+#| fig-cap: "Share of GPT-5.6 Luna's tool calls rejected as invalid invocations per harness, divided by the tool category of the rejected calls. Segment labels give each category's share of the harness's errors; the label above each bar gives the rate and the number of rejected and counted calls. Shell exits, blocked web fetches, the failed OpenCode V2 searches, and delegation bookkeeping calls are not counted; the Codex shell errors are script syntax errors."
+
+_ax = plot_invocation_errors(luna)
+_ax.figure.set_size_inches(6.3, 3.2)
+_ax.figure.tight_layout()
+```
+
+### Delegation in Claude Code {#sec-luna-delegation}
+
+Claude Code was the only harness in which Luna delegated work; in the other three harnesses it started no subagent. In Claude Code, Luna started 324 subagents in ten trials, between 4 and 69 per trial, and 320 of them ran in the background. Claude Code rejected 77 further requests because the limit on concurrent subagents was reached. For the started subagents, Luna requested the `opus` model 163 times, `sonnet` 130 times, and `haiku` 22 times. The same-model control described in @sec-methodology ran all of them on Luna.
+
+The subagents consumed most of the tokens. They account for 72% of Claude Code's input tokens and 86% of its output tokens. Each subagent starts with its own context, and only 85% of the subagents' input came from the cache, compared with 96% in the root sessions. No subagent prompt exceeded 239,619 tokens, so delegation did not bypass the 272,000-token window. @fig-luna-delegation shows this split for every task, together with the number of subagents started.
+
+```{python}
+#| label: fig-luna-delegation
+#| fig-cap: "Input tokens of GPT-5.6 Luna's root session and of its subagents per task in Claude Code, with the number of subagents started. A check mark denotes a passing trial."
+
+_ax = plot_subagent_tokens(luna)
+_ax.figure.set_size_inches(6.3, 3.6)
+_ax.figure.tight_layout()
+```
+
+The additional work did not produce additional solutions. Claude Code cost between 3.9 and 52.4 times as much as Codex on every task, and it was the most expensive harness on every task (@fig-luna-cost-success). It passed three tasks, compared with five for Codex, and none that Codex or Pi had not also solved. The four trials with the most subagents all failed. The `koota` trial started 69 subagents and reached the three-hour timeout without passing a single fail-to-pass test, although Codex, Pi, and OpenCode V2 all solved `koota`. The three trials with only four subagents cost between USD 3.70 and 7.12 each. For Luna, Claude Code's delegation multiplied the cost and duration of a trial without improving its outcome.
 
 ## Additional diagnostics
 
