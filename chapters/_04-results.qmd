@@ -631,6 +631,7 @@ from scripts.analyze_harness_trials import (
 from scripts.harness_figures import (
     outcome_legend,
     plot_task_costs,
+    plot_cache_tokens,
     plot_invocation_errors,
     plot_paired_metric,
     plot_subagent_tokens,
@@ -682,6 +683,10 @@ luna_quoted = {
     "call_errors": {h: round(100 * s["invocation_error_share"], 1) for h, s in luna_summary.items()},
     "edit_errors": {h: round(100 * s["edit_error_share"], 1) for h, s in luna_summary.items()},
     "web_fetches": {h: s["web_fetches"] for h, s in luna_summary.items()},
+    "cache_range": {
+        h: (round(100 * c.min(), 1), round(100 * c.max(), 1))
+        for h, c in (luna["cached_tokens"] / luna["input_tokens"]).groupby(luna["harness"])
+    },
     "error_category_share": {
         h: {
             c: round(100 * n / sum(totals.values()))
@@ -726,6 +731,12 @@ luna_expected = {
     "call_errors": {"codex": 2.3, "pi": 3.6, "claude-code": 1.4, "opencode-v2": 2.9},
     "edit_errors": {"codex": 7.9, "pi": 9.4, "claude-code": 8.0, "opencode-v2": 9.1},
     "web_fetches": {"codex": 0, "pi": 0, "claude-code": 114, "opencode-v2": 165},
+    "cache_range": {
+        "claude-code": (86.1, 92.8),
+        "codex": (96.8, 98.6),
+        "opencode-v2": (90.7, 97.0),
+        "pi": (97.0, 98.8),
+    },
     "error_category_share": {
         "codex": {"edit": 84, "shell": 16},
         "pi": {"read": 23, "edit": 77},
@@ -819,6 +830,17 @@ for _ax in axes:
     _ax.tick_params(axis="x", labelrotation=20)
 outcome_legend(axes[0], loc="upper left")
 fig.tight_layout()
+```
+
+@fig-luna-cache relates each trial's input tokens to its cache-hit share; trials toward the top left used few tokens and read most of them from the cache. The harnesses occupy almost separate ranges. Claude Code's trials read between 86.1% and 92.8% of their input from the cache and OpenCode V2's between 90.7% and 97.0%. Codex and Pi stayed between 96.8% and 98.8%. Within each harness, the cache-hit share varied by at most seven percentage points, so it depends mainly on the harness rather than on the task.
+
+```{python}
+#| label: fig-luna-cache
+#| fig-cap: "Input tokens and cache-hit share of each GPT-5.6 Luna trial. Each point is one task; lines join the trials of the same harness in order of their input tokens. Few tokens and a high cache-hit share (top left) is best. Filled markers are passing trials. The token axis is logarithmic."
+
+_ax = plot_cache_tokens(luna)
+_ax.figure.set_size_inches(6.3, 3.4)
+_ax.figure.tight_layout()
 ```
 
 ### Context and compaction {#sec-luna-context}

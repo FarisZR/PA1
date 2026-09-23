@@ -266,6 +266,46 @@ def plot_tool_mix(frame: pd.DataFrame, ax=None):
     return ax
 
 
+def plot_cache_tokens(frame: pd.DataFrame, ax=None):
+    """Input tokens against cache-hit share, one point per trial.
+
+    Points of the same harness are joined in order of their input tokens. Few
+    tokens and a high cache-hit share (top left) is best. Filled markers are
+    passing trials. The token axis is logarithmic.
+    """
+    harnesses = harnesses_in(frame)
+    data = frame.assign(cache_share=frame["cached_tokens"] / frame["input_tokens"],
+                        input_m=frame["input_tokens"] / 1e6)
+    if ax is None:
+        _, ax = plt.subplots(figsize=(6.3, 3.4))
+    for harness in harnesses:
+        group = data[data["harness"] == harness].sort_values("input_m")
+        color = HARNESS_COLORS[harness]
+        ax.plot(group["input_m"], group["cache_share"], color=color, linewidth=1, alpha=0.7,
+                zorder=2)
+        for _, row in group.iterrows():
+            ax.scatter(row["input_m"], row["cache_share"], s=32, marker=HARNESS_MARKERS[harness],
+                       facecolor=color if row["passed"] else "white", edgecolor=color,
+                       linewidth=1.3, zorder=3)
+    ax.set_xscale("log")
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:g}"))
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+    ax.set_xlabel("Input tokens per trial (million, log scale)", fontsize=8)
+    ax.set_ylabel("Input tokens read from the cache", fontsize=8)
+    handles = [
+        plt.Line2D([], [], color=HARNESS_COLORS[h], marker=HARNESS_MARKERS[h], linewidth=1,
+                   markersize=5, label=HARNESS_LABELS[h])
+        for h in harnesses
+    ]
+    handles.append(plt.Line2D([], [], marker="o", linestyle="", markersize=5,
+                              markerfacecolor="white", markeredgecolor=MUTED,
+                              label="failed (hollow)"))
+    ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, 1.0),
+              ncols=len(handles), frameon=False, fontsize=7, columnspacing=1)
+    _style_axis(ax, grid_axis="both")
+    return ax
+
+
 def plot_invocation_errors(frame: pd.DataFrame, ax=None):
     """Invocation-error rate per harness, stacked by the tool category of the rejected calls.
 
@@ -397,6 +437,7 @@ __all__: Sequence[str] = [
     "harnesses_in",
     "outcome_legend",
     "plot_paired_metric",
+    "plot_cache_tokens",
     "plot_invocation_errors",
     "plot_subagent_tokens",
     "plot_task_costs",
