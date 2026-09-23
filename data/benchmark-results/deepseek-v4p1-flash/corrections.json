@@ -200,6 +200,71 @@
         }
       ],
       "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/.retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-1"
+    },
+    {
+      "attempt": "boa-hierarchical-evaluation-canc__bujBCDU",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 304570,
+          "corrected": 303465,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "effect-sse-httpapi-streaming__pM6HK7p",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 268222,
+          "corrected": 267630,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "expr-try-catch-errors__Z8Wjqhh",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 341652,
+          "corrected": 340917,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "oxvg-structural-selector-preserv__RLzXULE",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 323976,
+          "corrected": 323432,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "python-statemachine-state-data-s__VgrK3jb",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 314373,
+          "corrected": 313697,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
     }
   ],
   "superseded_trials": [
@@ -239,7 +304,43 @@
       "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
     }
   ],
-  "replacement_trials": [],
+  "replacement_trials": [
+    {
+      "trial": "boa-hierarchical-evaluation-canc__bujBCDU",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "replaces": "boa-hierarchical-evaluation-canc__T2STcwb",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 111.7
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__pM6HK7p",
+      "task": "effect-sse-httpapi-streaming",
+      "replaces": "effect-sse-httpapi-streaming__oS7GKyx",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 155.09
+    },
+    {
+      "trial": "expr-try-catch-errors__Z8Wjqhh",
+      "task": "expr-try-catch-errors",
+      "replaces": "expr-try-catch-errors__EbwFJsC",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 115.39
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__RLzXULE",
+      "task": "oxvg-structural-selector-preservation",
+      "replaces": "oxvg-structural-selector-preserv__fJTZ3tJ",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 141.74
+    },
+    {
+      "trial": "python-statemachine-state-data-s__VgrK3jb",
+      "task": "python-statemachine-state-data-scoping",
+      "replaces": "python-statemachine-state-data-s__8WwYSfA",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 121.38
+    }
+  ],
   "excluded_runs": [
     {
       "trial": "boa-hierarchical-evaluation-canc__N52iXaG",
