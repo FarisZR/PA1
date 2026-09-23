@@ -312,7 +312,7 @@ AiOrbit ran LiteLLM 1.101.0 until about 12:02 UTC on 2026-09-21 and 1.102.0 afte
 
 The last check needs no logs, so it can be applied to every trial. When the model receives its earlier reasoning, that reasoning becomes part of the next prompt, so the prompt grows by at least as much. Two Codex calls with a similar amount of reasoning show the difference. Before the upgrade, one call produced 8,800 reasoning tokens, but the next prompt grew by only 496 tokens, or 6%; the reasoning was not in it. After the upgrade, a call with 7,996 reasoning tokens was followed by a prompt 9,920 tokens larger, or 124%, because the tool result came on top of the reasoning.
 
-Comparing every call that produced at least 1,000 reasoning tokens in this way separates the trials cleanly (@tbl-reasoning-history). In the eleven affected trials, the next prompt grew by a median of 9% of the preceding reasoning and never by more than 32%. In all other trials, it grew by at least 107%, with a median of 124%. The bridge logs show the same split: requests handled by LiteLLM 1.101.0 grew by a median of 6%, and those handled by 1.102.0 by 124%. A trial therefore counts as without earlier reasoning when its prompts grew by less than half of the preceding reasoning. The exact line does not matter, because no trial falls between 32% and 107%.
+Comparing every call that produced at least 1,000 reasoning tokens in this way separates the trials cleanly (@fig-reasoning-growth; @tbl-reasoning-history). Across the eleven affected trials, the median of trial-level prompt-growth ratios was 9%, and no trial median exceeded 32%. Across the 39 retained-reasoning trials, no trial median was below 107%, and their median was 124%. The bridge logs show the same split: requests handled by LiteLLM 1.101.0 grew by a median of 6%, and those handled by 1.102.0 by 124%. A trial therefore counts as without earlier reasoning when its prompts grew by less than half of the preceding reasoning. The exact line does not matter, because no trial median falls between 32% and 107%.
 
 ```{python}
 #| label: tbl-reasoning-history
@@ -438,6 +438,109 @@ _check(
 )
 
 Markdown("\n".join(table_lines))
+```
+
+@fig-reasoning-growth shows the trial-level separation and two short Codex sequences. Panel (b) is illustrative: the sequences come from different tasks, and prompt growth includes visible output and tool results as well as any retained reasoning. The affected prompt still grows, but much less than the reasoning produced in the highlighted call.
+
+```{python}
+#| label: fig-reasoning-growth
+#| fig-cap: "Prompt growth in committed trajectories. (a) Each bar shows one trial's median next-prompt increase relative to preceding reasoning; orange indicates affected trials and blue indicates retained-reasoning trials. The lines mark the 50% classification threshold and 100% reasoning-size reference. (b) Five consecutive Codex calls per condition, measured from the first displayed prompt. The emphasized second-to-third-call increases are 496 and 9,920 tokens after 8,800 and 7,996 reasoning tokens, respectively. The two sequences come from different tasks."
+
+trial_groups = [
+    ("DeepSeek\nCodex", False, "deepseek-v4p1-flash", "codex", 5),
+    ("DeepSeek\nPi", False, "deepseek-v4p1-flash", "pi", 6),
+    ("DeepSeek\nCodex", True, "deepseek-v4p1-flash", "codex", 5),
+    ("DeepSeek\nPi", True, "deepseek-v4p1-flash", "pi", 4),
+    ("DeepSeek\nOpenCode V2", True, "opencode-v2-deepseek-v4p1-flash", "opencode-v2", 10),
+    ("Kimi\nPi", True, "kimi-k3", "pi", 10),
+    ("Kimi\nCodex", True, "kimi-k3", "codex", 10),
+]
+affected_color, retained_color = "#b65d27", "#2875a7"
+fig, (ax_trials, ax_calls) = plt.subplots(2, 1, figsize=(7.2, 6.3))
+
+positions, values, colors, centers, group_labels = [], [], [], [], []
+next_position = 0
+for label, retained, job, harness, expected_count in trial_groups:
+    group_rows = sorted(
+        (row for row in retention_rows if row["retained"] is retained
+         and row["job"] == job and row["harness"] == harness),
+        key=lambda row: row["task"],
+    )
+    _check(len(group_rows) == expected_count, f"Figure group {label}/{retained}")
+    group_positions = list(range(next_position, next_position + len(group_rows)))
+    positions.extend(group_positions)
+    values.extend(row["retention"] for row in group_rows)
+    colors.extend([retained_color if retained else affected_color] * len(group_rows))
+    centers.append((group_positions[0] + group_positions[-1]) / 2)
+    group_labels.append(label)
+    next_position = group_positions[-1] + (3 if not retained else 2)
+
+_check(len(values) == 50 and sorted(values) == sorted(removed + kept), "Figure trial values")
+ax_trials.bar(positions, values, width=0.85, color=colors)
+ax_trials.axhline(50, color="#4b4b4b", linestyle="--", linewidth=1, label="50% threshold")
+ax_trials.axhline(100, color="#777777", linestyle=":", linewidth=1, label="100% reference")
+ax_trials.set_ylim(0, 190)
+ax_trials.set_xlim(-1, positions[-1] + 1)
+ax_trials.set_ylabel("Median prompt growth / reasoning (%)")
+ax_trials.set_xticks(centers, group_labels, fontsize=7)
+ax_trials.tick_params(axis="x", length=0)
+ax_trials.grid(axis="y", alpha=0.18)
+ax_trials.set_axisbelow(True)
+ax_trials.text(0.01, 0.96, "(a) Trial medians", transform=ax_trials.transAxes,
+               ha="left", va="top", fontsize=9, fontweight="bold")
+ax_trials.legend(loc="upper right", fontsize=7, frameon=False, ncol=2)
+
+
+def _codex_prompt_sequence(trajectory_path, reasoning, growth):
+    trajectory = json.loads(trajectory_path.read_text())
+    calls = []
+    for step in trajectory["steps"]:
+        if step.get("source") != "agent" or not step.get("metrics"):
+            continue
+        if (step.get("extra") or {}).get("is_sidechain"):
+            continue
+        metrics = step["metrics"]
+        prompt = metrics.get("prompt_tokens") or 0
+        extra = metrics.get("extra") or {}
+        produced = extra.get("reasoning_output_tokens") or extra.get("reasoning_tokens") or 0
+        if calls and calls[-1]["prompt"] == prompt:
+            calls[-1]["reasoning"] += produced
+        else:
+            calls.append({"prompt": prompt, "reasoning": produced})
+    matches = [i for i, (before, after) in enumerate(zip(calls, calls[1:]))
+               if before["reasoning"] == reasoning
+               and after["prompt"] - before["prompt"] == growth]
+    _check(len(matches) == 1 and matches[0] >= 1
+           and matches[0] + 3 <= len(calls), f"Codex sequence {trajectory_path}")
+    index = matches[0]
+    return [call["prompt"] for call in calls[index - 1:index + 4]]
+
+
+codex_examples = [
+    ("Affected Codex", affected_color,
+     RESULTS_DIR / ".superseded/issue-111/deepseek-v4p1-flash/codex/boa-hierarchical-evaluation-canc__T2STcwb/agent/trajectory.json",
+     8800, 496),
+    ("Retained Codex", retained_color,
+     RESULTS_DIR / "deepseek-v4p1-flash/scriggo-method-declarations__4CAMyqS/agent/trajectory.json",
+     7996, 9920),
+]
+for label, color, path, reasoning, growth in codex_examples:
+    prompts = _codex_prompt_sequence(path, reasoning, growth)
+    relative = [(prompt - prompts[0]) / 1000 for prompt in prompts]
+    _check(round((relative[2] - relative[1]) * 1000) == growth, f"Example growth {label}")
+    ax_calls.plot(range(1, 6), relative, color=color, marker="o", markersize=3.5,
+                  linewidth=1.5, label=label)
+    ax_calls.plot([2, 3], relative[1:3], color=color, linewidth=3)
+
+ax_calls.set_xticks(range(1, 6))
+ax_calls.set_xlabel("Consecutive API calls (local index)")
+ax_calls.set_ylabel("Prompt increase from first call (thousand tokens)")
+ax_calls.grid(axis="y", alpha=0.18)
+ax_calls.set_axisbelow(True)
+ax_calls.text(0.01, 0.96, "(b) Codex examples", transform=ax_calls.transAxes,
+              ha="left", va="top", fontsize=9, fontweight="bold")
+ax_calls.legend(loc="upper left", bbox_to_anchor=(0.01, 0.83), fontsize=7, frameon=False)
+fig.tight_layout(h_pad=2.3)
 ```
 
 The defect had a visible effect on outcomes. Among the DeepSeek Codex and Pi trials, the eleven without earlier reasoning passed three times and reached the three-hour timeout eight times. The nine with earlier reasoning passed eight times and never timed out. The jobs started their tasks in nearly the same order, so the two groups contain different tasks and the comparison is descriptive only. All affected trials started before the upgrade. One Codex trial that started ten minutes earlier ran mostly afterwards and kept its reasoning.
