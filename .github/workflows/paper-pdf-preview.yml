@@ -88,6 +88,27 @@ jobs:
         with:
           version: release
 
+      - name: Smoke-test Typst review marker
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          cat > .review-marker-smoke.qmd <<'EOF'
+          ---
+          format: typst
+          ---
+
+          ```{=typst}
+          #place(dx: -18pt, dy: 2pt)[
+            #rect(width: 3pt, height: 22pt, radius: 1.5pt, fill: rgb("#d1242f"))
+          ]
+          ```
+
+          Marker smoke test.
+          EOF
+          quarto render .review-marker-smoke.qmd
+          test -s .review-marker-smoke.pdf
+          rm -f .review-marker-smoke.qmd .review-marker-smoke.pdf .review-marker-smoke.typ
+
       - name: Render paper
         uses: quarto-dev/quarto-actions/render@v2
         with:
@@ -105,7 +126,7 @@ jobs:
 
       - name: Render review PDF
         if: github.event_name == 'pull_request'
-        run: quarto render pa1-review.qmd
+        run: quarto render --profile review
 
       - name: Verify review PDF
         if: github.event_name == 'pull_request'
