@@ -12,6 +12,25 @@ from collections.abc import Sequence
 import matplotlib.pyplot as plt
 import pandas as pd
 
+PIE_COLORS = [
+    "#4A90E2",
+    "#F26B38",
+    "#F5A623",
+    "#3FAE49",
+    "#A64CA6",
+    "#2AA7B8",
+    "#E45C83",
+    "#74B816",
+]
+
+
+def _pie_colors(count: int) -> list[str]:
+    if count <= len(PIE_COLORS):
+        return PIE_COLORS[:count]
+    repeats = (count + len(PIE_COLORS) - 1) // len(PIE_COLORS)
+    return (PIE_COLORS * repeats)[:count]
+
+
 
 def _place_legend_above(ax, labels: Sequence[str]) -> None:
     if len(labels) > 1:
@@ -269,3 +288,109 @@ def plot_stacked_percent(
     _place_legend_above(ax, labels)
     fig.tight_layout()
     return ax
+
+def _pie_autopct(min_label_percent: float):
+    def formatter(percent: float) -> str:
+        if percent < min_label_percent:
+            return ""
+        return f"{percent:.1f}%"
+
+    return formatter
+
+
+def plot_pie(
+    data: pd.DataFrame,
+    *,
+    category_col: str,
+    value_col: str,
+    title: str | None = None,
+    legend_title: str | None = None,
+    min_label_percent: float = 3.0,
+):
+    """Plot a single pie chart with percentages on sufficiently large slices."""
+    frame = data[[category_col, value_col]].copy()
+    frame[value_col] = frame[value_col].astype(float)
+    frame = frame[frame[value_col] > 0]
+    if frame.empty:
+        raise ValueError("plot_pie requires at least one positive value")
+
+    fig, ax = plt.subplots()
+    wedges, _, autotexts = ax.pie(
+        frame[value_col],
+        startangle=90,
+        counterclock=False,
+        colors=_pie_colors(len(frame)),
+        autopct=_pie_autopct(min_label_percent),
+        wedgeprops={"edgecolor": "white", "linewidth": 1},
+        textprops={"fontsize": 8, "color": "white"},
+    )
+    for text in autotexts:
+        text.set_fontweight("bold")
+
+    ax.legend(
+        wedges,
+        frame[category_col].astype(str).tolist(),
+        title=legend_title,
+        loc="center left",
+        bbox_to_anchor=(1.0, 0.5),
+        frameon=False,
+    )
+    if title:
+        ax.set_title(title)
+    ax.axis("equal")
+    fig.tight_layout()
+    return ax
+
+
+def plot_pie_comparison(
+    data: pd.DataFrame,
+    *,
+    category_col: str,
+    value_cols: Sequence[str],
+    series_labels: Sequence[str] | None = None,
+    min_label_percent: float = 3.0,
+):
+    """Plot one pie per row using a shared legend for the value columns."""
+    frame = data[[category_col, *value_cols]].copy()
+    if frame.empty:
+        raise ValueError("plot_pie_comparison requires at least one row")
+
+    labels = list(series_labels or value_cols)
+    if len(labels) != len(value_cols):
+        raise ValueError("series_labels must match value_cols")
+
+    fig, axes = plt.subplots(1, len(frame), squeeze=False)
+    axes = axes[0]
+    legend_wedges = None
+    colors = _pie_colors(len(value_cols))
+
+    for ax, (_, row) in zip(axes, frame.iterrows(), strict=True):
+        values = [float(row[column]) for column in value_cols]
+        wedges, _, autotexts = ax.pie(
+            values,
+            startangle=90,
+            counterclock=False,
+            colors=colors,
+            autopct=_pie_autopct(min_label_percent),
+            wedgeprops={"edgecolor": "white", "linewidth": 1},
+            textprops={"fontsize": 8, "color": "white"},
+        )
+        for text in autotexts:
+            text.set_fontweight("bold")
+        legend_wedges = wedges
+        ax.set_title(str(row[category_col]))
+        ax.axis("equal")
+
+    if legend_wedges is not None:
+        fig.legend(
+            legend_wedges,
+            labels,
+            loc="upper center",
+            bbox_to_anchor=(0.5, 1.0),
+            ncols=min(len(labels), 4),
+            frameon=False,
+        )
+
+    fig.tight_layout(rect=(0, 0, 1, 0.9))
+    return fig
+
