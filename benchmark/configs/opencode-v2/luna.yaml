@@ -15,6 +15,10 @@ retry:
     - RewardFileNotFoundError
     - RewardFileEmptyError
     - VerifierOutputParseError
+    # OpenCode 2.0.8 can leave the CLI exit status at 1 after a recovered
+    # session-step failure. Treat any non-zero agent exit as the recorded
+    # harness outcome instead of launching a second whole-trial attempt.
+    - NonZeroAgentExitCodeError
     # An operator interrupt (Ctrl-C) surfaces as CancelledError. It is not a
     # transport fault, and retrying it relaunches every in-flight trial.
     - CancelledError
