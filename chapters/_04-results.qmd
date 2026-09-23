@@ -793,11 +793,11 @@ for harness, stats in kimi_summary.items():
 Markdown("\n".join(_overview))
 ```
 
-@fig-kimi-task-outcomes shows the fail-to-pass tests of every trial. Several of Pi's failures came close: it passed 74 of 79 tests in `csstree`, 42 of 43 in `fastapi`, and 4 of 6 in `oxvg`. In `expr`, both harnesses passed 78 of 79 tests. Three Pi trials passed no fail-to-pass test: `boa`, `effect`, and `scriggo`, where Pi reached the three-hour agent timeout. The Pi trial on `koota` has no test result because its verifier exceeded the 30-minute limit. Verifier timeouts are final (@sec-canonical-attempts), so the trial counts as failed.
+@fig-kimi-task-outcomes shows the fail-to-pass tests of every trial. Several of Pi's failures came close: it passed 74 of 79 tests in `csstree`, 42 of 43 in `fastapi`, and 4 of 6 in `oxvg`. In `expr`, both harnesses passed 78 of 79 tests. Three Pi trials passed no fail-to-pass test: `boa`, `effect`, and `scriggo`, where Pi reached the three-hour agent timeout. The Pi trial on `koota` has no test result because its verifier exceeded the 30-minute limit. An offline replay of the verifier traced the timeout to an endless loop in the new tests (`data/kimi-koota-verifier-audit/`). Pi's solution registers a hidden marker trait for every aspect, and the tests create new aspects in one shared world. The markers accumulated until one received the second-highest bit of koota's 32-bit trait mask. An existing loop in koota that scans this mask bit by bit never ends for that bit, because the shift overflows to zero. The reference solution passes the same tests, and verifier timeouts are final (@sec-canonical-attempts), so the trial counts as failed.
 
 ```{python}
 #| label: fig-kimi-task-outcomes
-#| fig-cap: "Fail-to-pass tests passed by Kimi K3 per task and harness. Green cells are passing trials; blue cells are failing trials, shaded by the share of fail-to-pass tests passed. \"no result\" marks the Pi trial whose verifier timed out. Hard tasks are listed above the line."
+#| fig-cap: "Fail-to-pass tests passed by Kimi K3 per task and harness. Green cells are passing trials; blue cells are failing trials, shaded by the share of fail-to-pass tests passed. \"no result\" marks the Pi trial whose verifier timed out in an endless loop. Hard tasks are listed above the line."
 
 _ax = plot_task_outcomes(kimi)
 _ax.figure.set_size_inches(5.6, 5.4)
