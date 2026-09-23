@@ -8,7 +8,7 @@
 # unchanged, the same AiOrbit surface Pi, Codex, and OpenCode V2 use. This job
 # replaces the Claude Code leg of deepseek-v4p1-flash.yaml; the Pi and Codex
 # legs are unaffected and are not rerun.
-job_name: deepseek-claude-code-cliproxy-api
+job_name: deepseek-claude-code-cliproxy-api-fixed-thinking
 jobs_dir: benchmark/runs
 n_attempts: 1
 # Calibrated against upstream DeepSWE v1.1 trial data rather than assumed from
