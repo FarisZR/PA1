@@ -472,7 +472,7 @@ for label, retained, job, harness, expected_count in trial_groups:
     values.extend(row["retention"] for row in group_rows)
     colors.extend([retained_color if retained else affected_color] * len(group_rows))
     centers.append((group_positions[0] + group_positions[-1]) / 2)
-    group_labels.append(label)
+    group_labels.append(f"{label}\n({'Retained' if retained else 'Affected'})")
     next_position = group_positions[-1] + (3 if not retained else 2)
 
 _check(len(values) == 50 and sorted(values) == sorted(removed + kept), "Figure trial values")
