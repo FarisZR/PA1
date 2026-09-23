@@ -89,7 +89,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from analyze_reasoning_retention import RETAINED_THRESHOLD, load_rows, trial_retention
+from analyze_reasoning_retention import RETAINED_THRESHOLD_PERCENT, load_rows, trial_retention
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLISHED = ROOT / "data" / "benchmark-results"
@@ -443,7 +443,7 @@ def publish_codex_rerun(job: Path, superseded: list[dict[str, Any]]) -> tuple[li
     for task, raw_trial in sorted(reruns.items()):
         # Check before publishing, so a failed rerun never enters the comparative data.
         retention = trial_retention(raw_trial / "agent" / "trajectory.json")
-        if retention is None or retention < RETAINED_THRESHOLD:
+        if retention is None or retention < RETAINED_THRESHOLD_PERCENT:
             raise ValidationError(f"{raw_trial}: earlier reasoning still missing (retention {retention})")
         trial = job / raw_trial.name
         if not trial.exists():

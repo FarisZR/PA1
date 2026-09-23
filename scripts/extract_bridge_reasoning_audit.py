@@ -3,8 +3,8 @@
 
 CLIProxyAPI's request logs (``benchmark/generated/cliproxy-logs/``) contain
 complete prompts and credentials and are not published. This script keeps only
-per-request metadata: time, LiteLLM version reported by AiOrbit, the prompt
-and cached token counts returned by Fireworks, how many earlier assistant
+per-request metadata: time, LiteLLM version reported by AiOrbit, the prompt,
+cached, and reasoning token counts returned by Fireworks, how many earlier assistant
 messages carried ``reasoning_content`` in the body sent upstream, the reasoning
 characters sent and streamed back, and the SHA-256 of the source log file.
 
@@ -30,7 +30,7 @@ MODEL = "deepseek-v4p1-flash"
 NAME_WINDOW = ("2026-09-20T000000", "2026-09-22T000000")
 FIELDS = [
     "request_time_utc", "codex_session", "trial", "litellm_version", "status",
-    "prompt_tokens", "cached_tokens", "assistant_messages",
+    "prompt_tokens", "cached_tokens", "reasoning_tokens", "assistant_messages",
     "assistant_messages_with_reasoning", "reasoning_chars_sent",
     "reasoning_chars_streamed", "log_file", "log_sha256",
 ]
@@ -95,6 +95,7 @@ def audit(path: Path) -> dict | None:
         "status": status,
         "prompt_tokens": usage.get("prompt_tokens"),
         "cached_tokens": (usage.get("prompt_tokens_details") or {}).get("cached_tokens"),
+        "reasoning_tokens": (usage.get("completion_tokens_details") or {}).get("reasoning_tokens"),
         "assistant_messages": len(assistant),
         "assistant_messages_with_reasoning": len(with_reasoning),
         "reasoning_chars_sent": sum(len(m["reasoning_content"]) for m in with_reasoning),

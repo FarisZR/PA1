@@ -306,26 +306,24 @@ AiOrbit ran LiteLLM 1.101.0 until about 12:02 UTC on 2026-09-21 and 1.102.0 afte
 | LiteLLM source code | The 1.101.0 package contains the line that deletes `reasoning_content`; the 1.102.0 package does not. |
 | Offline replay of a recorded Codex request | LiteLLM 1.98.0 and 1.102.0 forward both earlier reasoning texts; 1.101.0 forwards neither. |
 | Prompt sizes reported by Fireworks | Under 1.101.0, a request carrying 3.9 million characters of earlier reasoning was counted as only 175,478 prompt tokens. At the upgrade, one session's prompt jumped from 114,626 to 714,624 tokens between two consecutive requests. |
-| Prompt growth in the trajectories | Before the upgrade, a call's reasoning barely enlarges the next prompt; afterwards, it enlarges it by the full amount (@tbl-reasoning-history). |
+| Prompt growth in the trajectories | Before the upgrade, the next prompt grows by only a few percent of a call's reasoning; afterwards, by more than all of it (@tbl-reasoning-history). |
 
 : Checks confirming that earlier reasoning was removed before it reached the model. {#tbl-reasoning-evidence tbl-colwidths="[30,70]"}
 
-The last check needs no logs, so it can be applied to every trial. If a model receives its earlier reasoning, the prompt of its next call grows by at least the size of that reasoning. If the reasoning is removed, the prompt grows only by the visible answer and the tool result. Dividing the growth by the size of the reasoning, and taking the median over a trial, gives a value close to 1 when the reasoning arrived and close to 0 when it did not. This retention value is a diagnostic for this defect, not a benchmark metric. A trial counts as without earlier reasoning when its retention is below 0.5.
+The last check needs no logs, so it can be applied to every trial. When the model receives its earlier reasoning, that reasoning becomes part of the next prompt, so the prompt grows by at least as much. Two Codex calls with a similar amount of reasoning show the difference. Before the upgrade, one call produced 8,800 reasoning tokens, but the next prompt grew by only 496 tokens, or 6%; the reasoning was not in it. After the upgrade, a call with 7,996 reasoning tokens was followed by a prompt 9,920 tokens larger, or 124%, because the tool result came on top of the reasoning.
 
-The check depends on three choices: how the stored reasoning text is converted into tokens, which calls are included, and where the line between the two groups is drawn. None of them affects the result. Reasoning is converted at four characters per token, which matches the ratio measured in the data (4.10). Only calls with long reasoning, at least 4,000 characters, are included, because for shorter reasoning the tool output that also enters the next prompt would hide the effect. The dividing line at 0.5 comes from the bridge extract, where the gateway version of each request is known: requests handled by the faulty version give a median of 0.06, those handled by the fixed version 1.28. Varying these choices within reasonable limits moves no trial from one group to the other.[^retention-sensitivity] The two groups are also far apart: trials without earlier reasoning score at most 0.29, all others at least 1.01.
-
-[^retention-sensitivity]: Tested with cutoffs of 4,000 and 8,000 characters and with 3.5 to 4.5 characters per token. Only a cutoff as low as 2,000 characters moves one trial, because tool output then dominates the growth. No pair of calls had to be skipped because the prompt shrank, as it would after a compaction.
+Comparing every call that produced at least 1,000 reasoning tokens in this way separates the trials cleanly (@tbl-reasoning-history). In the eleven affected trials, the next prompt grew by a median of 9% of the preceding reasoning and never by more than 32%. In all other trials, it grew by at least 107%, with a median of 124%. The bridge logs show the same split: requests handled by LiteLLM 1.101.0 grew by a median of 6%, and those handled by 1.102.0 by 124%. A trial therefore counts as without earlier reasoning when its prompts grew by less than half of the preceding reasoning. The exact line does not matter, because no trial falls between 32% and 107%.
 
 ```{python}
 #| label: tbl-reasoning-history
-#| tbl-cap: "Trials in which the earlier reasoning did or did not reach the model (retention below or above 0.5), with the number of passing trials."
+#| tbl-cap: "Trials in which the earlier reasoning did or did not reach the model, with the number of passing trials. A trial counts as without earlier reasoning when its prompts grew by less than half of the preceding reasoning."
 
 import csv
 import statistics
 
 from IPython.display import Markdown
 
-from scripts.analyze_reasoning_retention import RETAINED_THRESHOLD, load_rows, sensitivity
+from scripts.analyze_reasoning_retention import call_pairs, load_rows
 
 RESULTS_DIR = Path("data/benchmark-results")
 AUDIT_DIR = Path("data/litellm-reasoning-audit")
@@ -356,8 +354,12 @@ def _count(rows, retained):
     return f"{len(selected)} ({passed} passed)"
 
 
+def _check(condition, what):
+    if not condition:
+        raise ValueError(f"{what} changed; update the text above.")
+
+
 retention_rows = []
-retention_paths = []
 table_lines = [
     "| Model | Harness | Without earlier reasoning | With earlier reasoning |",
     "|:------|:--------|:-------------------------:|:----------------------:|",
@@ -369,73 +371,71 @@ for model, label, job, harness, locations in REASONING_RUNS:
         for row in load_rows(location)
         if row["harness"] == harness and row["job"] == job
     ]
-    if len(rows) != 10 or any(row["retention"] is None for row in rows):
-        raise ValueError(f"Reasoning-retention input changed for {job}/{harness}")
+    _check(len(rows) == 10 and all(row["retention"] is not None for row in rows), f"Input for {job}/{harness}")
     retention_rows.extend(rows)
-    retention_paths.extend(
-        location / row["trial"] / "agent" / "trajectory.json"
-        for location in locations
-        for row in rows
-        if (location / row["trial"]).is_dir()
-    )
     table_lines.append(f"| {model} | {label} | {_count(rows, False)} | {_count(rows, True)} |")
 
 removed = [row["retention"] for row in retention_rows if not row["retained"]]
 kept = [row["retention"] for row in retention_rows if row["retained"]]
-if len(removed) != 11 or not (0.02 <= min(removed) and max(removed) < 0.3 and 1.0 < min(kept) and max(kept) < 1.55):
-    raise ValueError("Reasoning-retention groups changed; update the text above.")
-grid = {(row["min_reasoning_chars"], row["chars_per_token"]): row["changed"] for row in sensitivity(retention_paths)}
-if any(changed for (cutoff, _), changed in grid.items() if cutoff >= 4000) or grid[(2000, 4.5)] != 1:
-    raise ValueError("Reasoning-retention sensitivity changed; update the text above.")
-chars_per_token = []
-for path in retention_paths:
-    for step in json.loads(path.read_text()).get("steps", []):
-        extra = (step.get("metrics") or {}).get("extra") or {}
-        tokens = extra.get("reasoning_output_tokens") or extra.get("reasoning_tokens")
-        if tokens and tokens >= 500 and step.get("reasoning_content"):
-            chars_per_token.append(len(step["reasoning_content"]) / tokens)
-deciles = statistics.quantiles(chars_per_token, n=20)
-if not (4.0 <= statistics.median(chars_per_token) <= 4.2 and 3.5 <= deciles[0] and deciles[-1] <= 4.6):
-    raise ValueError("Measured characters per reasoning token changed; update the text above.")
+_check(
+    len(removed) == 11 and len(kept) == 39
+    and round(statistics.median(removed)) == 9 and round(max(removed)) == 32
+    and round(min(kept)) == 107 and round(statistics.median(kept)) == 124,
+    "Retention groups",
+)
 
-# Request-level calibration from the bridge-log extract.
-requests = [row for row in csv.DictReader((AUDIT_DIR / "bridge-requests.csv").open()) if row["trial"] and row["prompt_tokens"]]
+# The two example calls quoted in the text.
+examples = {
+    (pair["reasoning"], pair["growth"])
+    for path in [
+        RESULTS_DIR / ".superseded/issue-111/deepseek-v4p1-flash/codex/boa-hierarchical-evaluation-canc__T2STcwb",
+        RESULTS_DIR / "deepseek-v4p1-flash/scriggo-method-declarations__4CAMyqS",
+    ]
+    for pair in call_pairs(path / "agent" / "trajectory.json")
+}
+_check({(8800, 496), (7996, 9920)} <= examples, "Example calls")
+
+# Request-level split by gateway version in the bridge-log extract.
+requests = [
+    row
+    for row in csv.DictReader((AUDIT_DIR / "bridge-requests.csv").open())
+    if row["trial"] and row["prompt_tokens"] and row["reasoning_tokens"]
+]
 sessions = {}
 for row in requests:
     sessions.setdefault(row["codex_session"], []).append(row)
-version_ratios = {}
+version_growth = {}
 for rows in sessions.values():
     rows.sort(key=lambda row: row["request_time_utc"])
     for before, after in zip(rows, rows[1:]):
         grown = int(after["prompt_tokens"]) - int(before["prompt_tokens"])
-        if int(before["reasoning_chars_streamed"]) >= 4000 and grown > 0:
-            version_ratios.setdefault(after["litellm_version"], []).append(
-                grown / (int(before["reasoning_chars_streamed"]) / 4)
+        if int(before["reasoning_tokens"]) >= 1000 and grown > 0:
+            version_growth.setdefault(after["litellm_version"], []).append(
+                100 * grown / int(before["reasoning_tokens"])
             )
-if not (
-    statistics.median(version_ratios["1.101.0"]) < 0.1
-    and statistics.median(version_ratios["1.102.0"]) > 1.2
-    and any(row["prompt_tokens"] == "714624" and row["cached_tokens"] == "9188" for row in requests)
-    and any(row["prompt_tokens"] == "114626" for row in requests)
+_check(
+    round(statistics.median(version_growth["1.101.0"])) == 6
+    and round(statistics.median(version_growth["1.102.0"])) == 124,
+    "Bridge-log split",
+)
+_check(
+    any(row["prompt_tokens"] == "114626" for row in requests)
+    and any(row["prompt_tokens"] == "714624" for row in requests)
     and any(
         row["prompt_tokens"] == "175478" and row["reasoning_chars_sent"] == "3890944"
         and row["litellm_version"] == "1.101.0"
         for row in requests
-    )
-):
-    raise ValueError("Bridge-log calibration changed; update the text above.")
+    ),
+    "Bridge-log examples",
+)
 
-glm_fireworks_retention = [
-    row["retention"] for row in load_rows(GLM_FIREWORKS_DIR) if row["retention"] is not None
-]
-glm_direct_retention = [row["retention"] for row in load_rows(GLM_DIRECT_DIR)]
-if (
-    len(glm_fireworks_retention) != 25
-    or max(glm_fireworks_retention) >= 0.3
-    or len(glm_direct_retention) != 8
-    or min(glm_direct_retention) <= 1.0
-):
-    raise ValueError("GLM reasoning-retention values changed; update the GLM diagnostic text.")
+glm_fireworks = [row["retention"] for row in load_rows(GLM_FIREWORKS_DIR) if row["retention"] is not None]
+glm_direct = [row["retention"] for row in load_rows(GLM_DIRECT_DIR) if row["retention"] is not None]
+_check(
+    len(glm_fireworks) == 15 and round(max(glm_fireworks)) == 16
+    and len(glm_direct) == 6 and round(min(glm_direct)) == 107,
+    "GLM reasoning check",
+)
 
 Markdown("\n".join(table_lines))
 ```
@@ -584,6 +584,6 @@ The two strongest matched examples are Codex trials. On `effect-sse-httpapi-stre
 
 Additional Fireworks-backed trajectories without a completed direct-Z.AI counterpart show the same general failure mode. Codex on `katex-multicolumn-array-spans` issued the same exact probe **1,388 times**, while Pi on `scriggo-method-declarations` executed one exact Bash probe **743 times**, including **742 consecutive calls**, before its three-hour timeout. The targeted Jev audit independently classified 740 tool calls in the Scriggo trajectory as `repetitive_no_progress`, providing corroborating review evidence for the deterministic repetition counts [@pa1JevAuditData; @pa1JevAuditMethod].
 
-The Fireworks-backed batch also ran entirely before the gateway upgrade described in @sec-gateway-reasoning-history. In each of its 25 trials with a measurable reasoning step, the earlier reasoning did not reach the model, with a retention of at most 0.25, whereas all eight direct-Z.AI trials kept it, with a retention of at least 1.09. Without it, the model no longer receives its own earlier reasoning text, which reduces the context available for its next decision and is consistent with the repeated identical calls. The batch was not repeated on the fixed gateway, however, so whether the removed reasoning explains the anomaly fully remains untested.
+The Fireworks-backed batch also ran entirely before the gateway upgrade described in @sec-gateway-reasoning-history. In all 15 of its Pi and Codex trials with enough reasoning to measure, the next prompt grew by at most 16% of the preceding reasoning, whereas in the six direct-Z.AI Pi and Codex trials it grew by at least 107%. The Claude Code trials record no reasoning token counts and cannot be checked this way. Without it, the model no longer receives its own earlier reasoning text, which reduces the context available for its next decision and is consistent with the repeated identical calls. The batch was not repeated on the fixed gateway, however, so whether the removed reasoning explains the anomaly fully remains untested.
 
 Taken together, the matched resource gap, the successful direct-Z.AI observations, and the disappearance of extreme identical-call loops on the matched direct route provide strong evidence of a **serving-path anomaly** rather than representative GLM-5.3-Flash behavior. The route change does not isolate Fireworks as the sole technical cause because it also removes AiOrbit and route-specific protocol translation; the removed reasoning history is one such AiOrbit-side factor. The paper therefore attributes the anomaly to the **Fireworks-backed serving path**, excludes GLM from model--harness performance and ranking results, and retains these observations only as a provider-route diagnostic.

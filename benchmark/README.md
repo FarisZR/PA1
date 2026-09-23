@@ -1263,7 +1263,7 @@ $PIER run \
 # (needs CODEX_CLIPROXY_REQUEST_LOG=true when the configs were generated)
 ls -t benchmark/generated/cliproxy-logs/v1-responses-* | head -20 \
   | xargs grep -ah -m1 -o 'X-Litellm-Version: [0-9.]*' | sort | uniq -c
-# after the job: every trial must show retention >= 1 (about 0.1 means removed)
+# after the job: every trial must show retention above 100% (a few percent means removed)
 python3 scripts/analyze_reasoning_retention.py benchmark/runs/deepseek-codex-rerun
 # publish the rerun in place of the superseded trials (checks retention again)
 python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
