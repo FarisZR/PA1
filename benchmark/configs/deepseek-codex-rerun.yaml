@@ -1,0 +1,61 @@
+# Codex x DeepSeek V4.1 Flash rerun of the trials affected by issue #111.
+#
+# AiOrbit ran LiteLLM 1.101.0 until about 2026-09-21 12:02 UTC. Its Fireworks
+# provider removed reasoning_content from every message before forwarding
+# (LiteLLM 32bf1aba, released in 1.100.0; removed again by LiteLLM PR #40682 in
+# 1.102.0). Codex and CLIProxyAPI sent the earlier reasoning back, but in the
+# five Codex trials of deepseek-v4p1-flash.yaml that ran before the upgrade the
+# model never received it. The other five ran after the upgrade and kept it.
+#
+# This job reruns exactly those five tasks, including the one that passed, so
+# the selection depends on the run time and not on the outcome. The Codex leg
+# is copied unchanged from deepseek-v4p1-flash.yaml. The bridge's later
+# `is-compat: true` setting only affects Claude-format translation; Codex's
+# Responses -> Chat Completions route is unchanged with optimize-multi-agent-v2
+# disabled. The six affected Pi trials are not part of this job (budget).
+job_name: deepseek-codex-rerun
+jobs_dir: benchmark/runs
+n_attempts: 1
+# Same cold-start calibration as deepseek-v4p1-flash.yaml: four concurrent
+# DeepSeek trials stay below the 7.2M cold total-prompt limit. A rate-limit
+# failure would trigger a paid retry, so the rerun keeps the original value.
+n_concurrent_trials: 4
+retry:
+  max_retries: 1
+  # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
+  # result on this task set, and verifier/reward failures are grading faults, so
+  # re-running a whole trial for either would corrupt the measurement.
+  exclude_exceptions:
+    - AgentTimeoutError
+    - VerifierTimeoutError
+    - RewardFileNotFoundError
+    - RewardFileEmptyError
+    - VerifierOutputParseError
+    # An operator interrupt (Ctrl-C) surfaces as CancelledError. It is not a
+    # transport fault, and retrying it relaunches every in-flight trial.
+    - CancelledError
+
+environment:
+  type: docker
+
+datasets:
+  - path: ../DeepSWE/tasks
+    task_names:
+      - expr-try-catch-errors
+      - python-statemachine-state-data-scoping
+      - oxvg-structural-selector-preservation
+      - effect-sse-httpapi-streaming
+      - boa-hierarchical-evaluation-cancellation
+
+agents:
+  - name: codex
+    model_name: deepseek/deepseek-v4p1-flash
+    env:
+      CODEX_CLIPROXY_API_KEY: ${CODEX_CLIPROXY_API_KEY}
+    kwargs:
+      version: "0.151.0"
+      command_model_name: deepseek-v4p1-flash
+      reasoning_effort: max
+      restrict_model_catalog: true
+      model_catalog_file: benchmark/generated/codex-thirdparty-models.json
+      config_toml_file: benchmark/generated/codex-cliproxy-no-web-search.toml
