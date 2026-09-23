@@ -42,7 +42,7 @@ CATEGORY_COLORS = {
     "edit": "#1baf7a",
     "shell": "#e87ba4",
     "delegation": "#eda100",
-    "planning": "#e34948",
+    "planning": "#008300",
     "other": "#b4b2a9",
 }
 SHARE_CMAP = LinearSegmentedColormap.from_list(
@@ -251,8 +251,7 @@ def plot_tool_mix(frame: pd.DataFrame, ax=None):
                 ax.text(left + share / 2, position, f"{share:.0%}", ha="center", va="center",
                         fontsize=7, color="white" if category in {"read", "planning"} else INK)
             left += share
-        errors = group["invocation_errors"].sum() / group["error_denominator"].sum()
-        ax.text(1.02, position, f"{total:,} calls\n{errors:.1%} call errors", va="center",
+        ax.text(1.02, position, f"{total:,} calls", va="center",
                 fontsize=7, color=INK)
     ax.set_yticks(range(len(harnesses)), [HARNESS_LABELS[h] for h in harnesses])
     ax.invert_yaxis()
@@ -265,6 +264,39 @@ def plot_tool_mix(frame: pd.DataFrame, ax=None):
               fontsize=7, handlelength=1, columnspacing=1)
     _style_axis(ax, grid_axis="x")
     return ax
+
+
+def plot_invocation_errors(frame: pd.DataFrame, axes=None):
+    """Two panels of invocation-error rates per harness: all counted calls, and edit calls.
+
+    Each bar is labeled with the rate and the underlying counts.
+    """
+    harnesses = harnesses_in(frame)
+    if axes is None:
+        _, axes = plt.subplots(1, 2, figsize=(6.3, 2.8))
+    panels = [
+        ("invocation_errors", "error_denominator", "(a) All counted tool calls"),
+        ("edit_errors", "edit_calls", "(b) Edit calls"),
+    ]
+    for ax, (errors_col, calls_col, title) in zip(axes, panels, strict=True):
+        rates = []
+        for position, harness in enumerate(harnesses):
+            group = frame[frame["harness"] == harness]
+            errors, calls = int(group[errors_col].sum()), int(group[calls_col].sum())
+            rate = errors / calls if calls else 0.0
+            rates.append(rate)
+            ax.bar(position, rate, width=0.62, color=HARNESS_COLORS[harness], zorder=3)
+            ax.annotate(f"{rate:.1%}\n{errors:,}/{calls:,}", (position, rate),
+                        xytext=(0, 3), textcoords="offset points", ha="center", va="bottom",
+                        fontsize=7, color=INK)
+        ax.set_xticks(range(len(harnesses)), [HARNESS_LABELS[h] for h in harnesses],
+                      rotation=20)
+        ax.set_ylim(0, max(rates) * 1.35)
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+        ax.set_title(title, loc="left", fontsize=8, fontweight="bold")
+        _style_axis(ax)
+    axes[0].set_ylabel("Calls rejected as invalid", fontsize=8)
+    return axes
 
 
 def plot_subagent_tokens(frame: pd.DataFrame, harness: str = "claude-code", ax=None):
@@ -347,6 +379,7 @@ __all__: Sequence[str] = [
     "harnesses_in",
     "outcome_legend",
     "plot_paired_metric",
+    "plot_invocation_errors",
     "plot_subagent_tokens",
     "plot_task_costs",
     "plot_task_outcomes",
