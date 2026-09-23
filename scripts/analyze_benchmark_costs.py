@@ -3,14 +3,15 @@
 
 The result files store total prompt, cached-prompt, and completion token counts
 for each trial.  This report applies the model prices from the benchmark
-pricing policy to every recorded attempt, including retry attempts unless
-``--exclude-retries`` is supplied.
+pricing policy to the canonical attempt of every trial. ``--include-retries``
+adds the non-canonical attempts under ``.retry-attempts`` (experimental
+overhead).
 
 For the Kimi K3 run:
-    python3 scripts/analyze_benchmark_costs.py benchmark/runs/kimi-k3
-    python3 scripts/analyze_benchmark_costs.py benchmark/runs/kimi-k3 \
-        --exclude-retries
-    python3 scripts/analyze_benchmark_costs.py benchmark/runs/kimi-k3 --format json
+    python3 scripts/analyze_benchmark_costs.py data/benchmark-results/kimi-k3
+    python3 scripts/analyze_benchmark_costs.py data/benchmark-results/kimi-k3 \
+        --include-retries
+    python3 scripts/analyze_benchmark_costs.py data/benchmark-results/kimi-k3 --format json
 """
 
 from __future__ import annotations
@@ -33,9 +34,9 @@ def parse_args() -> argparse.Namespace:
         "runs_root", type=Path, help="A job directory containing Pier result.json files."
     )
     parser.add_argument(
-        "--exclude-retries",
+        "--include-retries",
         action="store_true",
-        help="Exclude result files below .retry-attempts.",
+        help="Also count the non-canonical attempts below .retry-attempts.",
     )
     parser.add_argument(
         "--format", choices=("text", "json"), default="text", help="Output format."
@@ -43,9 +44,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def result_paths(root: Path, exclude_retries: bool) -> list[Path]:
+def result_paths(root: Path, include_retries: bool) -> list[Path]:
     paths = sorted(root.glob("*/result.json"))
-    if not exclude_retries:
+    if include_retries:
         paths.extend(sorted(root.glob(".retry-attempts/*/attempt-*/result.json")))
     return paths
 
@@ -60,9 +61,9 @@ def normalized_cost(agent_result: dict[str, Any]) -> float:
     ) / 1_000_000
 
 
-def load_rows(root: Path, exclude_retries: bool) -> list[dict[str, Any]]:
+def load_rows(root: Path, include_retries: bool) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for path in result_paths(root, exclude_retries):
+    for path in result_paths(root, include_retries):
         data = json.loads(path.read_text())
         config = data.get("config") or {}
         agent = config.get("agent") or {}
@@ -87,7 +88,7 @@ def load_rows(root: Path, exclude_retries: bool) -> list[dict[str, Any]]:
     return rows
 
 
-def report(rows: list[dict[str, Any]], exclude_retries: bool) -> dict[str, Any]:
+def report(rows: list[dict[str, Any]], include_retries: bool) -> dict[str, Any]:
     by_agent: dict[str, dict[str, Any]] = defaultdict(
         lambda: {"attempts": 0, "retry_attempts": 0, "cost_usd": 0.0}
     )
@@ -107,7 +108,7 @@ def report(rows: list[dict[str, Any]], exclude_retries: bool) -> dict[str, Any]:
             "cached_input_usd_per_million": CACHED_INPUT_RATE,
             "output_usd_per_million": OUTPUT_RATE,
         },
-        "include_retries": not exclude_retries,
+        "include_retries": include_retries,
         "attempts": len(rows),
         "agents": {
             agent: {
@@ -149,10 +150,10 @@ def print_text(result: dict[str, Any]) -> None:
 
 def main() -> None:
     args = parse_args()
-    rows = load_rows(args.runs_root, args.exclude_retries)
+    rows = load_rows(args.runs_root, args.include_retries)
     if not rows:
         raise SystemExit(f"No result files with agent usage found under {args.runs_root}")
-    result = report(rows, args.exclude_retries)
+    result = report(rows, args.include_retries)
     if args.format == "json":
         print(json.dumps(result, indent=2))
     else:

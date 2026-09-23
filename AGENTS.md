@@ -27,6 +27,7 @@
 - Do not invent benchmark results, company facts, observations, or definitions.
 - Keep raw data separate from derived outputs and document the provenance of results.
 - In `data/benchmark-results/`, always read `result.json` and `agent/trajectory.json`; they contain the corrected values. `*.original.json` files are unmodified Pier output kept only as evidence and must not be used for analysis or figures (see `data/benchmark-results/README.md`).
+- In `data/benchmark-results/`, each trial directory (`<job>/*/result.json`) holds the one canonical attempt for that trial; use only these for comparative tables, figures, success rates, and cost. `.retry-attempts/` holds non-canonical attempts (experimental overhead), and the job-level `<job>/result.json` is Pier's uncorrected run summary; do not use either for comparative results.
 
 ## Rendering and review
 

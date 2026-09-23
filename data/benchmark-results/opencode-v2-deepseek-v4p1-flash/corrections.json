@@ -1,6 +1,80 @@
 {
   "job": "opencode-v2-deepseek-v4p1-flash",
   "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
+  "attempt_selection": [
+    {
+      "trial": "fastapi-implicit-head-options__5UY3Gb3",
+      "canonical": {
+        "published": "fastapi-implicit-head-options__5UY3Gb3",
+        "pier": ".retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-1",
+        "id": "eec213bd-07dc-4ef4-b60b-54fcae346c5a",
+        "reward": 1,
+        "exception": "NonZeroAgentExitCodeError"
+      },
+      "pier_final": {
+        "published": ".retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-2",
+        "pier": "fastapi-implicit-head-options__5UY3Gb3",
+        "id": "a0c610db-18bc-4291-8694-b0a190bf3261",
+        "reward": 1,
+        "exception": null
+      },
+      "reason": "OpenCode finished and passed after recovering from a transient stream error, but OpenCode 2.0.8's non-interactive CLI kept exit status 1, so Pier repeated the trial"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__73HZQ6c",
+      "canonical": {
+        "published": "katex-multicolumn-array-spans__73HZQ6c",
+        "pier": ".retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-1",
+        "id": "6fa45b66-ca72-43ee-b3ea-10475a09ab30",
+        "reward": 1,
+        "exception": "NonZeroAgentExitCodeError"
+      },
+      "pier_final": {
+        "published": ".retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-2",
+        "pier": "katex-multicolumn-array-spans__73HZQ6c",
+        "id": "1cbb7727-50a2-470e-a106-f1e879fc7aa0",
+        "reward": 1,
+        "exception": null
+      },
+      "reason": "OpenCode finished and passed after recovering from a transient stream error, but OpenCode 2.0.8's non-interactive CLI kept exit status 1, so Pier repeated the trial"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__KKujPmj",
+      "canonical": {
+        "published": "koota-composite-trait-aspects__KKujPmj",
+        "pier": ".retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1",
+        "id": "27603618-33d9-4f82-a6bc-89cac70fbf6a",
+        "reward": 1,
+        "exception": "NonZeroAgentExitCodeError"
+      },
+      "pier_final": {
+        "published": ".retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-2",
+        "pier": "koota-composite-trait-aspects__KKujPmj",
+        "id": "b86bf417-9217-4bdb-a996-11b530852566",
+        "reward": 1,
+        "exception": null
+      },
+      "reason": "OpenCode finished and passed after recovering from a transient stream error, but OpenCode 2.0.8's non-interactive CLI kept exit status 1, so Pier repeated the trial"
+    },
+    {
+      "trial": "scriggo-method-declarations__7mKVSxh",
+      "canonical": {
+        "published": "scriggo-method-declarations__7mKVSxh",
+        "pier": ".retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-1",
+        "id": "b4e1d5f8-ac2a-4af2-9870-a2f1b3bb4db1",
+        "reward": 1,
+        "exception": "NonZeroAgentExitCodeError"
+      },
+      "pier_final": {
+        "published": ".retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-2",
+        "pier": "scriggo-method-declarations__7mKVSxh",
+        "id": "e23c7f0c-ee88-4083-a330-8e5e632445de",
+        "reward": 1,
+        "exception": null
+      },
+      "reason": "OpenCode finished and passed after recovering from a transient stream error, but OpenCode 2.0.8's non-interactive CLI kept exit status 1, so Pier repeated the trial"
+    }
+  ],
   "attempts": [
     {
       "attempt": "boa-hierarchical-evaluation-canc__95Zq5C9",
@@ -73,108 +147,6 @@
     {
       "attempt": "fastapi-implicit-head-options__5UY3Gb3",
       "harness": "opencode-v2",
-      "changes": [],
-      "opencode_session_record": {
-        "input": 26332404,
-        "cached": 26062264,
-        "output": 144177,
-        "cost": 0.3370234679999999,
-        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/fastapi-implicit-head-options__5UY3Gb3/agent/opencode-v2/opencode-v2-sessions.jsonl",
-        "dump_sha256": "edd8c0a0919f13b9000684d36d9f5a104acfbf44c50216a9e9bb7993bfb92cb4",
-        "session_outcomes": [
-          "succeeded"
-        ],
-        "validated_against_pier": true
-      }
-    },
-    {
-      "attempt": "katex-multicolumn-array-spans__73HZQ6c",
-      "harness": "opencode-v2",
-      "changes": [],
-      "opencode_session_record": {
-        "input": 48735020,
-        "cached": 48363378,
-        "output": 205261,
-        "cost": 0.555777146,
-        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/katex-multicolumn-array-spans__73HZQ6c/agent/opencode-v2/opencode-v2-sessions.jsonl",
-        "dump_sha256": "854c4a90521b61e8f1fd55416aea00cd6dd32eabecea8a0716a1e53e3bc2c50a",
-        "session_outcomes": [
-          "succeeded"
-        ],
-        "validated_against_pier": true
-      }
-    },
-    {
-      "attempt": "koota-composite-trait-aspects__KKujPmj",
-      "harness": "opencode-v2",
-      "changes": [],
-      "opencode_session_record": {
-        "input": 54870185,
-        "cached": 54475436,
-        "output": 208965,
-        "cost": 0.6060897320000002,
-        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/koota-composite-trait-aspects__KKujPmj/agent/opencode-v2/opencode-v2-sessions.jsonl",
-        "dump_sha256": "4b2778aea46ae9dd3b63ca904865295256c642fe48d677465ed091372f920a67",
-        "session_outcomes": [
-          "succeeded"
-        ],
-        "validated_against_pier": true
-      }
-    },
-    {
-      "attempt": "oxvg-structural-selector-preserv__KYpqmMT",
-      "harness": "opencode-v2",
-      "changes": [],
-      "opencode_session_record": {
-        "input": 34576217,
-        "cached": 34220654,
-        "output": 163424,
-        "cost": 0.42562827799999997,
-        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/oxvg-structural-selector-preserv__KYpqmMT/agent/opencode-v2/opencode-v2-sessions.jsonl",
-        "dump_sha256": "2d602e98f4d06731a94ed95277dbc238ee832e05835baf3cf73f5b6f6e5764f6",
-        "session_outcomes": [
-          "succeeded"
-        ],
-        "validated_against_pier": true
-      }
-    },
-    {
-      "attempt": "python-statemachine-state-data-s__mC52p3E",
-      "harness": "opencode-v2",
-      "changes": [],
-      "opencode_session_record": {
-        "input": 40530982,
-        "cached": 40187732,
-        "output": 163023,
-        "cost": 0.46442430399999995,
-        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/python-statemachine-state-data-s__mC52p3E/agent/opencode-v2/opencode-v2-sessions.jsonl",
-        "dump_sha256": "ba69df81981e3c0ac110f23c627a3c6cfe1bc9bae2c2262f4c7f2221ce116ace",
-        "session_outcomes": [
-          "succeeded"
-        ],
-        "validated_against_pier": true
-      }
-    },
-    {
-      "attempt": "scriggo-method-declarations__7mKVSxh",
-      "harness": "opencode-v2",
-      "changes": [],
-      "opencode_session_record": {
-        "input": 93949025,
-        "cached": 93418314,
-        "output": 236582,
-        "cost": 0.9268287379999998,
-        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/scriggo-method-declarations__7mKVSxh/agent/opencode-v2/opencode-v2-sessions.jsonl",
-        "dump_sha256": "7c668fd3679c106a183cda77de40766b5ed54c52785490d08379953c95f8ea02",
-        "session_outcomes": [
-          "succeeded"
-        ],
-        "validated_against_pier": true
-      }
-    },
-    {
-      "attempt": ".retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-1",
-      "harness": "opencode-v2",
       "changes": [
         {
           "field": "agent_result.n_input_tokens",
@@ -225,7 +197,7 @@
       }
     },
     {
-      "attempt": ".retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-1",
+      "attempt": "katex-multicolumn-array-spans__73HZQ6c",
       "harness": "opencode-v2",
       "changes": [
         {
@@ -277,7 +249,7 @@
       }
     },
     {
-      "attempt": ".retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-1",
+      "attempt": "koota-composite-trait-aspects__KKujPmj",
       "harness": "opencode-v2",
       "changes": [
         {
@@ -329,7 +301,41 @@
       }
     },
     {
-      "attempt": ".retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-1",
+      "attempt": "oxvg-structural-selector-preserv__KYpqmMT",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 34576217,
+        "cached": 34220654,
+        "output": 163424,
+        "cost": 0.42562827799999997,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/oxvg-structural-selector-preserv__KYpqmMT/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "2d602e98f4d06731a94ed95277dbc238ee832e05835baf3cf73f5b6f6e5764f6",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "python-statemachine-state-data-s__mC52p3E",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 40530982,
+        "cached": 40187732,
+        "output": 163023,
+        "cost": 0.46442430399999995,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/python-statemachine-state-data-s__mC52p3E/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "ba69df81981e3c0ac110f23c627a3c6cfe1bc9bae2c2262f4c7f2221ce116ace",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "scriggo-method-declarations__7mKVSxh",
       "harness": "opencode-v2",
       "changes": [
         {
@@ -378,6 +384,74 @@
         "session_outcomes": [
           "succeeded"
         ]
+      }
+    },
+    {
+      "attempt": ".retry-attempts/fastapi-implicit-head-options__5UY3Gb3/attempt-2",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 26332404,
+        "cached": 26062264,
+        "output": 144177,
+        "cost": 0.3370234679999999,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/fastapi-implicit-head-options__5UY3Gb3/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "edd8c0a0919f13b9000684d36d9f5a104acfbf44c50216a9e9bb7993bfb92cb4",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": ".retry-attempts/katex-multicolumn-array-spans__73HZQ6c/attempt-2",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 48735020,
+        "cached": 48363378,
+        "output": 205261,
+        "cost": 0.555777146,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/katex-multicolumn-array-spans__73HZQ6c/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "854c4a90521b61e8f1fd55416aea00cd6dd32eabecea8a0716a1e53e3bc2c50a",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": ".retry-attempts/koota-composite-trait-aspects__KKujPmj/attempt-2",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 54870185,
+        "cached": 54475436,
+        "output": 208965,
+        "cost": 0.6060897320000002,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/koota-composite-trait-aspects__KKujPmj/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "4b2778aea46ae9dd3b63ca904865295256c642fe48d677465ed091372f920a67",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": ".retry-attempts/scriggo-method-declarations__7mKVSxh/attempt-2",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 93949025,
+        "cached": 93418314,
+        "output": 236582,
+        "cost": 0.9268287379999998,
+        "dump": "benchmark/runs/opencode-v2-deepseek-v4p1-flash/scriggo-method-declarations__7mKVSxh/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "7c668fd3679c106a183cda77de40766b5ed54c52785490d08379953c95f8ea02",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
       }
     }
   ]

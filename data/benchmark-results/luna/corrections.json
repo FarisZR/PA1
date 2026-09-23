@@ -1,6 +1,7 @@
 {
   "job": "luna",
   "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
+  "attempt_selection": [],
   "attempts": [
     {
       "attempt": "boa-hierarchical-evaluation-canc__3ARiZqj",
