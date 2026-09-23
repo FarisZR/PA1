@@ -432,8 +432,8 @@ _check(
 glm_fireworks = [row["retention"] for row in load_rows(GLM_FIREWORKS_DIR) if row["retention"] is not None]
 glm_direct = [row["retention"] for row in load_rows(GLM_DIRECT_DIR) if row["retention"] is not None]
 _check(
-    len(glm_fireworks) == 15 and round(max(glm_fireworks)) == 16
-    and len(glm_direct) == 6 and round(min(glm_direct)) == 107,
+    len(glm_fireworks) == 25 and round(max(glm_fireworks)) == 25
+    and len(glm_direct) == 8 and round(min(glm_direct)) == 107,
     "GLM reasoning check",
 )
 
@@ -584,6 +584,8 @@ The two strongest matched examples are Codex trials. On `effect-sse-httpapi-stre
 
 Additional Fireworks-backed trajectories without a completed direct-Z.AI counterpart show the same general failure mode. Codex on `katex-multicolumn-array-spans` issued the same exact probe **1,388 times**, while Pi on `scriggo-method-declarations` executed one exact Bash probe **743 times**, including **742 consecutive calls**, before its three-hour timeout. The targeted Jev audit independently classified 740 tool calls in the Scriggo trajectory as `repetitive_no_progress`, providing corroborating review evidence for the deterministic repetition counts [@pa1JevAuditData; @pa1JevAuditMethod].
 
-The Fireworks-backed batch also ran entirely before the gateway upgrade described in @sec-gateway-reasoning-history. In all 15 of its Pi and Codex trials with enough reasoning to measure, the next prompt grew by at most 16% of the preceding reasoning, whereas in the six direct-Z.AI Pi and Codex trials it grew by at least 107%. The Claude Code trials record no reasoning token counts and cannot be checked this way. Without it, the model no longer receives its own earlier reasoning text, which reduces the context available for its next decision and is consistent with the repeated identical calls. The batch was not repeated on the fixed gateway, however, so whether the removed reasoning explains the anomaly fully remains untested.
+The Fireworks-backed batch also ran entirely before the gateway upgrade described in @sec-gateway-reasoning-history. In all 25 of its trials with enough reasoning to measure, the next prompt grew by at most 25% of the preceding reasoning, whereas in all eight direct-Z.AI trials it grew by at least 107%.[^glm-claude-reasoning] The model therefore did not see its own earlier reasoning, which reduces the context available for its next decision and is consistent with the repeated identical calls. The batch was not repeated on the fixed gateway, however, so whether the removed reasoning explains the anomaly fully remains untested.
+
+[^glm-claude-reasoning]: Claude Code does not record how many reasoning tokens a call produced. For its trials, the number is estimated from the length of the reasoning text, at about four characters per token. By this estimate, Claude Code lost its earlier reasoning in the same way: in all ten Fireworks-backed trials, and in neither of the two direct-Z.AI trials.
 
 Taken together, the matched resource gap, the successful direct-Z.AI observations, and the disappearance of extreme identical-call loops on the matched direct route provide strong evidence of a **serving-path anomaly** rather than representative GLM-5.3-Flash behavior. The route change does not isolate Fireworks as the sole technical cause because it also removes AiOrbit and route-specific protocol translation; the removed reasoning history is one such AiOrbit-side factor. The paper therefore attributes the anomaly to the **Fireworks-backed serving path**, excludes GLM from model--harness performance and ranking results, and retains these observations only as a provider-route diagnostic.

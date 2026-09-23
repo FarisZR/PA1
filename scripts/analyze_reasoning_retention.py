@@ -7,12 +7,12 @@ removes it, the prompt grows only by the visible answer and the tool result.
 
 For each call that produced at least MIN_REASONING_TOKENS reasoning tokens, the
 script compares the growth of the next prompt with those reasoning tokens. Both
-numbers are token counts recorded by the harness, so no conversion is needed.
+numbers are token counts recorded by the harness.
 A trial's retention is the median growth as a percentage of the reasoning:
 above 100% when the reasoning arrived, a few percent when it was removed. Calls
 with little reasoning are skipped because the tool result would dominate the
-growth. Trials whose harness records no reasoning token counts (Claude Code)
-have no retention value.
+growth. Claude Code records no reasoning token counts; for its trials the count
+is estimated from the length of the reasoning text (CHARS_PER_TOKEN).
 
     python3 scripts/analyze_reasoning_retention.py \
         data/benchmark-results/deepseek-v4p1-flash
@@ -27,6 +27,8 @@ from pathlib import Path
 from typing import Any
 
 MIN_REASONING_TOKENS = 1000
+# Only used for harnesses that record no reasoning token counts (Claude Code).
+CHARS_PER_TOKEN = 4
 # A trial counts as retaining its reasoning when prompts grew by at least half of it.
 RETAINED_THRESHOLD_PERCENT = 50
 
@@ -39,6 +41,7 @@ def reasoning_tokens(step: dict[str, Any]) -> int | None:
 def call_pairs(trajectory_path: Path) -> list[dict[str, int]]:
     """Return (reasoning, next-prompt growth) for every call with enough reasoning."""
     trajectory = json.loads(trajectory_path.read_text())
+    counted = any(reasoning_tokens(step) for step in trajectory.get("steps", []))
     calls: list[dict[str, int]] = []
     for step in trajectory.get("steps", []):
         if step.get("source") != "agent" or not step.get("metrics"):
@@ -46,7 +49,10 @@ def call_pairs(trajectory_path: Path) -> list[dict[str, int]]:
         if (step.get("extra") or {}).get("is_sidechain"):
             continue
         prompt = step["metrics"].get("prompt_tokens") or 0
-        reasoning = reasoning_tokens(step) or 0
+        if counted:
+            reasoning = reasoning_tokens(step) or 0
+        else:
+            reasoning = len(step.get("reasoning_content") or "") // CHARS_PER_TOKEN
         # Some converters split one model call into several steps with the same usage.
         if calls and calls[-1]["prompt"] == prompt:
             calls[-1]["reasoning"] += reasoning
