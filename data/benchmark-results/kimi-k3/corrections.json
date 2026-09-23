@@ -133,5 +133,67 @@
         }
       ]
     }
+  ],
+  "excluded_runs": [
+    {
+      "trial": "boa-hierarchical-evaluation-canc__245SQfJ",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/boa-hierarchical-evaluation-canc__245SQfJ",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__6vuvpdq",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/csstree-shorthand-expansion-comp__6vuvpdq",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__PnvLNXA",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/effect-sse-httpapi-streaming__PnvLNXA",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    },
+    {
+      "trial": "expr-try-catch-errors__xdh2hSz",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/expr-try-catch-errors__xdh2hSz",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    },
+    {
+      "trial": "fastapi-implicit-head-options__CdKbHQt",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/fastapi-implicit-head-options__CdKbHQt",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__LfhLMSd",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/katex-multicolumn-array-spans__LfhLMSd",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__FBs3PJg",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/koota-composite-trait-aspects__FBs3PJg",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__USS6tzH",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/oxvg-structural-selector-preserv__USS6tzH",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__rPBVs54",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/python-statemachine-state-data-s__rPBVs54",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    },
+    {
+      "trial": "scriggo-method-declarations__hFMoy8t",
+      "harness": "claude-code",
+      "published": ".excluded/kimi-k3/claude-code/scriggo-method-declarations__hFMoy8t",
+      "reason": "LiteLLM translated Claude Code's requested max reasoning effort to high and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+    }
   ]
 }

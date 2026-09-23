@@ -1,16 +1,17 @@
 # Filtered benchmark results
 
 This directory contains the committed, filtered evidence used for PA1 analysis
-of the primary 30-task jobs for Kimi K3, GLM 5.3 Flash, DeepSeek V4.1 Flash, and
-GPT-5.6 Luna.
+of the primary jobs for Kimi K3, GLM 5.3 Flash, DeepSeek V4.1 Flash, and
+GPT-5.6 Luna. Only the eligible Kimi K3 Pi and Codex trials are in the normal
+Kimi directory; its Claude Code trials are archived for audit (see below).
 The directory layout mirrors the corresponding job directories under the local
 `benchmark/runs/` directory, but it is a publication copy rather than a run
 workspace: every trial directory holds the canonical attempt (see "Canonical
 attempts" below).
 
-Each model directory contains:
+Each model directory normally contains:
 
-- the job-level `result.json`, `config.json`, and `lock.json`;
+- the job-level `result.json`, `config.json`, and `lock.json` (except Kimi K3, whose unfiltered Pier summary is archived);
 - each trial's canonical `result.json` and `config.json`; and
 - each trial's structured `agent/trajectory.json`; and
 - every other attempt under `.retry-attempts/`, containing its
@@ -51,7 +52,8 @@ including retry attempts, logs, sessions, verifier output, and other run
 artifacts. Unlike the other data directories, no files were selected,
 renamed, redacted, or removed from this snapshot.
 
-The analysis scripts can use a model directory directly. They read one
+The analysis scripts can use a model directory directly. The Kimi K3 directory
+contains twenty eligible Pi and Codex trials by default. They read one
 canonical attempt per trial by default; add `--include-retries` to also count
 the experimental overhead under `.retry-attempts/`:
 
@@ -59,6 +61,23 @@ the experimental overhead under `.retry-attempts/`:
 python3 scripts/analyze_benchmark_costs.py \
   data/benchmark-results/kimi-k3
 ```
+
+## Excluded Kimi K3 Claude Code run
+
+The completed Kimi K3 Claude Code run is ineligible for the comparative
+benchmark: LiteLLM lowered the requested `max` reasoning effort to `high` and
+dropped earlier reasoning from subsequent model requests ([PA1 #108](https://github.com/FarisZR/PA1/issues/108)).
+The ten trial directories are retained unchanged under
+`data/benchmark-results/.excluded/kimi-k3/claude-code/`. Pier's original
+30-trial job summary, which also includes these observations, is retained as
+`.excluded/kimi-k3/pier-job-summary.json`. These locations are audit evidence,
+not inputs for benchmark figures, success rates, token/cache totals, or costs.
+The normal `kimi-k3/*/result.json` glob now contains exactly ten Pi and ten
+Codex trials. `scripts/build_corrected_results.py` reapplies and validates this
+layout during regeneration; its `corrections.json` manifest records the excluded
+trial names, destination paths, and reason. To inspect the ineligible trials,
+an analyst must deliberately read `.excluded/kimi-k3/claude-code/*/result.json`.
+Do not modify their rewards or token counts to signal exclusion.
 
 ## Corrected files
 
@@ -134,8 +153,10 @@ The Kimi K3 Pi, GLM-5.3-Flash Codex, and DeepSeek V4.1 Flash Pi/Codex retries
 followed transport or gateway faults (the DeepSeek ones are gateway
 context-window rejections), so Pier's final trial stays canonical there.
 
-The job-level `<job>/result.json` is Pier's run summary. Its `stats` block
-(rewards, errors, token totals) reflects Pier's final trials and uncorrected
-values; do not use it for analysis.
+The job-level `<job>/result.json` is Pier's run summary for jobs other than Kimi.
+Its `stats` block (rewards, errors, token totals) reflects Pier's final trials
+and uncorrected values; do not use it for analysis. The Kimi summary is kept
+under `.excluded/kimi-k3/pier-job-summary.json` because it contains the
+ineligible Claude Code trials.
 
 `glm-5.3-sub/` is not corrected.

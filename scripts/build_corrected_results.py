@@ -52,6 +52,12 @@ Corrections (see "Measurement corrections" in the results chapter):
    therefore retried after the model or harness failed, not after a transport
    or gateway fault. Their first attempt is the observation and becomes the trial.
 
+5. Ineligible Kimi Claude Code run. The gateway lowered the intended max effort
+   to high and omitted prior reasoning on later turns. Its ten trial directories
+   and Pier's uncorrected 30-trial job summary are archived under
+   ``data/benchmark-results/.excluded/kimi-k3/``. The normal Kimi trial glob
+   then contains only the twenty Pi and Codex observations.
+
 Regeneration needs the raw run workspace (``benchmark/runs/``, not tracked by
 Git) and, for correction 3, the pinned Pier checkout:
 
@@ -109,6 +115,22 @@ FIRST_ATTEMPT_CANONICAL = {
         "oxvg-structural-selector-preserv__mGjKfoa": QUESTION_TOOL,
     },
 }
+KIMI_CLAUDE_TRIALS = frozenset({
+    "boa-hierarchical-evaluation-canc__245SQfJ",
+    "csstree-shorthand-expansion-comp__6vuvpdq",
+    "effect-sse-httpapi-streaming__PnvLNXA",
+    "expr-try-catch-errors__xdh2hSz",
+    "fastapi-implicit-head-options__CdKbHQt",
+    "katex-multicolumn-array-spans__LfhLMSd",
+    "koota-composite-trait-aspects__FBs3PJg",
+    "oxvg-structural-selector-preserv__USS6tzH",
+    "python-statemachine-state-data-s__rPBVs54",
+    "scriggo-method-declarations__hFMoy8t",
+})
+KIMI_EXCLUSION_REASON = (
+    "LiteLLM translated Claude Code's requested max reasoning effort to high "
+    "and omitted earlier reasoning from subsequent model requests (PA1 #108)"
+)
 # Same threshold as upstream Pier's token-drop heuristic, applied to input only.
 COMPACTION_DROP_TOKENS = 10_000
 REFERENCE = "chapters/_04-results.qmd#sec-measurement-corrections"
@@ -192,6 +214,59 @@ def attempts(job: Path) -> list[Path]:
     finals = sorted(p.parent for p in job.glob("*/result.json"))
     retries = sorted(p.parent for p in job.glob(".retry-attempts/*/attempt-*/result.json"))
     return finals + retries
+
+
+def exclude_kimi_claude(job: Path) -> list[dict[str, str]]:
+    """Archive the fixed ineligible run, leaving only eligible Kimi trials by default."""
+    archive = PUBLISHED / ".excluded" / job.name
+    excluded = archive / "claude-code"
+    live_names = {p.parent.name for p in job.glob("*/result.json")}
+    archived_names = {p.parent.name for p in excluded.glob("*/result.json")}
+    if archived_names - KIMI_CLAUDE_TRIALS:
+        raise ValidationError(f"Unexpected Kimi trials in {excluded}: {archived_names - KIMI_CLAUDE_TRIALS}")
+    if (live_names | archived_names) & KIMI_CLAUDE_TRIALS != KIMI_CLAUDE_TRIALS:
+        raise ValidationError("The ten known Kimi Claude Code trials are not all present")
+    if live_names & archived_names:
+        raise ValidationError(f"Kimi trials present in both locations: {live_names & archived_names}")
+    if len(live_names | archived_names) != 30:
+        raise ValidationError("Expected 30 completed Kimi K3 trials before exclusion")
+
+    for name in sorted(KIMI_CLAUDE_TRIALS):
+        trial = job / name
+        target = excluded / name
+        source = trial if trial.is_dir() else target
+        result = load(source / "result.json")
+        if result["config"]["agent"]["name"] != "claude-code":
+            raise ValidationError(f"{source}: expected Claude Code")
+        if source == trial:
+            excluded.mkdir(parents=True, exist_ok=True)
+            trial.rename(target)
+
+    for trial in job.glob("*/result.json"):
+        if load(trial)["config"]["agent"]["name"] == "claude-code":
+            raise ValidationError(f"{trial}: unlisted Kimi Claude Code observation")
+    if len(list(job.glob("*/result.json"))) != 20:
+        raise ValidationError("Expected exactly twenty eligible Kimi Pi/Codex trials")
+
+    summary = job / "result.json"
+    archived_summary = archive / "pier-job-summary.json"
+    if summary.exists() and archived_summary.exists():
+        raise ValidationError("Kimi Pier job summary exists in both locations")
+    if summary.exists():
+        archive.mkdir(parents=True, exist_ok=True)
+        summary.rename(archived_summary)
+    if not archived_summary.exists() or load(archived_summary)["n_total_trials"] != 30:
+        raise ValidationError("The unfiltered Kimi Pier job summary is missing")
+
+    return [
+        {
+            "trial": name,
+            "harness": "claude-code",
+            "published": str((excluded / name).relative_to(PUBLISHED)),
+            "reason": KIMI_EXCLUSION_REASON,
+        }
+        for name in sorted(KIMI_CLAUDE_TRIALS)
+    ]
 
 
 def agent_steps(trajectory: dict[str, Any]) -> list[dict[str, Any]]:
@@ -471,6 +546,8 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
             write_corrected(trajectory_path, corrected_trajectory, indent=2)
         else:
             restore(trajectory_path)
+    if job_name == "kimi-k3":
+        manifest["excluded_runs"] = exclude_kimi_claude(job)
     (job / "corrections.json").write_text(json.dumps(manifest, indent=2) + "\n")
     return manifest
 
