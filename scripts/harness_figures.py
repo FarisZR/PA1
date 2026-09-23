@@ -189,7 +189,7 @@ def plot_task_costs(frame: pd.DataFrame, ax=None, value_col: str = "cost_usd"):
     """Grouped bars of the normalized cost per task, one bar per harness.
 
     The cost axis is logarithmic. A check mark above a bar denotes a passing
-    trial; failing trials are drawn as hollow bars.
+    trial; failing trials are drawn as hatched bars.
     """
     harnesses = harnesses_in(frame)
     catalog = [task for task in task_catalog() if task["task"] in set(frame["task"])]
@@ -204,8 +204,8 @@ def plot_task_costs(frame: pd.DataFrame, ax=None, value_col: str = "cost_usd"):
             value = pivot.loc[task["task"], harness]
             ok = bool(passed.loc[task["task"], harness])
             x = position - 0.4 + width * (offset + 0.5)
-            ax.bar(x, value, width=width * 0.9, color=color if ok else "white",
-                   edgecolor=color, linewidth=1.1, zorder=3)
+            ax.bar(x, value, width=width * 0.9, facecolor=color if ok else "white",
+                   edgecolor=color, hatch=None if ok else "//////", linewidth=1.1, zorder=3)
             if ok:
                 ax.text(x, value * 1.15, "\u2713", ha="center", va="bottom",
                         fontsize=7, color=INK, zorder=4)
@@ -223,8 +223,8 @@ def plot_task_costs(frame: pd.DataFrame, ax=None, value_col: str = "cost_usd"):
     ax.set_xlim(-0.6, len(catalog) - 0.4)
     ax.set_ylabel("Normalized cost of the trial (USD, log scale)", fontsize=8)
     handles = [plt.Rectangle((0, 0), 1, 1, color=HARNESS_COLORS[h]) for h in harnesses]
-    handles.append(plt.Rectangle((0, 0), 1, 1, facecolor="white", edgecolor=MUTED))
-    ax.legend(handles, [HARNESS_LABELS[h] for h in harnesses] + ["failed (hollow)"],
+    handles.append(plt.Rectangle((0, 0), 1, 1, facecolor="white", edgecolor=MUTED, hatch="//////"))
+    ax.legend(handles, [HARNESS_LABELS[h] for h in harnesses] + ["failed (hatched)"],
               loc="lower center", bbox_to_anchor=(0.5, 1.0), ncols=len(handles),
               frameon=False, fontsize=7, handlelength=1.2, columnspacing=1.0)
     _style_axis(ax)
