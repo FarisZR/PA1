@@ -21,7 +21,7 @@ n_attempts: 1
 #
 # Upstream measures deepseek-v4-flash and this job runs v4.1; the ratio is
 # assumed to carry across the point release.
-n_concurrent_trials: 4
+n_concurrent_trials: 10 # increased concurrency due to warmed up limits
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
