@@ -447,6 +447,65 @@ _check(
     "Pi rerun",
 )
 
+# Trials running at the upgrade: prompt growth before and after, within each trial.
+_UPGRADE = ("2026-09-21T12:01:05", "2026-09-21T12:01:40")
+
+
+def _growth_around_upgrade(trajectory_path):
+    trajectory = json.loads(trajectory_path.read_text())
+    counted = any(((s.get("metrics") or {}).get("extra") or {}).get("reasoning_output_tokens")
+                  or ((s.get("metrics") or {}).get("extra") or {}).get("reasoning_tokens")
+                  for s in trajectory["steps"])
+    calls = []
+    for step in trajectory["steps"]:
+        if step.get("source") != "agent" or not step.get("metrics") or (step.get("extra") or {}).get("is_sidechain"):
+            continue
+        extra = step["metrics"].get("extra") or {}
+        produced = ((extra.get("reasoning_output_tokens") or extra.get("reasoning_tokens") or 0) if counted
+                    else len(step.get("reasoning_content") or "") // 4)
+        prompt = step["metrics"].get("prompt_tokens") or 0
+        if calls and calls[-1][1] == prompt:
+            calls[-1][2] += produced
+        else:
+            calls.append([step["timestamp"], prompt, produced])
+    before, after = [], []
+    for call, following in zip(calls, calls[1:]):
+        if call[2] >= 1000 and following[1] > call[1]:
+            growth = 100 * (following[1] - call[1]) / call[2]
+            if call[0] < _UPGRADE[0]:
+                before.append(growth)
+            elif call[0] > _UPGRADE[1]:
+                after.append(growth)
+    return before, after
+
+
+_versions = sorted((row["request_time_utc"], row["litellm_version"]) for row in csv.DictReader(
+    (AUDIT_DIR / "bridge-requests.csv").open()) if row["litellm_version"])
+_check(max(t for t, v in _versions if v == "1.101.0")[:19] == _UPGRADE[0]
+       and min(t for t, v in _versions if v == "1.102.0")[:19] == _UPGRADE[1], "Gateway switch")
+_spanning = {}
+for result_path in RESULTS_DIR.rglob("result.json"):
+    execution = json.loads(result_path.read_text()).get("agent_execution") or {}
+    if (execution.get("finished_at") and execution["started_at"] < _UPGRADE[1] < execution["finished_at"]
+            and (result_path.parent / "agent/trajectory.json").exists()
+            and "pi-rerun" not in result_path.parts and ".retry-attempts" not in result_path.parts):
+        _spanning[str(result_path.parent.relative_to(RESULTS_DIR))] = _growth_around_upgrade(
+            result_path.parent / "agent/trajectory.json")
+_check(
+    sorted(_spanning) == [
+        ".excluded/deepseek-v4p1-flash/claude-code-litellm/katex-multicolumn-array-spans__WuqbLik",
+        ".excluded/deepseek-v4p1-flash/pi/katex-multicolumn-array-spans__2cKox7Q",
+        ".superseded/issue-111/deepseek-v4p1-flash/codex/expr-try-catch-errors__EbwFJsC",
+        "deepseek-v4p1-flash/katex-multicolumn-array-spans__oHdn7io",
+    ]
+    and round(min(statistics.median(b) for b, _ in _spanning.values())) == 3
+    and round(max(statistics.median(b) for b, _ in _spanning.values())) == 15
+    and round(min(statistics.median(a) for _, a in _spanning.values())) == 105
+    and round(max(statistics.median(a) for _, a in _spanning.values())) == 121
+    and [len(x) for x in _spanning["deepseek-v4p1-flash/katex-multicolumn-array-spans__oHdn7io"]] == [9, 27],
+    "Trials running at the upgrade",
+)
+
 # The two example calls quoted in the text.
 examples = {
     (pair["reasoning"], pair["growth"])
@@ -614,7 +673,7 @@ ax_calls.legend(loc="upper left", bbox_to_anchor=(0.01, 0.83), fontsize=7, frame
 fig.tight_layout(h_pad=2.3)
 ```
 
-The defect had a visible effect on outcomes. Among the DeepSeek Codex and Pi trials, the eleven without earlier reasoning passed three times and reached the three-hour timeout eight times. The nine with earlier reasoning passed eight times and never timed out. The jobs started their tasks in nearly the same order, so the two groups contain different tasks and the comparison is descriptive only. All affected trials started before the upgrade. One Codex trial that started ten minutes earlier ran mostly afterwards and kept its reasoning.
+The defect had a visible effect on outcomes. Among the DeepSeek Codex and Pi trials, the eleven without earlier reasoning passed three times and reached the three-hour timeout eight times. The nine with earlier reasoning passed eight times and never timed out. The jobs started their tasks in nearly the same order, so the two groups contain different tasks and the comparison is descriptive only. All affected trials started before the upgrade. The switch between the two gateway versions was abrupt: in the bridge logs, the last request handled by 1.101.0 was at 12:01:05 UTC and the first handled by 1.102.0 at 12:01:40 UTC, with no mixing afterwards. Four trials, one each of Codex, Pi, and Claude Code among the affected ones and one Codex trial among those with earlier reasoning, were running at that moment. In each of them, the prompt growth changed within the trial, from a median of 3% to 15% of the preceding reasoning before the upgrade to between 105% and 121% after it. The three affected trials ran mostly before the upgrade. The fourth, a Codex trial on `katex` that started ten minutes before it, made 9 of its 36 measured calls without its earlier reasoning and 27 with it; it counts as a trial with earlier reasoning and remains in the comparison.
 
 The other runs in @tbl-reasoning-history are unaffected. Kimi K3's Pi and Codex runs used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs had further route defects and are treated in the next subsection.
 
@@ -663,14 +722,19 @@ COVERAGE_GAPS = {
     ("kimi-k3", "opencode-v2"): "not run",
     ("deepseek-v4p1-flash", "pi"): "excluded",
 }
+# GLM-5.3-Flash is excluded as a model; its runs serve only as the route diagnostic.
+GLM_ROW = "GLM-5.3-Flash"
 
 
 def _attempt_cost(model: str, paths) -> tuple[int, float]:
+    """Attempts and their normalized cost; attempts without recorded usage add no cost."""
     rates = model_rates(model)
     total = 0.0
     paths = list(paths)
     for path in paths:
-        agent = json.loads(path.read_text())["agent_result"]
+        agent = json.loads(path.read_text()).get("agent_result") or {}
+        if agent.get("n_input_tokens") is None:
+            continue
         cached = agent["n_cache_tokens"] or 0
         total += ((agent["n_input_tokens"] - cached) * rates["input"] + cached * rates["cached_input"]
                   + agent["n_output_tokens"] * rates["output"]) / 1e6
@@ -706,7 +770,20 @@ OVERHEAD = [
     ("DeepSeek V4.1 Flash, Claude Code via default CLIProxyAPI", "deepseek-v4p1-flash",
      (_ds_excluded / "claude-code-cliproxy-default").glob("*/result.json"),
      "No trial with earlier reasoning"),
+    ("GLM-5.3-Flash, Fireworks-backed batch", "glm-5p3-flash",
+     [*(_RESULTS / "glm-5.3-flash").glob("*/result.json"),
+      *(_RESULTS / "glm-5.3-flash").glob(".retry-attempts/*/*/result.json")],
+     "Model excluded; provider-route diagnostic only"),
+    ("GLM-5.3-Flash, direct Z.AI snapshot", "glm-5p3-flash",
+     [*(_RESULTS / "glm-5.3-sub").glob("*/result.json"),
+      *(_RESULTS / "glm-5.3-sub").glob(".retry-attempts/*/*/result.json")],
+     "Model excluded; incomplete, provider-route diagnostic only"),
 ]
+_glm_without_usage = sum(
+    json.loads(path.read_text()).get("agent_result", {}).get("n_input_tokens") is None
+    for base in ("glm-5.3-flash", "glm-5.3-sub")
+    for path in [*(_RESULTS / base).glob("*/result.json"), *(_RESULTS / base).glob(".retry-attempts/*/*/result.json")]
+)
 _retries = [
     _attempt_cost(model, (_RESULTS / job).glob(".retry-attempts/*/*/result.json"))
     for model, (_, jobs) in COVERAGE_MODELS.items() for job in jobs
@@ -721,6 +798,7 @@ coverage_quoted = {
     "canonical_cost": {m: round(c, 2) for m, (_, c) in _canonical_cost.items()},
     "overhead": [(label, n, round(cost, 2)) for label, n, cost, _ in _overhead_rows],
     "overhead_total": round(sum(row[2] for row in _overhead_rows), 2),
+    "glm_without_usage": _glm_without_usage,
 }
 coverage_expected = {
     "cells": {
@@ -737,19 +815,22 @@ coverage_expected = {
         ("DeepSeek V4.1 Flash, Codex, superseded", 6, 4.02),
         ("DeepSeek V4.1 Flash, Claude Code via LiteLLM", 10, 3.45),
         ("DeepSeek V4.1 Flash, Claude Code via default CLIProxyAPI", 10, 7.59),
+        ("GLM-5.3-Flash, Fireworks-backed batch", 32, 184.19),
+        ("GLM-5.3-Flash, direct Z.AI snapshot", 32, 9.44),
         ("Non-canonical retries in the comparative jobs", 10, 7.21),
     ],
-    "overhead_total": 175.75,
+    "overhead_total": 369.37,
+    "glm_without_usage": 7,
 }
 if coverage_quoted != coverage_expected:
     raise ValueError(f"Benchmark coverage changed; update the text: {coverage_quoted}")
 ```
 
-The comparative benchmark consists of nine model--harness conditions with ten canonical trials each, one per task, 90 trials in total (@tbl-benchmark-coverage). GPT-5.6 Luna is covered in all four harnesses, DeepSeek V4.1 Flash in three, and Kimi K3 in two. Every condition contains the same ten tasks, so the comparisons within a model are paired by task. The GLM-5.3-Flash runs are not part of the matrix; they serve only as the provider-route diagnostic described in @sec-methodology.
+The comparative benchmark consists of nine model--harness conditions with ten canonical trials each, one per task, 90 trials in total (@tbl-benchmark-coverage). GPT-5.6 Luna is covered in all four harnesses, DeepSeek V4.1 Flash in three, and Kimi K3 in two. Every condition contains the same ten tasks, so the comparisons within a model are paired by task. GLM-5.3-Flash, the fourth planned model, is excluded completely: none of its trials enters any comparative result. Its Fireworks-backed batch of 30 trials and the incomplete direct Z.AI snapshot of eight trials are kept only for the provider-route diagnostic described in @sec-methodology.
 
 ```{python}
 #| label: tbl-benchmark-coverage
-#| tbl-cap: "Canonical trials per model and harness in the comparative benchmark. \"excluded\" marks a completed run that is kept only as audit evidence; \"not run\" marks a run that was not carried out within the budget."
+#| tbl-cap: "Canonical trials per model and harness in the comparative benchmark. \"excluded\" marks a run that is kept only as audit evidence, or, for GLM-5.3-Flash, a model excluded as a whole; \"not run\" marks a run that was not carried out within the budget."
 #| tbl-colwidths: [28, 13, 13, 16, 16, 14]
 
 _coverage = ["| Model | " + " | ".join(COVERAGE_HARNESSES.values()) + " | Trials |",
@@ -758,17 +839,18 @@ for model, (label, _) in COVERAGE_MODELS.items():
     cells = [str(_cells[model, h]) if (model, h) in _cells else COVERAGE_GAPS[model, h] for h in COVERAGE_HARNESSES]
     _coverage.append(f"| {label} | " + " | ".join(cells)
                      + f" | {sum(_cells.get((model, h), 0) for h in COVERAGE_HARNESSES)} |")
+_coverage.append(f"| {GLM_ROW} | " + " | ".join(["excluded"] * len(COVERAGE_HARNESSES)) + " | 0 |")
 _coverage.append("| **Total** | | | | | **" + str(sum(_cells.values())) + "** |")
 Markdown("\n".join(_coverage))
 ```
 
-Three cells of the planned matrix are empty, for different reasons. Kimi K3 was not run with OpenCode V2 because the budget was exhausted (@sec-methodology). The Kimi K3 Claude Code run was completed but is excluded, because the gateway lowered its reasoning effort and omitted its earlier reasoning (@sec-measurement-corrections). DeepSeek V4.1 Flash with Pi is excluded because six of its ten trials never gave the model its earlier reasoning and could not be repeated (@sec-gateway-reasoning-history). None of these gaps is counted as a failed task. Two further DeepSeek conditions were repaired by repetition: five Codex trials and the complete Claude Code run were repeated after the gateway defects had been fixed, and only the repetitions enter the matrix.
+Apart from the excluded GLM-5.3-Flash row, three cells of the planned matrix are empty, for different reasons. Kimi K3 was not run with OpenCode V2 because the budget was exhausted (@sec-methodology). The Kimi K3 Claude Code run was completed but is excluded, because the gateway lowered its reasoning effort and omitted its earlier reasoning (@sec-measurement-corrections). DeepSeek V4.1 Flash with Pi is excluded because six of its ten trials never gave the model its earlier reasoning and could not be repeated (@sec-gateway-reasoning-history). None of these gaps is counted as a failed task. Two further DeepSeek conditions were repaired by repetition: five Codex trials and the complete Claude Code run were repeated after the gateway defects had been fixed, and only the repetitions enter the matrix.
 
-The observations that do not enter the comparison are kept in the published data outside the normal trial directories, under `.excluded/`, `.superseded/`, and `.retry-attempts/` (@sec-measurement-corrections). @tbl-benchmark-overhead lists them with their normalized cost. The 90 canonical trials cost USD 227.35 for Kimi K3, USD 10.80 for DeepSeek V4.1 Flash, and USD 168.07 for GPT-5.6 Luna. The observations outside the comparison add USD 175.75 of experimental overhead, most of it the excluded Kimi K3 Claude Code run. As described in @sec-methodology, all costs are API-equivalent normalizations; the Luna trials were not billed per token.
+The observations that do not enter the comparison are kept in the published data outside the normal trial directories, under `.excluded/`, `.superseded/`, and `.retry-attempts/` (@sec-measurement-corrections). @tbl-benchmark-overhead lists them with their normalized cost. The 90 canonical trials cost USD 227.35 for Kimi K3, USD 10.80 for DeepSeek V4.1 Flash, and USD 168.07 for GPT-5.6 Luna. The observations outside the comparison add USD 369.37 of experimental overhead. Most of it comes from two excluded runs: the GLM-5.3-Flash Fireworks-backed batch, at USD 184.19, and the Kimi K3 Claude Code run, at USD 146.50. As described in @sec-methodology, all costs are API-equivalent normalizations; the Luna trials were not billed per token.
 
 ```{python}
 #| label: tbl-benchmark-overhead
-#| tbl-cap: "Observations outside the comparative benchmark. Attempts include Pier's retries; cost is the normalized API-equivalent cost in USD."
+#| tbl-cap: "Observations outside the comparative benchmark. Attempts include Pier's retries; cost is the normalized API-equivalent cost in USD. Seven attempts of the direct Z.AI snapshot recorded no token usage and add no cost, so its cost is a lower bound."
 #| tbl-colwidths: [40, 11, 10, 39]
 
 _overhead = ["| Observation | Attempts | Cost | Reason |", "|:--|--:|--:|:--|"]
