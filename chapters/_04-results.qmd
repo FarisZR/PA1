@@ -766,7 +766,7 @@ if kimi_quoted != kimi_expected:
     raise ValueError(f"Kimi K3 data changed; update the text: {kimi_quoted}")
 ```
 
-Kimi K3 by Moonshot AI represents the frontier class in the model set. Only its Pi and Codex runs enter the results. The Claude Code run was completed, but two gateway defects excluded it (@sec-claude-code-reasoning). LiteLLM lowered the requested `max` effort to `high` [@pa1Issue94], and its translation from the Anthropic to the OpenAI format dropped Kimi's earlier reasoning from every later request [@pa1Issue102]. Neither defect affected Pi or Codex. Both reach the gateway through Chat Completions with an explicit `max` effort, which LiteLLM forwards unchanged. Both also ran on LiteLLM 1.98.0, before the release that removed earlier reasoning on the Fireworks route (@sec-gateway-reasoning-history). The excluded trials are kept under `data/benchmark-results/.excluded/kimi-k3/` for audit only. OpenCode V2 was not run for Kimi K3 (@sec-methodology).
+Kimi K3 by Moonshot AI is the frontier-class model in the comparison. Only its Pi and Codex runs enter the results. The Claude Code run was completed but is excluded because of two gateway defects (@sec-claude-code-reasoning). LiteLLM most likely lowered the requested `max` effort to `high` [@pa1Issue94]. In a local replay, its translation from the Anthropic to the OpenAI format also dropped Kimi's earlier reasoning from every later request [@pa1Issue102]. Neither defect affected Pi or Codex. Both reach the gateway through Chat Completions with an explicit `max` effort, which LiteLLM forwards unchanged. Both also ran on LiteLLM 1.98.0, before the release that removed earlier reasoning on the Fireworks route (@sec-gateway-reasoning-history). The excluded trials are kept under `data/benchmark-results/.excluded/kimi-k3/` for audit only. OpenCode V2 was not run for Kimi K3 (@sec-methodology).
 
 Both harnesses used Kimi's native 1,048,576-token context window. All values in this section are computed from the committed trials in `data/benchmark-results/kimi-k3/` by `scripts/analyze_harness_trials.py`. Each harness ran each of the ten tasks once, so every comparison rests on ten paired observations. Codex solved six tasks that Pi did not, and Pi solved one that Codex did not. An exact two-sided sign test over these seven tasks gives p = 0.125, so differences in success are reported descriptively.
 
@@ -793,7 +793,7 @@ for harness, stats in kimi_summary.items():
 Markdown("\n".join(_overview))
 ```
 
-@fig-kimi-task-outcomes shows the fail-to-pass tests of every trial. Several of Pi's failures came close: it passed 74 of 79 tests in `csstree`, 42 of 43 in `fastapi`, and 4 of 6 in `oxvg`. In `expr`, both harnesses stopped at 78 of 79 tests. Three Pi trials passed no fail-to-pass test. In `boa`, the new tests did not compile against Pi's changes, and in `scriggo`, Pi reached the three-hour agent timeout. The Pi trial on `koota` has no test result. Its verifier completed the existing tests and then exceeded its 30-minute limit on the new tests. Verifier timeouts are final (@sec-canonical-attempts), so the trial counts as failed.
+@fig-kimi-task-outcomes shows the fail-to-pass tests of every trial. Several of Pi's failures came close: it passed 74 of 79 tests in `csstree`, 42 of 43 in `fastapi`, and 4 of 6 in `oxvg`. In `expr`, both harnesses passed 78 of 79 tests. Three Pi trials passed no fail-to-pass test: `boa`, `effect`, and `scriggo`, where Pi reached the three-hour agent timeout. The Pi trial on `koota` has no test result because its verifier exceeded the 30-minute limit. Verifier timeouts are final (@sec-canonical-attempts), so the trial counts as failed.
 
 ```{python}
 #| label: fig-kimi-task-outcomes
@@ -806,7 +806,7 @@ _ax.figure.tight_layout()
 
 ### Cost and token usage {#sec-kimi-cost}
 
-Codex cost USD 155.98 over the ten trials and Pi USD 71.36 (@tbl-kimi-overview). Codex was the more expensive harness on every task, by a factor between 1.5 and 3.1 (@fig-kimi-cost). Because it passed more than three times as many tasks, it was nevertheless cheaper per passing trial: USD 22.28 against USD 35.68 for Pi. The most expensive trial was Codex on `scriggo`, which passed after 134 minutes for USD 55.55. Pi spent USD 20.98 on the same task before the timeout.
+Across the ten trials, Codex cost USD 155.98 and Pi USD 71.36 (@tbl-kimi-overview). Codex was the more expensive harness on every task, by a factor between 1.5 and 3.1 (@fig-kimi-cost). Because it passed more than three times as many tasks, it was nevertheless cheaper per passing trial: USD 22.28 against USD 35.68 for Pi. The most expensive trial was Codex on `scriggo`, which passed after 134 minutes for USD 55.55. Pi spent USD 20.98 on the same task before the timeout.
 
 ```{python}
 #| label: fig-kimi-cost
@@ -832,13 +832,13 @@ _ax.figure.tight_layout()
 
 ### Context and delegation {#sec-kimi-context}
 
-Kimi's large context window made compaction unnecessary. Neither harness compacted in any trial. The largest prompts, 494,304 tokens in Codex and 312,651 tokens in Pi, both occurred on `scriggo` and stayed below half of the window. Kimi also started no subagent in either harness, so every trial ran in a single session.
+Neither harness compacted Kimi's context in any trial. The largest prompts, 494,304 tokens in Codex and 312,651 tokens in Pi, both occurred on `scriggo` and stayed below half of the window. Kimi also started no subagent in either harness, so every trial ran in a single session.
 
 ### Tool use and invocation errors {#sec-kimi-tools}
 
 Both harnesses spent most of Kimi's tool calls on the shell: 70% of 2,100 calls in Codex and 71% of 1,450 in Pi. Codex has no separate read tool. Its calls are JavaScript cells that run shell commands or apply patches, and 29% of them were edits. Pi's calls were 20% edits and 9% reads.
 
-An invocation error is a tool call that the tool rejected because of the call itself: invalid arguments or script syntax, an edit whose old text was not found or not unique, or a missing file or out-of-range offset. Non-zero shell exits are not counted, because a failing test or an empty search is often the intended result. The script `scripts/analyze_harness_trials.py` implements these rules.
+An invocation error is a tool call rejected because of the call itself. This covers invalid arguments or script syntax, edits whose old text was not found or not unique, missing files, and out-of-range offsets. Non-zero shell exits are not counted, because a failing test or an empty search is often the intended result. The script `scripts/analyze_harness_trials.py` implements these rules.
 
 Codex rejected 5.1% of Kimi's calls and Pi 0.5% (@fig-kimi-invocation-errors). Of the 107 rejected Codex calls, 69 failed with a JavaScript error in the cell itself, 66 of them syntax errors. Another 35 were patches that `apply_patch` rejected because their context lines did not match the file or their format was invalid. Pi's seven errors were all edits whose old text did not match. As a result, Codex rejected 10.5% of Kimi's edit calls and Pi 2.4%. Kimi's Codex profile is derived from a GPT profile (@sec-methodology), so Kimi used the same JavaScript cell interface as the GPT models.
 
