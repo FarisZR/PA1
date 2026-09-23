@@ -193,8 +193,13 @@ jobs:
           eligible = bool(manifest.get("visual_compare_eligible"))
           base_outcome = os.environ.get("BASE_RENDER_OUTCOME", "")
 
-          if not eligible:
-              visual_status = "not-needed"
+          qmd_changed = bool(manifest.get("qmd_source_changed"))
+          render_changed = bool(manifest.get("render_input_changed"))
+
+          if qmd_changed:
+              visual_status = "source-changed"
+          elif not render_changed:
+              visual_status = "not-applicable"
           elif base_outcome == "success":
               visual_status = "complete"
           else:
@@ -348,8 +353,10 @@ jobs:
               visualLine = `Rendered visual comparison: ${process.env.VISUAL_PAGES} changed page(s).`;
             } else if (process.env.VISUAL_STATUS === 'unavailable') {
               visualLine = 'Rendered visual comparison could not be produced; source/dependency markers are still available.';
+            } else if (process.env.VISUAL_STATUS === 'source-changed') {
+              visualLine = 'Rendered page comparison was suppressed because QMD edits can cause page reflow; block-level markers are used instead.';
             } else {
-              visualLine = 'Rendered visual comparison was not needed because the QMD source changed directly.';
+              visualLine = 'Rendered visual comparison was not needed because this PR does not change paper-render inputs outside the review pipeline.';
             }
 
             const body = `${marker}
