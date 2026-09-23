@@ -2,6 +2,10 @@
 .quarto/
 _output/
 _site/
+.review/
+.review-base/
+pa1-review.qmd
+_quarto-review.yml
 **/*_cache/
 **/*_files/
 **/*.quarto_ipynb
