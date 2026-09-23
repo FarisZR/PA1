@@ -1286,8 +1286,13 @@ about USD 1.02 (worst case about USD 1.22).
 
 `configs/deepseek-pi-rerun.yaml` copies the Pi leg of `deepseek-v4p1-flash.yaml`
 unchanged. Pi reaches AiOrbit directly, not through the bridge, so the bridge
-setting added since the original run does not apply. Like the Codex rerun, the
-result is published separately as `data/benchmark-results/deepseek-pi-rerun/`.
+setting added since the original run does not apply.
+
+**Outcome (2026-09-23):** the job ran out of gateway budget. All three first
+attempts stopped after 16–18 minutes with HTTP 429 (`budget_exceeded`), and
+Pier's retries were rejected at once. No task was finished, so DeepSeek Pi stays
+excluded. `scripts/build_corrected_results.py` keeps the attempts as audit
+evidence under `data/benchmark-results/.excluded/deepseek-v4p1-flash/pi-rerun/`.
 
 ```bash
 python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus

@@ -63,12 +63,23 @@ Corrections (see "Measurement corrections" in the results chapter):
    about 2026-09-21 12:02 UTC. The script first checks that the listed DeepSeek
    V4.1 Flash trials are exactly those whose trajectories show the removal
    (``scripts/analyze_reasoning_retention.py``). The five affected Codex trials
-   move to ``data/benchmark-results/.superseded/issue-111/``; once the rerun job
-   ``benchmark/runs/deepseek-codex-rerun`` exists, its trials are published in
-   their place after the same check shows the reasoning was kept. The Pi
-   condition (six of ten trials affected, no rerun) moves to
-   ``data/benchmark-results/.excluded/deepseek-v4p1-flash/pi/``. The DeepSeek
-   Claude Code runs are handled separately.
+   move to ``data/benchmark-results/.superseded/issue-111/``; the trials of the
+   rerun job ``benchmark/runs/deepseek-codex-rerun`` are published in their place
+   after the same check shows the reasoning was kept. The Pi condition (six of
+   ten trials affected; the rerun ended on the exhausted gateway budget) moves
+   to ``data/benchmark-results/.excluded/deepseek-v4p1-flash/pi/``.
+
+7. DeepSeek Claude Code runs. The original run went through LiteLLM, which
+   lowered the requested max effort to high (issue #94) and, in its first six
+   trials, lost the earlier reasoning to the defect of correction 6. The first
+   CLIProxyAPI run kept max but, without ``is-compat``, did not pass earlier
+   thinking back (issue #102). Both move to
+   ``data/benchmark-results/.excluded/deepseek-v4p1-flash/``. The ``is-compat``
+   rerun ``benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking`` is
+   published as the Claude Code condition after the same retention check.
+
+Rerun trials are published in the normal job directory; the job-level Pier files
+of each rerun job are kept under ``<job>/.rerun-jobs/<rerun job>/``.
 
 Regeneration needs the raw run workspace (``benchmark/runs/``, not tracked by
 Git) and, for correction 3, the pinned Pier checkout:
@@ -149,6 +160,9 @@ KIMI_EXCLUSION_REASON = (
 # model because AiOrbit's LiteLLM 1.101.0 removed it. Validated on every run.
 DEEPSEEK_JOB = "deepseek-v4p1-flash"
 DEEPSEEK_RERUN_JOB = "deepseek-codex-rerun"
+DEEPSEEK_CLAUDE_JOB = "deepseek-claude-code-cliproxy-api-fixed-thinking"
+DEEPSEEK_CLAUDE_DEFAULT_JOB = "deepseek-claude-code-cliproxy-api"
+DEEPSEEK_PI_RERUN_JOB = "deepseek-pi-rerun"
 ISSUE_111_UPGRADE = "2026-09-21T12:03:00Z"
 ISSUE_111_AFFECTED = {
     "codex": frozenset({
@@ -189,12 +203,38 @@ ISSUE_111_REASON = (
 DEEPSEEK_EXCLUSION_REASONS = {
     "pi": (
         "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the "
-        "model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+        "model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway "
+        "budget, so the condition is excluded"
+    ),
+}
+# Issue #105: the two faulty DeepSeek Claude Code runs, replaced by the is-compat rerun.
+DEEPSEEK_CLAUDE_LITELLM = frozenset({
+    "boa-hierarchical-evaluation-canc__wwvvuDr",
+    "csstree-shorthand-expansion-comp__j5qnWGi",
+    "effect-sse-httpapi-streaming__VSoHSgv",
+    "expr-try-catch-errors__7W4T4YW",
+    "fastapi-implicit-head-options__jbKQNjp",
+    "katex-multicolumn-array-spans__WuqbLik",
+    "koota-composite-trait-aspects__HmWkoKv",
+    "oxvg-structural-selector-preserv__8ByPY3N",
+    "python-statemachine-state-data-s__r7jsfUc",
+    "scriggo-method-declarations__YUeLqjQ",
+})
+DEEPSEEK_CLAUDE_REASONS = {
+    "claude-code-litellm": (
+        "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the "
+        "six trials before the gateway upgrade never gave the model its earlier reasoning "
+        f"(PA1 #111); replaced by benchmark/runs/{DEEPSEEK_CLAUDE_JOB}"
+    ),
+    "claude-code-cliproxy-default": (
+        "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the "
+        f"model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/{DEEPSEEK_CLAUDE_JOB}"
     ),
 }
 SUPERSEDED_CODEX = PUBLISHED / ".superseded" / "issue-111" / DEEPSEEK_JOB / "codex"
 EXCLUDED_DEEPSEEK = PUBLISHED / ".excluded" / DEEPSEEK_JOB
 PUBLISHED_FILES = ("result.json", "config.json", "agent/trajectory.json")
+JOB_FILES = ("config.json", "lock.json", "result.json")
 # Same threshold as upstream Pier's token-drop heuristic, applied to input only.
 COMPACTION_DROP_TOKENS = 10_000
 REFERENCE = "chapters/_04-results.qmd#sec-measurement-corrections"
@@ -420,19 +460,24 @@ def copy_published_files(source: Path, target: Path) -> None:
         shutil.copy2(source / rel, target / rel)
 
 
-def publish_codex_rerun(job: Path, superseded: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Path]]:
-    """Publish the issue #111 Codex rerun as the canonical trials, once it has run."""
-    raw_rerun = RAW / DEEPSEEK_RERUN_JOB
+def publish_rerun(
+    job: Path, rerun_job: str, harness: str, replaces: dict[str, str]
+) -> tuple[list[dict[str, Any]], dict[str, Path]]:
+    """Publish a rerun job's trials as the canonical trials of ``harness``.
+
+    ``replaces`` maps each task to the trial the rerun replaces. Every rerun trial
+    must have started after the gateway upgrade and kept its earlier reasoning,
+    so a failed rerun never enters the comparative data.
+    """
+    raw_rerun = RAW / rerun_job
     if not raw_rerun.is_dir():
-        print(f"{DEEPSEEK_JOB}: {DEEPSEEK_RERUN_JOB} not found; five Codex trials pending (#111)")
-        return [], {}
-    replaces = {entry["task"]: entry["trial"] for entry in superseded}
+        raise ValidationError(f"{raw_rerun}: rerun job not found")
     reruns: dict[str, Path] = {}
     for result_path in sorted(raw_rerun.glob("*/result.json")):
         result = load(result_path)
         task = result["task_name"].split("/")[-1]
-        if result["config"]["agent"]["name"] != "codex" or task not in replaces or task in reruns:
-            raise ValidationError(f"{result_path}: not one Codex trial per affected task")
+        if result["config"]["agent"]["name"] != harness or task not in replaces or task in reruns:
+            raise ValidationError(f"{result_path}: not one {harness} trial per replaced task")
         if result["started_at"] < ISSUE_111_UPGRADE:
             raise ValidationError(f"{result_path}: started before the gateway upgrade")
         reruns[task] = result_path.parent
@@ -441,7 +486,6 @@ def publish_codex_rerun(job: Path, superseded: list[dict[str, Any]]) -> tuple[li
 
     replacements, raw_overrides = [], {}
     for task, raw_trial in sorted(reruns.items()):
-        # Check before publishing, so a failed rerun never enters the comparative data.
         retention = trial_retention(raw_trial / "agent" / "trajectory.json")
         if retention is None or retention < RETAINED_THRESHOLD_PERCENT:
             raise ValidationError(f"{raw_trial}: earlier reasoning still missing (retention {retention})")
@@ -455,12 +499,114 @@ def publish_codex_rerun(job: Path, superseded: list[dict[str, Any]]) -> tuple[li
         raw_overrides[raw_trial.name] = raw_rerun
         replacements.append({
             "trial": raw_trial.name,
+            "harness": harness,
             "task": task,
             "replaces": replaces[task],
-            "pier_job": DEEPSEEK_RERUN_JOB,
+            "pier_job": rerun_job,
             "reasoning_retention": round(retention, 2),
         })
+
+    job_files = job / ".rerun-jobs" / rerun_job
+    for name in JOB_FILES:
+        if not (job_files / name).exists():
+            job_files.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(raw_rerun / name, job_files / name)
+        elif sha256(job_files / name) != sha256(raw_rerun / name):
+            raise ValidationError(f"{job_files / name}: differs from {raw_rerun / name}")
     return replacements, raw_overrides
+
+
+def exclude_deepseek_claude(job: Path) -> list[dict[str, Any]]:
+    """Archive the LiteLLM and default-CLIProxyAPI DeepSeek Claude Code runs."""
+    litellm = EXCLUDED_DEEPSEEK / "claude-code-litellm"
+    default = EXCLUDED_DEEPSEEK / "claude-code-cliproxy-default"
+    for name in sorted(DEEPSEEK_CLAUDE_LITELLM):
+        move_trial(job, name, litellm, "claude-code")
+    if (PUBLISHED / DEEPSEEK_CLAUDE_DEFAULT_JOB).exists():
+        raise ValidationError(f"{DEEPSEEK_CLAUDE_DEFAULT_JOB} is still in the comparative data")
+    raw_default = RAW / DEEPSEEK_CLAUDE_DEFAULT_JOB
+    if not default.is_dir():
+        for result_path in sorted(raw_default.glob("*/result.json")):
+            copy_published_files(result_path.parent, default / result_path.parent.name)
+        for name in JOB_FILES:
+            shutil.copy2(raw_default / name, default / name)
+
+    # Both runs lost the earlier reasoning where the issues say they did.
+    litellm_rows = load_rows(litellm)
+    default_rows = load_rows(default)
+    if len(litellm_rows) != 10 or len(default_rows) != 10:
+        raise ValidationError("Expected ten trials in each excluded DeepSeek Claude Code run")
+    for row in litellm_rows:
+        if row["retained"] is None or row["retained"] != (row["started_at"] >= ISSUE_111_UPGRADE):
+            raise ValidationError(f"{row['trial']}: LiteLLM retention does not follow the gateway upgrade")
+    if any(row["retained"] is not False or row["harness"] != "claude-code" for row in default_rows):
+        raise ValidationError("A default-CLIProxyAPI Claude Code trial kept its earlier reasoning")
+
+    return [
+        {
+            "trial": row["trial"],
+            "harness": "claude-code",
+            "task": row["task"],
+            "pier_job": row["job"],
+            "published": str((archive / row["trial"]).relative_to(PUBLISHED)),
+            "reasoning_retention": round(row["retention"], 2),
+            "reason": DEEPSEEK_CLAUDE_REASONS[archive.name],
+        }
+        for archive, rows in ((litellm, litellm_rows), (default, default_rows))
+        for row in rows
+    ]
+
+
+def archive_pi_rerun() -> list[dict[str, Any]]:
+    """Keep the Pi rerun, which ended on the exhausted gateway budget, as audit evidence."""
+    archive = EXCLUDED_DEEPSEEK / "pi-rerun"
+    raw_rerun = RAW / DEEPSEEK_PI_RERUN_JOB
+    if not archive.is_dir():
+        for result_path in sorted(raw_rerun.glob("*/result.json")):
+            copy_published_files(result_path.parent, archive / result_path.parent.name)
+        for attempt in sorted(raw_rerun.glob(".retry-attempts/*/attempt-*")):
+            copy_published_files(attempt, archive / attempt.relative_to(raw_rerun))
+        for name in JOB_FILES:
+            shutil.copy2(raw_rerun / name, archive / name)
+    entries = []
+    for result_path in sorted(archive.glob("*/result.json")) + sorted(archive.glob(".retry-attempts/*/*/result.json")):
+        result = load(result_path)
+        message = (result.get("exception_info") or {}).get("exception_message") or ""
+        if result["config"]["agent"]["name"] != "pi" or "budget_exceeded" not in message:
+            raise ValidationError(f"{result_path}: expected a Pi attempt stopped by the gateway budget")
+        entries.append({
+            "trial": result_path.parent.name if result_path.parent.parent == archive else str(result_path.parent.relative_to(archive)),
+            "harness": "pi",
+            "pier_job": DEEPSEEK_PI_RERUN_JOB,
+            "published": str(result_path.parent.relative_to(PUBLISHED)),
+            "reason": (
+                "The gateway rejected further requests because the benchmark budget was exhausted "
+                "(HTTP 429), so every attempt ended before the task was finished"
+            ),
+        })
+    if len([e for e in entries if "/" not in e["trial"]]) != 3:
+        raise ValidationError("Expected three Pi rerun trials")
+    return entries
+
+
+def check_deepseek_layout(job: Path) -> None:
+    """Require one canonical Codex and one Claude Code trial per task, from the right runs."""
+    sources = {
+        "codex": {DEEPSEEK_JOB, DEEPSEEK_RERUN_JOB},
+        "claude-code": {DEEPSEEK_CLAUDE_JOB},
+    }
+    tasks: dict[str, set[str]] = {harness: set() for harness in sources}
+    for result_path in job.glob("*/result.json"):
+        result = load(result_path)
+        harness = result["config"]["agent"]["name"]
+        task = result["task_name"].split("/")[-1]
+        if Path(result["config"]["trials_dir"]).name not in sources.get(harness, set()):
+            raise ValidationError(f"{result_path}: not a canonical DeepSeek observation")
+        if task in tasks[harness]:
+            raise ValidationError(f"{result_path}: second {harness} trial for {task}")
+        tasks[harness].add(task)
+    if any(len(found) != 10 for found in tasks.values()):
+        raise ValidationError(f"Expected ten Codex and ten Claude Code DeepSeek trials: {tasks}")
 
 
 def agent_steps(trajectory: dict[str, Any]) -> list[dict[str, Any]]:
@@ -717,7 +863,18 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
     archives: list[Path] = []
     if job_name == DEEPSEEK_JOB:
         superseded, excluded = archive_issue_111(job)
-        replacements, raw_overrides = publish_codex_rerun(job, superseded)
+        excluded += exclude_deepseek_claude(job)
+        excluded += archive_pi_rerun()
+        replacements, raw_overrides = publish_rerun(
+            job, DEEPSEEK_RERUN_JOB, "codex", {entry["task"]: entry["trial"] for entry in superseded}
+        )
+        claude_replacements, claude_overrides = publish_rerun(
+            job, DEEPSEEK_CLAUDE_JOB, "claude-code",
+            {entry["task"]: entry["trial"] for entry in excluded if entry.get("pier_job") == DEEPSEEK_JOB},
+        )
+        replacements += claude_replacements
+        raw_overrides.update(claude_overrides)
+        check_deepseek_layout(job)
         manifest["superseded_trials"] = superseded
         manifest["replacement_trials"] = replacements
         manifest["excluded_runs"] = excluded

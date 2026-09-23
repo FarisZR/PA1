@@ -39,16 +39,20 @@ The completed OpenCode V2 GPT-5.6 Luna run is published separately at
 including each OpenCode adapter `runner-result.json` alongside the filtered
 result, config, and trajectory files.
 
-The completed DeepSeek Claude Code CLIProxy API run is published separately at
-`deepseek-claude-code-cliproxy-api/`. It contains the 10 trials with the job
-metadata, task results/configs, and structured trajectories. The completed
-fixed-thinking rerun is published separately at
-`deepseek-claude-code-cliproxy-api-fixed-thinking/` with the same filtered
-artifact set.
+The DeepSeek V4.1 Flash directory `deepseek-v4p1-flash/` holds the canonical
+Codex and Claude Code trials, which come from three Pier jobs:
 
-The DeepSeek Codex rerun replacing the superseded Codex trials is published at
-`deepseek-codex-rerun/`. It currently contains five completed task results,
-configs, and structured trajectories, plus the job metadata.
+| Harness | Trials | Pier job |
+| --- | --- | --- |
+| Codex | 5 (katex, scriggo, fastapi, csstree, koota) | `deepseek-v4p1-flash` (the original job) |
+| Codex | 5 (boa, effect-sse, expr, oxvg, statemachine) | `deepseek-codex-rerun` (#111) |
+| Claude Code | 10 | `deepseek-claude-code-cliproxy-api-fixed-thinking` (CLIProxyAPI with `is-compat`, #102, #105) |
+
+Each trial's `config.json` names its Pier job in `trials_dir`. The job-level
+`result.json`, `config.json`, and `lock.json` in the directory belong to the
+original job; those of the two rerun jobs are kept unchanged under
+`.rerun-jobs/<pier job>/`. DeepSeek Pi and the two faulty Claude Code runs are
+not in this directory (see below).
 
 The current GLM 5.3 Flash sub-run is published as an **unfiltered snapshot**
 at `glm-5.3-sub/`. Its 814 files are copied from the run directory as-is,
@@ -66,13 +70,29 @@ comparative results out of the job directories, so the normal
   to `high`, #108).
 - `.excluded/deepseek-v4p1-flash/pi/`: all ten DeepSeek V4.1 Flash Pi trials.
   Six of them ran before AiOrbit's LiteLLM upgrade and never gave the model its
-  earlier reasoning (#111), and they are not rerun. A condition with four valid
-  trials cannot be compared with complete ten-task conditions.
+  earlier reasoning (#111). A condition with four valid trials cannot be
+  compared with complete ten-task conditions.
+- `.excluded/deepseek-v4p1-flash/pi-rerun/`: the attempted rerun of three of
+  those Pi trials (Pier job `deepseek-pi-rerun`). Every attempt ended when the
+  gateway rejected further requests because the benchmark budget was exhausted
+  (HTTP 429), so no task was finished.
+- `.excluded/deepseek-v4p1-flash/claude-code-litellm/`: the original DeepSeek
+  Claude Code trials, routed through LiteLLM. LiteLLM lowered the requested
+  `max` effort to `high` (#94), and the six trials before the gateway upgrade
+  never gave the model its earlier reasoning (#111).
+- `.excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/`: the first
+  CLIProxyAPI Claude Code run (Pier job `deepseek-claude-code-cliproxy-api`, with
+  its job-level files). It kept `max` effort, but without `is-compat`
+  CLIProxyAPI dropped Claude Code's earlier thinking blocks, so no trial gave
+  the model its earlier reasoning (#102).
 - `.superseded/issue-111/deepseek-v4p1-flash/codex/`: the five DeepSeek Codex
-  trials affected by #111. The rerun job `deepseek-codex-rerun` is published
-  separately under `deepseek-codex-rerun/` after checking that the reasoning
-  reached the model; it does not replace the superseded observations in the
-  canonical comparative directory.
+  trials affected by #111. Their reruns (Pier job `deepseek-codex-rerun`) are
+  the canonical trials in `deepseek-v4p1-flash/`, published only after the
+  same retention check showed that the reasoning reached the model.
+
+The three DeepSeek Claude Code runs are compared with each other in the
+results chapter to show what the route defects changed (#105). That comparison
+is the only analysis that reads `.excluded/`; no comparative result does.
 
 The moved files are unchanged, and each job's `corrections.json` lists every
 moved trial with its location and reason. The evidence for #111 is in
@@ -132,7 +152,7 @@ original context values; use trajectories only for step-level analysis.
 
 | Correction | Files |
 | --- | --- |
-| Codex peak context and compaction count recomputed from per-call input tokens (upstream Pier counted output tokens) | `result.json` for all 43 Codex attempts |
+| Codex peak context and compaction count recomputed from per-call input tokens (upstream Pier counted output tokens) | `result.json` for all 48 Codex attempts |
 | OpenCode V2 token and cost totals withheld by the adapter, taken from OpenCode's session records | `result.json` for 12 OpenCode V2 attempts |
 | OpenCode V2 trajectories lost to the adapter's `splitlines()` reader, rebuilt offline | `agent/trajectory.json` for both Luna `effect-sse-httpapi-streaming` attempts |
 
