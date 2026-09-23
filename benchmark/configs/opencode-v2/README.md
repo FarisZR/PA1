@@ -35,8 +35,9 @@ OpenAI-compatible thinking injection that conflicts with `reasoningEffort`
 (PA1 [#53](https://github.com/FarisZR/PA1/issues/53)). Every profile keeps one
 effective `reasoningEffort` per variant and an explicit model-body output cap.
 Luna's models.dev profile inherits `context: 1050000` and `input: 922000`,
-but the primary profile overrides them to `context: 272000`, `input: 144000`,
-`output: 128000`. PA1 [#17](https://github.com/FarisZR/PA1/issues/17) holds
+but the primary profile overrides only `context: 272000` and `output: 128000`;
+the inherited input value does not constrain the reduced context window.
+PA1 [#17](https://github.com/FarisZR/PA1/issues/17) holds
 Luna to 272,000 tokens in every harness, the frozen catalogue prices input
 above 272,000 at 2x, and `benchmark/pricing.yaml` models no such tier, so
 inheriting the full window would under-cost this harness rather than measure
