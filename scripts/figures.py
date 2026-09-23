@@ -12,6 +12,25 @@ from collections.abc import Sequence
 import matplotlib.pyplot as plt
 import pandas as pd
 
+PIE_COLORS = [
+    "#4A90E2",
+    "#F26B38",
+    "#F5A623",
+    "#3FAE49",
+    "#A64CA6",
+    "#2AA7B8",
+    "#E45C83",
+    "#74B816",
+]
+
+
+def _pie_colors(count: int) -> list[str]:
+    if count <= len(PIE_COLORS):
+        return PIE_COLORS[:count]
+    repeats = (count + len(PIE_COLORS) - 1) // len(PIE_COLORS)
+    return (PIE_COLORS * repeats)[:count]
+
+
 
 def _place_legend_above(ax, labels: Sequence[str]) -> None:
     if len(labels) > 1:
@@ -296,13 +315,18 @@ def plot_pie(
         raise ValueError("plot_pie requires at least one positive value")
 
     fig, ax = plt.subplots()
-    wedges, _, _ = ax.pie(
+    wedges, _, autotexts = ax.pie(
         frame[value_col],
         startangle=90,
         counterclock=False,
+        colors=_pie_colors(len(frame)),
         autopct=_pie_autopct(min_label_percent),
-        textprops={"fontsize": 8},
+        wedgeprops={"edgecolor": "white", "linewidth": 1},
+        textprops={"fontsize": 8, "color": "white"},
     )
+    for text in autotexts:
+        text.set_fontweight("bold")
+
     ax.legend(
         wedges,
         frame[category_col].astype(str).tolist(),
@@ -338,16 +362,21 @@ def plot_pie_comparison(
     fig, axes = plt.subplots(1, len(frame), squeeze=False)
     axes = axes[0]
     legend_wedges = None
+    colors = _pie_colors(len(value_cols))
 
     for ax, (_, row) in zip(axes, frame.iterrows(), strict=True):
         values = [float(row[column]) for column in value_cols]
-        wedges, _, _ = ax.pie(
+        wedges, _, autotexts = ax.pie(
             values,
             startangle=90,
             counterclock=False,
+            colors=colors,
             autopct=_pie_autopct(min_label_percent),
-            textprops={"fontsize": 8},
+            wedgeprops={"edgecolor": "white", "linewidth": 1},
+            textprops={"fontsize": 8, "color": "white"},
         )
+        for text in autotexts:
+            text.set_fontweight("bold")
         legend_wedges = wedges
         ax.set_title(str(row[category_col]))
         ax.axis("equal")
@@ -363,5 +392,5 @@ def plot_pie_comparison(
         )
 
     fig.tight_layout(rect=(0, 0, 1, 0.9))
-    return axes
+    return fig
 
