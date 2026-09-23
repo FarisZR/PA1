@@ -1,0 +1,104 @@
+{
+    "job_name": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+    "jobs_dir": "benchmark/runs",
+    "n_attempts": 1,
+    "timeout_multiplier": 1.0,
+    "agent_timeout_multiplier": null,
+    "verifier_timeout_multiplier": null,
+    "agent_setup_timeout_multiplier": null,
+    "environment_build_timeout_multiplier": null,
+    "debug": false,
+    "n_concurrent_trials": 10,
+    "quiet": false,
+    "retry": {
+        "max_retries": 1,
+        "include_exceptions": null,
+        "exclude_exceptions": [
+            "VerifierOutputParseError",
+            "RewardFileNotFoundError",
+            "CancelledError",
+            "VerifierTimeoutError",
+            "AgentTimeoutError",
+            "RewardFileEmptyError"
+        ],
+        "wait_multiplier": 1.0,
+        "min_wait_sec": 1.0,
+        "max_wait_sec": 60.0
+    },
+    "environment": {
+        "type": "docker",
+        "import_path": null,
+        "force_build": false,
+        "delete": true,
+        "cpu_enforcement_policy": "auto",
+        "memory_enforcement_policy": "auto",
+        "override_cpus": null,
+        "override_memory_mb": null,
+        "override_storage_mb": null,
+        "override_gpus": null,
+        "suppress_override_warnings": false,
+        "mounts": null,
+        "env": {},
+        "kwargs": {}
+    },
+    "verifier": {
+        "override_timeout_sec": null,
+        "max_timeout_sec": null,
+        "env": {},
+        "disable": false
+    },
+    "metrics": [],
+    "agents": [
+        {
+            "name": "claude-code",
+            "import_path": null,
+            "model_name": "deepseek-v4p1-flash[1m]",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "2.1.251",
+                "reasoning_effort": "max",
+                "disallowed_tools": "EnterPlanMode,WebSearch"
+            },
+            "env": {
+                "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
+                "ANTHROPIC_DEFAULT_FABLE_MODEL": "deepseek-v4p1-flash[1m]",
+                "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
+                "API_FORCE_IDLE_TIMEOUT": "0",
+                "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
+                "DISABLE_AUTOUPDATER": "1"
+            }
+        }
+    ],
+    "datasets": [
+        {
+            "path": "../DeepSWE/tasks",
+            "name": null,
+            "version": null,
+            "ref": null,
+            "registry_url": null,
+            "registry_path": null,
+            "overwrite": false,
+            "download_dir": null,
+            "task_names": [
+                "expr-try-catch-errors",
+                "katex-multicolumn-array-spans",
+                "python-statemachine-state-data-scoping",
+                "oxvg-structural-selector-preservation",
+                "effect-sse-httpapi-streaming",
+                "scriggo-method-declarations",
+                "csstree-shorthand-expansion-compression",
+                "fastapi-implicit-head-options",
+                "boa-hierarchical-evaluation-cancellation",
+                "koota-composite-trait-aspects"
+            ],
+            "exclude_task_names": null,
+            "n_tasks": null,
+            "sample_seed": null
+        }
+    ],
+    "tasks": [],
+    "artifacts": []
+}

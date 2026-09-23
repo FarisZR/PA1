@@ -40,9 +40,10 @@ result, config, and trajectory files.
 
 The completed DeepSeek Claude Code CLIProxy API run is published separately at
 `deepseek-claude-code-cliproxy-api/`. It contains the 10 trials with the job
-metadata, task results/configs, and structured trajectories. The separate
-`deepseek-claude-code-cliproxy-api-fixed-thinking/` run is intentionally not
-included because it is still running.
+metadata, task results/configs, and structured trajectories. The completed
+fixed-thinking rerun is published separately at
+`deepseek-claude-code-cliproxy-api-fixed-thinking/` with the same filtered
+artifact set.
 
 The current GLM 5.3 Flash sub-run is published as an **unfiltered snapshot**
 at `glm-5.3-sub/`. Its 814 files are copied from the run directory as-is,

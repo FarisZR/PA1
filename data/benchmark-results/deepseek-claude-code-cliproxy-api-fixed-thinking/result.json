@@ -1,0 +1,231 @@
+{
+    "id": "669efb13-ed37-4275-a341-52895fd2fc71",
+    "started_at": "2026-09-23T13:15:44.103045",
+    "updated_at": "2026-09-23T14:55:31.967203",
+    "finished_at": "2026-09-23T14:55:31.967203",
+    "n_total_trials": 10,
+    "stats": {
+        "n_completed_trials": 10,
+        "n_errored_trials": 0,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "claude-code__deepseek-v4p1-flash[1m]__tasks": {
+                "n_trials": 10,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "f2p": 0.9910935180603662,
+                        "f2p_passed": 53.2,
+                        "f2p_total": 53.6,
+                        "p2p": 1.0,
+                        "p2p_passed": 8935.9,
+                        "p2p_total": 8935.9,
+                        "partial": 0.9982276458197138,
+                        "reward": 0.8
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "1": [
+                            "python-statemachine-state-data-s__C5Ekyuf",
+                            "oxvg-structural-selector-preserv__gtjAN56",
+                            "boa-hierarchical-evaluation-canc__5TfvMLo",
+                            "expr-try-catch-errors__4Pk8ZJR",
+                            "katex-multicolumn-array-spans__bvBmz5k",
+                            "scriggo-method-declarations__aJhqvb9",
+                            "csstree-shorthand-expansion-comp__yAKg7e2",
+                            "koota-composite-trait-aspects__FeQidMz"
+                        ],
+                        "0": [
+                            "effect-sse-httpapi-streaming__Ju8U9Ai",
+                            "fastapi-implicit-head-options__neJ8x56"
+                        ]
+                    },
+                    "f2p_total": {
+                        "72": [
+                            "python-statemachine-state-data-s__C5Ekyuf"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__gtjAN56"
+                        ],
+                        "47": [
+                            "effect-sse-httpapi-streaming__Ju8U9Ai"
+                        ],
+                        "17": [
+                            "boa-hierarchical-evaluation-canc__5TfvMLo"
+                        ],
+                        "79": [
+                            "expr-try-catch-errors__4Pk8ZJR",
+                            "csstree-shorthand-expansion-comp__yAKg7e2"
+                        ],
+                        "94": [
+                            "katex-multicolumn-array-spans__bvBmz5k"
+                        ],
+                        "48": [
+                            "scriggo-method-declarations__aJhqvb9"
+                        ],
+                        "43": [
+                            "fastapi-implicit-head-options__neJ8x56"
+                        ],
+                        "51": [
+                            "koota-composite-trait-aspects__FeQidMz"
+                        ]
+                    },
+                    "f2p_passed": {
+                        "72": [
+                            "python-statemachine-state-data-s__C5Ekyuf"
+                        ],
+                        "6": [
+                            "oxvg-structural-selector-preserv__gtjAN56"
+                        ],
+                        "45": [
+                            "effect-sse-httpapi-streaming__Ju8U9Ai"
+                        ],
+                        "17": [
+                            "boa-hierarchical-evaluation-canc__5TfvMLo"
+                        ],
+                        "79": [
+                            "expr-try-catch-errors__4Pk8ZJR",
+                            "csstree-shorthand-expansion-comp__yAKg7e2"
+                        ],
+                        "94": [
+                            "katex-multicolumn-array-spans__bvBmz5k"
+                        ],
+                        "48": [
+                            "scriggo-method-declarations__aJhqvb9"
+                        ],
+                        "41": [
+                            "fastapi-implicit-head-options__neJ8x56"
+                        ],
+                        "51": [
+                            "koota-composite-trait-aspects__FeQidMz"
+                        ]
+                    },
+                    "p2p_total": {
+                        "1286": [
+                            "python-statemachine-state-data-s__C5Ekyuf"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__gtjAN56"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__Ju8U9Ai"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__5TfvMLo"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__4Pk8ZJR"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__bvBmz5k"
+                        ],
+                        "1049": [
+                            "scriggo-method-declarations__aJhqvb9"
+                        ],
+                        "3134": [
+                            "fastapi-implicit-head-options__neJ8x56"
+                        ],
+                        "16715": [
+                            "csstree-shorthand-expansion-comp__yAKg7e2"
+                        ],
+                        "172": [
+                            "koota-composite-trait-aspects__FeQidMz"
+                        ]
+                    },
+                    "p2p_passed": {
+                        "1286": [
+                            "python-statemachine-state-data-s__C5Ekyuf"
+                        ],
+                        "62": [
+                            "oxvg-structural-selector-preserv__gtjAN56"
+                        ],
+                        "70": [
+                            "effect-sse-httpapi-streaming__Ju8U9Ai"
+                        ],
+                        "7": [
+                            "boa-hierarchical-evaluation-canc__5TfvMLo"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__4Pk8ZJR"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__bvBmz5k"
+                        ],
+                        "1049": [
+                            "scriggo-method-declarations__aJhqvb9"
+                        ],
+                        "3134": [
+                            "fastapi-implicit-head-options__neJ8x56"
+                        ],
+                        "16715": [
+                            "csstree-shorthand-expansion-comp__yAKg7e2"
+                        ],
+                        "172": [
+                            "koota-composite-trait-aspects__FeQidMz"
+                        ]
+                    },
+                    "f2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__C5Ekyuf",
+                            "oxvg-structural-selector-preserv__gtjAN56",
+                            "boa-hierarchical-evaluation-canc__5TfvMLo",
+                            "expr-try-catch-errors__4Pk8ZJR",
+                            "katex-multicolumn-array-spans__bvBmz5k",
+                            "scriggo-method-declarations__aJhqvb9",
+                            "csstree-shorthand-expansion-comp__yAKg7e2",
+                            "koota-composite-trait-aspects__FeQidMz"
+                        ],
+                        "0.9574468085106383": [
+                            "effect-sse-httpapi-streaming__Ju8U9Ai"
+                        ],
+                        "0.9534883720930233": [
+                            "fastapi-implicit-head-options__neJ8x56"
+                        ]
+                    },
+                    "p2p": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__C5Ekyuf",
+                            "oxvg-structural-selector-preserv__gtjAN56",
+                            "effect-sse-httpapi-streaming__Ju8U9Ai",
+                            "boa-hierarchical-evaluation-canc__5TfvMLo",
+                            "expr-try-catch-errors__4Pk8ZJR",
+                            "katex-multicolumn-array-spans__bvBmz5k",
+                            "scriggo-method-declarations__aJhqvb9",
+                            "fastapi-implicit-head-options__neJ8x56",
+                            "csstree-shorthand-expansion-comp__yAKg7e2",
+                            "koota-composite-trait-aspects__FeQidMz"
+                        ]
+                    },
+                    "partial": {
+                        "1.0": [
+                            "python-statemachine-state-data-s__C5Ekyuf",
+                            "oxvg-structural-selector-preserv__gtjAN56",
+                            "boa-hierarchical-evaluation-canc__5TfvMLo",
+                            "expr-try-catch-errors__4Pk8ZJR",
+                            "katex-multicolumn-array-spans__bvBmz5k",
+                            "scriggo-method-declarations__aJhqvb9",
+                            "csstree-shorthand-expansion-comp__yAKg7e2",
+                            "koota-composite-trait-aspects__FeQidMz"
+                        ],
+                        "0.9829059829059829": [
+                            "effect-sse-httpapi-streaming__Ju8U9Ai"
+                        ],
+                        "0.9993704752911552": [
+                            "fastapi-implicit-head-options__neJ8x56"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        },
+        "n_input_tokens": 408927700,
+        "n_cache_tokens": 396473028,
+        "n_output_tokens": 1594645,
+        "cost_usd": 301.89688900000016
+    }
+}
