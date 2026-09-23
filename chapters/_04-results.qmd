@@ -642,9 +642,142 @@ Correcting the condition requires sandbox access to GitHub, which also gives the
 
 OpenCode's model profiles state a context window and a separate input limit that reserves room for the output. Luna's catalogue entry lists a context of 1,050,000 tokens and an input limit of 922,000 tokens, which leaves the 128,000-token output limit. To apply the common 272,000-token window, the PA1 profile set the context to 272,000 tokens and, following the same convention, the input limit to 144,000 tokens. Codex, Claude Code, and Pi instead allowed prompts close to 272,000 tokens. No OpenCode V2 Luna trial exceeded 126,444 prompt tokens, whereas the largest prompts in the other three harnesses were between 239,619 and 255,403 tokens (@sec-luna-context). OpenCode therefore compacted Luna's context much earlier and more often. The configuration is part of the evaluated OpenCode condition and is disclosed rather than corrected.
 
-## Benchmark coverage
+## Benchmark coverage {#sec-benchmark-coverage}
 
-- TODO: Summarize the retained benchmark matrix, completed observations, and exclusions. Count Kimi K3 only for Pi and Codex; the Claude Code trial files are audit evidence, and no OpenCode V2 batch was run. Count DeepSeek V4.1 Flash without Pi (@sec-gateway-reasoning-history).
+```{python}
+#| include: false
+
+from scripts.analyze_harness_trials import model_rates
+
+_RESULTS = Path("data/benchmark-results")
+_EXCLUDED = _RESULTS / ".excluded"
+COVERAGE_MODELS = {
+    "kimi-k3": ("Kimi K3", ["kimi-k3"]),
+    "deepseek-v4p1-flash": ("DeepSeek V4.1 Flash", ["deepseek-v4p1-flash", "opencode-v2-deepseek-v4p1-flash"]),
+    "gpt-5.6-luna": ("GPT-5.6 Luna", ["luna", "opencode-v2-luna"]),
+}
+COVERAGE_HARNESSES = {"codex": "Codex", "pi": "Pi", "claude-code": "Claude Code", "opencode-v2": "OpenCode V2"}
+# Cells without comparative trials and the reason, as described in the methodology and corrections.
+COVERAGE_GAPS = {
+    ("kimi-k3", "claude-code"): "excluded",
+    ("kimi-k3", "opencode-v2"): "not run",
+    ("deepseek-v4p1-flash", "pi"): "excluded",
+}
+
+
+def _attempt_cost(model: str, paths) -> tuple[int, float]:
+    rates = model_rates(model)
+    total = 0.0
+    paths = list(paths)
+    for path in paths:
+        agent = json.loads(path.read_text())["agent_result"]
+        cached = agent["n_cache_tokens"] or 0
+        total += ((agent["n_input_tokens"] - cached) * rates["input"] + cached * rates["cached_input"]
+                  + agent["n_output_tokens"] * rates["output"]) / 1e6
+    return len(paths), total
+
+
+def _canonical(jobs):
+    return [path for job in jobs for path in (_RESULTS / job).glob("*/result.json")]
+
+
+_cells = {}
+for model, (_, jobs) in COVERAGE_MODELS.items():
+    for path in _canonical(jobs):
+        harness = json.loads(path.read_text())["config"]["agent"]["name"]
+        _cells[model, harness] = _cells.get((model, harness), 0) + 1
+_canonical_cost = {model: _attempt_cost(model, _canonical(jobs)) for model, (_, jobs) in COVERAGE_MODELS.items()}
+
+_ds_excluded = _EXCLUDED / "deepseek-v4p1-flash"
+OVERHEAD = [
+    ("Kimi K3, Claude Code", "kimi-k3", (_EXCLUDED / "kimi-k3/claude-code").glob("*/result.json"),
+     "Effort most likely lowered to `high`; earlier reasoning omitted"),
+    ("DeepSeek V4.1 Flash, Pi", "deepseek-v4p1-flash", (_ds_excluded / "pi").rglob("result.json"),
+     "Six of ten trials without earlier reasoning"),
+    ("DeepSeek V4.1 Flash, Pi repetition", "deepseek-v4p1-flash",
+     [p for p in (_ds_excluded / "pi-rerun").rglob("result.json") if p.parent.name != "pi-rerun"],
+     "Stopped by the exhausted gateway budget"),
+    ("DeepSeek V4.1 Flash, Codex, superseded", "deepseek-v4p1-flash",
+     (_RESULTS / ".superseded/issue-111/deepseek-v4p1-flash/codex").rglob("result.json"),
+     "Without earlier reasoning; repeated"),
+    ("DeepSeek V4.1 Flash, Claude Code via LiteLLM", "deepseek-v4p1-flash",
+     (_ds_excluded / "claude-code-litellm").glob("*/result.json"),
+     "Effort most likely lowered to `high`; six trials without earlier reasoning"),
+    ("DeepSeek V4.1 Flash, Claude Code via default CLIProxyAPI", "deepseek-v4p1-flash",
+     (_ds_excluded / "claude-code-cliproxy-default").glob("*/result.json"),
+     "No trial with earlier reasoning"),
+]
+_retries = [
+    _attempt_cost(model, (_RESULTS / job).glob(".retry-attempts/*/*/result.json"))
+    for model, (_, jobs) in COVERAGE_MODELS.items() for job in jobs
+]
+_overhead_rows = [(label, *_attempt_cost(model, paths), reason) for label, model, paths, reason in OVERHEAD]
+_overhead_rows.append(("Non-canonical retries in the comparative jobs", sum(n for n, _ in _retries),
+                       sum(c for _, c in _retries), "Repeated by Pier (@sec-canonical-attempts)"))
+
+coverage_quoted = {
+    "cells": dict(sorted((f"{m}/{h}", n) for (m, h), n in _cells.items())),
+    "trials": sum(_cells.values()),
+    "canonical_cost": {m: round(c, 2) for m, (_, c) in _canonical_cost.items()},
+    "overhead": [(label, n, round(cost, 2)) for label, n, cost, _ in _overhead_rows],
+    "overhead_total": round(sum(row[2] for row in _overhead_rows), 2),
+}
+coverage_expected = {
+    "cells": {
+        "deepseek-v4p1-flash/claude-code": 10, "deepseek-v4p1-flash/codex": 10,
+        "deepseek-v4p1-flash/opencode-v2": 10, "gpt-5.6-luna/claude-code": 10, "gpt-5.6-luna/codex": 10,
+        "gpt-5.6-luna/opencode-v2": 10, "gpt-5.6-luna/pi": 10, "kimi-k3/codex": 10, "kimi-k3/pi": 10,
+    },
+    "trials": 90,
+    "canonical_cost": {"kimi-k3": 227.35, "deepseek-v4p1-flash": 10.8, "gpt-5.6-luna": 168.07},
+    "overhead": [
+        ("Kimi K3, Claude Code", 10, 146.5),
+        ("DeepSeek V4.1 Flash, Pi", 11, 6.67),
+        ("DeepSeek V4.1 Flash, Pi repetition", 6, 0.3),
+        ("DeepSeek V4.1 Flash, Codex, superseded", 6, 4.02),
+        ("DeepSeek V4.1 Flash, Claude Code via LiteLLM", 10, 3.45),
+        ("DeepSeek V4.1 Flash, Claude Code via default CLIProxyAPI", 10, 7.59),
+        ("Non-canonical retries in the comparative jobs", 10, 7.21),
+    ],
+    "overhead_total": 175.75,
+}
+if coverage_quoted != coverage_expected:
+    raise ValueError(f"Benchmark coverage changed; update the text: {coverage_quoted}")
+```
+
+The comparative benchmark consists of nine model--harness conditions with ten canonical trials each, one per task, 90 trials in total (@tbl-benchmark-coverage). GPT-5.6 Luna is covered in all four harnesses, DeepSeek V4.1 Flash in three, and Kimi K3 in two. Every condition contains the same ten tasks, so the comparisons within a model are paired by task. The GLM-5.3-Flash runs are not part of the matrix; they serve only as the provider-route diagnostic described in @sec-methodology.
+
+```{python}
+#| label: tbl-benchmark-coverage
+#| tbl-cap: "Canonical trials per model and harness in the comparative benchmark. \"excluded\" marks a completed run that is kept only as audit evidence; \"not run\" marks a run that was not carried out within the budget."
+#| tbl-colwidths: [28, 13, 13, 16, 16, 14]
+
+_coverage = ["| Model | " + " | ".join(COVERAGE_HARNESSES.values()) + " | Trials |",
+             "|:--|" + "--:|" * (len(COVERAGE_HARNESSES) + 1)]
+for model, (label, _) in COVERAGE_MODELS.items():
+    cells = [str(_cells[model, h]) if (model, h) in _cells else COVERAGE_GAPS[model, h] for h in COVERAGE_HARNESSES]
+    _coverage.append(f"| {label} | " + " | ".join(cells)
+                     + f" | {sum(_cells.get((model, h), 0) for h in COVERAGE_HARNESSES)} |")
+_coverage.append("| **Total** | | | | | **" + str(sum(_cells.values())) + "** |")
+Markdown("\n".join(_coverage))
+```
+
+Three cells of the planned matrix are empty, for different reasons. Kimi K3 was not run with OpenCode V2 because the budget was exhausted (@sec-methodology). The Kimi K3 Claude Code run was completed but is excluded, because the gateway lowered its reasoning effort and omitted its earlier reasoning (@sec-measurement-corrections). DeepSeek V4.1 Flash with Pi is excluded because six of its ten trials never gave the model its earlier reasoning and could not be repeated (@sec-gateway-reasoning-history). None of these gaps is counted as a failed task. Two further DeepSeek conditions were repaired by repetition: five Codex trials and the complete Claude Code run were repeated after the gateway defects had been fixed, and only the repetitions enter the matrix.
+
+The observations that do not enter the comparison are kept in the published data outside the normal trial directories, under `.excluded/`, `.superseded/`, and `.retry-attempts/` (@sec-measurement-corrections). @tbl-benchmark-overhead lists them with their normalized cost. The 90 canonical trials cost USD 227.35 for Kimi K3, USD 10.80 for DeepSeek V4.1 Flash, and USD 168.07 for GPT-5.6 Luna. The observations outside the comparison add USD 175.75 of experimental overhead, most of it the excluded Kimi K3 Claude Code run. As described in @sec-methodology, all costs are API-equivalent normalizations; the Luna trials were not billed per token.
+
+```{python}
+#| label: tbl-benchmark-overhead
+#| tbl-cap: "Observations outside the comparative benchmark. Attempts include Pier's retries; cost is the normalized API-equivalent cost in USD."
+#| tbl-colwidths: [40, 11, 10, 39]
+
+_overhead = ["| Observation | Attempts | Cost | Reason |", "|:--|--:|--:|:--|"]
+for label, n, cost, reason in _overhead_rows:
+    _overhead.append(f"| {label} | {n} | {cost:.2f} | {reason} |")
+_overhead.append(f"| **Total** | **{sum(r[1] for r in _overhead_rows)}** "
+                 f"| **{sum(r[2] for r in _overhead_rows):.2f}** | |")
+Markdown("\n".join(_overhead))
+```
 
 ## Kimi K3
 
@@ -797,7 +930,7 @@ if ds_quoted != ds_expected:
     raise ValueError(f"DeepSeek V4.1 Flash data changed; update the text: {ds_quoted}")
 ```
 
-DeepSeek V4.1 Flash is compared in three harnesses: Codex, Claude Code, and OpenCode V2. The Pi condition is excluded because six of its ten trials never gave the model its earlier reasoning and could not be repeated (@sec-gateway-reasoning-history). The 30 canonical trials come from four Pier jobs. Five Codex trials are from the original job, and the five Codex trials affected by the gateway defect were repeated. The Claude Code trials are from the `is-compat` rerun described in the preceding section, and the OpenCode V2 trials are from their own job. Every trial requested `max` reasoning effort, and in every trial the prompts grew by at least 107% of the preceding reasoning, so the model received its earlier reasoning throughout. All harnesses were configured with DeepSeek's documented context window of 1,000,000 tokens. The applied corrections are the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials (@sec-measurement-corrections). All values in this section are computed from the committed trial files in `data/benchmark-results/deepseek-v4p1-flash/` and `data/benchmark-results/opencode-v2-deepseek-v4p1-flash/` by `scripts/analyze_harness_trials.py`. Each harness ran each of the ten tasks once, so every comparison rests on ten paired observations and is reported descriptively.
+DeepSeek V4.1 Flash is compared in three harnesses: Codex, Claude Code, and OpenCode V2. The Pi condition is excluded because six of its ten trials never gave the model its earlier reasoning and could not be repeated (@sec-gateway-reasoning-history). The 30 canonical trials come from four Pier jobs. Five Codex trials are from the original job, and the five Codex trials affected by the gateway defect were repeated. The Claude Code trials are from the `is-compat` rerun described in @sec-measurement-corrections, and the OpenCode V2 trials are from their own job. Every trial requested `max` reasoning effort, and in every trial the prompts grew by at least 107% of the preceding reasoning, so the model received its earlier reasoning throughout. All harnesses were configured with DeepSeek's documented context window of 1,000,000 tokens. The applied corrections are the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials (@sec-measurement-corrections). All values in this section are computed from the committed trial files in `data/benchmark-results/deepseek-v4p1-flash/` and `data/benchmark-results/opencode-v2-deepseek-v4p1-flash/` by `scripts/analyze_harness_trials.py`. Each harness ran each of the ten tasks once, so every comparison rests on ten paired observations and is reported descriptively.
 
 ### Task success {#sec-deepseek-success}
 
