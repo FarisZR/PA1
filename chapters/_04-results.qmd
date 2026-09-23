@@ -766,9 +766,9 @@ if kimi_quoted != kimi_expected:
     raise ValueError(f"Kimi K3 data changed; update the text: {kimi_quoted}")
 ```
 
-Kimi K3 by Moonshot AI is the frontier-class model in the comparison. Only its Pi and Codex runs enter the results. The Claude Code run was completed but is excluded because of two gateway defects (@sec-claude-code-reasoning). LiteLLM most likely lowered the requested `max` effort to `high` [@pa1Issue94]. In a local replay, its translation from the Anthropic to the OpenAI format also dropped Kimi's earlier reasoning from every later request [@pa1Issue102]. Neither defect affected Pi or Codex. Both reach the gateway through Chat Completions with an explicit `max` effort, which LiteLLM forwards unchanged. Both also ran on LiteLLM 1.98.0, before the release that removed earlier reasoning on the Fireworks route (@sec-gateway-reasoning-history). The excluded trials are kept under `data/benchmark-results/.excluded/kimi-k3/` for audit only. OpenCode V2 was not run for Kimi K3 (@sec-methodology).
+Kimi K3 by Moonshot AI is the frontier-class model in the comparison. Only its Pi and Codex runs enter the results. The Claude Code run is excluded because the gateway most likely lowered its `max` effort to `high` and dropped Kimi's earlier reasoning [@pa1Issue94; @pa1Issue102]. Pi and Codex were affected neither by these defects nor by the later removal of earlier reasoning on the Fireworks route (@sec-claude-code-reasoning; @sec-gateway-reasoning-history). The excluded trials are kept under `data/benchmark-results/.excluded/kimi-k3/` for audit only, and OpenCode V2 was not run for Kimi K3 (@sec-methodology).
 
-Both harnesses used Kimi's native 1,048,576-token context window. All values in this section are computed from the committed trials in `data/benchmark-results/kimi-k3/` by `scripts/analyze_harness_trials.py`. Each harness ran each of the ten tasks once, so every comparison rests on ten paired observations. Codex solved six tasks that Pi did not, and Pi solved one that Codex did not. An exact two-sided sign test over these seven tasks gives p = 0.125, so differences in success are reported descriptively.
+Both harnesses used Kimi's native 1,048,576-token context window. All values in this section are computed from the committed trials in `data/benchmark-results/kimi-k3/` by `scripts/analyze_harness_trials.py`. Each harness contributes one canonical attempt per task (@sec-canonical-attempts), so every comparison rests on ten paired observations. Codex solved six tasks that Pi did not, and Pi solved one that Codex did not. An exact two-sided sign test over these seven tasks gives p = 0.125, so differences in success are reported descriptively.
 
 ### Task success {#sec-kimi-success}
 
@@ -781,7 +781,7 @@ Both harnesses used Kimi's native 1,048,576-token context window. All values in 
 
 from IPython.display import Markdown
 
-_overview = ["| Harness | Passed | Timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
+_overview = ["| Harness | Passed | Agent timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
              "|:--|--:|--:|--:|--:|--:|--:|--:|--:|"]
 for harness, stats in kimi_summary.items():
     _overview.append(
@@ -999,7 +999,7 @@ if luna_quoted != luna_expected:
     raise ValueError(f"GPT-5.6 Luna data changed; update the text: {luna_quoted}")
 ```
 
-GPT-5.6 Luna is the only model with a complete and comparable run in all four harnesses. All 40 canonical trials reached Luna through the same ChatGPT-backed CLIProxyAPI route, and none of the gateway defects described in @sec-measurement-corrections affected it. Three corrections apply: the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials. Two properties of the OpenCode V2 condition also shape the results below: its native search tools did not work (@sec-opencode-ripgrep), and its input limit was lower than in the other harnesses (@sec-opencode-input-limit). All values in this section are computed from the committed trial files in `data/benchmark-results/luna/` and `data/benchmark-results/opencode-v2-luna/` by `scripts/analyze_harness_trials.py`. Each harness ran each of the ten tasks once, so every comparison rests on ten paired observations. Even the largest difference in success, between Codex and OpenCode V2, rests on four tasks that only Codex solved. An exact two-sided sign test over these four tasks gives p = 0.125. Differences in success are therefore reported descriptively.
+GPT-5.6 Luna is the only model with a complete and comparable run in all four harnesses. All 40 canonical trials reached Luna through the same ChatGPT-backed CLIProxyAPI route, and none of the gateway defects described in @sec-measurement-corrections affected it. Three corrections apply: the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials. Two properties of the OpenCode V2 condition also shape the results below: its native search tools did not work (@sec-opencode-ripgrep), and its input limit was lower than in the other harnesses (@sec-opencode-input-limit). All values in this section are computed from the committed trial files in `data/benchmark-results/luna/` and `data/benchmark-results/opencode-v2-luna/` by `scripts/analyze_harness_trials.py`. Each harness contributes one canonical attempt per task, so every comparison rests on ten paired observations. Even the largest difference in success, between Codex and OpenCode V2, rests on four tasks that only Codex solved. An exact two-sided sign test over these four tasks gives p = 0.125. Differences in success are therefore reported descriptively.
 
 ### Task success {#sec-luna-success}
 
@@ -1012,7 +1012,7 @@ GPT-5.6 Luna is the only model with a complete and comparable run in all four ha
 
 from IPython.display import Markdown
 
-_overview = ["| Harness | Passed | Timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
+_overview = ["| Harness | Passed | Agent timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
              "|:--|--:|--:|--:|--:|--:|--:|--:|--:|"]
 for harness, stats in luna_summary.items():
     _overview.append(
