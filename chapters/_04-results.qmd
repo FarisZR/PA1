@@ -384,6 +384,26 @@ _check(
     "Retention groups",
 )
 
+original_claude = [
+    row for row in load_rows(RESULTS_DIR / "deepseek-v4p1-flash")
+    if row["harness"] == "claude-code"
+]
+default_claude = load_rows(RESULTS_DIR / "deepseek-claude-code-cliproxy-api")
+fixed_claude = load_rows(RESULTS_DIR / "deepseek-claude-code-cliproxy-api-fixed-thinking")
+_check(
+    len(original_claude) == len(default_claude) == len(fixed_claude) == 10
+    and all(row["retention"] is not None for row in original_claude + default_claude + fixed_claude)
+    and sum(not row["retained"] for row in original_claude) == 6
+    and all(
+        (row["started_at"] < "2026-09-21T12:02:00Z") == (not row["retained"])
+        for row in original_claude
+    )
+    and all(not row["retained"] for row in default_claude)
+    and all(row["started_at"] > "2026-09-21T12:02:00Z" for row in default_claude)
+    and all(row["retained"] for row in fixed_claude),
+    "DeepSeek Claude Code route split",
+)
+
 # The two example calls quoted in the text.
 examples = {
     (pair["reasoning"], pair["growth"])
@@ -405,9 +425,18 @@ sessions = {}
 for row in requests:
     sessions.setdefault(row["codex_session"], []).append(row)
 version_growth = {}
+upgrade_jump_found = False
 for rows in sessions.values():
     rows.sort(key=lambda row: row["request_time_utc"])
     for before, after in zip(rows, rows[1:]):
+        if (
+            before["prompt_tokens"] == "114626"
+            and after["prompt_tokens"] == "714624"
+            and before["litellm_version"] == "1.101.0"
+            and after["litellm_version"] == "1.102.0"
+            and before["trial"] == after["trial"]
+        ):
+            upgrade_jump_found = True
         grown = int(after["prompt_tokens"]) - int(before["prompt_tokens"])
         if int(before["reasoning_tokens"]) >= 1000 and grown > 0:
             version_growth.setdefault(after["litellm_version"], []).append(
@@ -419,8 +448,7 @@ _check(
     "Bridge-log split",
 )
 _check(
-    any(row["prompt_tokens"] == "114626" for row in requests)
-    and any(row["prompt_tokens"] == "714624" for row in requests)
+    upgrade_jump_found
     and any(
         row["prompt_tokens"] == "175478" and row["reasoning_chars_sent"] == "3890944"
         and row["litellm_version"] == "1.101.0"
@@ -555,9 +583,13 @@ The six affected Pi trials are not repeated within the available budget. With on
 
 ### Reasoning effort and reasoning history in Claude Code
 
-The effort-mapping issue cannot be corrected in the retained data. Claude Code requests reasoning effort through the Anthropic `output_config.effort` field. For the Fireworks-routed models, these requests pass through LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway. That translation maps the field to `reasoning_effort` and lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101]. A local reproduction used the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) with deployment metadata matching what the gateway advertises. It forwarded `high` for both models, and for the excluded GLM-5.3-Flash batch. The Claude Code runs of Kimi K3 and DeepSeek V4.1 Flash were therefore most likely executed at `high` rather than the intended `max`, whereas Pi, Codex, and OpenCode V2 sent `max` directly. The gateway's deployment configuration during the runs could not be inspected directly.
+The original LiteLLM-routed Claude Code runs retain an effort-mapping limitation. Claude Code requests reasoning effort through the Anthropic `output_config.effort` field. For the Fireworks-routed models, these requests pass through LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway. That translation maps the field to `reasoning_effort` and lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101]. A local reproduction used the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) with deployment metadata matching what the gateway advertises. It forwarded `high` for both models, and for the excluded GLM-5.3-Flash batch. The original LiteLLM-routed Claude Code runs of Kimi K3 and DeepSeek V4.1 Flash were therefore most likely executed at `high` rather than the intended `max`, whereas Pi, Codex, OpenCode V2, and the later DeepSeek CLIProxyAPI runs sent `max` directly. The gateway's deployment configuration during the runs could not be inspected directly.
 
-A second issue affects the same runs. Claude Code sends its earlier thinking blocks back in the conversation history, but the translation to Chat Completions dropped them from every assistant message, so the model never received its earlier reasoning on later turns [@pa1Issue102]. This happened on both routes used for Claude Code with these models: LiteLLM's adapter in the AiOrbit gateway, and CLIProxyAPI without its `is-compat` option. DeepSeek requires the earlier `reasoning_content` to be passed back whenever tools are used, and its own API rejects requests without it [@deepseekThinkingMode]. Fireworks accepted these requests without an error, so the runs completed normally. Pi, Codex, and OpenCode V2 pass the earlier reasoning back, although the gateway removed it for part of the DeepSeek runs (@sec-gateway-reasoning-history), and GPT-5.6 Luna keeps it under Claude Code because its signed thinking blocks are converted to encrypted reasoning items. Whether Kimi K3 depends on the earlier reasoning as strongly as DeepSeek was not verified. Both the lowered effort and missing reasoning history prevent the completed Kimi Claude Code run from representing the intended `max`-effort condition. Its outcomes, tokens, cache usage, and cost are excluded from comparative results and cross-model figures; the published trial files remain available for audit [@pa1Issue108]. The DeepSeek Claude Code run remains qualified by these limitations. New CLIProxyAPI runs set `is-compat: true` for the three LiteLLM-backed models.
+Claude Code sends its earlier thinking blocks back in the conversation history. The original LiteLLM-routed DeepSeek Claude Code job had six pre-upgrade trials with median growth ratios below 50% and four post-upgrade trials above it; the pre-upgrade loss matches the Fireworks gateway defect described in @sec-gateway-reasoning-history [@pa1Issue111]. The later DeepSeek CLIProxyAPI job started after that upgrade, but its default translation without `is-compat` omitted earlier thinking: all ten trial medians were below 50%. In the separate `is-compat: true` rerun, all ten exceeded 50% [@pa1Issue102].
+
+DeepSeek requires the earlier `reasoning_content` to be passed back whenever tools are used, and its own API rejects requests without it [@deepseekThinkingMode]. Fireworks accepted these requests without an error, so the runs completed normally. Pi, Codex, and OpenCode V2 pass the earlier reasoning back, although the gateway removed it for part of the DeepSeek runs (@sec-gateway-reasoning-history), and GPT-5.6 Luna keeps it under Claude Code because its signed thinking blocks are converted to encrypted reasoning items. The original LiteLLM-routed and default CLIProxyAPI DeepSeek jobs remain qualified by their respective retention defects; the fixed-thinking CLIProxyAPI rerun retained earlier reasoning.
+
+A local replay of LiteLLM 1.98.0 found that its Anthropic-to-Chat Completions adapter omitted Kimi K3 Claude Code thinking blocks [@pa1Issue102]. Whether Kimi K3 depends on the earlier reasoning as strongly as DeepSeek was not verified. Both the lowered effort and missing reasoning history prevent the completed Kimi Claude Code run from representing the intended `max`-effort condition. Its outcomes, tokens, cache usage, and cost are excluded from comparative results and cross-model figures; the published trial files remain available for audit [@pa1Issue108]. The CLIProxyAPI bridge now sets `is-compat: true` for the three LiteLLM-backed models.
 
 ## Benchmark coverage
 
@@ -687,8 +719,8 @@ The two strongest matched examples are Codex trials. On `effect-sse-httpapi-stre
 
 Additional Fireworks-backed trajectories without a completed direct-Z.AI counterpart show the same general failure mode. Codex on `katex-multicolumn-array-spans` issued the same exact probe **1,388 times**, while Pi on `scriggo-method-declarations` executed one exact Bash probe **743 times**, including **742 consecutive calls**, before its three-hour timeout. The targeted Jev audit independently classified 740 tool calls in the Scriggo trajectory as `repetitive_no_progress`, providing corroborating review evidence for the deterministic repetition counts [@pa1JevAuditData; @pa1JevAuditMethod].
 
-The Fireworks-backed batch also ran entirely before the gateway upgrade described in @sec-gateway-reasoning-history. In all 25 of its trials with enough reasoning to measure, the next prompt grew by at most 25% of the preceding reasoning, whereas in all eight direct-Z.AI trials it grew by at least 107%.[^glm-claude-reasoning] The model therefore did not see its own earlier reasoning, which reduces the context available for its next decision and is consistent with the repeated identical calls. The batch was not repeated on the fixed gateway, however, so whether the removed reasoning explains the anomaly fully remains untested.
+The Fireworks-backed batch also ran entirely before the gateway upgrade described in @sec-gateway-reasoning-history. Among its 25 trials with enough reasoning to measure, every trial's median next-prompt growth ratio was at most 25% of the preceding reasoning; each of the eight measurable direct-Z.AI trials had a median of at least 107%.[^glm-claude-reasoning] The model therefore did not see its own earlier reasoning, which reduces the context available for its next decision and is consistent with the repeated identical calls. The batch was not repeated on the fixed gateway, however, so whether the removed reasoning explains the anomaly fully remains untested.
 
-[^glm-claude-reasoning]: Claude Code does not record how many reasoning tokens a call produced. For its trials, the number is estimated from the length of the reasoning text, at about four characters per token. By this estimate, Claude Code lost its earlier reasoning in the same way: in all ten Fireworks-backed trials, and in neither of the two direct-Z.AI trials.
+[^glm-claude-reasoning]: Claude Code does not record how many reasoning tokens a call produced. For its trials, the number is estimated from the length of the reasoning text, at about four characters per token. By the trial-median diagnostic, all ten Fireworks-backed Claude Code trials classify as without earlier reasoning, and neither of the two direct-Z.AI trials does.
 
 Taken together, the matched resource gap, the successful direct-Z.AI observations, and the disappearance of extreme identical-call loops on the matched direct route provide strong evidence of a **serving-path anomaly** rather than representative GLM-5.3-Flash behavior. The route change does not isolate Fireworks as the sole technical cause because it also removes AiOrbit and route-specific protocol translation; the removed reasoning history is one such AiOrbit-side factor. The paper therefore attributes the anomaly to the **Fireworks-backed serving path**, excludes GLM from model--harness performance and ranking results, and retains these observations only as a provider-route diagnostic.
