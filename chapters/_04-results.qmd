@@ -304,7 +304,7 @@ A second issue affects the same runs. Claude Code sends its earlier thinking blo
 
 ## Kimi K3
 
-Only the Pi and Codex Kimi K3 runs enter the comparative benchmark. The earlier Claude Code run was completed, but the LiteLLM translation lowered its requested `max` reasoning effort to `high` and did not return earlier reasoning to the model on subsequent turns (@sec-measurement-corrections). It is discarded from all reported Kimi comparisons, including success, cost, token, and cache metrics. OpenCode V2 was not run for Kimi K3 (@sec-methodology).
+Only the Pi and Codex Kimi K3 runs enter the comparative benchmark. The earlier Claude Code run was completed, but the LiteLLM translation lowered its requested `max` reasoning effort to `high` and did not return earlier reasoning to the model on subsequent turns (@sec-measurement-corrections). It is discarded from all reported Kimi comparisons, including success, cost, token, and cache metrics. Its ten trial directories and Pier's unfiltered job summary are kept under `data/benchmark-results/.excluded/kimi-k3/` for audit, outside the normal trial path used for analysis. OpenCode V2 was not run for Kimi K3 (@sec-methodology).
 
 - TODO: Report and analyze the Pi and Codex Kimi K3 results, including task success, cost, token usage, and cache behavior.
 
