@@ -46,6 +46,8 @@ GPT-5.6 Luna is accessed through the researcher's personal ChatGPT subscription 
 
 AiOrbit, Fireworks, and CLIProxyAPI are infrastructure outside the experimental manipulation. They may transform requests or introduce provider-side failures that the study cannot control. The results therefore characterize the harnesses under these documented deployment paths rather than an abstract provider-independent environment.
 
+Claude Code with the Fireworks-routed models is additionally affected by the translation between the Anthropic and OpenAI request formats. In the retained runs, the model's earlier reasoning was not passed back on later turns, and the requested `max` effort was lowered to `high`; both issues are described in @sec-measurement-corrections. For new Claude Code runs through CLIProxyAPI, the three LiteLLM-backed models set CLIProxyAPI's `is-compat: true` option, which passes the earlier reasoning through as `reasoning_content` [@pa1Issue102].
+
 ### Provider concurrency
 
 Fireworks-backed comparative jobs use model-specific concurrency caps so provider throttling does not become an experimental variable [@fireworksRateLimits]. The Pi/Claude Code/Codex jobs run up to 30 Kimi K3 trials and four DeepSeek V4.1 Flash trials concurrently. The OpenCode V2 configurations set ten concurrent Kimi trials and five concurrent DeepSeek trials; the Kimi/OpenCode V2 batch was not executed because of the budget constraint described above. GPT-5.6 Luna uses six concurrent trials in both the Pi/Claude Code/Codex configuration and the separate OpenCode V2 configuration. These settings affect job scheduling only; task definitions, model settings, scoring, and reported metrics are unchanged. The exact values are frozen in the benchmark configuration.

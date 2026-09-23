@@ -103,6 +103,12 @@ Two properties of the generated config are load-bearing:
   renders each model block from the same `supported_reasoning_levels` it writes
   into the Codex catalog and **fails** unless the template contains that block
   verbatim, so the two cannot drift apart.
+- **Claude Code thinking replay is explicit.** The three LiteLLM-backed model
+  aliases set `is-compat: true`. CLIProxyAPI otherwise treats the Anthropic
+  thinking/tool-call history as incompatible with its OpenAI-compatible route
+  and drops the prior `reasoning_content` before the next request. The direct
+  Z.AI alias does not use this setting because the Claude Code smoke and rerun
+  use the LiteLLM-backed aliases.
 - **Everything that could make the layer non-transparent is off.** `request-retry`,
   credential cooldown, retry intervals, and the quota fallbacks are disabled.
   Left at their defaults they would retry failed calls without attribution, take

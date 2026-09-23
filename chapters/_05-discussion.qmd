@@ -26,4 +26,5 @@
 
 ## Limitations and threats to validity
 
-- TODO: Describe methodological, measurement, infrastructure, and generalizability limitations.
+- The Claude Code results for Kimi K3 and DeepSeek V4.1 Flash are specific to the gateway route used. The model did not receive its earlier reasoning on later turns, and the requested `max` effort was lowered to `high` (@sec-measurement-corrections). These results therefore do not represent Claude Code with a provider-native Anthropic endpoint or with a bridge configured to preserve reasoning [@pa1Issue102].
+- TODO: Describe the remaining methodological, measurement, infrastructure, and generalizability limitations.

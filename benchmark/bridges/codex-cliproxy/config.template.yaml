@@ -72,6 +72,8 @@ openai-compatibility:
         input-modalities: [text, image]
         thinking:
           levels: ["low", "high", "max"]
+        # Preserve Claude Code thinking/tool-call history in the Anthropic -> OpenAI translation.
+        is-compat: true
       - name: "kimi-k3"
         alias: "kimi-k3"
         display-name: "Kimi K3"
@@ -79,6 +81,8 @@ openai-compatibility:
         input-modalities: [text, image]
         thinking:
           levels: ["low", "high", "max"]
+        # Preserve Claude Code thinking/tool-call history in the Anthropic -> OpenAI translation.
+        is-compat: true
       - name: "glm-5p3-flash"
         alias: "glm-5p3-flash"
         display-name: "GLM-5.3-Flash"
@@ -86,6 +90,8 @@ openai-compatibility:
         input-modalities: [text, image]
         thinking:
           levels: ["low", "high", "max"]
+        # Preserve Claude Code thinking/tool-call history in the Anthropic -> OpenAI translation.
+        is-compat: true
 
   # Direct Z.AI Coding Plan route used by glm-5.3-sub. Keep this separate from
   # the historical LiteLLM/AiOrbit/Fireworks alias above so old evidence stays

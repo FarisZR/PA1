@@ -1198,6 +1198,15 @@ requests through the pinned CLIProxyAPI bridge sends `reasoning_effort: "max"`
 to AiOrbit's Chat Completions surface, which forwards it unchanged. The bridge
 request logs confirm this. The Pi, Codex, and OpenCode V2 legs are unaffected.
 
+The same bridge route also fixes the separate reasoning-replay defect tracked in
+issue #102. Claude Code sends its prior thinking blocks back on later tool turns,
+but CLIProxyAPI drops them for an OpenAI-compatible model unless that model is
+marked `is-compat: true`. The three LiteLLM-backed aliases in
+`bridges/codex-cliproxy/config.template.yaml` now set that flag. The smoke below
+must therefore check both that the task passes and that a later upstream request
+body contains `reasoning_content` on an assistant tool-call message; a successful
+HTTP response alone would not detect this silent loss.
+
 `configs/deepseek-claude-code-cliproxy-api.yaml` contains only the Claude Code
 leg and replaces the Claude Code result from `deepseek-v4p1-flash.yaml`. It uses
 the same bridge environment as Claude Code × Luna (`CODEX_CLIPROXY_API_KEY`,
