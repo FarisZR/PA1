@@ -51,3 +51,5 @@ benchmark/evidence/
 # are reviewable in benchmark/references/opencode-v2-glm-5.3-flash.json.
 # Version-agnostic so bumping the pin cannot leave a ~95 MB binary untracked.
 benchmark/references/opencode-cli-linux-*.tgz
+
+documents/
