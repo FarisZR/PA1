@@ -142,7 +142,7 @@ class OpenCodeV2ConfigTests(unittest.TestCase):
         self.assertIn("max_output_tokens: 128000", luna)
         self.assertIn("websearch: false", luna)
 
-    def test_primary_profile_rejects_contradictory_inherited_limits(self) -> None:
+    def test_primary_profile_rejects_explicit_luna_input_limit(self) -> None:
         rendered = """
 model_name: openai/gpt-5.6-luna
 variant: max
@@ -158,12 +158,11 @@ providers:
               body:
                 max_output_tokens: 128000
 """
-        with self.assertRaisesRegex(SystemExit, "input limit 922000 exceeds context"):
+        with self.assertRaisesRegex(SystemExit, "must not override the input limit"):
             prepare_configs.validate_primary_opencode_v2_profile(
                 Path("luna.yaml"),
                 rendered,
                 "openai/gpt-5.6-luna",
-                require_input=True,
             )
 
     def test_direct_zai_glm_profiles_keep_native_transport(self) -> None:

@@ -70,8 +70,9 @@ agents:
           models:
             gpt-5.6-luna:
               limit:
+                # Leave input inherited from the catalogue. With this reduced
+                # context, OpenCode's context budget controls compaction.
                 context: 272000
-                input: 144000
                 output: 128000
               body:
                 max_output_tokens: 128000

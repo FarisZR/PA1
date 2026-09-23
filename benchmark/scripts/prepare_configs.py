@@ -845,7 +845,7 @@ def _model_limit_values(rendered: str, model_id: str) -> dict[str, int]:
 
 
 def validate_primary_opencode_v2_profile(
-    path: Path, rendered: str, model_ref: str, *, require_input: bool = False
+    path: Path, rendered: str, model_ref: str
 ) -> None:
     """Validate a primary built-in profile and its minimal route overrides."""
     if f"model_name: {model_ref}" not in rendered or "#" in rendered.split(
@@ -899,18 +899,16 @@ def validate_primary_opencode_v2_profile(
             + ", ".join(repr(item) for item in missing)
         )
 
-    if require_input:
+    if model_ref == "openai/gpt-5.6-luna":
         limits = _model_limit_values(rendered, model_ref.rsplit("/", 1)[1])
-        input_limit = limits.get("input")
-        context_limit = limits.get("context")
-        if input_limit is None or context_limit is None:
+        if limits.get("context") != 272000 or limits.get("output") != 128000:
             raise SystemExit(
-                f"{path}: {model_ref} must declare both input and context limits"
+                f"{path}: {model_ref} must declare context: 272000 and output: 128000"
             )
-        if input_limit > context_limit:
+        if "input" in limits:
             raise SystemExit(
-                f"{path}: {model_ref} input limit {input_limit} exceeds "
-                f"context limit {context_limit}"
+                f"{path}: {model_ref} must not override the input limit; "
+                "let context control compaction"
             )
 
 
@@ -976,7 +974,6 @@ def validate_primary_opencode_v2_profiles() -> None:
             path,
             path.read_text(),
             model_id,
-            require_input=filename == "luna.yaml",
         )
     explicit_profiles = {
         "glm-5.3-flash.yaml": ("zai/glm-5.3-flash", "max"),
