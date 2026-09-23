@@ -19,7 +19,7 @@ n_attempts: 1
 # Same cold-start calibration as deepseek-v4p1-flash.yaml: four concurrent
 # DeepSeek trials stay below the 7.2M cold total-prompt limit. A rate-limit
 # failure would trigger a paid retry, so the rerun keeps the original value.
-n_concurrent_trials: 4
+n_concurrent_trials: 5
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
