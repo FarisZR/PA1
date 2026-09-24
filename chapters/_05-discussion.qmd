@@ -21,7 +21,7 @@
 
 ## Practical implications
 
-- TODO: Relate the cross-model findings to the company context and the observed internal harness usage.
+- TODO: Relate the cross-model findings to the IONOS GmbH context and the observed internal harness usage.
 - TODO: Derive practical implications only from findings established in the results and cross-model analysis.
 
 ## Limitations and threats to validity
