@@ -26,7 +26,7 @@ Run the current setup in this order:
 7. `benchmark/generated/luna.yaml`
    - `benchmark/generated/deepseek-claude-code-cliproxy-api.yaml` — Claude Code × DeepSeek rerun at true `max` (see below)
    - `benchmark/generated/deepseek-codex-rerun.yaml` — rerun of the five Codex × DeepSeek trials affected by issue #111 (see below)
-   - `benchmark/generated/deepseek-pi-rerun.yaml` — rerun of three of the six Pi × DeepSeek trials affected by issue #111 (see below)
+   - `benchmark/generated/deepseek-pi-rerun.yaml` — rerun of all six Pi × DeepSeek trials affected by issue #111 (see below)
 8. `benchmark/configs/opus.yaml`
 9. run the matching `benchmark/configs/opencode-v2/<model>.yaml` job for the
    OpenCode V2 result of each model. Kimi's OpenCode V2 profile preserves the
@@ -1376,29 +1376,28 @@ python3 scripts/analyze_reasoning_retention.py benchmark/runs/deepseek-codex-rer
 python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
 ```
 
-## Pi × DeepSeek rerun of three issue #111 trials
+## Pi × DeepSeek rerun of the issue #111 trials
 
 Six of the ten Pi trials in `deepseek-v4p1-flash.yaml` ran before AiOrbit's
 LiteLLM upgrade and never gave the model its earlier reasoning (issue #111).
-The four clean Pi trials are all medium tasks, so the remaining budget is used
-for the hard task of each language whose medium task already has a clean Pi
-trial. Of the four such languages, the three cheapest by the cost of the same
-task in the harnesses that kept their reasoning are chosen: TypeScript
-(`effect-sse-httpapi-streaming`), JavaScript (`katex-multicolumn-array-spans`),
-and Go (`expr-try-catch-errors`). The selection uses language, difficulty, and
-cost only, not Pi's outcomes. With the clean trials, this gives three complete
-hard/medium language pairs for a task-matched comparison. The estimated cost is
-about USD 1.02 (worst case about USD 1.22).
+The previous three-task rerun was constrained by the then-remaining budget and
+ended when the gateway budget was exhausted; those failed attempts remain
+preserved as audit evidence under
+`data/benchmark-results/.excluded/deepseek-v4p1-flash/pi-rerun/`.
 
-`configs/deepseek-pi-rerun.yaml` copies the Pi leg of `deepseek-v4p1-flash.yaml`
-unchanged. Pi reaches AiOrbit directly, not through the bridge, so the bridge
-setting added since the original run does not apply.
+With additional budget available, `configs/deepseek-pi-rerun.yaml` now reruns
+all six affected tasks, including affected trials that passed. Selection
+therefore follows the gateway-version/time boundary rather than the outcome.
+The four clean Pi trials are retained.
 
-**Outcome (2026-09-23):** the job ran out of gateway budget. All three first
-attempts stopped after 16–18 minutes with HTTP 429 (`budget_exceeded`), and
-Pier's retries were rejected at once. No task was finished, so DeepSeek Pi stays
-excluded. `scripts/build_corrected_results.py` keeps the attempts as audit
-evidence under `data/benchmark-results/.excluded/deepseek-v4p1-flash/pi-rerun/`.
+The Pi configuration remains unchanged from `deepseek-v4p1-flash.yaml`.
+Concurrency is set to **4**, the maximum safe value under the existing DeepSeek
+cold-start calibration; six simultaneous cold starts were estimated at about
+126% of the 7.2M total-prompt TPM limit.
+
+Use a fresh `benchmark/runs/deepseek-pi-rerun` run directory when launching
+the replacement batch; the previous failed attempts are already preserved in
+the published audit data.
 
 ```bash
 python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus
