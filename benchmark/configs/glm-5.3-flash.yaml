@@ -1,4 +1,6 @@
-job_name: glm-5.3-flash
+# Distinct from the excluded 2026-09-20 batch (data/benchmark-results/glm-5.3-flash),
+# which ran on AiOrbit's LiteLLM 1.101.0 and lost prior reasoning (PA1 #111).
+job_name: glm-5.3-flash-litellm193
 jobs_dir: benchmark/runs
 n_attempts: 1
 # Sized against the Fireworks limit rather than by feel. A GLM trial demands a
@@ -98,11 +100,15 @@ agents:
                 contextWindow: 1000000
                 maxTokens: 131072
 
+  # Claude Code goes through CLIProxyAPI, not LiteLLM's /v1/messages adapter,
+  # which normalizes effort max to high for this deployment (PA1 #94). The
+  # bridge model entry uses is-compat and keeps thinking history as
+  # reasoning_content.
   - name: claude-code
     model_name: glm-5p3-flash[1m]
     env:
-      ANTHROPIC_AUTH_TOKEN: ${LITELLM_API_KEY}
-      ANTHROPIC_BASE_URL: ${LITELLM_ANTHROPIC_BASE_URL}
+      ANTHROPIC_AUTH_TOKEN: ${CODEX_CLIPROXY_API_KEY}
+      ANTHROPIC_BASE_URL: ${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}
       ANTHROPIC_DEFAULT_FABLE_MODEL: glm-5p3-flash[1m]
       CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1048576"
       API_FORCE_IDLE_TIMEOUT: "0"

@@ -1,5 +1,5 @@
 # OpenCode V2 primary profile. The adapter and provider path are validated for the current benchmark setup.
-job_name: opencode-v2-glm-5.3-flash
+job_name: opencode-v2-glm-5.3-flash-litellm193
 jobs_dir: benchmark/runs
 n_attempts: 1
 n_concurrent_trials: 30

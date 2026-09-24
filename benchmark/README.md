@@ -1031,8 +1031,42 @@ Both jobs are capped at `n_concurrent_trials: 3`.
 
 ### Historical Fireworks GLM route
 
-The following steps are retained only to reproduce the earlier
-AiOrbit/LiteLLM/Fireworks run. They are not used by `glm-5.3-sub`.
+These steps cover the Fireworks-backed GLM route: the planned LiteLLM 1.93.0
+rerun, then the earlier AiOrbit/LiteLLM/Fireworks run. They are not used by
+`glm-5.3-sub`.
+
+#### Route check before a Fireworks GLM rerun
+
+`glm-5.3-flash.yaml` and `opencode-v2/glm-5.3-flash.yaml` now describe the
+rerun (jobs `glm-5.3-flash-litellm193` and
+`opencode-v2-glm-5.3-flash-litellm193`), not the historical batch. The
+historical configuration is in git history.
+
+The rerun gateway runs LiteLLM 1.93.0, which predates the #111
+`reasoning_content` strip. Claude Code goes through CLIProxyAPI instead of
+LiteLLM's `/v1/messages` adapter to avoid the #94 effort normalization.
+
+LiteLLM response caching is enabled on this gateway, as it was for every
+earlier run, and PA1 leaves it as deployed. A byte-identical request is
+answered from the proxy's store without reaching Fireworks and is still billed.
+Within a trial, requests grow every turn and never repeat. The exposure is a
+relaunched or retried trial whose opening requests match an earlier attempt.
+
+Run the live route check against the exact gateway before the pilot. Pass
+`--bridge` once the bridge is running with `CODEX_CLIPROXY_REQUEST_LOG=true`:
+
+```bash
+python3 benchmark/scripts/check_litellm_route.py --env-file benchmark/env.local \
+  --model glm-5p3-flash --expect-version 1.93.0 --bridge
+```
+
+It fails on a wrong LiteLLM version, an insufficient key budget, a
+`reasoning_effort` or `max_tokens` that does not reach Fireworks, dropped
+reasoning replay, missing streaming `cached_tokens`, router retries, or a
+bridge body without `reasoning_effort: "max"` or the replayed reasoning. It
+reports whether response caching is on and warns that LiteLLM drops
+`tool_choice` for this deployment, which is harmless while harnesses send only
+`auto`.
 
 #### Historical gateway acceptance check
 
