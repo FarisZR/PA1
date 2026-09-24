@@ -1,8 +1,10 @@
 # OpenCode V2 primary profile. The adapter and provider path are validated for the current benchmark setup.
-job_name: opencode-v2-glm-5.3-flash-litellm193
+job_name: opencode-v2-glm-5.3-flash-rerun
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 30
+# Same Fireworks route and limit as glm-5.3-flash.yaml, which is sized to 8
+# concurrent trials. 30 was the concurrency throttled on 2026-09-20.
+n_concurrent_trials: 8
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency

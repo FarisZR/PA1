@@ -1,6 +1,10 @@
-# Distinct from the excluded 2026-09-20 batch (data/benchmark-results/glm-5.3-flash),
-# which ran on AiOrbit's LiteLLM 1.101.0 and lost prior reasoning (PA1 #111).
-job_name: glm-5.3-flash-litellm193
+# GLM-5.3-Flash on Fireworks through the AiOrbit LiteLLM gateway (1.102.1).
+# Rerun of the excluded 2026-09-20 batch (data/benchmark-results/glm-5.3-flash),
+# which ran on LiteLLM 1.101.0 and lost prior reasoning (PA1 #111). 1.102.0+
+# forwards reasoning_content again; Claude Code avoids the #94 effort
+# normalization through CLIProxyAPI. Everything else matches glm-5.3-sub except
+# the Fireworks transport workarounds (PA1 #53) and the gateway model id.
+job_name: glm-5.3-flash-rerun
 jobs_dir: benchmark/runs
 n_attempts: 1
 # Sized against the Fireworks limit rather than by feel. A GLM trial demands a
@@ -110,7 +114,7 @@ agents:
       ANTHROPIC_AUTH_TOKEN: ${CODEX_CLIPROXY_API_KEY}
       ANTHROPIC_BASE_URL: ${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}
       ANTHROPIC_DEFAULT_FABLE_MODEL: glm-5p3-flash[1m]
-      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1048576"
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW: "1000000"
       API_FORCE_IDLE_TIMEOUT: "0"
       CLAUDE_STREAM_IDLE_TIMEOUT_MS: "1800000"
       DISABLE_AUTOUPDATER: "1"

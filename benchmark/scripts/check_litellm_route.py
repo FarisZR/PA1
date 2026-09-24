@@ -35,7 +35,7 @@ Bridge checks (``--bridge``; CLIProxyAPI must be running with request logging):
 
 Usage:
   python3 benchmark/scripts/check_litellm_route.py --env-file benchmark/env.local \\
-      --model glm-5p3-flash --expect-version 1.93.0 [--bridge] \\
+      --model glm-5p3-flash --expect-version 1.102.1 [--bridge] \\
       [--report "$BB_THREAD_STORAGE/litellm-route.json"]
 
 Every direct request except the cache probe sends LiteLLM's per-request cache
@@ -194,7 +194,10 @@ def check_direct(gw: Gateway, args: argparse.Namespace) -> None:
         record("FAIL", "gateway answers a minimal request", f"HTTP {first['status']}: {first['raw'][:400]}")
         return
     version = first["headers"].get("x-litellm-version")
-    check(version == args.expect_version, f"x-litellm-version is {args.expect_version}", f"got {version!r}")
+    if args.expect_version:
+        check(version == args.expect_version, f"x-litellm-version is {args.expect_version}", f"got {version!r}")
+    else:
+        record("PASS", f"(info) x-litellm-version is {version}")
     api_base = first["headers"].get("x-litellm-model-api-base")
     check(api_base is not None and "fireworks.ai" in api_base, "deployment points at Fireworks", repr(api_base))
 
@@ -417,7 +420,8 @@ def upstream_bodies(since: float, marker: str) -> list[dict]:
     return found
 
 
-# Top-level request keys LiteLLM 1.93.0's Fireworks adapter forwards
+# Top-level request keys LiteLLM's Fireworks adapter forwards (identical in 1.93.0
+# and 1.102.1)
 # (FireworksAIConfig.get_supported_openai_params) plus the ones it consumes
 # itself. With drop_params on, anything else is removed without an error.
 FIREWORKS_FORWARDED = {
@@ -443,7 +447,7 @@ def check_upstream(label: str, bodies: list[dict], effort: str, reasoning: str |
           repr(last.get("tool_choice")))
     dropped = sorted({k for b in bodies for k in b} - FIREWORKS_FORWARDED - {"tool_choice"})
     check(not dropped, f"{label}: every other upstream key survives LiteLLM's drop_params",
-          f"silently dropped by LiteLLM 1.93.0 for Fireworks: {dropped}", soft=True)
+          f"silently dropped by LiteLLM for Fireworks: {dropped}", soft=True)
     if reasoning is not None:
         replayed = [m.get("reasoning_content") for m in last["messages"] if m.get("role") == "assistant"]
         check(any(r and reasoning[:200] in r for r in replayed), f"{label}: prior reasoning is replayed as reasoning_content",
@@ -516,7 +520,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--env-file", type=Path)
     parser.add_argument("--model", default="glm-5p3-flash")
-    parser.add_argument("--expect-version", default="1.93.0")
+    parser.add_argument("--expect-version", help="fail unless x-litellm-version equals this, e.g. 1.102.1")
     parser.add_argument("--planned-spend-usd", type=float, default=100.0,
                         help="budget the job needs; the 2026-09-20 GLM Fireworks batch cost ~USD 21 per clean harness at PA1 prices")
     parser.add_argument("--max-tokens", type=int, default=131072, help="max_tokens the harness configs send")

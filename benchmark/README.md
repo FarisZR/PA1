@@ -430,8 +430,9 @@ transport alias as a custom `zai` model while copying Pi 0.84.4's built-in
 `zai/glm-5.3-flash` metadata: text-and-image input, `low`/`high`/`max`
 reasoning, a 1,000,000-token context window, a 131,072-token output ceiling,
 and the built-in cost metadata. The Fireworks route advertises 1,048,576
-context, which is used for Codex, Claude Code's declared compaction window, and
-cost normalization.
+context, but like `glm-5.3-sub` and DeepSeek, PA1 normalizes every GLM harness
+to 1,000,000. That covers Codex's catalog, the bridge entry, Claude Code's
+compaction window, and OpenCode V2's catalog limit.
 
 Two Z.AI transport settings are overridden for the Fireworks-backed gateway.
 `thinkingFormat` is set to `"openai"` so Pi sends only `reasoning_effort`;
@@ -1031,42 +1032,56 @@ Both jobs are capped at `n_concurrent_trials: 3`.
 
 ### Historical Fireworks GLM route
 
-These steps cover the Fireworks-backed GLM route: the planned LiteLLM 1.93.0
-rerun, then the earlier AiOrbit/LiteLLM/Fireworks run. They are not used by
+These steps cover the Fireworks-backed GLM route: the planned rerun on AiOrbit's
+LiteLLM 1.102.1, then the earlier 2026-09-20 run. They are not used by
 `glm-5.3-sub`.
 
-#### Route check before a Fireworks GLM rerun
+#### Fireworks GLM rerun on AiOrbit (LiteLLM 1.102.1)
 
 `glm-5.3-flash.yaml` and `opencode-v2/glm-5.3-flash.yaml` now describe the
-rerun (jobs `glm-5.3-flash-litellm193` and
-`opencode-v2-glm-5.3-flash-litellm193`), not the historical batch. The
-historical configuration is in git history.
+rerun (jobs `glm-5.3-flash-rerun` and `opencode-v2-glm-5.3-flash-rerun`), not
+the excluded 2026-09-20 batch. The historical configuration is in git history.
+The rerun isolates whether that batch's timeouts, output-token volume, and
+repeated tool calls came from the model or from the lost reasoning history.
 
-The rerun gateway runs LiteLLM 1.93.0, which predates the #111
-`reasoning_content` strip. Claude Code goes through CLIProxyAPI instead of
-LiteLLM's `/v1/messages` adapter to avoid the #94 effort normalization.
+Compared with the 2026-09-20 batch:
 
-LiteLLM response caching is enabled on this gateway, as it was for every
-earlier run, and PA1 leaves it as deployed. A byte-identical request is
-answered from the proxy's store without reaching Fireworks and is still billed.
-Within a trial, requests grow every turn and never repeat. The exposure is a
-relaunched or retried trial whose opening requests match an earlier attempt.
+- **#111:** AiOrbit now runs LiteLLM 1.102.1, whose Fireworks adapter forwards
+  `reasoning_content` again. The offline replay
+  (`scripts/replay_litellm_fireworks.py`) forwards 2 of 2 reasoning blocks on
+  1.102.1 and 0 of 2 on 1.101.0.
+- **#94:** Claude Code goes through CLIProxyAPI (`is-compat: true`) instead of
+  LiteLLM's `/v1/messages` adapter, like the DeepSeek fixed-thinking rerun.
+- **Context:** normalized to 1,000,000 in every harness, as in `glm-5.3-sub`.
+- **Concurrency:** OpenCode V2 uses the route's 8 concurrent trials instead of 30.
+- Pi and OpenCode V2 keep the Fireworks transport workarounds (#53).
 
-Run the live route check against the exact gateway before the pilot. Pass
-`--bridge` once the bridge is running with `CODEX_CLIPROXY_REQUEST_LOG=true`:
+LiteLLM response caching stays as deployed, as for every earlier run.
+
+Point `LITELLM_OPENAI_BASE_URL` and `LITELLM_API_KEY` at AiOrbit and
+regenerate. Then run the live route check against the exact gateway before the
+pilot. Pass `--bridge` once the bridge is running with
+`CODEX_CLIPROXY_REQUEST_LOG=true`:
 
 ```bash
 python3 benchmark/scripts/check_litellm_route.py --env-file benchmark/env.local \
-  --model glm-5p3-flash --expect-version 1.93.0 --bridge
+  --model glm-5p3-flash --expect-version 1.102.1 --bridge
 ```
 
-It fails on a wrong LiteLLM version, an insufficient key budget, a
-`reasoning_effort` or `max_tokens` that does not reach Fireworks, dropped
-reasoning replay, missing streaming `cached_tokens`, router retries, or a
-bridge body without `reasoning_effort: "max"` or the replayed reasoning. It
-reports whether response caching is on and warns that LiteLLM drops
-`tool_choice` for this deployment, which is harmless while harnesses send only
-`auto`.
+It fails if any of the following holds:
+
+- the LiteLLM version is wrong or the key budget is insufficient;
+- `reasoning_effort` or `max_tokens` does not reach Fireworks;
+- reasoning replay is dropped or streaming `cached_tokens` is missing;
+- the router retried or fell back;
+- a bridge body lacks `reasoning_effort: "max"` or the replayed reasoning.
+
+It also reports whether response caching is on, whether `tool_choice` is
+dropped, and whether cached tokens are billed at the cache-read rate.
+
+After the pilot, confirm retention on the pilot's run directory with
+`scripts/analyze_reasoning_retention.py`. Kept reasoning gives about 100% or
+more; dropped reasoning gives a few percent.
 
 #### Historical gateway acceptance check
 
