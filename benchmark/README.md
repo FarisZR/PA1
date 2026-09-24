@@ -26,7 +26,7 @@ Run the current setup in this order:
 7. `benchmark/generated/luna.yaml`
    - `benchmark/generated/deepseek-claude-code-cliproxy-api.yaml` — Claude Code × DeepSeek rerun at true `max` (see below)
    - `benchmark/generated/deepseek-codex-rerun.yaml` — rerun of the five Codex × DeepSeek trials affected by issue #111 (see below)
-   - `benchmark/generated/deepseek-pi-rerun.yaml` — rerun of three of the six Pi × DeepSeek trials affected by issue #111 (see below)
+   - `benchmark/generated/deepseek-pi-rerun-full.yaml` — rerun of all six Pi × DeepSeek trials affected by issue #111 (see below)
 8. `benchmark/configs/opus.yaml`
 9. run the matching `benchmark/configs/opencode-v2/<model>.yaml` job for the
    OpenCode V2 result of each model. Kimi's OpenCode V2 profile preserves the
@@ -1375,6 +1375,34 @@ python3 scripts/analyze_reasoning_retention.py benchmark/runs/deepseek-codex-rer
 # publish the rerun in place of the superseded trials (checks retention again)
 python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
 ```
+
+## Pi × DeepSeek complete rerun of the issue #111 trials
+
+Six of the ten Pi trials in `deepseek-v4p1-flash.yaml` ran before AiOrbit's
+LiteLLM upgrade and never gave the model its earlier reasoning (issue #111).
+`configs/deepseek-pi-rerun-full.yaml` reruns exactly those six tasks,
+including affected trials that passed, so the selection follows the
+gateway-version/time boundary rather than the outcome. The four clean Pi
+trials are retained.
+
+The job uses the Pi configuration from `deepseek-v4p1-flash.yaml` unchanged
+and a separate job name from the earlier budget-limited rerun. Concurrency is
+set to **4**, the maximum safe value under the existing DeepSeek cold-start
+calibration; six simultaneous cold starts were estimated to exceed the 7.2M
+total-prompt TPM limit.
+
+```bash
+python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus
+PIER=~/pier/.venv/bin/pier
+$PIER run \
+  -c benchmark/generated/deepseek-pi-rerun-full.yaml \
+  --env-file benchmark/env.local --yes
+# after the job: every trial must show retention above 100% (a few percent means removed)
+python3 scripts/analyze_reasoning_retention.py benchmark/runs/deepseek-pi-rerun-full
+```
+
+The previous `deepseek-pi-rerun` job remains preserved as audit evidence of
+the budget-exhausted attempt and is not reused by this rerun.
 
 ## Pi × DeepSeek rerun of three issue #111 trials
 
