@@ -24,7 +24,6 @@ CURRENT_MODEL_CONFIGS = {
     "deepseek-claude-code-cliproxy-api.yaml": 0,
     "deepseek-codex-rerun.yaml": 0,
     "deepseek-pi-rerun.yaml": 1,
-    "deepseek-pi-rerun-full.yaml": 1,
     "smoke-test.yaml": 1,
     "opencode-v2/smoke.yaml": 0,
     "opencode-v2/delegation-smoke.yaml": 1,
