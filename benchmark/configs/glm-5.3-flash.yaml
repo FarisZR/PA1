@@ -7,20 +7,24 @@
 job_name: glm-5.3-flash-rerun
 jobs_dir: benchmark/runs
 n_attempts: 1
-# Sized against the Fireworks limit rather than by feel. A GLM trial demands a
-# median 736,678 total-prompt TPM (measured over the 20 real trials of the
-# 2026-09-20 run; the agentic loop re-sends a ~94%-cached context every turn,
-# so total prompt binds long before uncached or generated do). An idle route is
-# observed to allow 7.2M total-prompt TPM, which caps a cold start at 9.8
-# trials. 8 sits at 82% of that. The margin is against *median* demand and is
-# not guaranteed: at p90 per-trial demand (1,393,319 TPM) the same limit allows
-# only 5.2 trials.
+# Sized from the AiOrbit bridge logs and trajectories (PA1 #129), not from the
+# earlier 737k-per-trial / 7.2M-idle arithmetic, which understated load ~3x.
 #
-# The same arithmetic explains the 2026-09-20 failure: 30 trials demanded 307%
-# of the cold limit and were throttled; once Pi's 10 died and the limit had
-# adapted upward, the surviving 20 sat at 56% of the warmed limit and the 429s
-# stopped.
-n_concurrent_trials: 8
+# - Live limits on 2026-09-24 (tokens/min): 32.96M total prompt, 4.39M
+#   cache-adjusted, 1.8M uncached, 72k generated. GLM kept its warmed limits
+#   from the 2026-09-21 run.
+# - The 2026-09-21 run at 8 drew, per running trial and minute, a median 2.13M
+#   total prompt (p90 2.85M) and ~0.30M cache-adjusted (p90 0.40M, counting
+#   cached tokens at 1/7.5, the observed total/cache-adjusted limit ratio).
+#   Current limits therefore allow ~11-15 trials. Kept reasoning enlarges every
+#   prompt, so 10 leaves room for that.
+# - Limits step up 1.25x after ~16 min of near-limit load. The 2026-09-20 429s
+#   hit only the first 1.5 minutes of a 30-trial start, when empty prompt
+#   caches pushed uncached load (2.2M) past the 1.8M uncached limit.
+#
+# Run the OpenCode V2 job alongside this one, started ~30 minutes later
+# (see benchmark/README.md), for ~16 concurrent trials in total.
+n_concurrent_trials: 10
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
