@@ -373,12 +373,26 @@ providers:
                     + "\n"
                 )
                 prepare_configs.GENERATED_DIR = target
+                stale_luna = target / "opencode-v2" / "luna.yaml"
+                stale_luna.parent.mkdir(parents=True)
+                stale_luna.write_text("limit:\n  input: 144000\n")
                 sys.argv = [
                     "prepare_configs.py",
                     "--env-file",
                     str(env_file),
                 ]
                 prepare_configs.main()
+                import yaml
+
+                luna = yaml.safe_load(stale_luna.read_text())
+                luna_model = (
+                    luna["agents"][0]["kwargs"]["opencode_v2_config"]
+                    ["providers"]["openai"]["models"]["gpt-5.6-luna"]
+                )
+                self.assertEqual(
+                    luna_model["limit"], {"context": 272000, "output": 128000}
+                )
+                self.assertEqual(luna_model["body"], {"max_output_tokens": 128000})
                 generated = target / "opencode-v2" / "delegation-smoke.yaml"
                 self.assertTrue(generated.exists())
                 contents = generated.read_text()
