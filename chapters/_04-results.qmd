@@ -1024,7 +1024,7 @@ _overhead.append(f"| **Total** | **{sum(r[1] for r in _overhead_rows)}** "
 Markdown("\n".join(_overhead))
 ```
 
-## Kimi K3
+## Kimi K3 {#sec-kimi}
 
 ```{python}
 #| include: false
@@ -1183,7 +1183,7 @@ if kimi_quoted != kimi_expected:
     raise ValueError(f"Kimi K3 data changed; update the text: {kimi_quoted}")
 ```
 
-Kimi K3 by Moonshot AI is the frontier-class model in the comparison. Only its Pi and Codex runs enter the results. The Claude Code run is excluded because the gateway most likely lowered its `max` effort to `high` and dropped Kimi's earlier reasoning [@pa1Issue94; @pa1Issue102]. Pi and Codex were affected neither by these defects nor by the later removal of earlier reasoning on the Fireworks route (@sec-claude-code-reasoning; @sec-gateway-reasoning-history). The excluded trials are kept under `data/benchmark-results/.excluded/kimi-k3/` for audit only, and OpenCode V2 was not run for Kimi K3 (@sec-methodology).
+Kimi K3 by Moonshot AI is the frontier-class model in the comparison. Only its Pi and Codex runs enter the results. The Claude Code run is excluded because the gateway most likely lowered its `max` effort to `high` and dropped Kimi's earlier reasoning [@pa1Issue94; @pa1Issue102]. The first DeepSeek V4.1 Flash Claude Code run had the same two defects. For DeepSeek, Claude Code was repeated through two further routes, and @sec-deepseek-claude-routes compares the three runs. Pi and Codex were affected neither by these defects nor by the later removal of earlier reasoning on the Fireworks route (@sec-claude-code-reasoning; @sec-gateway-reasoning-history). The excluded trials are kept under `data/benchmark-results/.excluded/kimi-k3/` for audit only, and OpenCode V2 was not run for Kimi K3 (@sec-methodology).
 
 Both harnesses used Kimi's native 1,048,576-token context window. All values in this section are computed from the committed trials in `data/benchmark-results/kimi-k3/` by `scripts/analyze_harness_trials.py`. Each harness contributes one canonical attempt per task (@sec-canonical-attempts), so every comparison rests on ten paired observations. Codex solved six tasks that Pi did not, and Pi solved one that Codex did not. An exact two-sided sign test over these seven tasks gives p = 0.125, so differences in success are reported descriptively.
 
@@ -1268,7 +1268,7 @@ _ax.figure.set_size_inches(6.3, 3.2)
 _ax.figure.tight_layout()
 ```
 
-## DeepSeek V4.1 Flash
+## DeepSeek V4.1 Flash {#sec-deepseek}
 
 ```{python}
 #| include: false
@@ -1414,7 +1414,7 @@ if ds_quoted != ds_expected:
     raise ValueError(f"DeepSeek V4.1 Flash data changed; update the text: {ds_quoted}")
 ```
 
-DeepSeek V4.1 Flash is compared in three harnesses: Codex, Claude Code, and OpenCode V2. The Pi condition is excluded because six of its ten trials never gave the model its earlier reasoning and could not be repeated (@sec-gateway-reasoning-history). The 30 canonical trials come from four Pier jobs. Five Codex trials are from the original job, and the five Codex trials affected by the gateway defect were repeated. The Claude Code trials are from the `is-compat` rerun described in @sec-measurement-corrections, and the OpenCode V2 trials are from their own job. Every trial requested `max` reasoning effort and met the trial-level retention criterion of @sec-gateway-reasoning-history, with a median prompt growth of at least 107% of the preceding reasoning. A trial-level median does not establish retention on every call: the Codex trial on `katex` made its first nine measured calls before the gateway upgrade and therefore without its earlier reasoning. All harnesses were configured with DeepSeek's documented context window of 1,000,000 tokens. The applied corrections are the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials (@sec-measurement-corrections). All values in this section are computed from the committed trial files in `data/benchmark-results/deepseek-v4p1-flash/` and `data/benchmark-results/opencode-v2-deepseek-v4p1-flash/` by `scripts/analyze_harness_trials.py`. Each harness ran each of the ten tasks once, so every comparison rests on ten paired observations and is reported descriptively.
+DeepSeek V4.1 Flash is compared in three harnesses: Codex, Claude Code, and OpenCode V2. The Pi condition is excluded (@sec-gateway-reasoning-history). The five Codex trials affected by the gateway defect are replaced by their repetitions, and the Claude Code trials come from the `is-compat` rerun (@sec-claude-code-reasoning). Every trial requested `max` reasoning effort and met the trial-level retention criterion of @sec-gateway-reasoning-history, with a median prompt growth of at least 107% of the preceding reasoning. A trial-level median does not establish retention on every call: the Codex trial on `katex` made its first nine measured calls before the gateway upgrade and therefore without its earlier reasoning. All harnesses were configured with DeepSeek's documented context window of 1,000,000 tokens. The values are computed as for Kimi K3 (@sec-kimi), from `data/benchmark-results/deepseek-v4p1-flash/` and `data/benchmark-results/opencode-v2-deepseek-v4p1-flash/`, and the Codex and OpenCode V2 corrections of @sec-measurement-corrections apply. With ten paired observations per harness, the differences are again reported descriptively.
 
 ### Task success {#sec-deepseek-success}
 
@@ -1452,7 +1452,7 @@ The four excluded Pi trials that kept their reasoning, all on medium tasks, pass
 
 ### Cost and token usage {#sec-deepseek-cost}
 
-The three harnesses cost similar amounts in total (@tbl-deepseek-overview), and @fig-deepseek-cost shows that this also holds task by task. The 30 trials cost between USD 0.19 and 0.83 each. The most expensive task, `scriggo`, was the most expensive one in every harness. As a geometric mean of the per-task ratios relative to Codex, Claude Code cost 1.10 times as much and OpenCode V2 0.89 times.
+The three harnesses cost similar amounts in total (@tbl-deepseek-overview), and @fig-deepseek-cost shows that this also holds task by task. The 30 trials cost between USD 0.19 and 0.83 each. The most expensive task, `scriggo`, was the most expensive one in every harness. As a geometric mean of the per-task ratios relative to Codex (@sec-kimi-cost), Claude Code cost 1.10 times as much and OpenCode V2 0.89 times.
 
 ```{python}
 #| label: fig-deepseek-cost
@@ -1489,7 +1489,7 @@ fig.tight_layout()
 
 ### Context and compaction {#sec-deepseek-context}
 
-No DeepSeek trial compacted its context in any harness. The largest prompts reached between 485,166 and 496,718 tokens, all on `scriggo`, and the median of the trials' largest prompts was between 271,288 tokens (Claude Code) and 317,777 tokens (OpenCode V2), as panel (c) of @fig-deepseek-tokens shows. Every prompt therefore stayed below half of the configured 1,000,000-token window. No context compaction was observed in the 30 canonical trials.
+As for Kimi K3 (@sec-kimi-context), no DeepSeek trial compacted its context in any harness. The largest prompts reached between 485,166 and 496,718 tokens, all on `scriggo`, and the median of the trials' largest prompts was between 271,288 tokens (Claude Code) and 317,777 tokens (OpenCode V2), as panel (c) of @fig-deepseek-tokens shows. Every prompt therefore stayed below half of the configured 1,000,000-token window.
 
 ### Tool use and invocation errors {#sec-deepseek-tools}
 
@@ -1504,9 +1504,9 @@ _ax.figure.set_size_inches(6.3, 2.5)
 _ax.figure.tight_layout()
 ```
 
-DeepSeek started no subagent in any harness, although Claude Code, Codex, and OpenCode V2 all offered delegation. All three harnesses therefore ran as single-agent systems with this model, and delegation did not contribute to any of the differences reported in this section.
+Like Kimi K3, DeepSeek started no subagent in any harness, although Claude Code, Codex, and OpenCode V2 all offered delegation. All three harnesses therefore ran as single-agent systems with this model, and delegation did not contribute to any of the differences reported in this section.
 
-An invocation error is a tool call that the tool rejected because of the call itself: invalid arguments or script syntax, an edit whose old text was not found or not unique, or a missing file. Non-zero shell exits, blocked web fetches, and the failed OpenCode V2 searches are not counted; `scripts/analyze_harness_trials.py` implements these rules. @fig-deepseek-invocation-errors shows the rates. Codex had the highest rate, 1.7% of its counted calls, against 0.4% for Claude Code and 0.6% for OpenCode V2. Of Codex's 42 rejected calls, 20 came from the single `scriggo` trial, 15 of them script errors in the JavaScript cells that apply patches. Between 1.6% (Claude Code) and 5.3% (Codex) of DeepSeek's edits were rejected, most often because the text to be replaced did not match the file.
+Invocation errors are counted as defined in @sec-kimi-tools; blocked web fetches and the failed OpenCode V2 searches are not counted either. @fig-deepseek-invocation-errors shows the rates. Codex had the highest rate, 1.7% of its counted calls, against 0.4% for Claude Code and 0.6% for OpenCode V2. Of Codex's 42 rejected calls, 20 came from the single `scriggo` trial, 15 of them script errors in the JavaScript cells that apply patches. Between 1.6% (Claude Code) and 5.3% (Codex) of DeepSeek's edits were rejected, most often because the text to be replaced did not match the file.
 
 ```{python}
 #| label: fig-deepseek-invocation-errors
@@ -1612,9 +1612,9 @@ if cc_quoted != cc_expected:
     raise ValueError(f"DeepSeek Claude Code route data changed; update the text: {cc_quoted}")
 ```
 
-Claude Code reached DeepSeek through three routes in succession, because the first two turned out to be defective (@sec-measurement-corrections) [@pa1Issue102; @pa1Issue111]. The first run went through LiteLLM's Anthropic adapter, which most likely lowered the requested `max` effort to `high`; in its six trials that started before the gateway upgrade, the earlier reasoning also never reached the model. The second run went through CLIProxyAPI, which forwarded `max`, but in its default configuration CLIProxyAPI dropped Claude Code's earlier thinking blocks in every trial. The third run used CLIProxyAPI with `is-compat` and is the canonical Claude Code condition reported above. The tasks, the Claude Code version, and the context window were the same in all three runs. This subsection compares the three runs to show how far their results differ. It is the only analysis that uses the two excluded runs.
+Claude Code reached DeepSeek through three routes in succession, because the first two turned out to be defective (@sec-claude-code-reasoning) [@pa1Issue102; @pa1Issue111]. The first run, through LiteLLM, had the same two defects as the excluded Kimi K3 Claude Code run (@sec-kimi): its effort was most likely lowered to `high`, and in its six trials before the gateway upgrade the earlier reasoning did not reach the model. The second run, through CLIProxyAPI without `is-compat`, kept `max` but lost the earlier reasoning in every trial. The third run used CLIProxyAPI with `is-compat` and is the canonical Claude Code condition reported above. The tasks, the Claude Code version, and the context window were the same in all three runs. This subsection compares the three runs to show how far their results differ. It is the only analysis that uses the two excluded runs.
 
-@tbl-deepseek-claude-routes summarizes the runs. The prompt-growth check of @sec-gateway-reasoning-history confirms the route defects. In the canonical run, all ten trials had a prompt-growth ratio above 50%, with a median of 134%. In the second run, no trial reached 50%, and the median was 12%. In the first run, exactly the four trials that started after the gateway upgrade exceeded 50%.
+@tbl-deepseek-claude-routes summarizes the runs. Their prompt-growth ratios, which @sec-claude-code-reasoning uses to classify the trials, had medians of 25%, 12%, and 134%.
 
 ```{python}
 #| label: tbl-deepseek-claude-routes
