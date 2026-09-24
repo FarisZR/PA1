@@ -354,9 +354,11 @@ def check_direct(gw: Gateway, args: argparse.Namespace) -> None:
           f"usage={cached_tokens(non_stream['usage'])} header={header_int(non_stream, 'llm_provider-fireworks-cached-prompt-tokens')}")
 
     # budget accounting -------------------------------------------------
-    # LiteLLM debits the key budget with its own price map, not the Fireworks
-    # invoice. Without a cache-read price on the deployment, a ~95%-cached
-    # agent loop burns the budget about four times faster than PA1 pricing.
+    # LiteLLM debits the key budget with its own cost calculator, not the
+    # Fireworks invoice. LiteLLM 1.93.0's Fireworks calculator bills
+    # prompt_tokens at the input price and ignores cached_tokens, even when
+    # cache_read_input_token_cost is set (fixed by 1.98.0). A ~95%-cached agent
+    # loop then burns the budget about four times faster than PA1 pricing.
     usage = non_stream["usage"] or {}
     p, c, o = usage.get("prompt_tokens", 0), cached_tokens(usage) or 0, usage.get("completion_tokens", 0)
     billed = float(non_stream["headers"].get("x-litellm-response-cost") or 0)
@@ -366,8 +368,9 @@ def check_direct(gw: Gateway, args: argparse.Namespace) -> None:
         record("SKIP", "LiteLLM bills cached tokens at the cache-read rate", "no cached tokens on the probe")
     else:
         check(abs(billed - at_cache) < abs(billed - at_full), "LiteLLM bills cached tokens at the cache-read rate",
-              f"billed={billed:.3e} expected cache-rate={at_cache:.3e} full-rate={at_full:.3e}. At the full rate the key "
-              "budget must cover roughly PA1's uncached cost (about USD 93 per clean GLM harness on the 2026-09-20 data).",
+              f"billed={billed:.3e} expected cache-rate={at_cache:.3e} full-rate={at_full:.3e}. A deployment price setting "
+              "cannot fix this on LiteLLM 1.93.0. The key budget must cover roughly PA1's uncached cost (about USD 93 "
+              "per clean GLM harness on the 2026-09-20 data), or the gateway needs LiteLLM 1.98.0 or 1.102.0+.",
               soft=True)
 
     # router ------------------------------------------------------------
