@@ -12,7 +12,7 @@ An LLM becomes an agentic system when model outputs can trigger actions in an ex
 
 Coding agents are therefore not determined by the underlying LLM alone. The harness controls how the model can act on a repository and what information is returned after each action. Different harnesses may also manage context, delegation, and tool execution differently. These differences can change the conditions under which the same model attempts a software-engineering task. Research on agent-computer interfaces already shows that interface design can alter agent behavior and task performance [@yang2024sweagent].
 
-For practical use, task success is only one part of the comparison. Reasoning, repeated tool interactions, and retained context consume tokens and inference resources. A harness can therefore be relevant to both whether a task is solved and how much model usage is required to solve it. The current-state analysis in @sec-current-state shows that several coding-agent harnesses and model families are used within IONOS GmbH. This creates a practical need to compare complete model--harness systems rather than treating model selection as the only relevant decision.
+For practical use, task success is only one part of the comparison. Reasoning, repeated tool interactions, and retained context consume tokens and inference resources. A harness can therefore be relevant to both whether a task is solved and how much model usage is required to solve it. The current-state analysis in @sec-current-state shows that several coding-agent harnesses and model families are used within IONOS SE. This creates a practical need to compare complete model--harness systems rather than treating model selection as the only relevant decision.
 
 ## Research Question and Objective
 
