@@ -65,9 +65,12 @@ Corrections (see "Measurement corrections" in the results chapter):
    (``scripts/analyze_reasoning_retention.py``). The five affected Codex trials
    move to ``data/benchmark-results/.superseded/issue-111/``; the trials of the
    rerun job ``benchmark/runs/deepseek-codex-rerun`` are published in their place
-   after the same check shows the reasoning was kept. The Pi condition (six of
-   ten trials affected; the rerun ended on the exhausted gateway budget) moves
-   to ``data/benchmark-results/.excluded/deepseek-v4p1-flash/pi/``.
+   after the same check shows the reasoning was kept. Six of the ten Pi trials
+   were affected; the whole Pi run was repeated (``benchmark/runs/deepseek-pi-rerun``),
+   so all ten original Pi trials move to ``.superseded/issue-111/`` and the ten
+   repetitions are published after the same check. The earlier three-task Pi
+   rerun, which ended on the exhausted gateway budget, is kept under
+   ``data/benchmark-results/.excluded/deepseek-v4p1-flash/pi-rerun-budget-crash/``.
 
 7. DeepSeek Claude Code runs. The original run went through LiteLLM, which
    lowered the requested max effort to high (issue #94) and, in its first six
@@ -181,6 +184,10 @@ DEEPSEEK_RERUN_JOB = "deepseek-codex-rerun"
 DEEPSEEK_CLAUDE_JOB = "deepseek-claude-code-cliproxy-api-fixed-thinking"
 DEEPSEEK_CLAUDE_DEFAULT_JOB = "deepseek-claude-code-cliproxy-api"
 DEEPSEEK_PI_RERUN_JOB = "deepseek-pi-rerun"
+# The first, three-task Pi rerun used the same Pier job name and ended on the
+# exhausted gateway budget. Its run directory was renamed so that the complete
+# Pi rerun could use the job name; the trial files still name the old directory.
+DEEPSEEK_PI_BUDGET_RUN = "deepseek-pi-rerun-budget-crash"
 ISSUE_111_UPGRADE = "2026-09-21T12:03:00Z"
 ISSUE_111_AFFECTED = {
     "codex": frozenset({
@@ -199,32 +206,34 @@ ISSUE_111_AFFECTED = {
         "python-statemachine-state-data-s__YgjNuga",
     }),
 }
-DEEPSEEK_EXCLUDED = {
-    "pi": frozenset({
-        "boa-hierarchical-evaluation-canc__N52iXaG",
-        "csstree-shorthand-expansion-comp__m5utCSB",
-        "effect-sse-httpapi-streaming__wCEWaFQ",
-        "expr-try-catch-errors__JfyamVz",
-        "fastapi-implicit-head-options__6GzpTbm",
-        "katex-multicolumn-array-spans__2cKox7Q",
-        "koota-composite-trait-aspects__foRHbWR",
-        "oxvg-structural-selector-preserv__Wj9Bxfi",
-        "python-statemachine-state-data-s__YgjNuga",
-        "scriggo-method-declarations__fkDTXz8",
-    }),
+DEEPSEEK_PI_ORIGINAL = frozenset({
+    "boa-hierarchical-evaluation-canc__N52iXaG",
+    "csstree-shorthand-expansion-comp__m5utCSB",
+    "effect-sse-httpapi-streaming__wCEWaFQ",
+    "expr-try-catch-errors__JfyamVz",
+    "fastapi-implicit-head-options__6GzpTbm",
+    "katex-multicolumn-array-spans__2cKox7Q",
+    "koota-composite-trait-aspects__foRHbWR",
+    "oxvg-structural-selector-preserv__Wj9Bxfi",
+    "python-statemachine-state-data-s__YgjNuga",
+    "scriggo-method-declarations__fkDTXz8",
+})
+# Original trials replaced by a rerun, and the rerun job. Pi was rerun on all ten
+# tasks, not only the six affected ones, so the Pi condition comes from one run.
+DEEPSEEK_SUPERSEDED = {
+    "codex": (ISSUE_111_AFFECTED["codex"], DEEPSEEK_RERUN_JOB),
+    "pi": (DEEPSEEK_PI_ORIGINAL, DEEPSEEK_PI_RERUN_JOB),
 }
 ISSUE_111_REASON = (
     "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, "
     "so the model never received its earlier reasoning (PA1 #111); rerun in "
-    f"benchmark/runs/{DEEPSEEK_RERUN_JOB}"
+    "benchmark/runs/{rerun}"
 )
-DEEPSEEK_EXCLUSION_REASONS = {
-    "pi": (
-        "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the "
-        "model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway "
-        "budget, so the condition is excluded"
-    ),
-}
+PI_UNAFFECTED_REASON = (
+    "Ran after the gateway upgrade and kept its earlier reasoning, but six of the ten Pi trials "
+    "were affected by PA1 #111, so the whole Pi run was repeated in "
+    f"benchmark/runs/{DEEPSEEK_PI_RERUN_JOB} and all ten Pi trials come from that run"
+)
 # Issue #105: the two faulty DeepSeek Claude Code runs, replaced by the is-compat rerun.
 DEEPSEEK_CLAUDE_LITELLM = frozenset({
     "boa-hierarchical-evaluation-canc__wwvvuDr",
@@ -249,7 +258,8 @@ DEEPSEEK_CLAUDE_REASONS = {
         f"model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/{DEEPSEEK_CLAUDE_JOB}"
     ),
 }
-SUPERSEDED_CODEX = PUBLISHED / ".superseded" / "issue-111" / DEEPSEEK_JOB / "codex"
+SUPERSEDED_DEEPSEEK = PUBLISHED / ".superseded" / "issue-111" / DEEPSEEK_JOB
+SUPERSEDED_CODEX = SUPERSEDED_DEEPSEEK / "codex"
 EXCLUDED_DEEPSEEK = PUBLISHED / ".excluded" / DEEPSEEK_JOB
 # Correction 8: the first GLM-5.3-Flash run and the direct Z.AI snapshot.
 GLM_JOB = "glm-5.3-flash"
@@ -432,7 +442,7 @@ def move_trial(job: Path, name: str, archive: Path, harness: str) -> None:
 
 def check_issue_111(job: Path) -> None:
     """Require the listed trials to be exactly those whose earlier reasoning was removed."""
-    locations = [job, SUPERSEDED_CODEX, EXCLUDED_DEEPSEEK / "pi"]
+    locations = [job, *(SUPERSEDED_DEEPSEEK / harness for harness in DEEPSEEK_SUPERSEDED)]
     for harness, affected in ISSUE_111_AFFECTED.items():
         rows = [
             row
@@ -451,38 +461,29 @@ def check_issue_111(job: Path) -> None:
             raise ValidationError(f"Affected trials started after the gateway upgrade: {late}")
 
 
-def archive_issue_111(job: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Move the affected Codex trials and the DeepSeek Pi condition out of the job."""
+def archive_issue_111(job: Path) -> list[dict[str, Any]]:
+    """Move the affected Codex trials and all original Pi trials out of the job."""
+    if (EXCLUDED_DEEPSEEK / "pi").exists():
+        raise ValidationError("Original DeepSeek Pi trials belong under .superseded/, not .excluded/")
     check_issue_111(job)
     superseded = []
-    for name in sorted(ISSUE_111_AFFECTED["codex"]):
-        move_trial(job, name, SUPERSEDED_CODEX, "codex")
-        superseded.append({
-            "trial": name,
-            "harness": "codex",
-            "task": load(SUPERSEDED_CODEX / name / "result.json")["task_name"].split("/")[-1],
-            "published": str((SUPERSEDED_CODEX / name).relative_to(PUBLISHED)),
-            "reason": ISSUE_111_REASON,
-        })
-    excluded = []
-    for harness, names in DEEPSEEK_EXCLUDED.items():
-        archive = EXCLUDED_DEEPSEEK / harness
+    for harness, (names, rerun_job) in DEEPSEEK_SUPERSEDED.items():
+        archive = SUPERSEDED_DEEPSEEK / harness
         for name in sorted(names):
             move_trial(job, name, archive, harness)
-            excluded.append({
+            affected = name in ISSUE_111_AFFECTED[harness]
+            superseded.append({
                 "trial": name,
                 "harness": harness,
+                "task": load(archive / name / "result.json")["task_name"].split("/")[-1],
                 "published": str((archive / name).relative_to(PUBLISHED)),
-                "issue_111_affected": name in ISSUE_111_AFFECTED[harness],
-                "reason": DEEPSEEK_EXCLUSION_REASONS[harness],
+                "issue_111_affected": affected,
+                "reason": ISSUE_111_REASON.format(rerun=rerun_job) if affected else PI_UNAFFECTED_REASON,
             })
     retries = job / ".retry-attempts"
     if retries.is_dir() and not any(retries.iterdir()):
         retries.rmdir()
-    for trial in job.glob("*/result.json"):
-        if load(trial)["config"]["agent"]["name"] == "pi":
-            raise ValidationError(f"{trial}: DeepSeek Pi trial left in the comparative data")
-    return superseded, excluded
+    return superseded
 
 
 def copy_published_files(source: Path, target: Path) -> None:
@@ -590,10 +591,10 @@ def exclude_deepseek_claude(job: Path) -> list[dict[str, Any]]:
     ]
 
 
-def archive_pi_rerun() -> list[dict[str, Any]]:
-    """Keep the Pi rerun, which ended on the exhausted gateway budget, as audit evidence."""
-    archive = EXCLUDED_DEEPSEEK / "pi-rerun"
-    raw_rerun = RAW / DEEPSEEK_PI_RERUN_JOB
+def archive_pi_budget_rerun() -> list[dict[str, Any]]:
+    """Keep the first Pi rerun, which ended on the exhausted gateway budget, as audit evidence."""
+    archive = EXCLUDED_DEEPSEEK / "pi-rerun-budget-crash"
+    raw_rerun = RAW / DEEPSEEK_PI_BUDGET_RUN
     if not archive.is_dir():
         for result_path in sorted(raw_rerun.glob("*/result.json")):
             copy_published_files(result_path.parent, archive / result_path.parent.name)
@@ -610,7 +611,7 @@ def archive_pi_rerun() -> list[dict[str, Any]]:
         entries.append({
             "trial": result_path.parent.name if result_path.parent.parent == archive else str(result_path.parent.relative_to(archive)),
             "harness": "pi",
-            "pier_job": DEEPSEEK_PI_RERUN_JOB,
+            "run": f"benchmark/runs/{DEEPSEEK_PI_BUDGET_RUN}",
             "published": str(result_path.parent.relative_to(PUBLISHED)),
             "reason": (
                 "The gateway rejected further requests because the benchmark budget was exhausted "
@@ -623,9 +624,10 @@ def archive_pi_rerun() -> list[dict[str, Any]]:
 
 
 def check_deepseek_layout(job: Path) -> None:
-    """Require one canonical Codex and one Claude Code trial per task, from the right runs."""
+    """Require one canonical Codex, Pi, and Claude Code trial per task, from the right runs."""
     sources = {
         "codex": {DEEPSEEK_JOB, DEEPSEEK_RERUN_JOB},
+        "pi": {DEEPSEEK_PI_RERUN_JOB},
         "claude-code": {DEEPSEEK_CLAUDE_JOB},
     }
     tasks: dict[str, set[str]] = {harness: set() for harness in sources}
@@ -639,7 +641,7 @@ def check_deepseek_layout(job: Path) -> None:
             raise ValidationError(f"{result_path}: second {harness} trial for {task}")
         tasks[harness].add(task)
     if any(len(found) != 10 for found in tasks.values()):
-        raise ValidationError(f"Expected ten Codex and ten Claude Code DeepSeek trials: {tasks}")
+        raise ValidationError(f"Expected ten Codex, Pi, and Claude Code DeepSeek trials: {tasks}")
 
 
 # --- GLM-5.3-Flash (correction 8) ---------------------------------------------
@@ -1031,12 +1033,17 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
             archives = [GLM_FIRST_RUNS[job_name]]
             archive_raw[GLM_FIRST_RUNS[job_name]] = RAW / job_name
     if job_name == DEEPSEEK_JOB:
-        superseded, excluded = archive_issue_111(job)
-        excluded += exclude_deepseek_claude(job)
-        excluded += archive_pi_rerun()
-        replacements, raw_overrides = publish_rerun(
-            job, DEEPSEEK_RERUN_JOB, "codex", {entry["task"]: entry["trial"] for entry in superseded}
-        )
+        superseded = archive_issue_111(job)
+        excluded = exclude_deepseek_claude(job)
+        excluded += archive_pi_budget_rerun()
+        replacements = []
+        for harness, (_, rerun_job) in DEEPSEEK_SUPERSEDED.items():
+            harness_replacements, overrides = publish_rerun(
+                job, rerun_job, harness,
+                {entry["task"]: entry["trial"] for entry in superseded if entry["harness"] == harness},
+            )
+            replacements += harness_replacements
+            raw_overrides.update(overrides)
         claude_replacements, claude_overrides = publish_rerun(
             job, DEEPSEEK_CLAUDE_JOB, "claude-code",
             {entry["task"]: entry["trial"] for entry in excluded if entry.get("pier_job") == DEEPSEEK_JOB},

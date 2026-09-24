@@ -26,7 +26,7 @@ Run the current setup in this order:
 7. `benchmark/generated/luna.yaml`
    - `benchmark/generated/deepseek-claude-code-cliproxy-api.yaml` — Claude Code × DeepSeek rerun at true `max` (see below)
    - `benchmark/generated/deepseek-codex-rerun.yaml` — rerun of the five Codex × DeepSeek trials affected by issue #111 (see below)
-   - `benchmark/generated/deepseek-pi-rerun.yaml` — rerun of all six Pi × DeepSeek trials affected by issue #111 (see below)
+   - `benchmark/generated/deepseek-pi-rerun.yaml` — complete rerun of all ten Pi × DeepSeek trials after issue #111 (see below)
 8. `benchmark/configs/opus.yaml`
 9. run the matching `benchmark/configs/opencode-v2/<model>.yaml` job for the
    OpenCode V2 result of each model. Kimi's OpenCode V2 profile preserves the
@@ -1357,8 +1357,7 @@ the model (issue #111; LiteLLM `32bf1aba`, fixed by LiteLLM PR #40682 in
 the upgrade. `configs/deepseek-codex-rerun.yaml` reruns exactly those five
 tasks with the Codex leg copied unchanged, including the one trial that passed,
 so the selection follows the run time rather than the outcome. The other five
-Codex trials are kept. The six affected Pi trials are not rerun by this job;
-the DeepSeek Pi condition is excluded from the comparative data instead.
+Codex trials are kept. The Pi trials are rerun by a separate job (see below).
 
 The bridge's `is-compat: true` setting, added after the original run, only
 changes Claude-format translation. With `optimize-multi-agent-v2: false`, the
@@ -1384,24 +1383,19 @@ python3 scripts/build_corrected_results.py --pier-python ~/pier/.venv/bin/python
 
 Six of the ten Pi trials in `deepseek-v4p1-flash.yaml` ran before AiOrbit's
 LiteLLM upgrade and never gave the model its earlier reasoning (issue #111).
-The previous three-task rerun was constrained by the then-remaining budget and
-ended when the gateway budget was exhausted; those failed attempts remain
-preserved as audit evidence under
-`data/benchmark-results/.excluded/deepseek-v4p1-flash/pi-rerun/`.
+A first three-task rerun ended when the gateway budget was exhausted. It ran
+under the same job name; its run directory was renamed to
+`benchmark/runs/deepseek-pi-rerun-budget-crash`, and its attempts are kept as
+audit evidence under
+`data/benchmark-results/.excluded/deepseek-v4p1-flash/pi-rerun-budget-crash/`.
 
-With additional budget available, `configs/deepseek-pi-rerun.yaml` now reruns
-all six affected tasks, including affected trials that passed. Selection
-therefore follows the gateway-version/time boundary rather than the outcome.
-The four clean Pi trials are retained.
-
-The Pi configuration remains unchanged from `deepseek-v4p1-flash.yaml`.
-Concurrency is set to **4**, the maximum safe value under the existing DeepSeek
-cold-start calibration; six simultaneous cold starts were estimated at about
-126% of the 7.2M total-prompt TPM limit.
-
-Use a fresh `benchmark/runs/deepseek-pi-rerun` run directory when launching
-the replacement batch; the previous failed attempts are already preserved in
-the published audit data.
+With additional budget, `configs/deepseek-pi-rerun.yaml` reran the complete Pi
+condition on all ten tasks on 2026-09-24, including the four trials that had
+kept their reasoning, so the canonical Pi condition comes from one run under the
+fixed gateway. The Pi configuration is unchanged from `deepseek-v4p1-flash.yaml`;
+all ten trials ran concurrently. `scripts/build_corrected_results.py` moves the
+ten original Pi trials to `data/benchmark-results/.superseded/issue-111/` and
+publishes the rerun in their place after checking its reasoning retention.
 
 ```bash
 python3 benchmark/scripts/prepare_configs.py --env-file benchmark/env.local --include-opus

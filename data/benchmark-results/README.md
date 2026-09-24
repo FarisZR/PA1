@@ -40,19 +40,20 @@ including each OpenCode adapter `runner-result.json` alongside the filtered
 result, config, and trajectory files.
 
 The DeepSeek V4.1 Flash directory `deepseek-v4p1-flash/` holds the canonical
-Codex and Claude Code trials, which come from three Pier jobs:
+Codex, Pi, and Claude Code trials, which come from four Pier jobs:
 
 | Harness | Trials | Pier job |
 | --- | --- | --- |
 | Codex | 5 (katex, scriggo, fastapi, csstree, koota) | `deepseek-v4p1-flash` (the original job) |
 | Codex | 5 (boa, effect-sse, expr, oxvg, statemachine) | `deepseek-codex-rerun` (#111) |
+| Pi | 10 | `deepseek-pi-rerun` (complete rerun, #111) |
 | Claude Code | 10 | `deepseek-claude-code-cliproxy-api-fixed-thinking` (CLIProxyAPI with `is-compat`, #102, #105) |
 
 Each trial's `config.json` names its Pier job in `trials_dir`. The job-level
 `result.json`, `config.json`, and `lock.json` in the directory belong to the
-original job; those of the two rerun jobs are kept unchanged under
-`.rerun-jobs/<pier job>/`. DeepSeek Pi and the two faulty Claude Code runs are
-not in this directory (see below).
+original job; those of the three rerun jobs are kept unchanged under
+`.rerun-jobs/<pier job>/`. The original Pi trials, the budget-stopped Pi rerun,
+and the two faulty Claude Code runs are not in this directory (see below).
 
 The GLM-5.3-Flash directories `glm-5.3-flash/` (Pi, Claude Code, Codex) and
 `opencode-v2-glm-5.3-flash/` hold the second Fireworks run on the fixed gateway,
@@ -72,14 +73,13 @@ comparative results out of the job directories, so the normal
 
 - `.excluded/kimi-k3/claude-code/`: the Kimi K3 Claude Code run (effort lowered
   to `high`, #108).
-- `.excluded/deepseek-v4p1-flash/pi/`: all ten DeepSeek V4.1 Flash Pi trials.
-  Six of them ran before AiOrbit's LiteLLM upgrade and never gave the model its
-  earlier reasoning (#111). A condition with four valid trials cannot be
-  compared with complete ten-task conditions.
-- `.excluded/deepseek-v4p1-flash/pi-rerun/`: the attempted rerun of three of
-  those Pi trials (Pier job `deepseek-pi-rerun`). Every attempt ended when the
-  gateway rejected further requests because the benchmark budget was exhausted
-  (HTTP 429), so no task was finished.
+- `.excluded/deepseek-v4p1-flash/pi-rerun-budget-crash/`: the first attempted
+  rerun of three affected Pi trials. Every attempt ended when the gateway
+  rejected further requests because the benchmark budget was exhausted
+  (HTTP 429), so no task was finished. It ran under the Pier job name
+  `deepseek-pi-rerun`, so its files name that directory; the raw run directory
+  was later renamed to `deepseek-pi-rerun-budget-crash` so that the complete
+  rerun could use the job name.
 - `.excluded/deepseek-v4p1-flash/claude-code-litellm/`: the original DeepSeek
   Claude Code trials, routed through LiteLLM. LiteLLM lowered the requested
   `max` effort to `high` (#94), and the six trials before the gateway upgrade
@@ -93,6 +93,12 @@ comparative results out of the job directories, so the normal
   trials affected by #111. Their reruns (Pier job `deepseek-codex-rerun`) are
   the canonical trials in `deepseek-v4p1-flash/`, published only after the
   same retention check showed that the reasoning reached the model.
+- `.superseded/issue-111/deepseek-v4p1-flash/pi/`: all ten original DeepSeek Pi
+  trials. Six of them ran before AiOrbit's LiteLLM upgrade and never gave the
+  model its earlier reasoning (#111). The whole Pi run was repeated (Pier job
+  `deepseek-pi-rerun`), including the four unaffected trials, so the canonical
+  Pi condition comes from one run. The repetitions were published only after
+  the same retention check.
 
 - `.excluded/glm-5.3-flash/first-run/`: the first GLM-5.3-Flash run of Pi,
   Claude Code, and Codex (Pier job `glm-5.3-flash`, 2026-09-21, with its
@@ -111,7 +117,10 @@ comparative results out of the job directories, so the normal
 The three DeepSeek Claude Code runs are compared with each other in the
 results chapter to show what the route defects changed (#105), and the three
 GLM-5.3-Flash runs likewise (#129). These two comparisons are the only analyses
-that read `.excluded/`; no comparative result does.
+that read `.excluded/`; no comparative result does. The
+results chapter also compares the superseded Codex and Pi trials with their
+repetitions to show what the missing reasoning changed; `.superseded/` is read
+only there and in the gateway-defect evidence.
 
 The moved files are unchanged, and each job's `corrections.json` lists every
 moved trial with its location and reason. The evidence for #111 is in
@@ -216,7 +225,8 @@ byte-identical to Pier's output; only their location changed.
 
 The Kimi K3 Pi, first-run GLM-5.3-Flash Codex, and DeepSeek V4.1 Flash Pi/Codex retries
 followed transport or gateway faults (the DeepSeek ones are gateway
-context-window rejections), so Pier's final trial stays canonical there.
+context-window rejections of trials now under `.superseded/`), so Pier's final
+trial stays canonical there.
 
 The job-level `<job>/result.json` is Pier's run summary for jobs other than Kimi.
 Its `stats` block (rewards, errors, token totals) reflects Pier's final trials

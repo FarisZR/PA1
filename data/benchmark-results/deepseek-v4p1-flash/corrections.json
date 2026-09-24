@@ -273,6 +273,7 @@
       "harness": "codex",
       "task": "boa-hierarchical-evaluation-cancellation",
       "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/boa-hierarchical-evaluation-canc__T2STcwb",
+      "issue_111_affected": true,
       "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
     },
     {
@@ -280,6 +281,7 @@
       "harness": "codex",
       "task": "effect-sse-httpapi-streaming",
       "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/effect-sse-httpapi-streaming__oS7GKyx",
+      "issue_111_affected": true,
       "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
     },
     {
@@ -287,6 +289,7 @@
       "harness": "codex",
       "task": "expr-try-catch-errors",
       "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/expr-try-catch-errors__EbwFJsC",
+      "issue_111_affected": true,
       "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
     },
     {
@@ -294,6 +297,7 @@
       "harness": "codex",
       "task": "oxvg-structural-selector-preservation",
       "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/oxvg-structural-selector-preserv__fJTZ3tJ",
+      "issue_111_affected": true,
       "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
     },
     {
@@ -301,7 +305,88 @@
       "harness": "codex",
       "task": "python-statemachine-state-data-scoping",
       "published": ".superseded/issue-111/deepseek-v4p1-flash/codex/python-statemachine-state-data-s__8WwYSfA",
+      "issue_111_affected": true,
       "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
+    },
+    {
+      "trial": "boa-hierarchical-evaluation-canc__N52iXaG",
+      "harness": "pi",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/boa-hierarchical-evaluation-canc__N52iXaG",
+      "issue_111_affected": true,
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-pi-rerun"
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__m5utCSB",
+      "harness": "pi",
+      "task": "csstree-shorthand-expansion-compression",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/csstree-shorthand-expansion-comp__m5utCSB",
+      "issue_111_affected": false,
+      "reason": "Ran after the gateway upgrade and kept its earlier reasoning, but six of the ten Pi trials were affected by PA1 #111, so the whole Pi run was repeated in benchmark/runs/deepseek-pi-rerun and all ten Pi trials come from that run"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__wCEWaFQ",
+      "harness": "pi",
+      "task": "effect-sse-httpapi-streaming",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/effect-sse-httpapi-streaming__wCEWaFQ",
+      "issue_111_affected": true,
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-pi-rerun"
+    },
+    {
+      "trial": "expr-try-catch-errors__JfyamVz",
+      "harness": "pi",
+      "task": "expr-try-catch-errors",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/expr-try-catch-errors__JfyamVz",
+      "issue_111_affected": true,
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-pi-rerun"
+    },
+    {
+      "trial": "fastapi-implicit-head-options__6GzpTbm",
+      "harness": "pi",
+      "task": "fastapi-implicit-head-options",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/fastapi-implicit-head-options__6GzpTbm",
+      "issue_111_affected": false,
+      "reason": "Ran after the gateway upgrade and kept its earlier reasoning, but six of the ten Pi trials were affected by PA1 #111, so the whole Pi run was repeated in benchmark/runs/deepseek-pi-rerun and all ten Pi trials come from that run"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__2cKox7Q",
+      "harness": "pi",
+      "task": "katex-multicolumn-array-spans",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/katex-multicolumn-array-spans__2cKox7Q",
+      "issue_111_affected": true,
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-pi-rerun"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__foRHbWR",
+      "harness": "pi",
+      "task": "koota-composite-trait-aspects",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/koota-composite-trait-aspects__foRHbWR",
+      "issue_111_affected": false,
+      "reason": "Ran after the gateway upgrade and kept its earlier reasoning, but six of the ten Pi trials were affected by PA1 #111, so the whole Pi run was repeated in benchmark/runs/deepseek-pi-rerun and all ten Pi trials come from that run"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__Wj9Bxfi",
+      "harness": "pi",
+      "task": "oxvg-structural-selector-preservation",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/oxvg-structural-selector-preserv__Wj9Bxfi",
+      "issue_111_affected": true,
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-pi-rerun"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__YgjNuga",
+      "harness": "pi",
+      "task": "python-statemachine-state-data-scoping",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/python-statemachine-state-data-s__YgjNuga",
+      "issue_111_affected": true,
+      "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-pi-rerun"
+    },
+    {
+      "trial": "scriggo-method-declarations__fkDTXz8",
+      "harness": "pi",
+      "task": "scriggo-method-declarations",
+      "published": ".superseded/issue-111/deepseek-v4p1-flash/pi/scriggo-method-declarations__fkDTXz8",
+      "issue_111_affected": false,
+      "reason": "Ran after the gateway upgrade and kept its earlier reasoning, but six of the ten Pi trials were affected by PA1 #111, so the whole Pi run was repeated in benchmark/runs/deepseek-pi-rerun and all ten Pi trials come from that run"
     }
   ],
   "replacement_trials": [
@@ -344,6 +429,86 @@
       "replaces": "python-statemachine-state-data-s__8WwYSfA",
       "pier_job": "deepseek-codex-rerun",
       "reasoning_retention": 121.38
+    },
+    {
+      "trial": "boa-hierarchical-evaluation-canc__wXi5Hv2",
+      "harness": "pi",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "replaces": "boa-hierarchical-evaluation-canc__N52iXaG",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 124.34
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__wWTdDFL",
+      "harness": "pi",
+      "task": "csstree-shorthand-expansion-compression",
+      "replaces": "csstree-shorthand-expansion-comp__m5utCSB",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 133.59
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__NYJcwcy",
+      "harness": "pi",
+      "task": "effect-sse-httpapi-streaming",
+      "replaces": "effect-sse-httpapi-streaming__wCEWaFQ",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 120.19
+    },
+    {
+      "trial": "expr-try-catch-errors__Vom5tyv",
+      "harness": "pi",
+      "task": "expr-try-catch-errors",
+      "replaces": "expr-try-catch-errors__JfyamVz",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 140.24
+    },
+    {
+      "trial": "fastapi-implicit-head-options__2yniZC3",
+      "harness": "pi",
+      "task": "fastapi-implicit-head-options",
+      "replaces": "fastapi-implicit-head-options__6GzpTbm",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 124.88
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__CV9r62V",
+      "harness": "pi",
+      "task": "katex-multicolumn-array-spans",
+      "replaces": "katex-multicolumn-array-spans__2cKox7Q",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 122.73
+    },
+    {
+      "trial": "koota-composite-trait-aspects__aNiq73b",
+      "harness": "pi",
+      "task": "koota-composite-trait-aspects",
+      "replaces": "koota-composite-trait-aspects__foRHbWR",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 139.2
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__ZyAUs6k",
+      "harness": "pi",
+      "task": "oxvg-structural-selector-preservation",
+      "replaces": "oxvg-structural-selector-preserv__Wj9Bxfi",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 139.87
+    },
+    {
+      "trial": "python-statemachine-state-data-s__o4drR63",
+      "harness": "pi",
+      "task": "python-statemachine-state-data-scoping",
+      "replaces": "python-statemachine-state-data-s__YgjNuga",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 127.95
+    },
+    {
+      "trial": "scriggo-method-declarations__knG5Q77",
+      "harness": "pi",
+      "task": "scriggo-method-declarations",
+      "replaces": "scriggo-method-declarations__fkDTXz8",
+      "pier_job": "deepseek-pi-rerun",
+      "reasoning_retention": 128.04
     },
     {
       "trial": "boa-hierarchical-evaluation-canc__5TfvMLo",
@@ -427,76 +592,6 @@
     }
   ],
   "excluded_runs": [
-    {
-      "trial": "boa-hierarchical-evaluation-canc__N52iXaG",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/boa-hierarchical-evaluation-canc__N52iXaG",
-      "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
-    {
-      "trial": "csstree-shorthand-expansion-comp__m5utCSB",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/csstree-shorthand-expansion-comp__m5utCSB",
-      "issue_111_affected": false,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
-    {
-      "trial": "effect-sse-httpapi-streaming__wCEWaFQ",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/effect-sse-httpapi-streaming__wCEWaFQ",
-      "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
-    {
-      "trial": "expr-try-catch-errors__JfyamVz",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/expr-try-catch-errors__JfyamVz",
-      "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
-    {
-      "trial": "fastapi-implicit-head-options__6GzpTbm",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/fastapi-implicit-head-options__6GzpTbm",
-      "issue_111_affected": false,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
-    {
-      "trial": "katex-multicolumn-array-spans__2cKox7Q",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/katex-multicolumn-array-spans__2cKox7Q",
-      "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
-    {
-      "trial": "koota-composite-trait-aspects__foRHbWR",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/koota-composite-trait-aspects__foRHbWR",
-      "issue_111_affected": false,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
-    {
-      "trial": "oxvg-structural-selector-preserv__Wj9Bxfi",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/oxvg-structural-selector-preserv__Wj9Bxfi",
-      "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
-    {
-      "trial": "python-statemachine-state-data-s__YgjNuga",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/python-statemachine-state-data-s__YgjNuga",
-      "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
-    {
-      "trial": "scriggo-method-declarations__fkDTXz8",
-      "harness": "pi",
-      "published": ".excluded/deepseek-v4p1-flash/pi/scriggo-method-declarations__fkDTXz8",
-      "issue_111_affected": false,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
-    },
     {
       "trial": "boa-hierarchical-evaluation-canc__wwvvuDr",
       "harness": "claude-code",
@@ -680,43 +775,43 @@
     {
       "trial": "effect-sse-httpapi-streaming__meof4cA",
       "harness": "pi",
-      "pier_job": "deepseek-pi-rerun",
-      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/effect-sse-httpapi-streaming__meof4cA",
+      "run": "benchmark/runs/deepseek-pi-rerun-budget-crash",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun-budget-crash/effect-sse-httpapi-streaming__meof4cA",
       "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
     },
     {
       "trial": "expr-try-catch-errors__WFK9f4w",
       "harness": "pi",
-      "pier_job": "deepseek-pi-rerun",
-      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/expr-try-catch-errors__WFK9f4w",
+      "run": "benchmark/runs/deepseek-pi-rerun-budget-crash",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun-budget-crash/expr-try-catch-errors__WFK9f4w",
       "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
     },
     {
       "trial": "katex-multicolumn-array-spans__GyRz6MA",
       "harness": "pi",
-      "pier_job": "deepseek-pi-rerun",
-      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/katex-multicolumn-array-spans__GyRz6MA",
+      "run": "benchmark/runs/deepseek-pi-rerun-budget-crash",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun-budget-crash/katex-multicolumn-array-spans__GyRz6MA",
       "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
     },
     {
       "trial": ".retry-attempts/effect-sse-httpapi-streaming__meof4cA/attempt-1",
       "harness": "pi",
-      "pier_job": "deepseek-pi-rerun",
-      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/.retry-attempts/effect-sse-httpapi-streaming__meof4cA/attempt-1",
+      "run": "benchmark/runs/deepseek-pi-rerun-budget-crash",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun-budget-crash/.retry-attempts/effect-sse-httpapi-streaming__meof4cA/attempt-1",
       "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
     },
     {
       "trial": ".retry-attempts/expr-try-catch-errors__WFK9f4w/attempt-1",
       "harness": "pi",
-      "pier_job": "deepseek-pi-rerun",
-      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/.retry-attempts/expr-try-catch-errors__WFK9f4w/attempt-1",
+      "run": "benchmark/runs/deepseek-pi-rerun-budget-crash",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun-budget-crash/.retry-attempts/expr-try-catch-errors__WFK9f4w/attempt-1",
       "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
     },
     {
       "trial": ".retry-attempts/katex-multicolumn-array-spans__GyRz6MA/attempt-1",
       "harness": "pi",
-      "pier_job": "deepseek-pi-rerun",
-      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/.retry-attempts/katex-multicolumn-array-spans__GyRz6MA/attempt-1",
+      "run": "benchmark/runs/deepseek-pi-rerun-budget-crash",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun-budget-crash/.retry-attempts/katex-multicolumn-array-spans__GyRz6MA/attempt-1",
       "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
     }
   ]

@@ -1,15 +1,14 @@
-# Pi x DeepSeek V4.1 Flash rerun of all six trials affected by issue #111.
+# Pi x DeepSeek V4.1 Flash: complete rerun of all ten tasks after issue #111.
 #
 # AiOrbit ran LiteLLM 1.101.0 until about 2026-09-21 12:02 UTC. Its Fireworks
 # provider removed reasoning_content from every message before forwarding, so
 # in six of the ten Pi trials of deepseek-v4p1-flash.yaml the model never
 # received its earlier reasoning.
 #
-# This replaces the earlier budget-limited three-task rerun config and reruns
-# exactly the six affected tasks, including affected trials that passed.
-# Selection therefore follows the gateway-version/time boundary rather than the
-# observed outcome. The Pi leg is copied unchanged from
-# deepseek-v4p1-flash.yaml.
+# This replaces the earlier budget-limited three-task rerun config. It reruns
+# all ten tasks, including the four unaffected ones, so the whole Pi condition
+# comes from one run under the fixed gateway and the selection does not depend
+# on any outcome. The Pi leg is copied unchanged from deepseek-v4p1-flash.yaml.
 job_name: deepseek-pi-rerun
 jobs_dir: benchmark/runs
 n_attempts: 1
