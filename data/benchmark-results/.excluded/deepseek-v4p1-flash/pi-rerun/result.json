@@ -1,0 +1,119 @@
+{
+    "id": "82741272-568c-4d2e-94a9-a760b935d912",
+    "started_at": "2026-09-23T20:27:29.577725",
+    "updated_at": "2026-09-23T20:51:40.369941",
+    "finished_at": "2026-09-23T20:51:40.369941",
+    "n_total_trials": 3,
+    "stats": {
+        "n_completed_trials": 3,
+        "n_errored_trials": 3,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 3,
+        "evals": {
+            "pi__deepseek-v4p1-flash__tasks": {
+                "n_trials": 3,
+                "n_errors": 3,
+                "metrics": [
+                    {
+                        "f2p": 0.0,
+                        "f2p_passed": 0.0,
+                        "f2p_total": 73.33333333333333,
+                        "p2p": 1.0,
+                        "p2p_passed": 22311.333333333332,
+                        "p2p_total": 22311.333333333332,
+                        "partial": 0.820485899784706,
+                        "reward": 0.0
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "0": [
+                            "effect-sse-httpapi-streaming__meof4cA",
+                            "expr-try-catch-errors__WFK9f4w",
+                            "katex-multicolumn-array-spans__GyRz6MA"
+                        ]
+                    },
+                    "f2p_total": {
+                        "47": [
+                            "effect-sse-httpapi-streaming__meof4cA"
+                        ],
+                        "79": [
+                            "expr-try-catch-errors__WFK9f4w"
+                        ],
+                        "94": [
+                            "katex-multicolumn-array-spans__GyRz6MA"
+                        ]
+                    },
+                    "f2p_passed": {
+                        "0": [
+                            "effect-sse-httpapi-streaming__meof4cA",
+                            "expr-try-catch-errors__WFK9f4w",
+                            "katex-multicolumn-array-spans__GyRz6MA"
+                        ]
+                    },
+                    "p2p_total": {
+                        "70": [
+                            "effect-sse-httpapi-streaming__meof4cA"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__WFK9f4w"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__GyRz6MA"
+                        ]
+                    },
+                    "p2p_passed": {
+                        "70": [
+                            "effect-sse-httpapi-streaming__meof4cA"
+                        ],
+                        "66265": [
+                            "expr-try-catch-errors__WFK9f4w"
+                        ],
+                        "599": [
+                            "katex-multicolumn-array-spans__GyRz6MA"
+                        ]
+                    },
+                    "f2p": {
+                        "0.0": [
+                            "effect-sse-httpapi-streaming__meof4cA",
+                            "expr-try-catch-errors__WFK9f4w",
+                            "katex-multicolumn-array-spans__GyRz6MA"
+                        ]
+                    },
+                    "p2p": {
+                        "1.0": [
+                            "effect-sse-httpapi-streaming__meof4cA",
+                            "expr-try-catch-errors__WFK9f4w",
+                            "katex-multicolumn-array-spans__GyRz6MA"
+                        ]
+                    },
+                    "partial": {
+                        "0.5982905982905983": [
+                            "effect-sse-httpapi-streaming__meof4cA"
+                        ],
+                        "0.9988092367056554": [
+                            "expr-try-catch-errors__WFK9f4w"
+                        ],
+                        "0.8643578643578643": [
+                            "katex-multicolumn-array-spans__GyRz6MA"
+                        ]
+                    }
+                },
+                "exception_stats": {
+                    "NonZeroAgentExitCodeError": [
+                        "effect-sse-httpapi-streaming__meof4cA",
+                        "expr-try-catch-errors__WFK9f4w",
+                        "katex-multicolumn-array-spans__GyRz6MA"
+                    ]
+                }
+            }
+        },
+        "n_input_tokens": 0,
+        "n_cache_tokens": 0,
+        "n_output_tokens": 0,
+        "cost_usd": null
+    }
+}

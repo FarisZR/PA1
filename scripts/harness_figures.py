@@ -60,6 +60,13 @@ def harnesses_in(frame: pd.DataFrame) -> list[str]:
     return [harness for harness in HARNESS_ORDER if harness in present]
 
 
+def _groups(frame: pd.DataFrame, column: str, order: Sequence[str] | None) -> list[str]:
+    """Groups of ``column`` to draw: the given order, or the harnesses in chapter order."""
+    if order is None:
+        return harnesses_in(frame)
+    return [group for group in order if group in set(frame[column])]
+
+
 def _style_axis(ax, grid_axis: str = "y") -> None:
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
@@ -70,14 +77,23 @@ def _style_axis(ax, grid_axis: str = "y") -> None:
     ax.set_axisbelow(True)
 
 
-def plot_task_outcomes(frame: pd.DataFrame, ax=None):
+def plot_task_outcomes(
+    frame: pd.DataFrame,
+    ax=None,
+    *,
+    column: str = "harness",
+    order: Sequence[str] | None = None,
+    labels: dict[str, str] | None = None,
+):
     """Task-by-harness matrix of fail-to-pass tests passed; passing trials are green.
 
     Failing trials are shaded blue by their share of fail-to-pass tests passed.
     A failing cell whose fail-to-pass tests all pass broke previously passing
-    tests and is marked "regr.".
+    tests and is marked "regr.". ``column``, ``order``, and ``labels`` select
+    other columns than the harness, for example runs of the same harness.
     """
-    harnesses = harnesses_in(frame)
+    harnesses = _groups(frame, column, order)
+    labels = labels or HARNESS_LABELS
     catalog = [task for task in task_catalog() if task["task"] in set(frame["task"])]
     if ax is None:
         _, ax = plt.subplots(figsize=(6.3, 0.42 * len(catalog) + 1.2))
@@ -86,7 +102,7 @@ def plot_task_outcomes(frame: pd.DataFrame, ax=None):
     passed_cells = np.zeros((len(catalog), len(harnesses)), dtype=bool)
     for i, task in enumerate(catalog):
         for j, harness in enumerate(harnesses):
-            row = frame[(frame["task"] == task["task"]) & (frame["harness"] == harness)]
+            row = frame[(frame["task"] == task["task"]) & (frame[column] == harness)]
             if row.empty:
                 continue
             row = row.iloc[0]
@@ -111,7 +127,7 @@ def plot_task_outcomes(frame: pd.DataFrame, ax=None):
     ax.imshow(np.where(passed_cells, 1.0, np.nan),
               cmap=LinearSegmentedColormap.from_list("passed", [PASSED_COLOR, PASSED_COLOR]),
               vmin=0, vmax=1, aspect="auto")
-    ax.set_xticks(range(len(harnesses)), [HARNESS_LABELS[h] for h in harnesses])
+    ax.set_xticks(range(len(harnesses)), [labels[h] for h in harnesses])
     ax.set_yticks(range(len(catalog)), [task["label"] for task in catalog])
     ax.xaxis.tick_top()
     ax.tick_params(length=0, labelsize=8, colors=INK)
@@ -148,20 +164,29 @@ def plot_trial_strip(
     ylabel: str | None = None,
     reference: float | None = None,
     reference_label: str | None = None,
+    column: str = "harness",
+    order: Sequence[str] | None = None,
+    labels: dict[str, str] | None = None,
+    colors: dict[str, str] | None = None,
+    markers: dict[str, str] | None = None,
 ):
     """One dot per trial for each harness, with the median as a horizontal bar.
 
-    Passing trials are filled and failing trials hollow.
+    Passing trials are filled and failing trials hollow. ``column`` and the
+    optional mappings select other groups than the harness.
     """
-    harnesses = harnesses_in(frame)
+    harnesses = _groups(frame, column, order)
+    labels = labels or HARNESS_LABELS
+    colors = colors or HARNESS_COLORS
+    markers = markers or HARNESS_MARKERS
     rng = np.random.default_rng(7)
     for position, harness in enumerate(harnesses):
-        group = frame[frame["harness"] == harness]
+        group = frame[frame[column] == harness]
         values = group[value_col].to_numpy(dtype=float) / scale
         offsets = rng.uniform(-0.18, 0.18, len(values))
-        color = HARNESS_COLORS[harness]
+        color = colors[harness]
         for offset, value, passed in zip(offsets, values, group["passed"], strict=True):
-            ax.scatter(position + offset, value, s=30, marker=HARNESS_MARKERS[harness],
+            ax.scatter(position + offset, value, s=30, marker=markers[harness],
                        facecolor=color if passed else "white", edgecolor=color,
                        linewidth=1.3, zorder=3)
         median = float(np.median(values))
@@ -174,7 +199,7 @@ def plot_trial_strip(
                     va="bottom", fontsize=7, color=MUTED)
     if log:
         ax.set_yscale("log")
-    ax.set_xticks(range(len(harnesses)), [HARNESS_LABELS[h] for h in harnesses])
+    ax.set_xticks(range(len(harnesses)), [labels[h] for h in harnesses])
     ax.set_xlim(-0.6, len(harnesses) - 0.4)
     if ylabel:
         ax.set_ylabel(ylabel, fontsize=8)

@@ -4,6 +4,19 @@
   "attempt_selection": [],
   "attempts": [
     {
+      "attempt": "boa-hierarchical-evaluation-canc__bujBCDU",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 304570,
+          "corrected": 303465,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
       "attempt": "csstree-shorthand-expansion-comp__KzAaBD2",
       "harness": "codex",
       "changes": [
@@ -11,6 +24,32 @@
           "field": "agent_result.peak_context_tokens",
           "original": 201165,
           "corrected": 200296,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "effect-sse-httpapi-streaming__pM6HK7p",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 268222,
+          "corrected": 267630,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "expr-try-catch-errors__Z8Wjqhh",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 341652,
+          "corrected": 340917,
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
@@ -57,6 +96,32 @@
           "field": "agent_result.peak_context_tokens",
           "original": 286323,
           "corrected": 285537,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "oxvg-structural-selector-preserv__RLzXULE",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 323976,
+          "corrected": 323432,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "python-statemachine-state-data-s__VgrK3jb",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 314373,
+          "corrected": 313697,
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
@@ -239,77 +304,420 @@
       "reason": "AiOrbit's LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun in benchmark/runs/deepseek-codex-rerun"
     }
   ],
-  "replacement_trials": [],
+  "replacement_trials": [
+    {
+      "trial": "boa-hierarchical-evaluation-canc__bujBCDU",
+      "harness": "codex",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "replaces": "boa-hierarchical-evaluation-canc__T2STcwb",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 111.7
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__pM6HK7p",
+      "harness": "codex",
+      "task": "effect-sse-httpapi-streaming",
+      "replaces": "effect-sse-httpapi-streaming__oS7GKyx",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 155.09
+    },
+    {
+      "trial": "expr-try-catch-errors__Z8Wjqhh",
+      "harness": "codex",
+      "task": "expr-try-catch-errors",
+      "replaces": "expr-try-catch-errors__EbwFJsC",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 115.39
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__RLzXULE",
+      "harness": "codex",
+      "task": "oxvg-structural-selector-preservation",
+      "replaces": "oxvg-structural-selector-preserv__fJTZ3tJ",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 141.74
+    },
+    {
+      "trial": "python-statemachine-state-data-s__VgrK3jb",
+      "harness": "codex",
+      "task": "python-statemachine-state-data-scoping",
+      "replaces": "python-statemachine-state-data-s__8WwYSfA",
+      "pier_job": "deepseek-codex-rerun",
+      "reasoning_retention": 121.38
+    },
+    {
+      "trial": "boa-hierarchical-evaluation-canc__5TfvMLo",
+      "harness": "claude-code",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "replaces": "boa-hierarchical-evaluation-canc__wwvvuDr",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 131.76
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__yAKg7e2",
+      "harness": "claude-code",
+      "task": "csstree-shorthand-expansion-compression",
+      "replaces": "csstree-shorthand-expansion-comp__j5qnWGi",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 144.49
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__Ju8U9Ai",
+      "harness": "claude-code",
+      "task": "effect-sse-httpapi-streaming",
+      "replaces": "effect-sse-httpapi-streaming__VSoHSgv",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 123.92
+    },
+    {
+      "trial": "expr-try-catch-errors__4Pk8ZJR",
+      "harness": "claude-code",
+      "task": "expr-try-catch-errors",
+      "replaces": "expr-try-catch-errors__7W4T4YW",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 142.31
+    },
+    {
+      "trial": "fastapi-implicit-head-options__neJ8x56",
+      "harness": "claude-code",
+      "task": "fastapi-implicit-head-options",
+      "replaces": "fastapi-implicit-head-options__jbKQNjp",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 112.6
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__bvBmz5k",
+      "harness": "claude-code",
+      "task": "katex-multicolumn-array-spans",
+      "replaces": "katex-multicolumn-array-spans__WuqbLik",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 124.44
+    },
+    {
+      "trial": "koota-composite-trait-aspects__FeQidMz",
+      "harness": "claude-code",
+      "task": "koota-composite-trait-aspects",
+      "replaces": "koota-composite-trait-aspects__HmWkoKv",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 149.66
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__gtjAN56",
+      "harness": "claude-code",
+      "task": "oxvg-structural-selector-preservation",
+      "replaces": "oxvg-structural-selector-preserv__8ByPY3N",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 123.48
+    },
+    {
+      "trial": "python-statemachine-state-data-s__C5Ekyuf",
+      "harness": "claude-code",
+      "task": "python-statemachine-state-data-scoping",
+      "replaces": "python-statemachine-state-data-s__r7jsfUc",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 139.15
+    },
+    {
+      "trial": "scriggo-method-declarations__aJhqvb9",
+      "harness": "claude-code",
+      "task": "scriggo-method-declarations",
+      "replaces": "scriggo-method-declarations__YUeLqjQ",
+      "pier_job": "deepseek-claude-code-cliproxy-api-fixed-thinking",
+      "reasoning_retention": 137.04
+    }
+  ],
   "excluded_runs": [
     {
       "trial": "boa-hierarchical-evaluation-canc__N52iXaG",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/boa-hierarchical-evaluation-canc__N52iXaG",
       "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
     },
     {
       "trial": "csstree-shorthand-expansion-comp__m5utCSB",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/csstree-shorthand-expansion-comp__m5utCSB",
       "issue_111_affected": false,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
     },
     {
       "trial": "effect-sse-httpapi-streaming__wCEWaFQ",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/effect-sse-httpapi-streaming__wCEWaFQ",
       "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
     },
     {
       "trial": "expr-try-catch-errors__JfyamVz",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/expr-try-catch-errors__JfyamVz",
       "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
     },
     {
       "trial": "fastapi-implicit-head-options__6GzpTbm",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/fastapi-implicit-head-options__6GzpTbm",
       "issue_111_affected": false,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
     },
     {
       "trial": "katex-multicolumn-array-spans__2cKox7Q",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/katex-multicolumn-array-spans__2cKox7Q",
       "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
     },
     {
       "trial": "koota-composite-trait-aspects__foRHbWR",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/koota-composite-trait-aspects__foRHbWR",
       "issue_111_affected": false,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
     },
     {
       "trial": "oxvg-structural-selector-preserv__Wj9Bxfi",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/oxvg-structural-selector-preserv__Wj9Bxfi",
       "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
     },
     {
       "trial": "python-statemachine-state-data-s__YgjNuga",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/python-statemachine-state-data-s__YgjNuga",
       "issue_111_affected": true,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
     },
     {
       "trial": "scriggo-method-declarations__fkDTXz8",
       "harness": "pi",
       "published": ".excluded/deepseek-v4p1-flash/pi/scriggo-method-declarations__fkDTXz8",
       "issue_111_affected": false,
-      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); the condition is excluded until they are rerun"
+      "reason": "Six of the ten DeepSeek Pi trials ran before the gateway upgrade and never gave the model its earlier reasoning (PA1 #111); their rerun ended on the exhausted gateway budget, so the condition is excluded"
+    },
+    {
+      "trial": "boa-hierarchical-evaluation-canc__wwvvuDr",
+      "harness": "claude-code",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/boa-hierarchical-evaluation-canc__wwvvuDr",
+      "reasoning_retention": 20.23,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__j5qnWGi",
+      "harness": "claude-code",
+      "task": "csstree-shorthand-expansion-compression",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/csstree-shorthand-expansion-comp__j5qnWGi",
+      "reasoning_retention": 113.18,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__VSoHSgv",
+      "harness": "claude-code",
+      "task": "effect-sse-httpapi-streaming",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/effect-sse-httpapi-streaming__VSoHSgv",
+      "reasoning_retention": 24.14,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "expr-try-catch-errors__7W4T4YW",
+      "harness": "claude-code",
+      "task": "expr-try-catch-errors",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/expr-try-catch-errors__7W4T4YW",
+      "reasoning_retention": 25.75,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "fastapi-implicit-head-options__jbKQNjp",
+      "harness": "claude-code",
+      "task": "fastapi-implicit-head-options",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/fastapi-implicit-head-options__jbKQNjp",
+      "reasoning_retention": 104.04,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__WuqbLik",
+      "harness": "claude-code",
+      "task": "katex-multicolumn-array-spans",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/katex-multicolumn-array-spans__WuqbLik",
+      "reasoning_retention": 22.79,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__HmWkoKv",
+      "harness": "claude-code",
+      "task": "koota-composite-trait-aspects",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/koota-composite-trait-aspects__HmWkoKv",
+      "reasoning_retention": 127.57,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__8ByPY3N",
+      "harness": "claude-code",
+      "task": "oxvg-structural-selector-preservation",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/oxvg-structural-selector-preserv__8ByPY3N",
+      "reasoning_retention": 12.54,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__r7jsfUc",
+      "harness": "claude-code",
+      "task": "python-statemachine-state-data-scoping",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/python-statemachine-state-data-s__r7jsfUc",
+      "reasoning_retention": 15.39,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "scriggo-method-declarations__YUeLqjQ",
+      "harness": "claude-code",
+      "task": "scriggo-method-declarations",
+      "pier_job": "deepseek-v4p1-flash",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-litellm/scriggo-method-declarations__YUeLqjQ",
+      "reasoning_retention": 133.01,
+      "reason": "LiteLLM lowered Claude Code's requested max reasoning effort to high (PA1 #94), and the six trials before the gateway upgrade never gave the model its earlier reasoning (PA1 #111); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "boa-hierarchical-evaluation-canc__qf9FKcM",
+      "harness": "claude-code",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/boa-hierarchical-evaluation-canc__qf9FKcM",
+      "reasoning_retention": 21.89,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__WfV6FgJ",
+      "harness": "claude-code",
+      "task": "csstree-shorthand-expansion-compression",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/csstree-shorthand-expansion-comp__WfV6FgJ",
+      "reasoning_retention": 10.45,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__9MuKNoF",
+      "harness": "claude-code",
+      "task": "effect-sse-httpapi-streaming",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/effect-sse-httpapi-streaming__9MuKNoF",
+      "reasoning_retention": 27.99,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "expr-try-catch-errors__VJ35eLZ",
+      "harness": "claude-code",
+      "task": "expr-try-catch-errors",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/expr-try-catch-errors__VJ35eLZ",
+      "reasoning_retention": 8.24,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "fastapi-implicit-head-options__GtXaFbq",
+      "harness": "claude-code",
+      "task": "fastapi-implicit-head-options",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/fastapi-implicit-head-options__GtXaFbq",
+      "reasoning_retention": 5.38,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__NRfmJMa",
+      "harness": "claude-code",
+      "task": "katex-multicolumn-array-spans",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/katex-multicolumn-array-spans__NRfmJMa",
+      "reasoning_retention": 6.97,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__Ys4DVrM",
+      "harness": "claude-code",
+      "task": "koota-composite-trait-aspects",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/koota-composite-trait-aspects__Ys4DVrM",
+      "reasoning_retention": 6.66,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__e6KqwSa",
+      "harness": "claude-code",
+      "task": "oxvg-structural-selector-preservation",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/oxvg-structural-selector-preserv__e6KqwSa",
+      "reasoning_retention": 14.09,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__zEygVNE",
+      "harness": "claude-code",
+      "task": "python-statemachine-state-data-scoping",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/python-statemachine-state-data-s__zEygVNE",
+      "reasoning_retention": 39.82,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "scriggo-method-declarations__C4Q8qxa",
+      "harness": "claude-code",
+      "task": "scriggo-method-declarations",
+      "pier_job": "deepseek-claude-code-cliproxy-api",
+      "published": ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default/scriggo-method-declarations__C4Q8qxa",
+      "reasoning_retention": 22.78,
+      "reason": "CLIProxyAPI without is-compat dropped Claude Code's earlier thinking blocks, so the model never received its earlier reasoning (PA1 #102); replaced by benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__meof4cA",
+      "harness": "pi",
+      "pier_job": "deepseek-pi-rerun",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/effect-sse-httpapi-streaming__meof4cA",
+      "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
+    },
+    {
+      "trial": "expr-try-catch-errors__WFK9f4w",
+      "harness": "pi",
+      "pier_job": "deepseek-pi-rerun",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/expr-try-catch-errors__WFK9f4w",
+      "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__GyRz6MA",
+      "harness": "pi",
+      "pier_job": "deepseek-pi-rerun",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/katex-multicolumn-array-spans__GyRz6MA",
+      "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
+    },
+    {
+      "trial": ".retry-attempts/effect-sse-httpapi-streaming__meof4cA/attempt-1",
+      "harness": "pi",
+      "pier_job": "deepseek-pi-rerun",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/.retry-attempts/effect-sse-httpapi-streaming__meof4cA/attempt-1",
+      "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
+    },
+    {
+      "trial": ".retry-attempts/expr-try-catch-errors__WFK9f4w/attempt-1",
+      "harness": "pi",
+      "pier_job": "deepseek-pi-rerun",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/.retry-attempts/expr-try-catch-errors__WFK9f4w/attempt-1",
+      "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
+    },
+    {
+      "trial": ".retry-attempts/katex-multicolumn-array-spans__GyRz6MA/attempt-1",
+      "harness": "pi",
+      "pier_job": "deepseek-pi-rerun",
+      "published": ".excluded/deepseek-v4p1-flash/pi-rerun/.retry-attempts/katex-multicolumn-array-spans__GyRz6MA/attempt-1",
+      "reason": "The gateway rejected further requests because the benchmark budget was exhausted (HTTP 429), so every attempt ended before the task was finished"
     }
   ]
 }

@@ -24,11 +24,20 @@ complete prompts and credentials and are not published.
   `X-Litellm-Version` header, the prompt and cached token counts returned by
   Fireworks, the number of earlier assistant messages that carried
   `reasoning_content` upstream, the reasoning characters sent and streamed back,
-  and the source log's file name and SHA-256 hash. The hashes let a supervisor
+  the input size LiteLLM reported when it rejected a request as too large
+  (`rejected_input_tokens`, from `Max Input Tokens=…, Got=…` in the HTTP 400
+  body), and the source log's file name and SHA-256 hash. The hashes let a supervisor
   match every row to the retained private log.
 
 One row (`sess-1`, 2026-09-20T23:52Z) is a single 339-token probe before the
 job started and belongs to no trial.
+
+One row has `rejected_input_tokens` set: the first Codex attempt on
+`python-statemachine` (2026-09-21T03:01:42Z, 1,049,555 tokens). LiteLLM
+counted the reasoning in the request before its Fireworks transform removed
+it, so the request was rejected although Fireworks had counted the previous
+request as 248,558 prompt tokens. The results chapter shows this and the two
+Pi rejections of the same kind.
 
 ## Reproduction
 
