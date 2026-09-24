@@ -6,7 +6,8 @@ complete prompts and credentials and are not published. This script keeps only
 per-request metadata: time, LiteLLM version reported by AiOrbit, the prompt,
 cached, and reasoning token counts returned by Fireworks, how many earlier assistant
 messages carried ``reasoning_content`` in the body sent upstream, the reasoning
-characters sent and streamed back, and the SHA-256 of the source log file.
+characters sent and streamed back, the input size LiteLLM reported when it
+rejected a request as too large, and the SHA-256 of the source log file.
 
     python3 scripts/extract_bridge_reasoning_audit.py \
         --out data/litellm-reasoning-audit/bridge-requests.csv
@@ -18,6 +19,7 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 from datetime import datetime, timezone
 from multiprocessing import Pool
 from pathlib import Path
@@ -32,8 +34,10 @@ FIELDS = [
     "request_time_utc", "codex_session", "trial", "litellm_version", "status",
     "prompt_tokens", "cached_tokens", "reasoning_tokens", "assistant_messages",
     "assistant_messages_with_reasoning", "reasoning_chars_sent",
-    "reasoning_chars_streamed", "log_file", "log_sha256",
+    "reasoning_chars_streamed", "rejected_input_tokens", "log_file", "log_sha256",
 ]
+# LiteLLM's pre-call check reports the size it counted for a request it rejects.
+REJECTED = re.compile(r"Max Input Tokens=\d+, Got=(\d+)")
 
 
 def utc(stamp: str) -> str:
@@ -49,6 +53,7 @@ def audit(path: Path) -> dict | None:
     request = upstream = usage = None
     request_time = version = status = None
     streamed = 0
+    rejected = None
     expect_body = False
     with path.open(errors="replace") as handle:
         for line in handle:
@@ -73,6 +78,8 @@ def audit(path: Path) -> dict | None:
                     status = line.split()[1]
                 elif line.startswith("X-Litellm-Version:"):
                     version = line.split()[1]
+                elif rejected is None and (match := REJECTED.search(line)):
+                    rejected = int(match.group(1))
                 elif line.startswith("data: {"):
                     try:
                         chunk = json.loads(line[6:])
@@ -100,6 +107,7 @@ def audit(path: Path) -> dict | None:
         "assistant_messages_with_reasoning": len(with_reasoning),
         "reasoning_chars_sent": sum(len(m["reasoning_content"]) for m in with_reasoning),
         "reasoning_chars_streamed": streamed,
+        "rejected_input_tokens": rejected,
         "log_file": path.name,
         "log_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
     }
