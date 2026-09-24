@@ -618,11 +618,13 @@ axes[0].legend(
 fig.tight_layout()
 ```
 
-The other runs in @tbl-reasoning-history are unaffected. Kimi K3's Pi and Codex runs used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs had further route defects and are treated in the next subsection. The first GLM-5.3-Flash run ran entirely before the upgrade and lost the earlier reasoning in every measurable trial; it was repeated on the fixed gateway, and @sec-glm-routes compares the two runs.
+The other runs in @tbl-reasoning-history are unaffected. Kimi K3's Pi and Codex runs used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs had further route defects and are treated in the next subsection. The first GLM-5.3-Flash run ran entirely before the upgrade and lost the earlier reasoning in every measurable trial.
 
-All affected observations are removed from the normal data path, so the comparative analysis cannot include them by accident. For GLM-5.3-Flash, the complete first run was replaced by the second run. The five affected Codex trials were repeated with the unchanged configuration, including the one that passed, so that the selection depended on when a trial ran and not on its outcome. A bridge setting added in the meantime affects only Claude Code requests, so the Codex route was the same as before. The repeated trials replaced the original ones only after the same check confirmed that their reasoning had reached the model: their prompt-growth ratios were between 112% and 155%.
+All affected observations are removed from the normal data path, so the comparative analysis cannot include them by accident. The five affected Codex trials were repeated with the unchanged configuration, including the one that passed, so that the selection depended on when a trial ran and not on its outcome. A bridge setting added in the meantime affects only Claude Code requests, so the Codex route was the same as before. The repeated trials replaced the original ones only after the same check confirmed that their reasoning had reached the model: their prompt-growth ratios were between 112% and 155%.
 
 Pi was affected in six of its ten trials. A first repetition of three of them ran out of gateway budget: each first attempt stopped after 16 to 18 minutes when the gateway rejected further requests, and Pier's retries were rejected at once. These attempts are kept only as audit evidence. After additional gateway budget was granted, the complete Pi run was repeated on all ten tasks with the unchanged configuration. The repetition includes the four trials that had kept their reasoning, so the Pi condition comes from a single run under the fixed gateway. All ten repeated trials passed the same check, with prompt-growth ratios between 120% and 140%, and replace the original Pi trials. @sec-deepseek-codex-reasoning compares the original and repeated trials of both harnesses.
+
+For GLM-5.3-Flash, the complete first run was repeated on the fixed gateway in all four harnesses, and only the second run enters the comparison; @sec-glm-routes compares the runs.
 
 ### Reasoning effort and reasoning history in Claude Code {#sec-claude-code-reasoning}
 
@@ -1038,13 +1040,62 @@ _ax.figure.set_size_inches(6.3, 3.4)
 _ax.figure.tight_layout()
 ```
 
+@fig-kimi-pareto relates the passed tasks to the cost and the tokens of each harness. With two harnesses, neither dominates the other: Codex passed more tasks, and Pi cost less and used fewer tokens. Per passing trial, Codex used 51.8 million input and output tokens and Pi 81.1 million.
+
+```{python}
+#| label: fig-kimi-pareto
+#| fig-cap: "Tasks passed by Kimi K3 against the normalized cost (a) and the input and output tokens (b) of each harness's ten trials. Filled markers joined by the dashed line form the Pareto front, on which no other harness passed at least as many tasks for a lower total; hollow markers are dominated harnesses. Both horizontal axes are logarithmic."
+
+from scripts.analyze_harness_trials import pareto_summary
+from scripts.harness_figures import plot_pareto
+
+_pareto = pareto_summary(kimi_rows)
+if _pareto != {'cost_front': ['codex', 'pi'], 'token_front': ['codex', 'pi'], 'tokens_per_pass_m': {'codex': 51.8, 'pi': 81.1}}:
+    raise ValueError(f"Kimi K3 Pareto data changed; update the text: {_pareto}")
+_axes = plot_pareto(kimi)
+_axes[0].figure.tight_layout()
+```
+
 ### Context and delegation {#sec-kimi-context}
 
-Neither harness compacted Kimi's context in any trial. The largest prompts, 494,304 tokens in Codex and 312,651 tokens in Pi, both occurred on `scriggo` and stayed below half of the window. Kimi also started no subagent in either harness, so every trial ran in a single session.
+Neither harness compacted Kimi's context in any trial. The largest prompts, 494,304 tokens in Codex and 312,651 tokens in Pi, both occurred on `scriggo` and stayed below half of the window (@fig-kimi-tokens). Kimi also started no subagent in either harness, so every trial ran in a single session.
+
+```{python}
+#| label: fig-kimi-tokens
+#| fig-cap: "Input tokens, output tokens, and largest prompt per Kimi K3 trial. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. The token axes in (a) and (b) are logarithmic; the dashed line in (c) marks the configured 1,048,576-token window."
+
+from scripts.harness_figures import outcome_legend, plot_trial_strip
+
+fig, axes = plt.subplots(1, 3, figsize=(6.3, 3.1))
+plot_trial_strip(kimi, "input_tokens", ax=axes[0], scale=1e6, log=True,
+                 ylabel="(a) Input tokens per trial (million)")
+plot_trial_strip(kimi, "output_tokens", ax=axes[1], scale=1e3, log=True,
+                 ylabel="(b) Output tokens per trial (thousand)")
+plot_trial_strip(kimi, "peak_context_tokens", ax=axes[2], scale=1e3,
+                 ylabel="(c) Largest prompt (thousand tokens)",
+                 reference=1048.576, reference_label="window")
+axes[2].set_ylim(0, 1048.576 * 1.08)
+for _ax in axes:
+    _ax.tick_params(axis="x", labelrotation=30)
+    plt.setp(_ax.get_xticklabels(), ha="right", rotation_mode="anchor")
+outcome_legend(axes[2], loc="upper right", bbox_to_anchor=(1.0, 0.9))
+fig.tight_layout()
+```
 
 ### Tool use and invocation errors {#sec-kimi-tools}
 
-Both harnesses spent most of Kimi's tool calls on the shell: 70% of 2,100 calls in Codex and 71% of 1,450 in Pi. Codex has no separate read tool. Its calls are JavaScript cells that run shell commands or apply patches, and 29% of them were edits. Pi's calls were 20% edits and 9% reads.
+Both harnesses spent most of Kimi's tool calls on the shell (@fig-kimi-tool-mix): 70% of 2,100 calls in Codex and 71% of 1,450 in Pi. Codex has no separate read tool. Its calls are JavaScript cells that run shell commands or apply patches, and 29% of them were edits. Pi's calls were 20% edits and 9% reads.
+
+```{python}
+#| label: fig-kimi-tool-mix
+#| fig-cap: "Tool calls of Kimi K3 by category and harness. A Codex call is one JavaScript cell. Neither harness started a subagent."
+
+from scripts.harness_figures import plot_tool_mix
+
+_ax = plot_tool_mix(kimi)
+_ax.figure.set_size_inches(6.3, 2.2)
+_ax.figure.tight_layout()
+```
 
 An invocation error is a tool call rejected because of the call itself. This covers invalid arguments or script syntax, edits whose old text was not found or not unique, missing files, and out-of-range offsets. Non-zero shell exits are not counted, because a failing test or an empty search is often the intended result. The script `scripts/analyze_harness_trials.py` implements these rules.
 
@@ -1285,6 +1336,22 @@ for _ax in axes:
     plt.setp(_ax.get_xticklabels(), ha="right", rotation_mode="anchor")
 outcome_legend(axes[2], loc="upper right", bbox_to_anchor=(1.0, 0.9))
 fig.tight_layout()
+```
+
+@fig-deepseek-pareto relates the passed tasks to the cost and the tokens of each harness. By cost, OpenCode V2 and Claude Code form the Pareto front: OpenCode V2 was the cheapest harness, and Claude Code passed one more task for USD 0.89 more. Codex passed as many tasks as OpenCode V2 at a higher cost, and Pi passed fewer at a higher cost. By tokens, Pi and Claude Code form the front. Per passing trial, Claude Code used 51.3 million input and output tokens, OpenCode V2 63.7 million, and Codex and Pi 72.1 and 73.2 million.
+
+```{python}
+#| label: fig-deepseek-pareto
+#| fig-cap: "Tasks passed by DeepSeek V4.1 Flash against the normalized cost (a) and the input and output tokens (b) of each harness's ten trials. Filled markers joined by the dashed line form the Pareto front, on which no other harness passed at least as many tasks for a lower total; hollow markers are dominated harnesses. Both horizontal axes are logarithmic."
+
+from scripts.analyze_harness_trials import pareto_summary
+from scripts.harness_figures import plot_pareto
+
+_pareto = pareto_summary(ds_rows)
+if _pareto != {'cost_front': ['claude-code', 'opencode-v2'], 'token_front': ['pi', 'claude-code'], 'tokens_per_pass_m': {'codex': 72.1, 'pi': 73.2, 'claude-code': 51.3, 'opencode-v2': 63.7}}:
+    raise ValueError(f"DeepSeek V4.1 Flash Pareto data changed; update the text: {_pareto}")
+_axes = plot_pareto(ds)
+_axes[0].figure.tight_layout()
 ```
 
 ### Context and compaction {#sec-deepseek-context}
@@ -1881,6 +1948,22 @@ _ax.figure.set_size_inches(6.3, 3.4)
 _ax.figure.tight_layout()
 ```
 
+@fig-luna-pareto relates the passed tasks to the cost and the tokens of each harness. Codex alone forms the Pareto front by cost: no other harness passed more tasks, and none was cheaper. By tokens, OpenCode V2 joins it, because it used the fewest tokens, but it passed only one task. Per passing trial, Codex used 62.8 million input and output tokens and Pi 66.8 million, against 294.3 million for OpenCode V2 and 1,026.6 million for Claude Code.
+
+```{python}
+#| label: fig-luna-pareto
+#| fig-cap: "Tasks passed by GPT-5.6 Luna against the normalized cost (a) and the input and output tokens (b) of each harness's ten trials. Filled markers joined by the dashed line form the Pareto front, on which no other harness passed at least as many tasks for a lower total; hollow markers are dominated harnesses. Both horizontal axes are logarithmic."
+
+from scripts.analyze_harness_trials import pareto_summary
+from scripts.harness_figures import plot_pareto
+
+_pareto = pareto_summary(luna_rows)
+if _pareto != {'cost_front': ['codex'], 'token_front': ['codex', 'opencode-v2'], 'tokens_per_pass_m': {'codex': 62.8, 'pi': 66.8, 'claude-code': 1026.6, 'opencode-v2': 294.3}}:
+    raise ValueError(f"GPT-5.6 Luna Pareto data changed; update the text: {_pareto}")
+_axes = plot_pareto(luna)
+_axes[0].figure.tight_layout()
+```
+
 ### Context and compaction {#sec-luna-context}
 
 All four harnesses were configured for the same 272,000-token window, but they used different parts of it (@fig-luna-context). The largest prompts in Codex, Pi, and Claude Code reached between 239,619 and 255,403 tokens. Claude Code's largest prompt was almost the same in every trial, between 237,738 and 239,619 tokens. OpenCode V2 never exceeded 126,444 tokens, because its profile reserved the output limit from the window (@sec-opencode-input-limit). It compacted 142 times in ten trials, compared with 8 times for Codex and 5 times for Pi. Its two timeouts had 19 and 63 compactions. Claude Code compacted 79 times, including the compactions of its subagents.
@@ -2146,7 +2229,7 @@ _ax.figure.set_size_inches(6.3, 3.5)
 _ax.figure.tight_layout()
 ```
 
-As a geometric mean of the per-task ratios relative to Codex (@sec-kimi-cost), Pi cost 1.13 times as much, Claude Code 1.19 times, and OpenCode V2 1.06 times. The three harnesses used about the same input tokens as Codex (0.99 to 1.15 times) and slightly fewer agent steps (0.83 to 0.96 times), but produced 1.84 to 1.98 times its output tokens and ran 1.40 to 2.06 times as long. The median Codex trial produced 60,000 output tokens and took 20 minutes; the other harnesses produced between 106,000 and 116,000 tokens in 33 to 39 minutes.
+As a geometric mean of the per-task ratios relative to Codex (@sec-kimi-cost), Pi cost 1.13 times as much, Claude Code 1.19 times, and OpenCode V2 1.06 times. The three harnesses used about the same input tokens as Codex (0.99 to 1.15 times) and slightly fewer agent steps (0.83 to 0.96 times), but produced 1.84 to 1.98 times its output tokens and ran 1.40 to 2.06 times as long. The median Codex trial produced 60,000 output tokens and took 20 minutes; the other harnesses produced between 106,000 and 116,000 tokens in 33 to 39 minutes (@fig-glm-tokens).
 
 @fig-glm-cache relates the input tokens of each trial to its cache-hit share. OpenCode V2 read 98.3% of its input from the cache, and the other three harnesses between 94.1% and 95.2%. GLM's cached input costs a fifth of its uncached input, not a fiftieth as for DeepSeek (@sec-deepseek-cost). Cached input therefore dominates the cost, at 72% to 86% of each harness's total.
 
@@ -2159,9 +2242,47 @@ _ax.figure.set_size_inches(6.3, 3.4)
 _ax.figure.tight_layout()
 ```
 
+@fig-glm-pareto relates the passed tasks to the cost and the tokens of each harness. By cost, Codex, OpenCode V2, and Claude Code form the Pareto front, and Pi is dominated by OpenCode V2, which passed as many tasks for less. By tokens, Pi replaces OpenCode V2 on the front, because it used slightly fewer tokens for the same seven passes. Per passing trial, Claude Code, Pi, and OpenCode V2 used between 36.8 and 38.0 million input and output tokens, and Codex 51.9 million.
+
+```{python}
+#| label: fig-glm-pareto
+#| fig-cap: "Tasks passed by GLM-5.3-Flash against the normalized cost (a) and the input and output tokens (b) of each harness's ten trials. Filled markers joined by the dashed line form the Pareto front, on which no other harness passed at least as many tasks for a lower total; hollow markers are dominated harnesses. Both horizontal axes are logarithmic."
+
+from scripts.analyze_harness_trials import pareto_summary
+from scripts.harness_figures import plot_pareto
+
+_pareto = pareto_summary(glm_rows)
+if _pareto != {'cost_front': ['codex', 'claude-code', 'opencode-v2'], 'token_front': ['codex', 'pi', 'claude-code'], 'tokens_per_pass_m': {'codex': 51.9, 'pi': 37.2, 'claude-code': 36.8, 'opencode-v2': 38.0}}:
+    raise ValueError(f"GLM-5.3-Flash Pareto data changed; update the text: {_pareto}")
+_axes = plot_pareto(glm)
+_axes[0].figure.tight_layout()
+```
+
 ### Context and delegation {#sec-glm-context}
 
-No GLM trial compacted its context. The largest prompts reached between 236,048 tokens (Codex) and 440,585 tokens (Claude Code on `scriggo`), below half of the window. Claude Code started two subagents, both in `scriggo`; no other harness delegated work.
+No GLM trial compacted its context. The largest prompts reached between 236,048 tokens (Codex) and 440,585 tokens (Claude Code on `scriggo`), below half of the window, and the median of the trials' largest prompts was between 165,572 tokens (Codex) and 213,514 tokens (Claude Code), as panel (c) of @fig-glm-tokens shows. Claude Code started two subagents, both in `scriggo`; no other harness delegated work.
+
+```{python}
+#| label: fig-glm-tokens
+#| fig-cap: "Input tokens, output tokens, and largest prompt per GLM-5.3-Flash trial. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. The token axes in (a) and (b) are logarithmic; the dashed line in (c) marks the configured 1,000,000-token window."
+
+from scripts.harness_figures import outcome_legend, plot_trial_strip
+
+fig, axes = plt.subplots(1, 3, figsize=(6.3, 3.1))
+plot_trial_strip(glm, "input_tokens", ax=axes[0], scale=1e6, log=True,
+                 ylabel="(a) Input tokens per trial (million)")
+plot_trial_strip(glm, "output_tokens", ax=axes[1], scale=1e3, log=True,
+                 ylabel="(b) Output tokens per trial (thousand)")
+plot_trial_strip(glm, "peak_context_tokens", ax=axes[2], scale=1e3,
+                 ylabel="(c) Largest prompt (thousand tokens)",
+                 reference=1000, reference_label="window")
+axes[2].set_ylim(0, 1000 * 1.08)
+for _ax in axes:
+    _ax.tick_params(axis="x", labelrotation=30)
+    plt.setp(_ax.get_xticklabels(), ha="right", rotation_mode="anchor")
+outcome_legend(axes[2], loc="upper right", bbox_to_anchor=(1.0, 0.9))
+fig.tight_layout()
+```
 
 ### Tool use and invocation errors {#sec-glm-tools}
 

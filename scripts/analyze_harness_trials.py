@@ -334,6 +334,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             "passed": len(passing),
             "timeouts": sum(row["timeout"] for row in group),
             "cost_usd": sum(row["cost_usd"] for row in group),
+            "total_tokens": sum(row["input_tokens"] + row["output_tokens"] for row in group),
             "median_cost_usd": statistics.median(row["cost_usd"] for row in group),
             "median_input_tokens": statistics.median(row["input_tokens"] for row in group),
             "median_output_tokens": statistics.median(row["output_tokens"] for row in group),
@@ -352,6 +353,37 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             "web_fetches": sum(row["web_fetches"] for row in group),
         }
     return summary
+
+
+def pareto_front(summary: dict[str, dict[str, Any]], cost_key: str = "cost_usd") -> list[str]:
+    """Harnesses that no other harness beats on both cost and passed tasks.
+
+    A harness is dominated when another one passed at least as many tasks for at
+    most the same total, and is strictly better in one of the two.
+    """
+    front = []
+    for harness, stats in summary.items():
+        dominated = any(
+            other[cost_key] <= stats[cost_key] and other["passed"] >= stats["passed"]
+            and (other[cost_key] < stats[cost_key] or other["passed"] > stats["passed"])
+            for name, other in summary.items() if name != harness
+        )
+        if not dominated:
+            front.append(harness)
+    return front
+
+
+def pareto_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Pareto fronts for cost and tokens, and the tokens spent per passing trial (millions)."""
+    summary = summarize(rows)
+    return {
+        "cost_front": pareto_front(summary, "cost_usd"),
+        "token_front": pareto_front(summary, "total_tokens"),
+        "tokens_per_pass_m": {
+            harness: round(stats["total_tokens"] / stats["passed"] / 1e6, 1) if stats["passed"] else None
+            for harness, stats in summary.items()
+        },
+    }
 
 
 def paired_ratio(rows: list[dict[str, Any]], metric: str, harness: str, reference: str) -> float:
