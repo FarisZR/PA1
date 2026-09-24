@@ -3,7 +3,7 @@
 #
 # The trial's verifier timed out after 1,800 s, so Pier recorded no reward. This
 # script repeats the verifier's new-test step offline: it applies the model's
-# patch (data/kimi-koota-verifier-audit/model.patch) and the task's hidden
+# patch (data/kimi-k3-pi-audit/koota-model.patch) and the task's hidden
 # test.patch to the task image and runs tests/aspect.test.ts with a time limit.
 # With --reference it applies the task's reference solution instead, as a
 # control. No model is called and the container has no network.
@@ -20,7 +20,7 @@ image=${1:?task image}
 task_dir=$(cd "${2:?DeepSWE task directory}" && pwd)
 mode=${3:-model}
 limit=${LIMIT_SECONDS:-120}
-patch="$(cd "$(dirname "$0")/.." && pwd)/data/kimi-koota-verifier-audit/model.patch"
+patch="$(cd "$(dirname "$0")/.." && pwd)/data/kimi-k3-pi-audit/koota-model.patch"
 
 if [ "$mode" = "--reference" ]; then
     apply='git apply --binary /work/solution.patch'
