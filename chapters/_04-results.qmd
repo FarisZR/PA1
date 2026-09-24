@@ -583,7 +583,7 @@ The six affected Pi trials are not repeated within the available budget. With on
 
 <!-- TODO(FarisZR/PA1#111): run benchmark/generated/deepseek-codex-rerun.yaml and scripts/build_corrected_results.py, then report the rerun's retention and outcomes. If the six Pi trials are rerun, restore the DeepSeek Pi condition. -->
 
-### Reasoning effort and reasoning history in Claude Code
+### Reasoning effort and reasoning history in Claude Code {#sec-claude-code-reasoning}
 
 The original LiteLLM-routed Claude Code runs retain an effort-mapping limitation. Claude Code requests reasoning effort through the Anthropic `output_config.effort` field. For the Fireworks-routed models, these requests pass through LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway. That translation maps the field to `reasoning_effort` and lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101]. A local reproduction used the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) with deployment metadata matching what the gateway advertises. It forwarded `high` for both models, and for the excluded GLM-5.3-Flash batch. The original LiteLLM-routed Claude Code runs of Kimi K3 and DeepSeek V4.1 Flash were therefore most likely executed at `high` rather than the intended `max`, whereas Pi, Codex, OpenCode V2, and the later DeepSeek CLIProxyAPI runs sent `max` directly. The gateway's deployment configuration during the runs could not be inspected directly.
 
@@ -609,9 +609,247 @@ OpenCode's model profiles state a context window and a separate input limit that
 
 ## Kimi K3
 
-Only the Pi and Codex Kimi K3 runs enter the comparative benchmark. The earlier Claude Code run was completed, but the LiteLLM translation lowered its requested `max` reasoning effort to `high` and did not return earlier reasoning to the model on subsequent turns (@sec-measurement-corrections). It is discarded from all reported Kimi comparisons, including success, cost, token, and cache metrics. Its ten trial directories and Pier's unfiltered job summary are kept under `data/benchmark-results/.excluded/kimi-k3/` for audit, outside the normal trial path used for analysis. OpenCode V2 was not run for Kimi K3 (@sec-methodology).
+```{python}
+#| include: false
 
-- TODO: Report and analyze the Pi and Codex Kimi K3 results, including task success, cost, token usage, and cache behavior.
+from scripts.analyze_harness_trials import (
+    HARNESS_LABELS,
+    load_trials,
+    paired_ratio,
+    summarize,
+)
+from scripts.harness_figures import (
+    plot_cache_tokens,
+    plot_invocation_errors,
+    plot_task_costs,
+    plot_task_outcomes,
+)
+
+KIMI_JOBS = [Path("data/benchmark-results/kimi-k3")]
+kimi_rows = load_trials("kimi-k3", KIMI_JOBS)
+kimi = pd.DataFrame(kimi_rows)
+kimi_summary = summarize(kimi_rows)
+_kimi_passed = kimi.pivot(index="task", columns="harness", values="passed")
+_kimi_cost = kimi.pivot(index="task", columns="harness", values="cost_usd")
+_kimi_by_task = kimi.set_index(["harness", "task"])
+
+
+def _kimi_ratio(metric: str) -> float:
+    return round(paired_ratio(kimi_rows, metric, "codex", "pi"), 1)
+
+
+def _kimi_trial(harness: str, task: str, column: str):
+    return _kimi_by_task.loc[(harness, task), column]
+
+
+# The prose below quotes these values. A change in the committed data stops the
+# render here instead of leaving the text out of date.
+kimi_quoted = {
+    "trials": len(kimi),
+    "harnesses": sorted(kimi_summary),
+    "passed": {h: s["passed"] for h, s in kimi_summary.items()},
+    "timeouts": {h: s["timeouts"] for h, s in kimi_summary.items()},
+    "only_codex": int((_kimi_passed["codex"] & ~_kimi_passed["pi"]).sum()),
+    "only_pi": int((_kimi_passed["pi"] & ~_kimi_passed["codex"]).sum()),
+    "cost": {h: round(s["cost_usd"], 2) for h, s in kimi_summary.items()},
+    "cost_per_pass": {h: round(s["cost_usd"] / s["passed"], 2) for h, s in kimi_summary.items()},
+    "task_cost_ratio": (
+        round((_kimi_cost["codex"] / _kimi_cost["pi"]).min(), 1),
+        round((_kimi_cost["codex"] / _kimi_cost["pi"]).max(), 1),
+    ),
+    "ratios": {m: _kimi_ratio(m) for m in
+               ("cost_usd", "input_tokens", "output_tokens", "agent_steps", "agent_minutes")},
+    "f2p": {
+        (h, t): (_kimi_trial(h, t, "f2p_passed"), _kimi_trial(h, t, "f2p_total"))
+        for h, t in [("pi", "csstree-shorthand-expansion-compression"),
+                     ("pi", "fastapi-implicit-head-options"),
+                     ("pi", "oxvg-structural-selector-preservation"),
+                     ("pi", "expr-try-catch-errors"), ("codex", "expr-try-catch-errors")]
+    },
+    "pi_zero_f2p": sorted(kimi[(kimi["harness"] == "pi") & (kimi["f2p_passed"] == 0)]["task"]),
+    "pi_exceptions": {
+        t: _kimi_trial("pi", t, "exception")
+        for t in ("scriggo-method-declarations", "koota-composite-trait-aspects")
+    },
+    "scriggo": {
+        "codex_cost": round(_kimi_trial("codex", "scriggo-method-declarations", "cost_usd"), 2),
+        "codex_minutes": round(_kimi_trial("codex", "scriggo-method-declarations", "agent_minutes")),
+        "pi_cost": round(_kimi_trial("pi", "scriggo-method-declarations", "cost_usd"), 2),
+    },
+    "cache": {h: round(100 * s["cache_hit_share"], 1) for h, s in kimi_summary.items()},
+    "cache_range": {
+        h: (round(100 * c.min(), 1), round(100 * c.max(), 1))
+        for h, c in (kimi["cached_tokens"] / kimi["input_tokens"]).groupby(kimi["harness"])
+    },
+    "codex_cache_lowest": (
+        kimi[kimi["harness"] == "codex"]
+        .assign(share=lambda f: f["cached_tokens"] / f["input_tokens"])
+        .nsmallest(2, "share")[["task", "share"]]
+        .assign(share=lambda f: (100 * f["share"]).round(1))
+        .values.tolist()
+    ),
+    "codex_cheapest": kimi[kimi["harness"] == "codex"].nsmallest(1, "cost_usd")["task"].item(),
+    "max_context": {h: s["max_peak_context_tokens"] for h, s in kimi_summary.items()},
+    "compactions": {h: s["compactions"] for h, s in kimi_summary.items()},
+    "spawns": {h: s["subagent_spawns"] for h, s in kimi_summary.items()},
+    "tool_calls": {h: s["tool_calls"] for h, s in kimi_summary.items()},
+    "call_share": {
+        h: {
+            c: round(100 * n / g["tool_calls"].sum())
+            for c, n in (
+                (c, sum(d[c] for d in g["calls_by_category"])) for c in ("read", "edit", "shell")
+            ) if n
+        }
+        for h, g in kimi.groupby("harness")
+    },
+    "call_errors": {h: round(100 * s["invocation_error_share"], 1) for h, s in kimi_summary.items()},
+    "edit_errors": {h: round(100 * s["edit_error_share"], 1) for h, s in kimi_summary.items()},
+    "error_classes": {
+        h: dict(sum((Counter(d) for d in g["errors_by_class"]), Counter()))
+        for h, g in kimi.groupby("harness")
+    },
+    "codex_errors_by_category": {
+        c: sum(d[c] for d in kimi[kimi["harness"] == "codex"]["errors_by_category"])
+        for c in ("edit", "shell")
+    },
+}
+kimi_expected = {
+    "trials": 20,
+    "harnesses": ["codex", "pi"],
+    "passed": {"codex": 7, "pi": 2},
+    "timeouts": {"codex": 0, "pi": 1},
+    "only_codex": 6,
+    "only_pi": 1,
+    "cost": {"codex": 155.98, "pi": 71.36},
+    "cost_per_pass": {"codex": 22.28, "pi": 35.68},
+    "task_cost_ratio": (1.5, 3.1),
+    "ratios": {"cost_usd": 2.0, "input_tokens": 1.9, "output_tokens": 1.2,
+               "agent_steps": 1.4, "agent_minutes": 1.1},
+    "f2p": {
+        ("pi", "csstree-shorthand-expansion-compression"): (74, 79),
+        ("pi", "fastapi-implicit-head-options"): (42, 43),
+        ("pi", "oxvg-structural-selector-preservation"): (4, 6),
+        ("pi", "expr-try-catch-errors"): (78, 79),
+        ("codex", "expr-try-catch-errors"): (78, 79),
+    },
+    "pi_zero_f2p": [
+        "boa-hierarchical-evaluation-cancellation",
+        "effect-sse-httpapi-streaming",
+        "scriggo-method-declarations",
+    ],
+    "pi_exceptions": {
+        "scriggo-method-declarations": "AgentTimeoutError",
+        "koota-composite-trait-aspects": "VerifierTimeoutError",
+    },
+    "scriggo": {"codex_cost": 55.55, "codex_minutes": 134, "pi_cost": 20.98},
+    "cache": {"codex": 97.2, "pi": 98.2},
+    "cache_range": {"codex": (84.9, 98.5), "pi": (96.9, 98.9)},
+    "codex_cache_lowest": [
+        ["csstree-shorthand-expansion-compression", 84.9],
+        ["effect-sse-httpapi-streaming", 94.8],
+    ],
+    "codex_cheapest": "csstree-shorthand-expansion-compression",
+    "max_context": {"codex": 494304, "pi": 312651},
+    "compactions": {"codex": 0, "pi": 0},
+    "spawns": {"codex": 0, "pi": 0},
+    "tool_calls": {"codex": 2100, "pi": 1450},
+    "call_share": {"codex": {"edit": 29, "shell": 70}, "pi": {"read": 9, "edit": 20, "shell": 71}},
+    "call_errors": {"codex": 5.1, "pi": 0.5},
+    "edit_errors": {"codex": 10.5, "pi": 2.4},
+    "error_classes": {
+        "codex": {"invalid_call": 69, "edit_mismatch": 35, "other_error": 3},
+        "pi": {"edit_mismatch": 7},
+    },
+    "codex_errors_by_category": {"edit": 63, "shell": 44},
+}
+if kimi_quoted != kimi_expected:
+    raise ValueError(f"Kimi K3 data changed; update the text: {kimi_quoted}")
+```
+
+Kimi K3 by Moonshot AI is the frontier-class model in the comparison. Only its Pi and Codex runs enter the results. The Claude Code run is excluded because the gateway most likely lowered its `max` effort to `high` and dropped Kimi's earlier reasoning [@pa1Issue94; @pa1Issue102]. Pi and Codex were affected neither by these defects nor by the later removal of earlier reasoning on the Fireworks route (@sec-claude-code-reasoning; @sec-gateway-reasoning-history). The excluded trials are kept under `data/benchmark-results/.excluded/kimi-k3/` for audit only, and OpenCode V2 was not run for Kimi K3 (@sec-methodology).
+
+Both harnesses used Kimi's native 1,048,576-token context window. All values in this section are computed from the committed trials in `data/benchmark-results/kimi-k3/` by `scripts/analyze_harness_trials.py`. Each harness contributes one canonical attempt per task (@sec-canonical-attempts), so every comparison rests on ten paired observations. Codex solved six tasks that Pi did not, and Pi solved one that Codex did not. An exact two-sided sign test over these seven tasks gives p = 0.125, so differences in success are reported descriptively.
+
+### Task success {#sec-kimi-success}
+
+@tbl-kimi-overview summarizes the two Kimi conditions. Codex passed seven of the ten tasks and Pi two. Only `python-statemachine` was solved in both harnesses. Pi solved `katex`, which Codex missed.
+
+```{python}
+#| label: tbl-kimi-overview
+#| tbl-cap: "Kimi K3 results per harness over the ten canonical trials. Cost is the normalized API cost in USD. Input, output, and agent time are medians per trial; cache hits are the share of all input tokens read from the cache."
+#| tbl-colwidths: [19, 10, 11, 10, 10, 9, 10, 10, 11]
+
+from IPython.display import Markdown
+
+_overview = ["| Harness | Passed | Agent timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
+             "|:--|--:|--:|--:|--:|--:|--:|--:|--:|"]
+for harness, stats in kimi_summary.items():
+    _overview.append(
+        f"| {HARNESS_LABELS[harness]} | {stats['passed']}/{stats['trials']} | {stats['timeouts']} "
+        f"| {stats['cost_usd']:.2f} | {stats['cost_usd'] / stats['passed']:.2f} "
+        f"| {stats['median_input_tokens'] / 1e6:.1f} | {stats['median_output_tokens'] / 1e3:.0f} "
+        f"| {stats['cache_hit_share']:.1%} | {stats['median_agent_minutes']:.0f} |"
+    )
+Markdown("\n".join(_overview))
+```
+
+@fig-kimi-task-outcomes shows the fail-to-pass tests of every trial. Several of Pi's failures came close: it passed 74 of 79 tests in `csstree`, 42 of 43 in `fastapi`, and 4 of 6 in `oxvg`. In `expr`, both harnesses passed 78 of 79 tests. Three Pi trials passed no fail-to-pass test. In `boa` and `effect`, Pi finished normally. In `scriggo`, Kimi started a comparison script over Go's full `fixedbugs` test directory after 75 minutes, and the command never returned. Pi's `bash` tool has no default time limit, and Kimi set none, so Pi waited until the three-hour agent timeout ended the trial. Kimi had not yet committed its changes, so the verifier graded the unchanged repository. The Pi trial on `koota` has no test result because its verifier exceeded the 30-minute limit. An offline replay of the verifier traced the timeout to an endless loop in the new tests. Pi's solution registers a hidden marker trait for every aspect, and the tests create new aspects in one shared world. The markers accumulated until one received the second-highest bit of koota's 32-bit trait mask. An existing loop in koota that scans this mask bit by bit never ends for that bit, because the shift overflows to zero. The reference solution passes the same tests, and verifier timeouts are final (@sec-canonical-attempts), so the trial counts as failed. The evidence for both trials is in `data/kimi-k3-pi-audit/`.
+
+```{python}
+#| label: fig-kimi-task-outcomes
+#| fig-cap: "Fail-to-pass tests passed by Kimi K3 per task and harness. Green cells are passing trials; blue cells are failing trials, shaded by the share of fail-to-pass tests passed. \"no result\" marks the Pi trial whose verifier timed out in an endless loop. Hard tasks are listed above the line."
+
+_ax = plot_task_outcomes(kimi)
+_ax.figure.set_size_inches(5.6, 5.4)
+_ax.figure.tight_layout()
+```
+
+### Cost and token usage {#sec-kimi-cost}
+
+Across the ten trials, Codex cost USD 155.98 and Pi USD 71.36 (@tbl-kimi-overview). Codex was the more expensive harness on every task, by a factor between 1.5 and 3.1 (@fig-kimi-cost). Because it passed more than three times as many tasks, it was nevertheless cheaper per passing trial: USD 22.28 against USD 35.68 for Pi. The most expensive trial was Codex on `scriggo`, which passed after 134 minutes for USD 55.55. Pi spent USD 20.98 on the same task before the timeout.
+
+```{python}
+#| label: fig-kimi-cost
+#| fig-cap: "Normalized cost of each Kimi K3 trial per task and harness. Solid bars are passing trials, marked with a check mark; hatched bars are failing trials. The cost axis is logarithmic."
+
+_ax = plot_task_costs(kimi)
+_ax.figure.set_size_inches(6.3, 3.5)
+_ax.figure.tight_layout()
+```
+
+Totals can be dominated by single expensive tasks. The two harnesses are therefore also compared task by task, as the geometric mean of the per-task ratios. By this measure, Codex cost 2.0 times as much as Pi, used 1.9 times the input tokens and 1.2 times the output tokens, and took 1.4 times the agent steps. Its agent time was only 1.1 times as long.
+
+@fig-kimi-cache relates each trial's input tokens to its cache-hit share. Pi read 98.2% of its input tokens from the cache and Codex 97.2%. Pi's trials stayed between 96.9% and 98.9%. Codex's trials ranged from 94.8% to 98.5%, apart from `csstree` at 84.9%, which was also Codex's cheapest trial. The difference in cache-hit share is small, so Codex's higher cost comes mainly from its higher token volume.
+
+```{python}
+#| label: fig-kimi-cache
+#| fig-cap: "Input tokens and cache-hit share of each Kimi K3 trial. Each point is one task; lines join the trials of the same harness in order of their input tokens. Few tokens and a high cache-hit share (top left) is best. Filled markers are passing trials. The token axis is logarithmic."
+
+_ax = plot_cache_tokens(kimi)
+_ax.figure.set_size_inches(6.3, 3.4)
+_ax.figure.tight_layout()
+```
+
+### Context and delegation {#sec-kimi-context}
+
+Neither harness compacted Kimi's context in any trial. The largest prompts, 494,304 tokens in Codex and 312,651 tokens in Pi, both occurred on `scriggo` and stayed below half of the window. Kimi also started no subagent in either harness, so every trial ran in a single session.
+
+### Tool use and invocation errors {#sec-kimi-tools}
+
+Both harnesses spent most of Kimi's tool calls on the shell: 70% of 2,100 calls in Codex and 71% of 1,450 in Pi. Codex has no separate read tool. Its calls are JavaScript cells that run shell commands or apply patches, and 29% of them were edits. Pi's calls were 20% edits and 9% reads.
+
+An invocation error is a tool call rejected because of the call itself. This covers invalid arguments or script syntax, edits whose old text was not found or not unique, missing files, and out-of-range offsets. Non-zero shell exits are not counted, because a failing test or an empty search is often the intended result. The script `scripts/analyze_harness_trials.py` implements these rules.
+
+Codex rejected 5.1% of Kimi's calls and Pi 0.5% (@fig-kimi-invocation-errors). Of the 107 rejected Codex calls, 69 failed with a JavaScript error in the cell itself, 66 of them syntax errors. Another 35 were patches that `apply_patch` rejected because their context lines did not match the file or their format was invalid. Pi's seven errors were all edits whose old text did not match. As a result, Codex rejected 10.5% of Kimi's edit calls and Pi 2.4%. Kimi's Codex profile is derived from a GPT profile (@sec-methodology), so Kimi used the same JavaScript cell interface as the GPT models.
+
+```{python}
+#| label: fig-kimi-invocation-errors
+#| fig-cap: "Share of Kimi K3's tool calls rejected as invalid invocations per harness, divided by the tool category of the rejected calls. Segment labels give each category's share of the harness's errors; the label above each bar gives the rate and the number of rejected and counted calls. Shell exits are not counted. In Codex, 41 of the 44 shell errors and 28 of the 63 edit errors are JavaScript errors in the cell itself."
+
+_ax = plot_invocation_errors(kimi)
+_ax.figure.set_size_inches(6.3, 3.2)
+_ax.figure.tight_layout()
+```
 
 ## DeepSeek V4.1 Flash
 
@@ -761,7 +999,7 @@ if luna_quoted != luna_expected:
     raise ValueError(f"GPT-5.6 Luna data changed; update the text: {luna_quoted}")
 ```
 
-GPT-5.6 Luna is the only model with a complete and comparable run in all four harnesses. All 40 canonical trials reached Luna through the same ChatGPT-backed CLIProxyAPI route, and none of the gateway defects described in @sec-measurement-corrections affected it. Three corrections apply: the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials. Two properties of the OpenCode V2 condition also shape the results below: its native search tools did not work (@sec-opencode-ripgrep), and its input limit was lower than in the other harnesses (@sec-opencode-input-limit). All values in this section are computed from the committed trial files in `data/benchmark-results/luna/` and `data/benchmark-results/opencode-v2-luna/` by `scripts/analyze_harness_trials.py`. Each harness ran each of the ten tasks once, so every comparison rests on ten paired observations. Even the largest difference in success, between Codex and OpenCode V2, rests on four tasks that only Codex solved. An exact two-sided sign test over these four tasks gives p = 0.125. Differences in success are therefore reported descriptively.
+GPT-5.6 Luna is the only model with a complete and comparable run in all four harnesses. All 40 canonical trials reached Luna through the same ChatGPT-backed CLIProxyAPI route, and none of the gateway defects described in @sec-measurement-corrections affected it. Three corrections apply: the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials. Two properties of the OpenCode V2 condition also shape the results below: its native search tools did not work (@sec-opencode-ripgrep), and its input limit was lower than in the other harnesses (@sec-opencode-input-limit). All values in this section are computed from the committed trial files in `data/benchmark-results/luna/` and `data/benchmark-results/opencode-v2-luna/` by `scripts/analyze_harness_trials.py`. Each harness contributes one canonical attempt per task, so every comparison rests on ten paired observations. Even the largest difference in success, between Codex and OpenCode V2, rests on four tasks that only Codex solved. An exact two-sided sign test over these four tasks gives p = 0.125. Differences in success are therefore reported descriptively.
 
 ### Task success {#sec-luna-success}
 
@@ -774,7 +1012,7 @@ GPT-5.6 Luna is the only model with a complete and comparable run in all four ha
 
 from IPython.display import Markdown
 
-_overview = ["| Harness | Passed | Timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
+_overview = ["| Harness | Passed | Agent timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
              "|:--|--:|--:|--:|--:|--:|--:|--:|--:|"]
 for harness, stats in luna_summary.items():
     _overview.append(
@@ -812,7 +1050,7 @@ _ax.figure.set_size_inches(6.3, 3.5)
 _ax.figure.tight_layout()
 ```
 
-Totals can be dominated by single expensive tasks. The trials are therefore also compared task by task, as the geometric mean of the per-task ratios relative to Codex. By this measure, Pi cost 0.96 times as much as Codex and OpenCode V2 1.04 times. Claude Code cost 13.7 times as much, used 8.7 times the input tokens and 7.9 times the output tokens, took 11.0 times the agent steps, and ran 2.1 times as long.
+Compared task by task as in @sec-kimi-cost, Pi cost 0.96 times as much as Codex and OpenCode V2 1.04 times. Claude Code cost 13.7 times as much, used 8.7 times the input tokens and 7.9 times the output tokens, took 11.0 times the agent steps, and ran 2.1 times as long.
 
 @fig-luna-tokens shows the tokens of every trial. Input tokens dominate the cost, but most of them were cache reads. Codex and Pi read 98.4% and 98.5% of their input tokens from the cache, OpenCode V2 92.7%, and Claude Code 88.2%. The lower cache share raises Claude Code's cost beyond its token volume. OpenCode V2 used fewer input tokens than Codex (0.73 times, per-task geometric mean) but more output tokens (1.36 times); its prompts were limited to a smaller window (@sec-luna-context). Within Claude Code, the trial with the most input tokens, 642 million, failed.
 
@@ -875,7 +1113,7 @@ _ax.figure.set_size_inches(6.3, 2.9)
 _ax.figure.tight_layout()
 ```
 
-An invocation error is a tool call that the tool rejected because of the call itself: invalid arguments or script syntax, an edit whose old text was not found or not unique, or a missing file or out-of-range offset. Non-zero shell exits are not counted, because a failing test or an empty search is often the intended result. Blocked web fetches, the failed OpenCode V2 searches, and delegation bookkeeping calls are excluded as well. The script `scripts/analyze_harness_trials.py` implements these rules. @fig-luna-invocation-errors shows the resulting rates and which tools the rejected calls belonged to. Error rates ranged from 1.4% of calls in Claude Code to 3.6% in Pi. Edits and reads account for almost all errors. In Codex and Pi, 84% and 77% of the rejected calls were edits; in Codex, the remainder were script syntax errors in shell cells. In Claude Code and OpenCode V2, rejected reads made up 59% and 91%, mostly of files that did not exist. Between 7.9% (Codex) and 9.4% (Pi) of Luna's edit calls were rejected, most often because the text to be replaced did not match the file. The edit failure rate varies little between the four harnesses, which indicates a property of Luna's edits rather than of the harness.
+Invocation errors are counted as defined in @sec-kimi-tools. Blocked web fetches, the failed OpenCode V2 searches, and delegation bookkeeping calls are excluded as well. @fig-luna-invocation-errors shows the resulting rates and which tools the rejected calls belonged to. Error rates ranged from 1.4% of calls in Claude Code to 3.6% in Pi. Edits and reads account for almost all errors. In Codex and Pi, 84% and 77% of the rejected calls were edits; in Codex, the remainder were script syntax errors in shell cells. In Claude Code and OpenCode V2, rejected reads made up 59% and 91%, mostly of files that did not exist. Between 7.9% (Codex) and 9.4% (Pi) of Luna's edit calls were rejected, most often because the text to be replaced did not match the file. The edit failure rate varies little between the four harnesses, which indicates a property of Luna's edits rather than of the harness.
 
 ```{python}
 #| label: fig-luna-invocation-errors
