@@ -6,7 +6,7 @@ n_attempts: 1
 # Start it ~30 minutes after that job, once check_rate_headroom.py shows the
 # limits have stepped up (cache-adjusted >= 5.49M); the two jobs then share
 # ~16 concurrent trials. See the sizing notes in glm-5.3-flash.yaml.
-n_concurrent_trials: 6
+n_concurrent_trials: 10
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
