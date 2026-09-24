@@ -78,8 +78,21 @@ Corrections (see "Measurement corrections" in the results chapter):
    rerun ``benchmark/runs/deepseek-claude-code-cliproxy-api-fixed-thinking`` is
    published as the Claude Code condition after the same retention check.
 
-Rerun trials are published in the normal job directory; the job-level Pier files
-of each rerun job are kept under ``<job>/.rerun-jobs/<rerun job>/``.
+8. GLM-5.3-Flash runs. The first Fireworks run (Pier jobs ``glm-5.3-flash`` and
+   ``opencode-v2-glm-5.3-flash``) ran entirely before the gateway upgrade of
+   correction 6, and no measurable trial kept its earlier reasoning. Both jobs
+   move to ``data/benchmark-results/.excluded/glm-5.3-flash/``, together with
+   the incomplete direct Z.AI snapshot (``zai-direct/``, formerly
+   ``glm-5.3-sub/``). The second run on the fixed gateway
+   (``benchmark/runs/glm-5.3-flash-rerun`` and
+   ``benchmark/runs/opencode-v2-glm-5.3-flash-rerun``) is published as the
+   ``glm-5.3-flash`` and ``opencode-v2-glm-5.3-flash`` jobs after the same
+   retention check.
+
+DeepSeek rerun trials are published in the normal job directory; the job-level
+Pier files of each rerun job are kept under ``<job>/.rerun-jobs/<rerun job>/``.
+The GLM-5.3-Flash reruns replace their jobs completely, so their job-level files
+are the published job files.
 
 Regeneration needs the raw run workspace (``benchmark/runs/``, not tracked by
 Git) and, for correction 3, the pinned Pier checkout:
@@ -105,7 +118,6 @@ from analyze_reasoning_retention import RETAINED_THRESHOLD_PERCENT, load_rows, t
 ROOT = Path(__file__).resolve().parents[1]
 PUBLISHED = ROOT / "data" / "benchmark-results"
 RAW = ROOT / "benchmark" / "runs"
-# glm-5.3-sub is an unfiltered, abandoned snapshot and is not corrected.
 JOBS = (
     "kimi-k3",
     "luna",
@@ -113,11 +125,17 @@ JOBS = (
     "glm-5.3-flash",
     "opencode-v2-luna",
     "opencode-v2-deepseek-v4p1-flash",
+    "opencode-v2-glm-5.3-flash",
 )
+# Published jobs whose trials come from a differently named Pier job (correction 8).
+RAW_JOB = {
+    "glm-5.3-flash": "glm-5.3-flash-rerun",
+    "opencode-v2-glm-5.3-flash": "opencode-v2-glm-5.3-flash-rerun",
+}
 # Trials that Pier retried after a failure of the evaluated model or harness
-# (issue #95). Retries after transport or gateway faults (Kimi K3 Pi, GLM-5.3-Flash
-# Codex, and the DeepSeek V4.1 Flash context-window rejections) are not listed:
-# there Pier's final trial is the observation.
+# (issue #95). Retries after transport or gateway faults (Kimi K3 Pi and the
+# DeepSeek V4.1 Flash context-window rejections) are not listed: there Pier's
+# final trial is the observation.
 OPENCODE_EXIT = (
     "OpenCode finished and passed after recovering from a transient stream error, but "
     "OpenCode 2.0.8's non-interactive CLI kept exit status 1, so Pier repeated the trial"
@@ -233,7 +251,22 @@ DEEPSEEK_CLAUDE_REASONS = {
 }
 SUPERSEDED_CODEX = PUBLISHED / ".superseded" / "issue-111" / DEEPSEEK_JOB / "codex"
 EXCLUDED_DEEPSEEK = PUBLISHED / ".excluded" / DEEPSEEK_JOB
+# Correction 8: the first GLM-5.3-Flash run and the direct Z.AI snapshot.
+GLM_JOB = "glm-5.3-flash"
+GLM_OPENCODE_JOB = "opencode-v2-glm-5.3-flash"
+EXCLUDED_GLM = PUBLISHED / ".excluded" / GLM_JOB
+GLM_FIRST_RUNS = {
+    GLM_JOB: EXCLUDED_GLM / "first-run",
+    GLM_OPENCODE_JOB: EXCLUDED_GLM / "opencode-v2-first-run",
+}
+GLM_ZAI_SNAPSHOT = (PUBLISHED / "glm-5.3-sub", EXCLUDED_GLM / "zai-direct")
+GLM_FIRST_RUN_REASON = (
+    "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before "
+    "forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); "
+    "rerun on the fixed gateway in benchmark/runs/{rerun}"
+)
 PUBLISHED_FILES = ("result.json", "config.json", "agent/trajectory.json")
+OPENCODE_RUNNER_RESULT = "agent/opencode-v2/runner-result.json"
 JOB_FILES = ("config.json", "lock.json", "result.json")
 # Same threshold as upstream Pier's token-drop heuristic, applied to input only.
 COMPACTION_DROP_TOKENS = 10_000
@@ -609,6 +642,125 @@ def check_deepseek_layout(job: Path) -> None:
         raise ValidationError(f"Expected ten Codex and ten Claude Code DeepSeek trials: {tasks}")
 
 
+# --- GLM-5.3-Flash (correction 8) ---------------------------------------------
+
+
+def copy_attempt(source: Path, target: Path) -> None:
+    copy_published_files(source, target)
+    if (source / OPENCODE_RUNNER_RESULT).exists():
+        (target / OPENCODE_RUNNER_RESULT).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source / OPENCODE_RUNNER_RESULT, target / OPENCODE_RUNNER_RESULT)
+
+
+def copy_job(raw_job: Path, target: Path) -> None:
+    """Publish a Pier job in filtered form: job files, trials, and retry attempts."""
+    for result_path in sorted(raw_job.glob("*/result.json")):
+        copy_attempt(result_path.parent, target / result_path.parent.name)
+    for attempt in sorted(raw_job.glob(".retry-attempts/*/attempt-*")):
+        copy_attempt(attempt, target / attempt.relative_to(raw_job))
+    for name in JOB_FILES:
+        shutil.copy2(raw_job / name, target / name)
+
+
+def check_same_attempts(published: Path, raw_job: Path) -> None:
+    """Require a published job to hold exactly the attempts of its Pier job."""
+    def ids(base: Path) -> set[str]:
+        paths = [*base.glob("*/result.json"), *base.glob(".retry-attempts/*/attempt-*/result.json")]
+        return {load(original(p))["id"] for p in paths}
+
+    if ids(published) != ids(raw_job):
+        raise ValidationError(f"{published}: attempts differ from {raw_job}")
+    for name in JOB_FILES:
+        if sha256(published / name) != sha256(raw_job / name):
+            raise ValidationError(f"{published / name}: differs from {raw_job / name}")
+
+
+def archive_glm_first_run(job_name: str) -> list[dict[str, Any]]:
+    """Move the first GLM run out of the comparative data (idempotent)."""
+    job, archive, raw_first = PUBLISHED / job_name, GLM_FIRST_RUNS[job_name], RAW / job_name
+    if not archive.is_dir():
+        archive.mkdir(parents=True)
+        published_first = [
+            p.parent for p in job.glob("*/result.json")
+            if Path(load(p)["config"]["trials_dir"]).name == job_name
+        ]
+        if published_first:
+            # The first run was published here before the rerun; move it unchanged.
+            for trial in published_first:
+                trial.rename(archive / trial.name)
+            if (job / ".retry-attempts").is_dir():
+                (job / ".retry-attempts").rename(archive / ".retry-attempts")
+            for name in JOB_FILES:
+                (job / name).rename(archive / name)
+            (job / "corrections.json").unlink(missing_ok=True)
+        else:
+            copy_job(raw_first, archive)
+    check_same_attempts(archive, raw_first)
+
+    rows = load_rows(archive)
+    if len(rows) != (30 if job_name == GLM_JOB else 10):
+        raise ValidationError(f"{archive}: unexpected number of first-run trials")
+    for row in rows:
+        if row["started_at"] >= ISSUE_111_UPGRADE:
+            raise ValidationError(f"{row['trial']}: first GLM run started after the gateway upgrade")
+        if row["retained"]:
+            raise ValidationError(f"{row['trial']}: first GLM run kept its earlier reasoning")
+    return [
+        {
+            "trial": row["trial"],
+            "harness": row["harness"],
+            "task": row["task"],
+            "pier_job": row["job"],
+            "published": str((archive / row["trial"]).relative_to(PUBLISHED)),
+            "reasoning_retention": None if row["retention"] is None else round(row["retention"], 2),
+            "reason": GLM_FIRST_RUN_REASON.format(rerun=RAW_JOB[job_name]),
+        }
+        for row in rows
+    ]
+
+
+def publish_glm_rerun(job_name: str) -> None:
+    """Publish the GLM rerun as the job, after the retention check of correction 6."""
+    job, raw_rerun = PUBLISHED / job_name, RAW / RAW_JOB[job_name]
+    if not any(job.glob("*/result.json")):
+        job.mkdir(parents=True, exist_ok=True)
+        copy_job(raw_rerun, job)
+    check_same_attempts(job, raw_rerun)
+
+    harnesses = ("pi", "claude-code", "codex") if job_name == GLM_JOB else ("opencode-v2",)
+    tasks: dict[str, set[str]] = {harness: set() for harness in harnesses}
+    for row in load_rows(job):
+        if row["job"] != raw_rerun.name or row["harness"] not in tasks or row["task"] in tasks[row["harness"]]:
+            raise ValidationError(f"{row['trial']}: not one {raw_rerun.name} trial per harness and task")
+        if row["started_at"] < ISSUE_111_UPGRADE:
+            raise ValidationError(f"{row['trial']}: started before the gateway upgrade")
+        if not row["retained"]:
+            raise ValidationError(f"{row['trial']}: earlier reasoning missing (retention {row['retention']})")
+        tasks[row["harness"]].add(row["task"])
+    if any(len(found) != 10 for found in tasks.values()):
+        raise ValidationError(f"{job}: expected ten trials per harness: {tasks}")
+
+
+def archive_zai_snapshot() -> dict[str, str]:
+    """Keep the incomplete direct Z.AI snapshot with the other excluded GLM runs."""
+    old, new = GLM_ZAI_SNAPSHOT
+    if old.exists() and new.exists():
+        raise ValidationError(f"Direct Z.AI snapshot present in both {old} and {new}")
+    if old.exists():
+        new.parent.mkdir(parents=True, exist_ok=True)
+        old.rename(new)
+    if len(list(new.glob("*/result.json"))) != 8:
+        raise ValidationError(f"{new}: expected the eight trials of the unfiltered snapshot")
+    return {
+        "published": str(new.relative_to(PUBLISHED)),
+        "pier_job": "glm-5.3-sub",
+        "reason": (
+            "Direct Z.AI Coding Plan route instead of the Fireworks route; stopped for budget and "
+            "quota reasons with eight completed trials, so it is incomplete. Unfiltered and uncorrected."
+        ),
+    }
+
+
 def agent_steps(trajectory: dict[str, Any]) -> list[dict[str, Any]]:
     return [s for s in trajectory.get("steps", []) if s.get("source") == "agent"]
 
@@ -852,7 +1004,13 @@ def correct_opencode(
 
 def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
     job = PUBLISHED / job_name
-    raw_job = RAW / job_name
+    raw_job = RAW / RAW_JOB.get(job_name, job_name)
+    glm_excluded = None
+    if job_name in GLM_FIRST_RUNS:
+        glm_excluded = archive_glm_first_run(job_name)
+        publish_glm_rerun(job_name)
+        if job_name == GLM_JOB:
+            glm_zai = archive_zai_snapshot()
     manifest: dict[str, Any] = {
         "job": job_name,
         "reference": REFERENCE,
@@ -861,6 +1019,17 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
     }
     raw_overrides: dict[str, Path] = {}
     archives: list[Path] = []
+    archive_raw: dict[Path, Path] = {}
+    if glm_excluded is not None:
+        manifest["pier_job"] = raw_job.name
+        manifest["excluded_runs"] = glm_excluded
+        if job_name == GLM_JOB:
+            manifest["excluded_snapshot"] = glm_zai
+            # The first run's Codex context metrics are corrected like any other Codex
+            # attempt. The first OpenCode V2 run is kept uncorrected: three timed-out
+            # trials left no session record to recover their totals from.
+            archives = [GLM_FIRST_RUNS[job_name]]
+            archive_raw[GLM_FIRST_RUNS[job_name]] = RAW / job_name
     if job_name == DEEPSEEK_JOB:
         superseded, excluded = archive_issue_111(job)
         excluded += exclude_deepseek_claude(job)
@@ -884,7 +1053,7 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
     for base, trial in located:
         rel = trial.relative_to(base)
         name = rel.parts[1] if rel.parts[0] == ".retry-attempts" else rel.parts[0]
-        raw_trial = raw_overrides.get(name, raw_job) / pier_path(job_name, rel)
+        raw_trial = raw_overrides.get(name, archive_raw.get(base, raw_job)) / pier_path(job_name, rel)
         result = load(original(trial / "result.json"))
         harness = result["config"]["agent"]["name"]
         corrected_trajectory = None
@@ -920,10 +1089,11 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--pier-python", help="Python of the pinned Pier checkout (for trajectory rebuilds).")
+    parser.add_argument("--jobs", nargs="+", choices=JOBS, default=JOBS, help="Published jobs to rebuild (default: all).")
     args = parser.parse_args()
     if not RAW.is_dir():
         sys.exit(f"raw run workspace not found: {RAW}")
-    for job_name in JOBS:
+    for job_name in args.jobs:
         manifest = process_job(job_name, args.pier_python)
         changed = [a for a in manifest["attempts"] if a["changes"]]
         print(f"{job_name}: {len(manifest['attempts'])} attempts checked, {len(changed)} corrected")

