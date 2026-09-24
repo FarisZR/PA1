@@ -1,0 +1,14 @@
+[verifier] model.patch applied (30552 bytes)
+[verifier] Resetting files touched by test.patch
+[verifier] Applying test.patch
+[verifier] base mode rc=101
+[verifier] WARN: no JUnit XML for mode base — all base-mode whitelisted ids will count as failed
+[verifier] new mode rc=101
+[verifier] WARN: no JUnit XML for mode new — all new-mode whitelisted ids will count as failed
+error[E0107]: struct takes 2 lifetime arguments but 3 lifetime arguments were supplied
+error[E0599]: no method named `start_with_context` found for struct `collapse_groups::State<'input, 'arena>` in the current scope
+error: could not compile `oxvg_optimiser` (lib test) due to 2 previous errors
+error: command `/root/.rustup/toolchains/1.92.0-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --package oxvg_optimiser --lib --release` exited with code 101
+error: could not compile `oxvg_optimiser` (lib) due to 2 previous errors
+error: command `/root/.rustup/toolchains/1.92.0-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --package oxvg_optimiser --test test_structural_selectors --release` exited with code 101
+[verifier] ===== FAILURES (68) =====

@@ -1032,7 +1032,7 @@ Both jobs are capped at `n_concurrent_trials: 3`.
 
 ### Historical Fireworks GLM route
 
-These steps cover the Fireworks-backed GLM route: the planned rerun on AiOrbit's
+These steps cover the Fireworks-backed GLM route: the rerun on AiOrbit's
 LiteLLM 1.102.1, then the earlier 2026-09-20 run. They are not used by
 `glm-5.3-sub`.
 
@@ -1041,6 +1041,10 @@ LiteLLM 1.102.1, then the earlier 2026-09-20 run. They are not used by
 `glm-5.3-flash.yaml` and `opencode-v2/glm-5.3-flash.yaml` now describe the
 rerun (jobs `glm-5.3-flash-rerun` and `opencode-v2-glm-5.3-flash-rerun`), not
 the excluded 2026-09-20 batch. The historical configuration is in git history.
+The rerun completed on 2026-09-24 and is published as
+`data/benchmark-results/glm-5.3-flash/` and
+`data/benchmark-results/opencode-v2-glm-5.3-flash/`; the first batch is under
+`data/benchmark-results/.excluded/glm-5.3-flash/`.
 The rerun isolates whether that batch's timeouts, output-token volume, and
 repeated tool calls came from the model or from the lost reasoning history.
 

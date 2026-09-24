@@ -1,7 +1,7 @@
 # Filtered benchmark results
 
 This directory contains the committed, filtered evidence used for PA1 analysis
-of the primary jobs for Kimi K3, GLM 5.3 Flash, DeepSeek V4.1 Flash, and
+of the primary jobs for Kimi K3, GLM-5.3-Flash, DeepSeek V4.1 Flash, and
 GPT-5.6 Luna. Only the eligible Kimi K3 Pi and Codex trials are in the normal
 Kimi directory; its Claude Code trials are archived for audit (see below).
 The directory layout mirrors the corresponding job directories under the local
@@ -54,11 +54,15 @@ original job; those of the two rerun jobs are kept unchanged under
 `.rerun-jobs/<pier job>/`. DeepSeek Pi and the two faulty Claude Code runs are
 not in this directory (see below).
 
-The current GLM 5.3 Flash sub-run is published as an **unfiltered snapshot**
-at `glm-5.3-sub/`. Its 814 files are copied from the run directory as-is,
-including retry attempts, logs, sessions, verifier output, and other run
-artifacts. Unlike the other data directories, no files were selected,
-renamed, redacted, or removed from this snapshot.
+The GLM-5.3-Flash directories `glm-5.3-flash/` (Pi, Claude Code, Codex) and
+`opencode-v2-glm-5.3-flash/` hold the second Fireworks run on the fixed gateway,
+Pier jobs `glm-5.3-flash-rerun` and `opencode-v2-glm-5.3-flash-rerun`
+(2026-09-24, LiteLLM 1.102.1). They replace the first run completely, so their
+job-level `result.json`, `config.json`, and `lock.json` are those of the rerun
+jobs, and each trial's `config.json` names the rerun job in `trials_dir`. The
+OpenCode V2 trials also include the adapter's `runner-result.json`. Neither job
+recorded a retry attempt. The first run and the direct Z.AI snapshot are not in
+these directories (see below).
 
 ## Observations outside the comparative data
 
@@ -90,9 +94,24 @@ comparative results out of the job directories, so the normal
   the canonical trials in `deepseek-v4p1-flash/`, published only after the
   same retention check showed that the reasoning reached the model.
 
+- `.excluded/glm-5.3-flash/first-run/`: the first GLM-5.3-Flash run of Pi,
+  Claude Code, and Codex (Pier job `glm-5.3-flash`, 2026-09-21, with its
+  job-level files and two retry attempts). It ran entirely before AiOrbit's
+  LiteLLM upgrade, and no measurable trial kept its earlier reasoning (#111).
+- `.excluded/glm-5.3-flash/opencode-v2-first-run/`: the first GLM-5.3-Flash
+  OpenCode V2 run (Pier job `opencode-v2-glm-5.3-flash`, 2026-09-18), with the
+  same defect. It is published in Pier's layout and is not corrected: three
+  timed-out trials left no session record from which to recover their totals.
+- `.excluded/glm-5.3-flash/zai-direct/`: the incomplete direct Z.AI Coding Plan
+  batch (Pier job `glm-5.3-sub`). It is an **unfiltered snapshot**: its 814
+  files are copied from the run directory as-is, including retry attempts,
+  logs, sessions, verifier output, and other run artifacts, and are not
+  corrected.
+
 The three DeepSeek Claude Code runs are compared with each other in the
-results chapter to show what the route defects changed (#105). That comparison
-is the only analysis that reads `.excluded/`; no comparative result does.
+results chapter to show what the route defects changed (#105), and the three
+GLM-5.3-Flash runs likewise (#129). These two comparisons are the only analyses
+that read `.excluded/`; no comparative result does.
 
 The moved files are unchanged, and each job's `corrections.json` lists every
 moved trial with its location and reason. The evidence for #111 is in
@@ -152,7 +171,7 @@ original context values; use trajectories only for step-level analysis.
 
 | Correction | Files |
 | --- | --- |
-| Codex peak context and compaction count recomputed from per-call input tokens (upstream Pier counted output tokens) | `result.json` for all 48 Codex attempts |
+| Codex peak context and compaction count recomputed from per-call input tokens (upstream Pier counted output tokens) | `result.json` for all 58 Codex attempts |
 | OpenCode V2 token and cost totals withheld by the adapter, taken from OpenCode's session records | `result.json` for 12 OpenCode V2 attempts |
 | OpenCode V2 trajectories lost to the adapter's `splitlines()` reader, rebuilt offline | `agent/trajectory.json` for both Luna `effect-sse-httpapi-streaming` attempts |
 
@@ -195,7 +214,7 @@ byte-identical to Pier's output; only their location changed.
 | `opencode-v2-deepseek-v4p1-flash` | fastapi, katex, koota, scriggo | Session finished and passed, but OpenCode 2.0.8 kept exit status 1 after a recovered stream error |
 | `opencode-v2-luna` | effect-sse, expr, katex, oxvg | Model asked for a Git identity through OpenCode's interactive `question` tool |
 
-The Kimi K3 Pi, GLM-5.3-Flash Codex, and DeepSeek V4.1 Flash Pi/Codex retries
+The Kimi K3 Pi, first-run GLM-5.3-Flash Codex, and DeepSeek V4.1 Flash Pi/Codex retries
 followed transport or gateway faults (the DeepSeek ones are gateway
 context-window rejections), so Pier's final trial stays canonical there.
 
@@ -205,4 +224,4 @@ and uncorrected values; do not use it for analysis. The Kimi summary is kept
 under `.excluded/kimi-k3/pier-job-summary.json` because it contains the
 ineligible Claude Code trials.
 
-`glm-5.3-sub/` is not corrected.
+`.excluded/glm-5.3-flash/zai-direct/` and `.excluded/glm-5.3-flash/opencode-v2-first-run/` are not corrected.

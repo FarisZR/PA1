@@ -23,6 +23,9 @@ blocked by the sandbox, OpenCode V2 `grep`/`glob` calls, which fail in every
 trial because ripgrep cannot be downloaded in the sandbox, and delegation or
 skill bookkeeping calls. Excluded calls are also left out of the denominator.
 
+`longest_repeat` is the longest run of consecutive tool calls with the same tool
+name and identical arguments.
+
     python3 scripts/analyze_harness_trials.py gpt-5.6-luna \
         data/benchmark-results/luna data/benchmark-results/opencode-v2-luna
 """
@@ -196,6 +199,7 @@ def trajectory_metrics(harness: str, path: Path) -> dict[str, Any]:
     tokens = {"main_input": 0, "main_output": 0, "sub_input": 0, "sub_output": 0}
     sub_cached = 0
     sub_peak = 0
+    previous_call, streak, longest_repeat = None, 0, 0
 
     for step in trajectory.get("steps", []):
         if step.get("source") != "agent":
@@ -214,6 +218,9 @@ def trajectory_metrics(harness: str, path: Path) -> dict[str, Any]:
         for call in step.get("tool_calls") or []:
             name = call.get("function_name")
             category = _category(harness, call)
+            signature = json.dumps([name, call.get("arguments")], sort_keys=True)
+            streak = streak + 1 if signature == previous_call else 1
+            previous_call, longest_repeat = signature, max(longest_repeat, streak)
             categories[category] += 1
             if name in SPAWN_TOOLS:
                 arguments = call.get("arguments") or {}
@@ -252,6 +259,7 @@ def trajectory_metrics(harness: str, path: Path) -> dict[str, Any]:
         "spawn_models": spawn_models,
         "spawn_limit_rejections": spawn_limit_rejections,
         "web_fetches": web_fetches,
+        "longest_repeat": longest_repeat,
         "subagent_input_tokens": tokens["sub_input"],
         "subagent_output_tokens": tokens["sub_output"],
         "subagent_cached_tokens": sub_cached,
