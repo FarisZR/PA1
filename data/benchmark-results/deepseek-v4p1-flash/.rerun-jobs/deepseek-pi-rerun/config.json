@@ -1,0 +1,141 @@
+{
+    "job_name": "deepseek-pi-rerun",
+    "jobs_dir": "benchmark/runs",
+    "n_attempts": 1,
+    "timeout_multiplier": 1.0,
+    "agent_timeout_multiplier": null,
+    "verifier_timeout_multiplier": null,
+    "agent_setup_timeout_multiplier": null,
+    "environment_build_timeout_multiplier": null,
+    "debug": false,
+    "n_concurrent_trials": 10,
+    "quiet": false,
+    "retry": {
+        "max_retries": 1,
+        "include_exceptions": null,
+        "exclude_exceptions": [
+            "VerifierOutputParseError",
+            "AgentTimeoutError",
+            "VerifierTimeoutError",
+            "RewardFileNotFoundError",
+            "CancelledError",
+            "RewardFileEmptyError"
+        ],
+        "wait_multiplier": 1.0,
+        "min_wait_sec": 1.0,
+        "max_wait_sec": 60.0
+    },
+    "environment": {
+        "type": "docker",
+        "import_path": null,
+        "force_build": false,
+        "delete": true,
+        "cpu_enforcement_policy": "auto",
+        "memory_enforcement_policy": "auto",
+        "override_cpus": null,
+        "override_memory_mb": null,
+        "override_storage_mb": null,
+        "override_gpus": null,
+        "suppress_override_warnings": false,
+        "mounts": null,
+        "env": {},
+        "kwargs": {}
+    },
+    "verifier": {
+        "override_timeout_sec": null,
+        "max_timeout_sec": null,
+        "env": {},
+        "disable": false
+    },
+    "metrics": [],
+    "agents": [
+        {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "deepseek/deepseek-v4p1-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max",
+                "pi_config": {
+                    "providers": {
+                        "deepseek": {
+                            "baseUrl": "https://api.aiorbit.ionos.org/v1",
+                            "apiKey": "$DEEPSEEK_API_KEY",
+                            "models": [
+                                {
+                                    "id": "deepseek-v4p1-flash",
+                                    "name": "DeepSeek V4.1 Flash",
+                                    "api": "openai-completions",
+                                    "reasoning": true,
+                                    "thinkingLevelMap": {
+                                        "minimal": null,
+                                        "low": "low",
+                                        "medium": null,
+                                        "high": "high",
+                                        "xhigh": null,
+                                        "max": "max"
+                                    },
+                                    "input": [
+                                        "text",
+                                        "image"
+                                    ],
+                                    "cost": {
+                                        "input": 0.15,
+                                        "output": 0.6,
+                                        "cacheRead": 0.003,
+                                        "cacheWrite": 0
+                                    },
+                                    "compat": {
+                                        "supportsStore": false,
+                                        "supportsDeveloperRole": false,
+                                        "supportsReasoningEffort": true,
+                                        "maxTokensField": "max_tokens",
+                                        "requiresReasoningContentOnAssistantMessages": true,
+                                        "thinkingFormat": "openai"
+                                    },
+                                    "contextWindow": 1000000,
+                                    "maxTokens": 384000
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "env": {
+                "DEEPSEEK_API_KEY": "${LITELLM_API_KEY}"
+            }
+        }
+    ],
+    "datasets": [
+        {
+            "path": "../DeepSWE/tasks",
+            "name": null,
+            "version": null,
+            "ref": null,
+            "registry_url": null,
+            "registry_path": null,
+            "overwrite": false,
+            "download_dir": null,
+            "task_names": [
+                "expr-try-catch-errors",
+                "katex-multicolumn-array-spans",
+                "python-statemachine-state-data-scoping",
+                "oxvg-structural-selector-preservation",
+                "effect-sse-httpapi-streaming",
+                "scriggo-method-declarations",
+                "csstree-shorthand-expansion-compression",
+                "fastapi-implicit-head-options",
+                "boa-hierarchical-evaluation-cancellation",
+                "koota-composite-trait-aspects"
+            ],
+            "exclude_task_names": null,
+            "n_tasks": null,
+            "sample_seed": null
+        }
+    ],
+    "tasks": [],
+    "artifacts": []
+}
