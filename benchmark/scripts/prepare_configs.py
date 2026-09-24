@@ -239,12 +239,15 @@ def kimi_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
 
 def glm_codex_entry(sol_profile: dict[str, object]) -> dict[str, object]:
     """Return GLM-5.3-Flash metadata on top of the frozen GPT-5.6 Sol profile."""
+    # Z.AI documents a 1,000,000-token window and upstream Pi/OpenCode use it.
+    # Like glm-5.3-sub and DeepSeek, PA1 normalizes every harness to that value
+    # instead of Fireworks' provider-specific 1,048,576-token route metadata.
     return third_party_codex_entry(
         sol_profile,
         slug="glm-5p3-flash",
         display_name="GLM-5.3-Flash",
         description="GLM-5.3-Flash",
-        context_window=1_048_576,
+        context_window=1_000_000,
         input_modalities=["text", "image"],
         default_reasoning_level="max",
         supported_reasoning_levels=[

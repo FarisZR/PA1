@@ -430,8 +430,9 @@ transport alias as a custom `zai` model while copying Pi 0.84.4's built-in
 `zai/glm-5.3-flash` metadata: text-and-image input, `low`/`high`/`max`
 reasoning, a 1,000,000-token context window, a 131,072-token output ceiling,
 and the built-in cost metadata. The Fireworks route advertises 1,048,576
-context, which is used for Codex, Claude Code's declared compaction window, and
-cost normalization.
+context, but like `glm-5.3-sub` and DeepSeek, PA1 normalizes every GLM harness
+to 1,000,000. That covers Codex's catalog, the bridge entry, Claude Code's
+compaction window, and OpenCode V2's catalog limit.
 
 Two Z.AI transport settings are overridden for the Fireworks-backed gateway.
 `thinkingFormat` is set to `"openai"` so Pi sends only `reasoning_effort`;
@@ -1031,8 +1032,113 @@ Both jobs are capped at `n_concurrent_trials: 3`.
 
 ### Historical Fireworks GLM route
 
-The following steps are retained only to reproduce the earlier
-AiOrbit/LiteLLM/Fireworks run. They are not used by `glm-5.3-sub`.
+These steps cover the Fireworks-backed GLM route: the planned rerun on AiOrbit's
+LiteLLM 1.102.1, then the earlier 2026-09-20 run. They are not used by
+`glm-5.3-sub`.
+
+#### Fireworks GLM rerun on AiOrbit (LiteLLM 1.102.1)
+
+`glm-5.3-flash.yaml` and `opencode-v2/glm-5.3-flash.yaml` now describe the
+rerun (jobs `glm-5.3-flash-rerun` and `opencode-v2-glm-5.3-flash-rerun`), not
+the excluded 2026-09-20 batch. The historical configuration is in git history.
+The rerun isolates whether that batch's timeouts, output-token volume, and
+repeated tool calls came from the model or from the lost reasoning history.
+
+Compared with the 2026-09-20 batch:
+
+- **#111:** AiOrbit now runs LiteLLM 1.102.1, whose Fireworks adapter forwards
+  `reasoning_content` again. The offline replay
+  (`scripts/replay_litellm_fireworks.py`) forwards 2 of 2 reasoning blocks on
+  1.102.1 and 0 of 2 on 1.101.0.
+- **#94:** Claude Code goes through CLIProxyAPI (`is-compat: true`) instead of
+  LiteLLM's `/v1/messages` adapter, like the DeepSeek fixed-thinking rerun.
+- **Context:** normalized to 1,000,000 in every harness, as in `glm-5.3-sub`.
+- **Concurrency:** 10 for the main job plus 6 for OpenCode V2, started as two
+  waves (see the run plan below), instead of the throttled 30.
+- Pi and OpenCode V2 keep the Fireworks transport workarounds (#53).
+
+LiteLLM response caching stays as deployed, as for every earlier run.
+
+Point `LITELLM_OPENAI_BASE_URL` and `LITELLM_API_KEY` at AiOrbit and
+regenerate. Then run the live route check against the exact gateway before
+starting. Pass `--bridge` once the bridge is running with
+`CODEX_CLIPROXY_REQUEST_LOG=true`:
+
+```bash
+python3 benchmark/scripts/check_litellm_route.py --env-file benchmark/env.local \
+  --model glm-5p3-flash --expect-version 1.102.1 --bridge
+```
+
+It fails if any of the following holds:
+
+- the LiteLLM version is wrong or the key budget is insufficient;
+- `reasoning_effort` or `max_tokens` does not reach Fireworks;
+- reasoning replay is dropped or streaming `cached_tokens` is missing;
+- the router retried or fell back;
+- a bridge body lacks `reasoning_effort: "max"` or the replayed reasoning.
+
+It also reports whether response caching is on, whether `tool_choice` is
+dropped, and whether cached tokens are billed at the cache-read rate.
+
+**Fastest run plan.** Skip the separate pilot task. Its job was to warm the
+route, and GLM still has its warmed limits: 32.96M total prompt, 4.39M
+cache-adjusted, 1.8M uncached, and 72k generated tokens per minute, measured on
+2026-09-24. The route check above replaces it as the correctness gate.
+
+1. Start wave 1: the main job with 30 trials at 10 concurrent.
+
+   ```bash
+   $PIER job start -c benchmark/generated/glm-5.3-flash.yaml --env-file benchmark/env.local
+   ```
+
+2. While wave 1 runs, confirm reasoning replay in the first Codex and Claude
+   Code bridge logs. After ~30 minutes, read the limits:
+
+   ```bash
+   python3 benchmark/scripts/check_rate_headroom.py --env-file benchmark/env.local \
+     --model glm-5p3-flash --watch 60
+   ```
+
+   Ignore its printed trial count, which uses an outdated per-trial rate. Read
+   the limits themselves.
+
+3. Once the cache-adjusted limit reads 5.49M or more (one 1.25x step), start
+   wave 2: OpenCode V2 with 10 trials at 6 concurrent.
+
+   ```bash
+   $PIER job start -c benchmark/configs/opencode-v2/glm-5.3-flash.yaml \
+     --env-file benchmark/env.local
+   ```
+
+Expected wall time is about 3.5-4 h if GLM behaves as on the direct Z.AI route,
+which kept its reasoning (no timeouts, median 65 minutes per trial). It is about
+4.5-5.5 h if the 2026-09-21 profile repeats (49.6 trial-hours for 30 trials,
+ten 3 h timeouts). The 3 h agent limit sets a floor of about 3 h 10 min. Pier
+cannot change concurrency mid-job, so two staggered jobs are the simplest way
+to follow the limit as it grows. Going beyond ~16 concurrent trials would need
+further limit steps and risks 429 slowdowns that inflate trial durations.
+
+**Sizing evidence.** This comes from the AiOrbit bridge logs and trajectories,
+analyzed in #129.
+
+- The 2026-09-21 run at 8 drew a median 10.9M total prompt per minute (p99
+  20.7M). That is 2.13M per running trial (p90 2.85M), about 3x the earlier
+  737k-per-trial figure.
+- Cache-adjusted load is about 0.30M per trial (p90 0.40M). This counts cached
+  tokens at 1/7.5, the total/cache-adjusted limit ratio observed on both
+  gateways; Fireworks does not document the weighting.
+- Limits step up 1.25x after roughly 16 minutes of near-limit load. Two ladders
+  were observed:
+  - total prompt: 13.5M, 16.9M, 21.1M, 26.4M, 33.0M, 41.2M;
+  - cache-adjusted: 1.8M, 2.25M, 2.81M, 3.52M, 4.39M, 5.49M.
+- The only 429s in the 2026-09-20 30-trial run came in its first 1.5 minutes,
+  plus two isolated ones later. At the start, empty prompt caches pushed
+  uncached load to 2.2M per minute against the 1.8M uncached limit. No trial
+  failed because of them.
+
+After the run, confirm retention with `scripts/analyze_reasoning_retention.py`
+on each run directory. Kept reasoning gives about 100% or more; dropped
+reasoning gives a few percent.
 
 #### Historical gateway acceptance check
 

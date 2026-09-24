@@ -45,5 +45,5 @@ models:
     cached_input: 0.03
     cache_write: 0.0
     output: 0.5
-    context_limit: 1048576
+    context_limit: 1000000
     source: https://docs.z.ai/guides/overview/pricing
