@@ -1630,7 +1630,7 @@ def offline_primary_responses_profiles(
             # PA1 #17 holds Luna to 272,000 tokens in every harness; the
             # catalogue's inherited 1,050,000 window crosses the 2x input
             # price tier that pricing.yaml does not model.
-            {"context": 272000, "input": 144000, "output": 128000},
+            {"context": 272000, "output": 128000},
             None,
         ),
     )

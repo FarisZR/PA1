@@ -27,6 +27,7 @@ CURRENT_MODEL_CONFIGS = {
     "smoke-test.yaml": 1,
     "opencode-v2/smoke.yaml": 0,
     "opencode-v2/delegation-smoke.yaml": 1,
+    "opencode-v2/luna.yaml": 0,
 }
 PRIMARY_OPENCODE_V2_MODELS = {
     "deepseek-v4p1-flash.yaml": "deepseek/deepseek-v4p1-flash",
@@ -1050,7 +1051,11 @@ def main() -> None:
         destination = GENERATED_DIR / name
         rendered = render_model_config(source, litellm_url, expected_sentinels)
         validate_pi_fireworks_compat(source, rendered)
-        if name.startswith("opencode-v2/"):
+        if name == "opencode-v2/luna.yaml":
+            validate_primary_opencode_v2_profile(
+                source, rendered, PRIMARY_OPENCODE_V2_MODELS["luna.yaml"]
+            )
+        elif name.startswith("opencode-v2/"):
             validate_opencode_v2_config(source, rendered)
         rendered_models.append(
             (
