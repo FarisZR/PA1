@@ -1301,6 +1301,7 @@ from scripts.harness_figures import (
     HARNESS_COLORS,
     HARNESS_MARKERS,
     outcome_legend,
+    plot_cache_tokens,
     plot_invocation_errors,
     plot_task_costs,
     plot_task_outcomes,
@@ -1319,6 +1320,8 @@ _ds_rates = model_rates("deepseek-v4p1-flash")
 _ds_retention = [row for job in DEEPSEEK_JOBS for row in load_rows(job)]
 _ds_passed = ds.pivot(index="task", columns="harness", values="passed")
 _ds_failed = ds[~ds["passed"]]
+_ds_share = ds["cached_tokens"] / ds["input_tokens"]
+_ds_share_by_task = ds.assign(share=_ds_share).pivot(index="task", columns="harness", values="share")
 
 
 def _ds_ratio(metric: str, harness: str) -> float:
@@ -1363,6 +1366,15 @@ ds_quoted = {
     "median_minutes": {h: round(s["median_agent_minutes"]) for h, s in ds_summary.items()},
     "cache": {h: round(100 * s["cache_hit_share"], 1) for h, s in ds_summary.items()},
     "cost_shares": {h: _ds_cost_shares(g) for h, g in ds.groupby("harness")},
+    "cache_range": {h: (round(100 * c.min(), 1), round(100 * c.max(), 1)) for h, c in _ds_share.groupby(ds["harness"])},
+    "cache_extremes": sorted({(ds.loc[c.idxmin(), "task"], ds.loc[c.idxmax(), "task"])
+                              for _, c in _ds_share.groupby(ds["harness"])}),
+    "largest_input_task": sorted(set(ds.loc[ds.groupby("harness")["input_tokens"].idxmax(), "task"])),
+    "cache_rank_corr": {h: round(g["share"].rank().corr(g["input_tokens"].rank()), 2)
+                        for h, g in ds.assign(share=_ds_share).groupby("harness")},
+    "codex_higher_cache": {h: int((_ds_share_by_task["codex"] > _ds_share_by_task[h]).sum())
+                           for h in ("pi", "claude-code")},
+    "opencode_higher_cache": int((_ds_share_by_task["opencode-v2"] > _ds_share_by_task["codex"]).sum()),
     "max_context": {h: s["max_peak_context_tokens"] for h, s in ds_summary.items()},
     "max_context_task": sorted(set(ds.loc[ds.groupby("harness")["peak_context_tokens"].idxmax(), "task"])),
     "min_max_context": min(s["max_peak_context_tokens"] for s in ds_summary.values()),
@@ -1420,6 +1432,13 @@ ds_expected = {
     "cache": {"codex": 98.5, "pi": 97.0, "claude-code": 97.0, "opencode-v2": 98.9},
     "cost_shares": {"claude-code": (47, 30, 24), "codex": (30, 41, 29), "opencode-v2": (24, 42, 33),
                     "pi": (44, 28, 27)},
+    "cache_range": {"claude-code": (93.0, 98.6), "codex": (95.7, 99.0), "opencode-v2": (97.3, 99.5),
+                    "pi": (94.8, 98.4)},
+    "cache_extremes": [("csstree-shorthand-expansion-compression", "scriggo-method-declarations")],
+    "largest_input_task": ["scriggo-method-declarations"],
+    "cache_rank_corr": {"claude-code": 0.88, "codex": 0.95, "opencode-v2": 0.62, "pi": 0.82},
+    "codex_higher_cache": {"pi": 10, "claude-code": 10},
+    "opencode_higher_cache": 8,
     "max_context": {"codex": 485166, "pi": 444566, "claude-code": 492169, "opencode-v2": 496718},
     "max_context_task": ["scriggo-method-declarations"],
     "min_max_context": 444566,
@@ -1494,27 +1513,47 @@ Claude Code and Pi nevertheless cost slightly more than Codex because of the cac
 
 ```{python}
 #| label: fig-deepseek-tokens
-#| fig-cap: "Input tokens, output tokens, and largest prompt per DeepSeek V4.1 Flash trial. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. The token axes in (a) and (b) are logarithmic; the dashed line in (c) marks the configured 1,000,000-token window."
+#| fig-cap: "Input and output tokens per DeepSeek V4.1 Flash trial. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. Both axes are logarithmic."
 
-fig, axes = plt.subplots(1, 3, figsize=(6.3, 3.1))
+fig, axes = plt.subplots(1, 2, figsize=(6.3, 3.1))
 plot_trial_strip(ds, "input_tokens", ax=axes[0], scale=1e6, log=True,
-                 ylabel="(a) Input tokens per trial (million)")
+                 ylabel="Input tokens per trial (million)")
 plot_trial_strip(ds, "output_tokens", ax=axes[1], scale=1e3, log=True,
-                 ylabel="(b) Output tokens per trial (thousand)")
-plot_trial_strip(ds, "peak_context_tokens", ax=axes[2], scale=1e3,
-                 ylabel="(c) Largest prompt (thousand tokens)",
-                 reference=1000, reference_label="1M window")
-axes[2].set_ylim(0, 1080)
+                 ylabel="Output tokens per trial (thousand)")
 for _ax in axes:
-    _ax.tick_params(axis="x", labelrotation=30)
-    plt.setp(_ax.get_xticklabels(), ha="right", rotation_mode="anchor")
-outcome_legend(axes[2], loc="upper right", bbox_to_anchor=(1.0, 0.9))
+    _ax.tick_params(axis="x", labelrotation=20)
+outcome_legend(axes[0], loc="lower left", bbox_to_anchor=(0.0, 1.0), ncols=3)
 fig.tight_layout()
+```
+
+@fig-deepseek-cache relates each trial's input tokens to its cache-hit share; trials toward the top left used few tokens and read most of them from the cache. Unlike for GPT-5.6 Luna (@sec-luna-cost), the harness ranges overlap: Claude Code's trials read between 93.0% and 98.6% of their input from the cache, Pi's between 94.8% and 98.4%, Codex's between 95.7% and 99.0%, and OpenCode V2's between 97.3% and 99.5%. Within each harness, the share rose with the trial's input tokens (rank correlation between 0.62 and 0.95). In all four harnesses, `csstree` had the lowest share and `scriggo`, the trial with the most input tokens, the highest. Longer trials re-read the same growing prompt more often, so the uncached part carries less weight. The harness still mattered on the same task: Codex read a larger share from the cache than Claude Code and Pi on all ten tasks, and OpenCode V2 a larger share than Codex on eight.
+
+```{python}
+#| label: fig-deepseek-cache
+#| fig-cap: "Input tokens and cache-hit share of each DeepSeek V4.1 Flash trial. Each point is one task; lines join the trials of the same harness in order of their input tokens. Few tokens and a high cache-hit share (top left) is best. Filled markers are passing trials. The token axis is logarithmic."
+
+_ax = plot_cache_tokens(ds)
+_ax.figure.set_size_inches(6.3, 3.4)
+_ax.figure.tight_layout()
 ```
 
 ### Context and compaction {#sec-deepseek-context}
 
-As for Kimi K3 (@sec-kimi-context), no DeepSeek trial compacted its context in any harness. The largest prompts reached between 444,566 tokens (Pi) and 496,718 tokens (OpenCode V2), all on `scriggo`, and the median of the trials' largest prompts was between 271,288 tokens (Claude Code) and 317,777 tokens (OpenCode V2), as panel (c) of @fig-deepseek-tokens shows. Every prompt therefore stayed below half of the configured 1,000,000-token window.
+As for Kimi K3 (@sec-kimi-context), no DeepSeek trial compacted its context in any harness. The largest prompts reached between 444,566 tokens (Pi) and 496,718 tokens (OpenCode V2), all on `scriggo`, and the median of the trials' largest prompts was between 271,288 tokens (Claude Code) and 317,777 tokens (OpenCode V2) (@fig-deepseek-context). Every prompt therefore stayed below half of the configured 1,000,000-token window. A compaction panel as for GPT-5.6 Luna is omitted because every count is zero.
+
+```{python}
+#| label: fig-deepseek-context
+#| fig-cap: "Largest prompt per DeepSeek V4.1 Flash trial. The dashed line marks the configured 1,000,000-token window. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. No trial compacted its context."
+
+fig, _ax = plt.subplots(figsize=(4.2, 3.1))
+plot_trial_strip(ds, "peak_context_tokens", ax=_ax, scale=1e3,
+                 ylabel="Largest prompt (thousand tokens)",
+                 reference=1000, reference_label="1M window")
+_ax.set_ylim(0, 1080)
+_ax.tick_params(axis="x", labelrotation=20)
+outcome_legend(_ax, loc="upper left", bbox_to_anchor=(0.0, 0.9))
+fig.tight_layout()
+```
 
 ### Tool use and invocation errors {#sec-deepseek-tools}
 
