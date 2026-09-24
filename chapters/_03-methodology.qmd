@@ -94,7 +94,7 @@ During the benchmark period, an upstream CLIProxyAPI defect was identified in wh
 
 ## Excluded GLM-5.3-Flash provider-route diagnostic
 
-GLM-5.3-Flash was part of the planned model matrix and was initially run at max reasoning through AiOrbit with Fireworks as the inference host. These runs are not included in the comparative benchmark. Their trajectories contain extreme repeated-tool-call sequences and token consumption, and several trials reached the three-hour agent timeout [@pa1GlmRouteData]. A second batch therefore routed the same model through the official Z.AI Coding Plan API to test whether the behavior persisted when the Fireworks-backed path was removed.
+The retained GLM-5.3-Flash observations were initially produced at max reasoning through AiOrbit with Fireworks as the inference host. Their trajectories contain extreme repeated-tool-call sequences and token consumption, and several trials reached the three-hour agent timeout [@pa1GlmRouteData]. A second batch therefore routed the same model through the official Z.AI Coding Plan API to test whether the behavior persisted when the Fireworks-backed path was removed.
 
 The direct Z.AI batch was stopped for budget and subscription-quota reasons before a complete matrix was available. Its committed snapshot contains eight completed trials: three Codex, three Pi, and two Claude Code trials across three tasks. No OpenCode V2 GLM trial was completed. Because this sample is incomplete and was determined by interruption rather than a predefined sampling rule, it is not used for success-rate, cost, or harness-ranking results. It is used only as a diagnostic comparison where the same task and harness exist on both routes [@pa1GlmRouteData].
 
