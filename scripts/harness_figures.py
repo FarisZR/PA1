@@ -149,7 +149,7 @@ def plot_task_outcomes(
     colorbar.ax.tick_params(labelsize=7)
     colorbar.outline.set_visible(False)
     colorbar.ax.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=PASSED_COLOR)],
-                       labels=["passed trial"], loc="upper right", bbox_to_anchor=(1.0, -1.1),
+                       labels=["passed trial"], loc="center left", bbox_to_anchor=(1.01, 0.5),
                        frameon=False, fontsize=7.5, handlelength=1.2)
     return ax
 
