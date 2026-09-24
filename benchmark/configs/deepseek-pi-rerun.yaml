@@ -13,10 +13,7 @@
 job_name: deepseek-pi-rerun
 jobs_dir: benchmark/runs
 n_attempts: 1
-# Maximum safe concurrency from the existing DeepSeek cold-start calibration:
-# four trials stay below the 7.2M total-prompt TPM limit. Six concurrent cold
-# starts were estimated at about 126% of that limit.
-n_concurrent_trials: 4
+n_concurrent_trials: 6
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
