@@ -13,7 +13,7 @@
 job_name: deepseek-pi-rerun
 jobs_dir: benchmark/runs
 n_attempts: 1
-n_concurrent_trials: 6
+n_concurrent_trials: 10
 retry:
   max_retries: 1
   # Retry transport/gateway faults only. Agent timeouts are a genuine efficiency
@@ -40,7 +40,11 @@ datasets:
       - python-statemachine-state-data-scoping
       - oxvg-structural-selector-preservation
       - effect-sse-httpapi-streaming
+      - scriggo-method-declarations
+      - csstree-shorthand-expansion-compression
+      - fastapi-implicit-head-options
       - boa-hierarchical-evaluation-cancellation
+      - koota-composite-trait-aspects
 
 agents:
   - name: pi
