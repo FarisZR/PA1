@@ -1950,6 +1950,10 @@ luna_quoted = {
         h: (round(100 * c.min(), 1), round(100 * c.max(), 1))
         for h, c in (luna["cached_tokens"] / luna["input_tokens"]).groupby(luna["harness"])
     },
+    "root_cache_range": (
+        round(100 * (luna_cc["root_cached_tokens"] / luna_cc["main_input_tokens"]).min(), 1),
+        round(100 * (luna_cc["root_cached_tokens"] / luna_cc["main_input_tokens"]).max(), 1),
+    ),
     "error_category_share": {
         h: {
             c: round(100 * n / sum(totals.values()))
@@ -2000,6 +2004,7 @@ luna_expected = {
         "opencode-v2": (90.7, 97.0),
         "pi": (97.0, 98.8),
     },
+    "root_cache_range": (90.1, 98.3),
     "error_category_share": {
         "codex": {"edit": 84, "shell": 16},
         "pi": {"read": 23, "edit": 77},
@@ -2095,13 +2100,13 @@ outcome_legend(axes[0], loc="upper left")
 fig.tight_layout()
 ```
 
-@fig-luna-cache relates each trial's input tokens to its cache-hit share; trials toward the top left used few tokens and read most of them from the cache. The harnesses occupy almost separate ranges. Claude Code's trials read between 86.1% and 92.8% of their input from the cache and OpenCode V2's between 90.7% and 97.0%. Codex and Pi stayed between 96.8% and 98.8%. Within each harness, the cache-hit share varied by at most seven percentage points, so it depends mainly on the harness rather than on the task.
+@fig-luna-cache relates each trial's input tokens to its cache-hit share; trials toward the top left used few tokens and read most of them from the cache. The harnesses occupy almost separate ranges. Claude Code's trials read between 86.1% and 92.8% of their input from the cache when root sessions and subagents are combined; OpenCode V2's read between 90.7% and 97.0%. Codex and Pi stayed between 96.8% and 98.8%. The additional Claude Code root-only points separate the harness's cache use from the effect of delegation: its root sessions read 96.0% of their input from the cache (90.1%--98.3% per task), compared with 85% for subagents. Within each harness, the overall cache-hit share varied by at most seven percentage points, so it depends mainly on the harness rather than on the task.
 
 ```{python}
 #| label: fig-luna-cache
-#| fig-cap: "Input tokens and cache-hit share of each GPT-5.6 Luna trial. Each point is one task; lines join the trials of the same harness in order of their input tokens. Few tokens and a high cache-hit share (top left) is best. Filled markers are passing trials. The token axis is logarithmic."
+#| fig-cap: "Input tokens and cache-hit share of each GPT-5.6 Luna trial. Each point is one task; lines join trials in increasing input-token order. Claude Code's diamonds include root and subagent sessions; its orange plus markers show the root session alone. Few tokens and a high cache-hit share (top left) is best. Filled markers are passing trials and hollow markers are failing trials. The token axis is logarithmic."
 
-_ax = plot_cache_tokens(luna)
+_ax = plot_cache_tokens(luna, show_root_session=True)
 _ax.figure.set_size_inches(6.3, 3.4)
 _ax.figure.tight_layout()
 ```

@@ -301,6 +301,7 @@ def load_trials(model: str, job_dirs: list[Path]) -> list[dict[str, Any]]:
                 "agent_minutes": (_seconds(result.get("agent_execution")) or 0) / 60,
             }
             row.update(trajectory_metrics(harness, result_path.parent / "agent" / "trajectory.json"))
+            row["root_cached_tokens"] = cached - row["subagent_cached_tokens"]
             rows.append(row)
     return rows
 

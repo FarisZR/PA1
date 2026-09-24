@@ -301,12 +301,13 @@ def plot_tool_mix(frame: pd.DataFrame, ax=None):
     return ax
 
 
-def plot_cache_tokens(frame: pd.DataFrame, ax=None):
+def plot_cache_tokens(frame: pd.DataFrame, ax=None, *, show_root_session: bool = False):
     """Input tokens against cache-hit share, one point per trial.
 
     Points of the same harness are joined in order of their input tokens. Few
     tokens and a high cache-hit share (top left) is best. Filled markers are
-    passing trials. The token axis is logarithmic.
+    passing trials. The token axis is logarithmic. When requested, Claude
+    Code's root session is plotted separately from its root-plus-subagent totals.
     """
     harnesses = harnesses_in(frame)
     data = frame.assign(cache_share=frame["cached_tokens"] / frame["input_tokens"],
@@ -322,6 +323,20 @@ def plot_cache_tokens(frame: pd.DataFrame, ax=None):
             ax.scatter(row["input_m"], row["cache_share"], s=32, marker=HARNESS_MARKERS[harness],
                        facecolor=color if row["passed"] else "white", edgecolor=color,
                        linewidth=1.3, zorder=3)
+
+    if show_root_session:
+        root = frame[frame["harness"] == "claude-code"].assign(
+            cache_share=lambda rows: rows["root_cached_tokens"] / rows["main_input_tokens"],
+            input_m=lambda rows: rows["main_input_tokens"] / 1e6,
+        ).sort_values("input_m")
+        color = HARNESS_COLORS["claude-code"]
+        ax.plot(root["input_m"], root["cache_share"], color=color, linewidth=1,
+                linestyle="--", alpha=0.7, zorder=2)
+        for _, row in root.iterrows():
+            ax.scatter(row["input_m"], row["cache_share"], s=42, marker="P",
+                       facecolor=color if row["passed"] else "white", edgecolor=color,
+                       linewidth=1.3, zorder=4)
+
     ax.set_xscale("log")
     ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:g}"))
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
@@ -332,11 +347,16 @@ def plot_cache_tokens(frame: pd.DataFrame, ax=None):
                    markersize=5, label=HARNESS_LABELS[h])
         for h in harnesses
     ]
+    if show_root_session:
+        handles.append(plt.Line2D([], [], color=HARNESS_COLORS["claude-code"], marker="P",
+                                  linestyle="--", markersize=5,
+                                  label="Claude Code root only"))
     handles.append(plt.Line2D([], [], marker="o", linestyle="", markersize=5,
                               markerfacecolor="white", markeredgecolor=MUTED,
                               label="failed (hollow)"))
     ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, 1.0),
-              ncols=len(handles), frameon=False, fontsize=7, columnspacing=1)
+              ncols=3 if show_root_session else len(handles), frameon=False, fontsize=7,
+              columnspacing=1)
     _style_axis(ax, grid_axis="both")
     return ax
 
