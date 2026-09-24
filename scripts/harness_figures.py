@@ -20,12 +20,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.ticker import LogLocator, NullFormatter
 
 from scripts.analyze_harness_trials import (
     CATEGORY_LABELS,
     CATEGORY_ORDER,
     HARNESS_LABELS,
     HARNESS_ORDER,
+    pareto_front,
+    summarize,
     task_catalog,
 )
 
@@ -442,3 +445,58 @@ __all__: Sequence[str] = [
     "plot_tool_mix",
     "plot_trial_strip",
 ]
+
+
+# Label placement per harness, so that harnesses with equal success do not overlap.
+_PARETO_LABEL_OFFSETS = {
+    "codex": (6, 5, "left"),
+    "pi": (6, -11, "left"),
+    "claude-code": (-6, 5, "right"),
+    "opencode-v2": (-6, -11, "right"),
+}
+
+
+def plot_pareto(frame: pd.DataFrame, axes=None):
+    """Passed tasks against total cost (a) and total tokens (b), one point per harness.
+
+    Harnesses on the Pareto front are filled and joined by a line; dominated
+    harnesses are hollow. Both horizontal axes are logarithmic.
+    """
+    summary = summarize(frame.to_dict("records"))
+    if axes is None:
+        _, axes = plt.subplots(1, 2, figsize=(6.3, 2.9), sharey=True)
+    panels = (
+        ("cost_usd", 1.0, "(a) Normalized cost of ten trials (USD)"),
+        ("total_tokens", 1e6, "(b) Input and output tokens of ten trials (million)"),
+    )
+    for ax, (key, scale, xlabel) in zip(axes, panels, strict=True):
+        front = pareto_front(summary, key)
+        line = sorted((summary[h][key] / scale, summary[h]["passed"]) for h in front)
+        ax.plot([x for x, _ in line], [y for _, y in line], color=MUTED, linewidth=1,
+                linestyle="--", zorder=2)
+        for harness, stats in summary.items():
+            color = HARNESS_COLORS[harness]
+            x = stats[key] / scale
+            ax.scatter(x, stats["passed"], s=55, marker=HARNESS_MARKERS[harness],
+                       facecolor=color if harness in front else "white", edgecolor=color,
+                       linewidth=1.4, zorder=3)
+            dx, dy, ha = _PARETO_LABEL_OFFSETS[harness]
+            ax.annotate(HARNESS_LABELS[harness], (x, stats["passed"]), xytext=(dx, dy),
+                        textcoords="offset points", fontsize=7, color=color, ha=ha)
+        ax.set_xscale("log")
+        values = [stats[key] / scale for stats in summary.values()]
+        ax.set_xlim(min(values) / 1.6, max(values) * 2.2)
+        ax.xaxis.set_major_locator(LogLocator(subs=(1.0, 2.0, 5.0)))
+        ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:g}"))
+        ax.xaxis.set_minor_formatter(NullFormatter())
+        ax.set_xlabel(xlabel, fontsize=8)
+        _style_axis(ax, grid_axis="both")
+    axes[0].set_ylim(-0.5, 10.5)
+    axes[0].set_yticks(range(0, 11, 2))
+    axes[0].set_ylabel("Tasks passed (of 10)", fontsize=8)
+    axes[1].legend(
+        handles=[plt.Line2D([], [], marker="o", color=MUTED, linestyle="--", markerfacecolor=MUTED),
+                 plt.Line2D([], [], marker="o", color=MUTED, linestyle="", markerfacecolor="white")],
+        labels=["Pareto front", "dominated"], loc="lower right", fontsize=7, frameon=False,
+    )
+    return axes

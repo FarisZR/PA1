@@ -1,5 +1,5 @@
 {
-    "job_name": "glm-5.3-flash",
+    "job_name": "glm-5.3-flash-rerun",
     "jobs_dir": "benchmark/runs",
     "n_attempts": 1,
     "timeout_multiplier": 1.0,
@@ -8,18 +8,18 @@
     "agent_setup_timeout_multiplier": null,
     "environment_build_timeout_multiplier": null,
     "debug": false,
-    "n_concurrent_trials": 8,
+    "n_concurrent_trials": 10,
     "quiet": false,
     "retry": {
         "max_retries": 1,
         "include_exceptions": null,
         "exclude_exceptions": [
-            "RewardFileNotFoundError",
-            "CancelledError",
-            "VerifierTimeoutError",
-            "AgentTimeoutError",
             "VerifierOutputParseError",
-            "RewardFileEmptyError"
+            "RewardFileNotFoundError",
+            "VerifierTimeoutError",
+            "RewardFileEmptyError",
+            "AgentTimeoutError",
+            "CancelledError"
         ],
         "wait_multiplier": 1.0,
         "min_wait_sec": 1.0,
@@ -122,10 +122,10 @@
                 "disallowed_tools": "EnterPlanMode,WebSearch"
             },
             "env": {
-                "ANTHROPIC_AUTH_TOKEN": "${LITELLM_API_KEY}",
-                "ANTHROPIC_BASE_URL": "${LITELLM_ANTHROPIC_BASE_URL}",
+                "ANTHROPIC_AUTH_TOKEN": "${CODEX_CLIPROXY_API_KEY}",
+                "ANTHROPIC_BASE_URL": "${CODEX_CLIPROXY_ANTHROPIC_BASE_URL}",
                 "ANTHROPIC_DEFAULT_FABLE_MODEL": "glm-5p3-flash[1m]",
-                "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+                "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
                 "API_FORCE_IDLE_TIMEOUT": "0",
                 "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
                 "DISABLE_AUTOUPDATER": "1"

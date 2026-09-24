@@ -1,0 +1,17 @@
+[verifier] model.patch applied (11328 bytes)
+[verifier] Resetting files touched by test.patch
+[verifier] Applying test.patch
+[verifier] base mode rc=101
+[verifier] WARN: no JUnit XML for mode base — all base-mode whitelisted ids will count as failed
+[verifier] new mode rc=101
+[verifier] WARN: no JUnit XML for mode new — all new-mode whitelisted ids will count as failed
+error[E0106]: missing lifetime specifiers
+error[E0277]: the trait bound `parcel_selectors::parser::Component<'_, selector::private::Selectors>: cssparser::ToCss` is not satisfied
+error[E0599]: no method named `ok` found for struct `std::string::String` in the current scope
+error[E0560]: struct `PartialSelector` has no field named `features`
+error[E0609]: no field `features` on type `&PartialSelector`
+error: could not compile `oxvg_optimiser` (lib test) due to 6 previous errors
+error: command `/root/.rustup/toolchains/1.92.0-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --package oxvg_optimiser --lib --release` exited with code 101
+error: could not compile `oxvg_optimiser` (lib) due to 6 previous errors
+error: command `/root/.rustup/toolchains/1.92.0-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --package oxvg_optimiser --test test_structural_selectors --release` exited with code 101
+[verifier] ===== FAILURES (68) =====

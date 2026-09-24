@@ -4,6 +4,136 @@
   "attempt_selection": [],
   "attempts": [
     {
+      "attempt": "boa-hierarchical-evaluation-canc__PRcRUVc",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 160218,
+          "corrected": 159880,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "csstree-shorthand-expansion-comp__VcWdbtk",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 157597,
+          "corrected": 157351,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "effect-sse-httpapi-streaming__TEbnxKu",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 194096,
+          "corrected": 193756,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "expr-try-catch-errors__mtSQgS8",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 171940,
+          "corrected": 171678,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "fastapi-implicit-head-options__iD6Pk2M",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 119574,
+          "corrected": 118934,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "katex-multicolumn-array-spans__r2SyHJw",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 120453,
+          "corrected": 120269,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "koota-composite-trait-aspects__t8GQx3K",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 236365,
+          "corrected": 236048,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "oxvg-structural-selector-preserv__Vo2eUNL",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 151846,
+          "corrected": 151374,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "python-statemachine-state-data-s__TJKvASN",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 171583,
+          "corrected": 171264,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
+      "attempt": "scriggo-method-declarations__Tu4zVDu",
+      "harness": "codex",
+      "changes": [
+        {
+          "field": "agent_result.peak_context_tokens",
+          "original": 224840,
+          "corrected": 224589,
+          "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
+          "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
+        }
+      ]
+    },
+    {
       "attempt": "boa-hierarchical-evaluation-canc__HkKhYqY",
       "harness": "codex",
       "changes": [
@@ -21,7 +151,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/boa-hierarchical-evaluation-canc__HkKhYqY"
     },
     {
       "attempt": "csstree-shorthand-expansion-comp__M9mWAKu",
@@ -41,7 +172,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/csstree-shorthand-expansion-comp__M9mWAKu"
     },
     {
       "attempt": "effect-sse-httpapi-streaming__ZvA2kue",
@@ -54,7 +186,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/effect-sse-httpapi-streaming__ZvA2kue"
     },
     {
       "attempt": "expr-try-catch-errors__F9jHMSH",
@@ -67,7 +200,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/expr-try-catch-errors__F9jHMSH"
     },
     {
       "attempt": "fastapi-implicit-head-options__4w4tfs2",
@@ -87,7 +221,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/fastapi-implicit-head-options__4w4tfs2"
     },
     {
       "attempt": "katex-multicolumn-array-spans__bZ5uz5t",
@@ -100,7 +235,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/katex-multicolumn-array-spans__bZ5uz5t"
     },
     {
       "attempt": "koota-composite-trait-aspects__c7PK5HR",
@@ -120,7 +256,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/koota-composite-trait-aspects__c7PK5HR"
     },
     {
       "attempt": "oxvg-structural-selector-preserv__9UiWZjB",
@@ -133,7 +270,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/oxvg-structural-selector-preserv__9UiWZjB"
     },
     {
       "attempt": "python-statemachine-state-data-s__p8GQ9m8",
@@ -146,7 +284,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/python-statemachine-state-data-s__p8GQ9m8"
     },
     {
       "attempt": "scriggo-method-declarations__5FQZtbK",
@@ -159,7 +298,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/scriggo-method-declarations__5FQZtbK"
     },
     {
       "attempt": ".retry-attempts/fastapi-implicit-head-options__4w4tfs2/attempt-1",
@@ -172,7 +312,8 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/.retry-attempts/fastapi-implicit-head-options__4w4tfs2/attempt-1"
     },
     {
       "attempt": ".retry-attempts/koota-composite-trait-aspects__c7PK5HR/attempt-1",
@@ -185,7 +326,286 @@
           "reason": "Upstream Pier derives Codex context metrics from last_token_usage.total_tokens, which includes output tokens; recomputed from per-call input tokens",
           "source": "agent/trajectory.json steps[*].metrics.prompt_tokens; checked against raw rollout compaction events"
         }
-      ]
+      ],
+      "published": ".excluded/glm-5.3-flash/first-run/.retry-attempts/koota-composite-trait-aspects__c7PK5HR/attempt-1"
     }
-  ]
+  ],
+  "pier_job": "glm-5.3-flash-rerun",
+  "excluded_runs": [
+    {
+      "trial": "boa-hierarchical-evaluation-canc__B3HmeHt",
+      "harness": "pi",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/boa-hierarchical-evaluation-canc__B3HmeHt",
+      "reasoning_retention": 5.31,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "boa-hierarchical-evaluation-canc__HkKhYqY",
+      "harness": "codex",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/boa-hierarchical-evaluation-canc__HkKhYqY",
+      "reasoning_retention": 12.22,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "boa-hierarchical-evaluation-canc__Ugknd2s",
+      "harness": "claude-code",
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/boa-hierarchical-evaluation-canc__Ugknd2s",
+      "reasoning_retention": 6.62,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__5KjAeNk",
+      "harness": "pi",
+      "task": "csstree-shorthand-expansion-compression",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/csstree-shorthand-expansion-comp__5KjAeNk",
+      "reasoning_retention": 16.25,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__M9mWAKu",
+      "harness": "codex",
+      "task": "csstree-shorthand-expansion-compression",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/csstree-shorthand-expansion-comp__M9mWAKu",
+      "reasoning_retention": 7.56,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "csstree-shorthand-expansion-comp__knDmmvi",
+      "harness": "claude-code",
+      "task": "csstree-shorthand-expansion-compression",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/csstree-shorthand-expansion-comp__knDmmvi",
+      "reasoning_retention": 3.91,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__THTyyig",
+      "harness": "claude-code",
+      "task": "effect-sse-httpapi-streaming",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/effect-sse-httpapi-streaming__THTyyig",
+      "reasoning_retention": 9.34,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__ZvA2kue",
+      "harness": "codex",
+      "task": "effect-sse-httpapi-streaming",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/effect-sse-httpapi-streaming__ZvA2kue",
+      "reasoning_retention": null,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "effect-sse-httpapi-streaming__uj2BZAn",
+      "harness": "pi",
+      "task": "effect-sse-httpapi-streaming",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/effect-sse-httpapi-streaming__uj2BZAn",
+      "reasoning_retention": 12.98,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "expr-try-catch-errors__CuSugrx",
+      "harness": "claude-code",
+      "task": "expr-try-catch-errors",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/expr-try-catch-errors__CuSugrx",
+      "reasoning_retention": 7.46,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "expr-try-catch-errors__F9jHMSH",
+      "harness": "codex",
+      "task": "expr-try-catch-errors",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/expr-try-catch-errors__F9jHMSH",
+      "reasoning_retention": null,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "expr-try-catch-errors__cfMv7s2",
+      "harness": "pi",
+      "task": "expr-try-catch-errors",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/expr-try-catch-errors__cfMv7s2",
+      "reasoning_retention": 6.41,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "fastapi-implicit-head-options__46NzLwE",
+      "harness": "claude-code",
+      "task": "fastapi-implicit-head-options",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/fastapi-implicit-head-options__46NzLwE",
+      "reasoning_retention": 5.13,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "fastapi-implicit-head-options__4w4tfs2",
+      "harness": "codex",
+      "task": "fastapi-implicit-head-options",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/fastapi-implicit-head-options__4w4tfs2",
+      "reasoning_retention": 2.97,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "fastapi-implicit-head-options__86PZXXL",
+      "harness": "pi",
+      "task": "fastapi-implicit-head-options",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/fastapi-implicit-head-options__86PZXXL",
+      "reasoning_retention": 15.24,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__CyYLhDh",
+      "harness": "pi",
+      "task": "katex-multicolumn-array-spans",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/katex-multicolumn-array-spans__CyYLhDh",
+      "reasoning_retention": 12.32,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__JCbKwuf",
+      "harness": "claude-code",
+      "task": "katex-multicolumn-array-spans",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/katex-multicolumn-array-spans__JCbKwuf",
+      "reasoning_retention": 6.48,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "katex-multicolumn-array-spans__bZ5uz5t",
+      "harness": "codex",
+      "task": "katex-multicolumn-array-spans",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/katex-multicolumn-array-spans__bZ5uz5t",
+      "reasoning_retention": null,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__F9griUE",
+      "harness": "claude-code",
+      "task": "koota-composite-trait-aspects",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/koota-composite-trait-aspects__F9griUE",
+      "reasoning_retention": 7.88,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__c7PK5HR",
+      "harness": "codex",
+      "task": "koota-composite-trait-aspects",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/koota-composite-trait-aspects__c7PK5HR",
+      "reasoning_retention": 6.63,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "koota-composite-trait-aspects__vgDfrus",
+      "harness": "pi",
+      "task": "koota-composite-trait-aspects",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/koota-composite-trait-aspects__vgDfrus",
+      "reasoning_retention": 5.81,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__9UiWZjB",
+      "harness": "codex",
+      "task": "oxvg-structural-selector-preservation",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/oxvg-structural-selector-preserv__9UiWZjB",
+      "reasoning_retention": null,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__SK57URu",
+      "harness": "pi",
+      "task": "oxvg-structural-selector-preservation",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/oxvg-structural-selector-preserv__SK57URu",
+      "reasoning_retention": 3.01,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "oxvg-structural-selector-preserv__hcuXYoq",
+      "harness": "claude-code",
+      "task": "oxvg-structural-selector-preservation",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/oxvg-structural-selector-preserv__hcuXYoq",
+      "reasoning_retention": 7.44,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__cCPBuZA",
+      "harness": "pi",
+      "task": "python-statemachine-state-data-scoping",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/python-statemachine-state-data-s__cCPBuZA",
+      "reasoning_retention": 12.59,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__hNVQUQS",
+      "harness": "claude-code",
+      "task": "python-statemachine-state-data-scoping",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/python-statemachine-state-data-s__hNVQUQS",
+      "reasoning_retention": 17.33,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "python-statemachine-state-data-s__p8GQ9m8",
+      "harness": "codex",
+      "task": "python-statemachine-state-data-scoping",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/python-statemachine-state-data-s__p8GQ9m8",
+      "reasoning_retention": null,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "scriggo-method-declarations__25gzz4M",
+      "harness": "pi",
+      "task": "scriggo-method-declarations",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/scriggo-method-declarations__25gzz4M",
+      "reasoning_retention": 6.3,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "scriggo-method-declarations__5FQZtbK",
+      "harness": "codex",
+      "task": "scriggo-method-declarations",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/scriggo-method-declarations__5FQZtbK",
+      "reasoning_retention": 8.94,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    },
+    {
+      "trial": "scriggo-method-declarations__RfRHKhf",
+      "harness": "claude-code",
+      "task": "scriggo-method-declarations",
+      "pier_job": "glm-5.3-flash",
+      "published": ".excluded/glm-5.3-flash/first-run/scriggo-method-declarations__RfRHKhf",
+      "reasoning_retention": 25.18,
+      "reason": "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); rerun on the fixed gateway in benchmark/runs/glm-5.3-flash-rerun"
+    }
+  ],
+  "excluded_snapshot": {
+    "published": ".excluded/glm-5.3-flash/zai-direct",
+    "pier_job": "glm-5.3-sub",
+    "reason": "Direct Z.AI Coding Plan route instead of the Fireworks route; stopped for budget and quota reasons with eight completed trials, so it is incomplete. Unfiltered and uncorrected."
+  }
 }

