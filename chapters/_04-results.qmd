@@ -989,7 +989,7 @@ if coverage_quoted != coverage_expected:
     raise ValueError(f"Benchmark coverage changed; update the text: {coverage_quoted}")
 ```
 
-The comparative benchmark consists of nine model--harness conditions with ten canonical trials each, one per task, 90 trials in total (@tbl-benchmark-coverage). GPT-5.6 Luna is covered in all four harnesses, DeepSeek V4.1 Flash in three, and Kimi K3 in two. Every condition contains the same ten tasks, so the comparisons within a model are paired by task. GLM-5.3-Flash, the fourth planned model, is excluded completely: none of its trials enters any comparative result. Its Fireworks-backed batch of 30 trials and the incomplete direct Z.AI snapshot of eight trials are kept only for the provider-route diagnostic described in @sec-methodology.
+The comparative benchmark contains nine model--harness conditions with ten canonical trials each, one per task, for 90 trials total (@tbl-benchmark-coverage). GPT-5.6 Luna is covered in four harnesses, DeepSeek V4.1 Flash in three, and Kimi K3 in two. Because every condition uses the same ten tasks, comparisons within a model are paired by task. As defined in @sec-methodology, GLM-5.3-Flash does not enter this comparative dataset; its retained runs are reported only in the separate provider-route diagnostic.
 
 ```{python}
 #| label: tbl-benchmark-coverage

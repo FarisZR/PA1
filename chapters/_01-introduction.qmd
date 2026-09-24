@@ -1,20 +1,27 @@
 # Introduction {#sec-introduction}
 
-> **Placeholder section:** Replace the bullets below with the paper's content.
-> No findings, company facts, or sources have been added yet.
+## Large Language Models, Reasoning, and Agent Harnesses
 
-## Problem statement
+Modern large language models (LLMs) build predominantly on the Transformer architecture introduced by Vaswani et al., which replaces recurrent sequence processing with attention mechanisms [@vaswani2017attention]. Contemporary LLMs extend this foundation through large-scale pre-training and post-training and can follow instructions, reason over a supplied context, and interact with external systems [@zhao2026llmsurvey]. In this study, the model is treated as the inference component of a larger coding-agent system.
 
-- TODO: State the problem to be investigated.
+Reasoning is relevant because the amount and form of inference can affect both task performance and resource use. Chain-of-thought prompting showed that generating intermediate reasoning steps can improve performance on complex reasoning tasks [@wei2022chain]. More recent work found that allocating additional computation at inference time can further improve reasoning performance under suitable strategies [@snell2025testtime]. The concrete reasoning controls exposed by the models in this study are model-specific and are therefore documented with the experimental configuration in @sec-methodology.
 
-## Research question
+An LLM becomes an agentic system when model outputs can trigger actions in an external environment and the resulting observations are returned to the model. ReAct formalizes this interaction as an interleaving of reasoning and actions [@yao2023react]. For software engineering, the interface through which an agent navigates repositories, edits files, executes commands, and receives feedback can materially affect its behavior and performance [@yang2024sweagent]. This study uses the term *agent harness* for the software layer surrounding the model that implements this interaction loop, including the available tools and feedback as well as context and orchestration behavior.
 
-- TODO: Formulate the research question.
+## Problem Statement
 
-## Objective
+Coding agents are therefore not determined by the underlying LLM alone. The harness controls how the model can act on a repository and what information is returned after each action. Different harnesses may also manage context, delegation, and tool execution differently. These differences can change the conditions under which the same model attempts a software-engineering task. Research on agent-computer interfaces already shows that interface design can alter agent behavior and task performance [@yang2024sweagent].
 
-- TODO: State the objective of the Praxisarbeit.
+For practical use, task success is only one part of the comparison. Reasoning, repeated tool interactions, and retained context consume tokens and inference resources. A harness can therefore be relevant to both whether a task is solved and how much model usage is required to solve it. The current-state analysis in @sec-current-state shows that several coding-agent harnesses and model families are used within IONOS SE. This creates a practical need to compare complete model--harness systems rather than treating model selection as the only relevant decision.
 
-## Scope
+## Research Question and Objective
 
-- TODO: Define the scope and boundaries of the work.
+> **Research question:** How do different agent harnesses affect the cost-efficiency and task-solving performance of coding models on software-engineering tasks?
+
+The objective is to measure the effect of the harness while keeping the model and benchmark task fixed wherever the experimental matrix permits. Task-solving performance is measured through benchmark success, while efficiency is examined through token usage and normalized model cost. The study does not attempt to rank the intrinsic quality of the models independently of their harnesses. It instead evaluates the behavior of the documented model--harness combinations under a common benchmark setup.
+
+## Scope and Experimental Context
+
+The comparative evaluation covers Claude Code, OpenAI Codex CLI, Pi, and OpenCode V2. The harness set combines first-party coding agents with alternative open or lightweight designs, while the selected models span multiple providers and cost classes. The final comparative model set consists of GPT-5.6 Luna, Kimi K3, and DeepSeek V4.1 Flash. The detailed selection rationale is given in @sec-methodology. GLM-5.3-Flash was included in the initial experimental design but was later excluded from the comparative matrix after the primary provider route produced unusable runs. Its partial observations are retained only for the separate provider-route diagnostic described in @sec-methodology.
+
+DeepSWE v1.1 provides the software-engineering tasks and functional verifiers used for the benchmark. It was designed for original, long-horizon engineering tasks and evaluates submissions with task-specific verifiers rather than an LLM judge [@huang2026deepswe]. Trial execution and measurement use a project-specific fork of Pier rather than the upstream runner [@pierUpstream; @pierFzrFork]. The fork adds the harness integrations, model-isolation controls, and accounting required for this experiment. The exact modifications and experimental controls are described in @sec-methodology. The resulting measurements therefore characterize the tested model--harness systems under the documented benchmark and provider routes; they are not intended as a universal ranking of coding agents.

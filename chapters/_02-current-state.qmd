@@ -1,9 +1,9 @@
-# Current State in the Company {#sec-current-state}
+# Current State at IONOS SE {#sec-current-state}
 
 
 ## Internal Survey
 
-An internal survey conducted between August and September 2026 received 57 responses. It was distributed through four Google Chat rooms: two team rooms and two rooms focused on AI users and AI products. Several employees were also contacted directly. This sampling favors employees with high AI interest and adoption. The results therefore describe an AI-active subgroup rather than company-wide usage.
+An internal survey conducted between August and September 2026 received 57 responses. It was distributed through four Google Chat rooms: two team rooms and two rooms focused on AI users and AI products. Several employees were also contacted directly. This sampling favors employees with high AI interest and adoption. The results therefore describe an AI-active subgroup rather than usage across IONOS SE.
 
 Respondents reported one first-choice configuration and up to three additional configurations used at least weekly. The two Claude Code answer labels were merged. Adoption rates count each respondent once per harness or model; configuration analyses count each distinct respondent--harness--model pair once. "Other" and automatically selected models are excluded where a named model or provider is required.
 
@@ -225,4 +225,4 @@ _ = plot_pie(
 
 The cost categories are not directly comparable as continuous values, so no average expenditure is derived.
 
-Overall, the sample shows a strong Claude Code and Anthropic baseline with alternatives layered around it. High-cost models dominate primary configurations, while medium-cost models are more common in secondary and diversified setups. Because the survey targeted AI-active groups, these results characterize advanced internal users rather than company-wide adoption.
+Overall, the sample shows a strong Claude Code and Anthropic baseline with alternatives layered around it. High-cost models dominate primary configurations, while medium-cost models are more common in secondary and diversified setups. Because the survey targeted AI-active groups, these results characterize advanced internal users rather than adoption across IONOS SE.
