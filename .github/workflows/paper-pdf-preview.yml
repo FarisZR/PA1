@@ -276,9 +276,12 @@ jobs:
               const latest = process.env.REVIEW_PREV
                 ? `${process.env.REVIEW_LATEST} of them touched by the latest commit`
                 : 'all from the latest commit, as this PR has a single commit';
+              const summary = process.env.REVIEW_CHANGES === '0'
+                ? 'Review PDF: this PR does not change the rendered paper. '
+                : `Review PDF: ${process.env.REVIEW_CHANGES} changed block(s), ${latest}; ` +
+                  `${process.env.REVIEW_FIGURES} new or changed figure(s). `;
               note =
-                `Review PDF: ${process.env.REVIEW_CHANGES} changed block(s), ${latest}; ` +
-                `${process.env.REVIEW_FIGURES} new or changed figure(s). ` +
+                summary +
                 'Green/red mark text added/removed in this PR, blue/purple the same for the latest commit. ' +
                 'A margin bar spans each changed block and changed figures are framed. ' +
                 'The page after the table of contents lists every change with its page.';
