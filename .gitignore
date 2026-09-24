@@ -3,9 +3,10 @@
 _output/
 _site/
 .review/
-.review-base/
 pa1-review.qmd
 _quarto-review.yml
+_quarto-reviewdump.yml
+pa1-review.typ
 **/*_cache/
 **/*_files/
 **/*.quarto_ipynb
