@@ -62,6 +62,16 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
+      # PRs branched before the review pipeline existed have no scripts/review;
+      # use the base branch's copy so they still get a review PDF.
+      - name: Use base review scripts if the PR predates them
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          if [[ ! -f scripts/review/build_review_pdf.py ]]; then
+            git checkout "${{ github.event.pull_request.base.sha }}" -- scripts/review
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
