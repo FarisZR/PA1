@@ -35,7 +35,7 @@ Bridge checks (``--bridge``; CLIProxyAPI must be running with request logging):
 
 Usage:
   python3 benchmark/scripts/check_litellm_route.py --env-file benchmark/env.local \\
-      --model glm-5p3-flash --expect-version 1.102.1 [--bridge] \\
+      --model glm-5p3-flash [--expect-version 1.102.1] [--bridge] \\
       [--report "$BB_THREAD_STORAGE/litellm-route.json"]
 
 Every direct request except the cache probe sends LiteLLM's per-request cache
@@ -103,6 +103,10 @@ class Gateway:
                 status, headers, raw = response.status, response.headers, response.read().decode()
         except urllib.error.HTTPError as error:
             status, headers, raw = error.code, error.headers, error.read().decode()
+        except (urllib.error.URLError, TimeoutError) as error:
+            # Refused connections and read timeouts become a failed check
+            # instead of a traceback that loses every recorded result.
+            status, headers, raw = 0, {}, str(error)
         result = {
             "status": status,
             "headers": {k.lower(): v for k, v in headers.items()},
@@ -194,10 +198,7 @@ def check_direct(gw: Gateway, args: argparse.Namespace) -> None:
         record("FAIL", "gateway answers a minimal request", f"HTTP {first['status']}: {first['raw'][:400]}")
         return
     version = first["headers"].get("x-litellm-version")
-    if args.expect_version:
-        check(version == args.expect_version, f"x-litellm-version is {args.expect_version}", f"got {version!r}")
-    else:
-        record("PASS", f"(info) x-litellm-version is {version}")
+    check(version == args.expect_version, f"x-litellm-version is {args.expect_version}", f"got {version!r}")
     api_base = first["headers"].get("x-litellm-model-api-base")
     check(api_base is not None and "fireworks.ai" in api_base, "deployment points at Fireworks", repr(api_base))
 
@@ -397,7 +398,7 @@ def http_post(url: str, key: str, body: dict, headers: dict | None = None) -> tu
             return response.status, response.read().decode()
     except urllib.error.HTTPError as error:
         return error.code, error.read().decode()
-    except urllib.error.URLError as error:
+    except (urllib.error.URLError, TimeoutError) as error:
         return 0, str(error)
 
 
@@ -437,7 +438,7 @@ FIREWORKS_FORWARDED = {
 
 def check_upstream(label: str, bodies: list[dict], effort: str, reasoning: str | None) -> None:
     if not bodies:
-        record("SKIP", f"{label}: upstream body inspection",
+        record("FAIL", f"{label}: upstream body inspection",
                "no logged upstream body carries this run's marker; set CODEX_CLIPROXY_REQUEST_LOG=true, regenerate, restart the bridge")
         return
     last = bodies[-1]
@@ -454,9 +455,8 @@ def check_upstream(label: str, bodies: list[dict], effort: str, reasoning: str |
               f"assistant reasoning_content lengths: {[len(r or '') for r in replayed]}")
 
 
-def check_bridge(model: str, effort: str) -> None:
+def check_bridge_claude_code(model: str, effort: str) -> None:
     anthropic_url = require("CODEX_CLIPROXY_ANTHROPIC_BASE_URL").rstrip("/") + "/v1/messages"
-    openai_url = require("CODEX_CLIPROXY_BASE_URL").rstrip("/")
     key = require("CODEX_CLIPROXY_API_KEY")
 
     print(f"\n=== bridge: Claude Code shape via {anthropic_url} ===")
@@ -471,12 +471,17 @@ def check_bridge(model: str, effort: str) -> None:
     status, raw = http_post(anthropic_url, key, body, {"anthropic-version": "2023-06-01"})
     if not check(status == 200, "Claude Code turn 1 succeeds through the bridge", f"HTTP {status}: {raw[:300]}"):
         return
-    reply = json.loads(raw)
+    try:
+        reply = json.loads(raw)
+    except json.JSONDecodeError:
+        record("FAIL", "Claude Code turn 1 returns JSON", raw[:300])
+        return
     thinking = next((b.get("thinking") for b in reply.get("content", []) if b.get("type") == "thinking"), None)
     tool_use = next((b for b in reply.get("content", []) if b.get("type") == "tool_use"), None)
     check(bool(thinking), "Claude Code turn 1 returns a thinking block", json.dumps(reply.get("content"))[:300])
     if tool_use is None:
-        record("SKIP", "Claude Code turn 2 replay", "model did not call the tool; rerun")
+        # Without a tool call there is no turn 2, so replay stays unverified.
+        record("FAIL", "Claude Code turn 1 calls the tool", "model did not call the tool; rerun the check")
         check_upstream("claude-code", upstream_bodies(since, marker), effort, None)
         return
     body["messages"] = [first_user, {"role": "assistant", "content": reply["content"]},
@@ -485,6 +490,11 @@ def check_bridge(model: str, effort: str) -> None:
     check(status == 200, "Claude Code turn 2 succeeds through the bridge", f"HTTP {status}: {raw[:300]}")
     time.sleep(1)
     check_upstream("claude-code", upstream_bodies(since, marker), effort, thinking)
+
+
+def check_bridge_codex(model: str, effort: str) -> None:
+    openai_url = require("CODEX_CLIPROXY_BASE_URL").rstrip("/")
+    key = require("CODEX_CLIPROXY_API_KEY")
 
     print(f"\n=== bridge: Codex shape via {openai_url}/responses ===")
     marker = f"pa1-route-{uuid.uuid4().hex[:12]}"
@@ -505,7 +515,7 @@ def check_bridge(model: str, effort: str) -> None:
     call = next((i for i in output if i.get("type") == "function_call"), None)
     check(bool(summary), "Codex turn 1 returns a reasoning item", json.dumps(output)[:300])
     if call is None:
-        record("SKIP", "Codex turn 2 replay", "model did not call the tool; rerun")
+        record("FAIL", "Codex turn 1 calls the tool", "model did not call the tool; rerun the check")
         check_upstream("codex", upstream_bodies(since, marker), effort, None)
         return
     inputs += [i for i in output if i.get("type") in ("reasoning", "function_call")]
@@ -520,7 +530,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--env-file", type=Path)
     parser.add_argument("--model", default="glm-5p3-flash")
-    parser.add_argument("--expect-version", help="fail unless x-litellm-version equals this, e.g. 1.102.1")
+    parser.add_argument("--expect-version", default="1.102.1", help="fail unless x-litellm-version equals this")
     parser.add_argument("--planned-spend-usd", type=float, default=100.0,
                         help="budget the job needs; the 2026-09-20 GLM Fireworks batch cost ~USD 21 per clean harness at PA1 prices")
     parser.add_argument("--max-tokens", type=int, default=131072, help="max_tokens the harness configs send")
@@ -541,7 +551,9 @@ def main() -> int:
     if not args.skip_direct:
         check_direct(Gateway(require("LITELLM_OPENAI_BASE_URL"), require("LITELLM_API_KEY"), args.model), args)
     if args.bridge:
-        check_bridge(args.model, args.effort)
+        # Independent exchanges: a Claude Code failure must not skip Codex.
+        check_bridge_claude_code(args.model, args.effort)
+        check_bridge_codex(args.model, args.effort)
 
     if args.report:
         args.report.write_text(json.dumps({"model": args.model, "results": results}, indent=2) + "\n")
