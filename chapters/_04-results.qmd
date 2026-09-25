@@ -1935,7 +1935,7 @@ With early compaction, OpenCode V2 passed one task, fewer than any other Luna ha
 
 The first run compacted 142 times, in every trial, and the rerun 10 times, in six trials. Its two timeouts, on `boa` and `scriggo`, compacted 19 and 63 times; both tasks passed in the rerun. The first run also took longer, with a median of 89 against 43 minutes and 191 against 125 agent steps, and produced more output, with a median of 119,000 against 71,000 tokens per trial. It read 92.7% of its input from the cache, the rerun 98.1%. A likely reason is that each compaction replaces the conversation with a summary, so the next request cannot reuse the cached prompt. The first run cost USD 11.63, the rerun USD 7.12.
 
-The early compaction also coincided with the `question` tool exits of the first run (@sec-retry-eligibility). Each of the four trials asked for a Git author identity in its last step, after 2 to 24 compactions. In the rerun, all ten trials met the same missing Git identity, and Luna set a local identity itself every time. The trajectories do not show whether the compactions caused the questions.
+The early compaction also coincided with the four sessions of the first run that OpenCode aborted after a `question` call (@sec-retry-eligibility). Each of these trials asked for a Git author identity in its last step, after 2 to 24 compactions. In the rerun, all ten trials met the same missing Git identity, and Luna set a local identity itself every time. The trajectories do not show whether the compactions caused the questions.
 
 ## GLM-5.3-Flash {#sec-glm}
 

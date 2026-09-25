@@ -75,7 +75,7 @@ The harness versions are fixed at Codex CLI 0.151.0, Claude Code 2.1.251, Pi 0.8
 
 Every benchmark configuration allows Pier to repeat a complete trial once. The retry was intended to replace attempts invalidated by transport or gateway failures; agent timeouts, verifier timeouts, missing or invalid reward outputs, and operator cancellations remain final. In practice, Pier also repeated some trials that had failed because of the evaluated model or harness (@sec-retry-eligibility).
 
-Each model--harness--task combination therefore enters the analysis with exactly one canonical attempt. If a transport or gateway failure invalidated the first attempt, Pier's final attempt is canonical. If the first attempt ended because of the evaluated model or harness, for example through an interactive question that a non-interactive run cannot answer, the first attempt is canonical, whether it failed or passed. The retry was then a second chance that the evaluated system should not have received. All success, token, cache, and cost results are computed from the same canonical attempt.
+Each model--harness--task combination therefore enters the analysis with exactly one canonical attempt. If a transport or gateway failure invalidated the first attempt, Pier's final attempt is canonical. If the first attempt ended because of the evaluated model or harness, for example when OpenCode V2 aborted the session because the model had asked a question, the first attempt is canonical, whether it failed or passed. The retry was then a second chance that the evaluated system should not have received. All success, token, cache, and cost results are computed from the same canonical attempt.
 
 ## Cost accounting {#sec-cost-accounting}
 

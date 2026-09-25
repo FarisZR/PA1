@@ -116,7 +116,7 @@ The same happened once in the Luna OpenCode V2 rerun. On `katex-multicolumn-arra
 
 Pier implements the retry rule of @sec-canonical-attempts with a list of excluded exception types rather than a list of retryable ones, so every exception type that is not excluded triggers a retry. A non-zero harness exit is always reported as `NonZeroAgentExitCodeError`, whatever its cause, so a failure of the evaluated model or harness can also be retried. The repeated Luna OpenCode V2 run also excluded `NonZeroAgentExitCodeError`, so a non-zero harness exit was final there.
 
-Retries were therefore not limited to transport and gateway failures. Besides the four DeepSeek cases above, four attempts of the first GPT-5.6 Luna OpenCode V2 run ended after the model used OpenCode's `question` tool to ask for a Git author identity. Nobody can answer that question in a non-interactive run, so the session was shut down. These are failures of the evaluated model--harness system, so the first attempt is canonical for all eight OpenCode V2 trials listed in @tbl-canonical-attempts. The Luna rerun that replaced the first run used the `question` tool in none of its trials (@sec-luna-compaction).
+Retries were therefore not limited to transport and gateway failures. Besides the four DeepSeek cases above, four attempts of the first GPT-5.6 Luna OpenCode V2 run ended after the model used OpenCode's `question` tool to ask for a Git author identity. The non-interactive `run` command of OpenCode 2.0.8 cancels every question as soon as the model asks it [@opencode208NonInteractive]. In all four trials, the `question` call failed with "The user dismissed this question", and OpenCode then aborted the whole session and exited with status 1. The model did not receive the dismissal as a tool result and could not continue. Other harnesses may handle a question in a non-interactive run differently. Because OpenCode ended the session, these are failures of the evaluated model--harness system, so the first attempt is canonical for all eight OpenCode V2 trials listed in @tbl-canonical-attempts. The Luna rerun that replaced the first run used the `question` tool in none of its trials (@sec-luna-compaction).
 
 | Model | Task | Cause of the first attempt's exit | Canonical reward | Pier final reward |
 |:------|:-----|:----------------------------------|:----------------:|:-----------------:|
@@ -124,10 +124,10 @@ Retries were therefore not limited to transport and gateway failures. Besides th
 | DeepSeek V4.1 Flash | `katex-multicolumn-array-spans` | Exit status 1 kept after a recovered stream error | 1 | 1 |
 | DeepSeek V4.1 Flash | `koota-composite-trait-aspects` | Exit status 1 kept after a recovered stream error | 1 | 1 |
 | DeepSeek V4.1 Flash | `scriggo-method-declarations` | Exit status 1 kept after a recovered stream error | 1 | 1 |
-| GPT-5.6 Luna, first run | `effect-sse-httpapi-streaming` | Interactive Git identity question | 0 | 0 |
-| GPT-5.6 Luna, first run | `expr-try-catch-errors` | Interactive Git identity question | 0 | 1 |
-| GPT-5.6 Luna, first run | `katex-multicolumn-array-spans` | Interactive Git identity question | 0 | 0 |
-| GPT-5.6 Luna, first run | `oxvg-structural-selector-preservation` | Interactive Git identity question | 0 | 0 |
+| GPT-5.6 Luna, first run | `effect-sse-httpapi-streaming` | Session aborted after a Git identity question | 0 | 0 |
+| GPT-5.6 Luna, first run | `expr-try-catch-errors` | Session aborted after a Git identity question | 0 | 1 |
+| GPT-5.6 Luna, first run | `katex-multicolumn-array-spans` | Session aborted after a Git identity question | 0 | 0 |
+| GPT-5.6 Luna, first run | `oxvg-structural-selector-preservation` | Session aborted after a Git identity question | 0 | 0 |
 
 : OpenCode V2 trials whose first attempt is canonical instead of Pier's final attempt. {#tbl-canonical-attempts tbl-colwidths="[18,38,24,10,10]"}
 
