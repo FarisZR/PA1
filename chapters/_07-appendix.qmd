@@ -1,0 +1,394 @@
+<!--
+Appendix. Material needed only to reproduce or audit the benchmark. The main text
+refers to these sections where a detail matters for reading a result.
+
+TODO: The DHBW Leitlinien place the list of references before the appendix. Quarto's
+Typst output always emits the bibliography at the end of the document; fix the order
+together with the other deferred front- and back-matter formatting.
+-->
+
+```{=typst}
+#pagebreak()
+#counter(heading).update(0)
+#set heading(numbering: "A.1")
+```
+
+# Benchmark Setup Details {#sec-appendix-setup}
+
+## Task selection {#sec-appendix-task-selection}
+
+Difficulty is derived from the solve rate of valid historical `mini-swe-agent` runs. The reference panel excludes Claude Opus 5, GPT-5.6 Luna, DeepSeek V4 Flash, and Kimi K3. This exclusion set was fixed when the task sample was selected on 2026-08-18 and is retained solely to reproduce the sampling procedure; it does not define the final benchmark matrix. Public DeepSWE results from these models therefore do not contribute to the task difficulty or token-intensity values used for sampling. Hard tasks occupy the 75th--100th difficulty percentile, including exactly 75, while medium tasks occupy the 50th percentile up to but excluding 75.
+
+The selection was run on 2026-08-18 using the then-current public DeepSWE v1.1 API responses. `data/deepswe_task_selection_v1.1.json` records the resulting task IDs together with SHA-256 hashes of the `tasks.json`, `trials.json`, and `release.json` responses used at that time. The committed task IDs define the fixed task set for the experiment; the hashes provide provenance for the historical sampling inputs. Reproducing the benchmark therefore uses the committed task set rather than rerunning the selection against later API data. The complete selection procedure is implemented in `scripts/select_deepswe_tasks.py`.
+
+## Model profiles {#sec-appendix-profiles}
+
+Harness-supplied compatibility settings, reasoning mappings, context and output limits, and other model-specific behavior are retained unless they conflict with an experimental control defined in @sec-methodology.
+
+Pi follows this policy for the tested open-weight models. Kimi K3 retains Pi 0.84.4's bundled Moonshot/Kimi metadata while only the provider endpoint and API key are changed. DeepSeek V4.1 Flash uses an explicit entry because the pinned Pi version predates that model release. GLM-5.3-Flash copies Pi's bundled metadata into an entry with the gateway's model identifier and turns off two Z.AI-specific request fields that the Fireworks route rejects. OpenCode V2 follows the same profile policy: built-in catalogue entries are reused where possible, with explicit metadata only for missing models or required transport compatibility.
+
+Codex 0.151.0 ships a native profile for GPT-5.6 Luna, so Luna uses that profile with only the endpoint and authentication path redirected [@codex0151ModelCatalog]. For Kimi K3, DeepSeek V4.1 Flash, and GLM-5.3-Flash, the Sol-derived entries use Multi-Agent V1 and disable Responses Lite for the non-OpenAI routes while retaining the remaining Sol-derived behavior. This is a documented profile intervention rather than a neutral configuration choice: it is used so that these models are evaluated with the broader Codex agent feature set available to recognized models instead of the intentionally minimal unknown-model fallback.
+
+## Provider routes and bridges {#sec-appendix-routing}
+
+The benchmark uses CLIProxyAPI as a common access layer for GPT-5.6 Luna. Pi and OpenCode V2 use its OpenAI-compatible endpoint, Codex keeps its native OpenAI Responses profile while redirecting the endpoint, and Claude Code uses CLIProxyAPI's Anthropic-compatible translation. All four harnesses therefore reach the same ChatGPT-backed Luna account through the same pinned bridge implementation [@cliproxyCodexOAuth].
+
+CLIProxyAPI stores the OpenAI OAuth credential centrally in its persistent authentication directory on the benchmark runner. Trial containers receive only the local bridge endpoint and bridge credential; the OpenAI OAuth credential is not injected into Pier. This keeps the Luna provider route constant across harnesses while avoiding harness-specific subscription authentication. Both Luna configurations run up to six trials concurrently. Pier may repeat a complete trial once under the rule described in @sec-canonical-attempts. CLIProxyAPI's own request retries, credential cooldowns, retry intervals, and quota-triggered model fallbacks remain disabled. This keeps every retry visible in Pier's trial record rather than hiding it inside the bridge.
+
+Codex 0.151.0 uses the OpenAI Responses protocol, while the Fireworks-backed models are reached through AiOrbit using Chat Completions. Direct translation through the LiteLLM gateway was not sufficient for Codex's request and reasoning semantics. A pinned CLIProxyAPI instance is therefore used as a protocol bridge:
+
+`Codex -> Responses -> CLIProxyAPI -> Chat Completions -> AiOrbit -> Fireworks`.
+
+During the benchmark period, an upstream CLIProxyAPI defect was identified in which a streamed chunk containing both `reasoning_content` and visible `content` could produce an invalid Responses item order [@cliproxyIssue5659]. Rather than upgrade the complete bridge and introduce unrelated changes, the benchmark keeps the frozen v7.2.146 base and backports only the upstream fix [@cliproxyFix5659]. Logs from the completed 2026-08-31 Kimi K3 trial runs showed that the defect's triggering condition did not occur, so those runs were retained.
+
+## Provider concurrency
+
+Fireworks-backed comparative jobs use model-specific concurrency caps so provider throttling does not become an experimental variable [@fireworksRateLimits]. The Pi/Claude Code/Codex jobs run up to 30 Kimi K3 trials and four DeepSeek V4.1 Flash trials concurrently; the later DeepSeek reruns ran five Codex, ten Pi, and ten Claude Code trials concurrently. The OpenCode V2 configurations set ten concurrent Kimi trials and five concurrent DeepSeek trials; the Kimi/OpenCode V2 batch was not executed because of the budget constraint (@sec-methodology). GPT-5.6 Luna uses six concurrent trials in both the Pi/Claude Code/Codex configuration and the separate OpenCode V2 configuration. The second GLM-5.3-Flash run used ten concurrent trials in each of its two jobs. These settings affect job scheduling only; task definitions, model settings, scoring, and reported metrics are unchanged. The exact values are frozen in the benchmark configuration.
+
+## Pier fork {#sec-appendix-pier}
+
+The project-specific Pier fork is pinned as part of the experimental apparatus [@pierUpstream; @pierFzrFork]. Its experiment-relevant changes are Pi and OpenCode V2 support, complete delegated-session accounting for Claude Code and Codex, hard same-model enforcement for delegated calls, corrections for Codex cumulative token snapshots and inherited child history, cache-write-aware token and cost accounting, support for the internal CA required to reach AiOrbit, and preservation of failed retry-attempt evidence. Some Claude Code trajectory changes were selectively backported from Harbor; other changes are specific to this experiment. The fork is therefore treated as a distinct, versioned runner rather than as stock Pier.
+
+## OpenCode V2 integration {#sec-appendix-opencode}
+
+OpenCode V2 is a complete rewrite of V1 and exposes a different server and session API. The existing V1 adapter therefore cannot drive V2. PA1 implemented a separate `opencode-v2` Pier adapter for the benchmark [@pierFzrFork]. The benchmark freezes OpenCode V2 at version 2.0.8 after validating the packaged binary and the new adapter together. PA1 keeps the release version, platform-specific archive checksums, frozen model catalogue, and provider configuration in the benchmark configuration instead of hardcoding them into Pier. This separation keeps the adapter generic across V2 releases.
+
+The adapter starts a private authenticated OpenCode server for every trial and never shares that server between trials. After the agent finishes, the adapter waits for the session tree to settle and collects paginated root, delegated, utility, and compaction-session records. It reconstructs recursive usage totals from these records without counting replayed messages twice. If collection remains incomplete, or if the server terminates unexpectedly, the adapter keeps the available trajectory and error evidence but does not report complete token and cost aggregates.
+
+OpenCode's native delegation remains enabled because delegation is part of the harness behavior under test. OpenCode 2.0.8 allows a subagent to select any model exposed by the catalogue, so root-agent pinning alone does not enforce a single-model trial. PA1 therefore disables catalogue fetching, loads a frozen catalogue narrowed to the selected model and reasoning variant, and enforces that selection for root, delegated, utility, and compaction requests. This control preserves OpenCode's native multi-agent behavior while preventing a benchmark trial from silently using another model.
+
+PA1 also keeps model identity separate from transport configuration. Luna keeps OpenCode's built-in OpenAI Responses profile, so its requests use OpenCode's native OpenAI protocol handling. OpenCode 2.0.8 can also call OpenAI's server-side compaction endpoint, but the resolved Luna profile defines no compaction policy, so OpenCode compacted Luna's context with its own summaries (@sec-luna-context). Kimi K3, DeepSeek V4.1 Flash, and GLM-5.3-Flash keep their canonical OpenCode model identities, while the configuration redirects only the transport package, gateway endpoint, and provider-facing model identifier to the fixed Fireworks-backed route. These transport changes solve compatibility problems without replacing the model with a synthetic provider profile.
+
+Two additional controls keep OpenCode comparable with the other harnesses. First, OpenCode does not reliably project its configured output limit into OpenAI-compatible requests, so PA1 injects the model-specific output ceiling directly into the request body [@opencodeIssue47398]. Second, PA1 applies the same context and reasoning policy used by the other harnesses: primary Kimi, DeepSeek, GLM, and Luna runs use the configured `max` reasoning variant, and Luna uses the common 272,000-token operating window. Within this window, OpenCode compacts Luna's context at 240,000 tokens; a first run with an additional input limit compacted earlier and was repeated (@sec-opencode-input-limit). PA1 does not add a custom retry algorithm to OpenCode. OpenCode keeps its native request retry behavior, and whole-trial retries are left to Pier as described in @sec-canonical-attempts.
+
+PA1 validates every primary OpenCode configuration with the pinned real binary before admitting it to the benchmark. The acceptance path exercises both Chat Completions and Responses transports, explicit output caps, model restriction, usage reconciliation, native compaction, simultaneous-trial isolation, and a dedicated delegation smoke test. The smoke jobs use low reasoning and small output limits only to validate the integration; they do not change the primary benchmark settings.
+
+## Trajectory audit of the first GLM-5.3-Flash run {#sec-appendix-jev}
+
+A targeted trajectory audit of the first run supplements the deterministic runner data. `scripts/analyze_agent_inference_with_jev.py` records exact tool-call signatures, repetition streaks, and transport or harness signals, then sends bounded excerpts of every agent step and tool call to TypeSafe's Jev System One model [@pa1JevAuditMethod]. The classifications are retained in `data/jev_agent_inference_audit.json` [@pa1JevAuditData]. Jev is treated as a secondary review signal rather than ground truth: token counters, timeout status, exact call repetitions, and the raw Pier trajectories are the primary evidence.
+
+## Runner versions and checkpoints {#sec-appendix-checkpoints}
+
+The selected DeepSWE task IDs are fixed in `data/deepswe_task_selection_v1.1.json`, while the runnable benchmark software is pinned separately. The Luna subscription route additionally depends on account-specific OAuth state that cannot be published; the repository instead fixes the CLIProxyAPI version, bridge configuration, and login procedure required to recreate the route with an authorized ChatGPT account. DeepSWE remains fixed at revision [`0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea`](https://github.com/datacurve-ai/deep-swe/commit/0b9fabbb63b9104d678fe965e1632f2dd9eaa2ea), with Codex CLI 0.151.0, Claude Code 2.1.251, Pi 0.84.4, and OpenCode V2 2.0.8. The Pier checkpoint for newly started runs was [`ac868ad54893db98143f6e9a2d8c783faeb64a61`](https://github.com/FZR-forks/pier/commit/ac868ad54893db98143f6e9a2d8c783faeb64a61), the merge commit containing the OpenCode V2 provider-URL hotfix [@pierOpenCodeProviderUrlHotfix], until the last run moved to [`1324424db0f3548340dd173d2fc3f94b31ffd5ad`](https://github.com/FZR-forks/pier/commit/1324424db0f3548340dd173d2fc3f94b31ffd5ad), which corrects the OpenCode V2 startup check [@pierOpenCodeLimitsPreflight]. OpenCode additionally pins the platform-specific package checksums and the frozen 2.0.8 model catalogue. The compatibility-bridge image digest, model profiles, pricing table, generated configurations, concurrency settings, and task-selection audit data are stored with the benchmark setup. Pier writes a `lock.json` into each result directory so that every run can be traced to the exact configuration used.
+
+Four Pier checkpoints occur in the completed benchmark data. The earlier Kimi K3 Pi, Claude Code, and Codex runs use [`ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`](https://github.com/FZR-forks/pier/commit/ff65bae55c9a8ff15ddd3c2967c81a936713dd4d); only the Pi and Codex results enter the comparison. The original DeepSeek V4.1 Flash Pi, Claude Code, and Codex runs use the immediately pre-hotfix checkpoint [`7636cbee99ed947c64e0b350be031ec31e47dfee`](https://github.com/FZR-forks/pier/commit/7636cbee99ed947c64e0b350be031ec31e47dfee). DeepSeek OpenCode V2 and every benchmark run started after the hotfix, including the DeepSeek Pi, Claude Code, and Codex reruns, the second GLM-5.3-Flash run, and the first Luna OpenCode V2 run, use `ac868ad54893db98143f6e9a2d8c783faeb64a61`. The repeated Luna OpenCode V2 run uses `1324424db0f3548340dd173d2fc3f94b31ffd5ad`. Its only change is the OpenCode V2 startup check of the limits, which runs before the agent starts (@sec-opencode-input-limit). These differences are recorded as experimental provenance rather than hidden behind a single nominal runner version.
+
+### DeepSeek V4.1 checkpoint transition
+
+The DeepSeek V4.1 Flash runs for Pi, Claude Code, and Codex were already executed on Pier `7636cbee99ed947c64e0b350be031ec31e47dfee` when the OpenCode V2 gateway incompatibility was discovered. At that checkpoint, the OpenCode V2 adapter imposed an adapter-specific provider-URL policy that accepted HTTPS endpoints and explicit loopback HTTP endpoints but rejected the benchmark CLIProxyAPI route exposed to trial containers as `http://172.17.0.1/v1`. The other benchmark adapters did not impose this transport restriction.
+
+Pier PR #15 removed only this OpenCode V2-specific URL validation and its associated imports/tests, leaving configured provider URLs to the same egress-host handling used by the other adapters [@pierOpenCodeProviderUrlHotfix]. The change does not modify DeepSWE tasks, model configuration, retry policy, usage accounting, or the Pi, Claude Code, or Codex adapters. It was therefore treated as a narrowly scoped compatibility hotfix rather than a new experimental condition.
+
+The completed DeepSeek Pi, Claude Code, and Codex trials remain on `7636cbee99ed947c64e0b350be031ec31e47dfee`; rerunning them solely to align the repository SHA would consume additional benchmark budget without a code path through which this OpenCode V2-only patch could change their execution. Only five of these Codex trials remain in the comparison; the other DeepSeek Codex, Pi, and Claude Code trials come from the later reruns that repaired the gateway defects (@sec-measurement-corrections). DeepSeek OpenCode V2 instead uses the fixed merge checkpoint `ac868ad54893db98143f6e9a2d8c783faeb64a61`, and that checkpoint became the frozen Pier revision for all subsequent new runs except the repeated Luna OpenCode V2 run. This keeps the five retained original Codex trials on one consistent pre-hotfix checkpoint while enabling OpenCode V2 to reach the same CLIProxyAPI gateway used by the remaining benchmark setup.
+
+### Earlier 2026-08-31 Kimi K3 batch
+
+The Kimi K3 Pi, Claude Code, and Codex runs completed on 2026-08-31 used an earlier runner checkpoint. They were completed before the final web-search policy and before the OpenCode V2 adapter was added, so their setup is documented separately. The completed Claude Code observations are preserved as evidence but excluded from the comparative results because of the reasoning-effort and history defects (@sec-measurement-corrections).
+
+The first difference concerns the web-search tool surface. The 2026-08-31 Kimi configurations did not explicitly remove search-related tools. To preserve that tool surface, the later OpenCode V2 Kimi configuration also exposes OpenCode's native web-search tool to the model. This does not provide functional Internet search in the benchmark: the configured route does not provide a working search backend, so the tool cannot retrieve external web content. The exception therefore concerns the tool interface visible to the model, not actual web access. The retained 2026-08-31 logs also contain no completed Internet-backed search. All standard-wave model configurations disable web-search tools explicitly.
+
+The second difference is the Pier revision. The 2026-08-31 runs used [`ff65bae55c9a8ff15ddd3c2967c81a936713dd4d`](https://github.com/FZR-forks/pier/commit/ff65bae55c9a8ff15ddd3c2967c81a936713dd4d). Later benchmark work first moved to [`7636cbee99ed947c64e0b350be031ec31e47dfee`](https://github.com/FZR-forks/pier/commit/7636cbee99ed947c64e0b350be031ec31e47dfee), which contains the independent OpenCode V2 adapter and subsequent OpenCode V2 reliability changes, and later runs use the hotfixed [`ac868ad54893db98143f6e9a2d8c783faeb64a61`](https://github.com/FZR-forks/pier/commit/ac868ad54893db98143f6e9a2d8c783faeb64a61) or, for the repeated Luna OpenCode V2 run, `1324424db0f3548340dd173d2fc3f94b31ffd5ad`. The changes after the Kimi checkpoint are either OpenCode V2-specific or shared logging behavior that does not alter the environment passed to Pi or Codex. The later Pier changes therefore do not affect the execution or accounting of the retained Kimi Pi and Codex measurements; those trials were not rerun solely to align the runner commit.
+
+# Measurement Corrections {#sec-appendix-corrections}
+
+The script `scripts/build_corrected_results.py` writes the corrected values to the normal Pier file names, `result.json` and, where a trajectory had to be rebuilt, `agent/trajectory.json`, in the same format as Pier's output. Pier's unmodified files are kept beside them as `result.original.json` and `agent/trajectory.original.json` for recorded evidence. Each job directory contains a `corrections.json` manifest that records every corrected field with its original value, corrected value, source, and reason. The same script ensures that the normal trial directory holds the canonical attempt defined in @sec-canonical-attempts. Where Pier retried a failure of the evaluated model or harness, the first attempt is published as the trial and Pier's final attempt is kept under `.retry-attempts/`. The moved files are unchanged, and `corrections.json` records both attempts with their identifiers and rewards. All results in this paper use the corrected files and the canonical attempts. @tbl-measurement-issues summarizes the issues and their origin; the following sections document each of them.
+
+## Codex context metrics
+
+When a Codex rollout contains no explicit compaction event, Pier infers compactions from drops in `last_token_usage.total_tokens`, and it also derives the peak context from this value [@pierUpstreamCodexContextMetrics]. The value includes the output tokens of the call. A long reasoning response followed by a short one therefore looks like a shrinking context and is counted as a compaction, and the peak is inflated by the output of the largest call. This logic is upstream Pier behavior and was not changed in the PA1 fork. The error is not apparent from the recorded numbers. DeepSeek V4.1 Flash produced up to about 60,000 output tokens in single Codex calls and was recorded with 95 compactions across its Codex attempts, although its rollouts contain no compaction event and its input size never decreased. The corrected files recompute both values from the per-call input tokens in the committed trajectories. For all 58 Codex attempts, including the excluded first GLM-5.3-Flash run, the recomputed counts equal the explicit compaction events in the raw rollouts: eight compactions for GPT-5.6 Luna and none for the other models.
+
+## Withheld OpenCode V2 usage totals
+
+The PA1 OpenCode V2 adapter reports token and cost totals only when it can show that the complete session tree was collected (@sec-appendix-opencode). Trials that reached the agent timeout, and trials whose CLI exited unexpectedly, never reach that state, so their totals were withheld. This affected 14 attempts: six canonical trials, two for GPT-5.6 Luna and four for DeepSeek V4.1 Flash, and eight attempts of the first Luna run, which is outside the comparison (@sec-opencode-input-limit). Leaving them out would understate OpenCode's cost on the most expensive runs in particular. OpenCode keeps its own running token and cost totals in the session record that the adapter saves after every run. On all 34 attempts for which Pier did report totals, these records match Pier's totals exactly, so they are used for the 14 withheld attempts. For trials terminated at the timeout, a request still in progress at termination is not included, so those values are slight lower bounds.
+
+## OpenCode V2 session reader
+
+For all three Luna attempts of the `effect-sse-httpapi-streaming` task, two in the first run and one in the rerun, the adapter published a one-step placeholder trajectory without usage, although OpenCode had recorded the full session. The adapter read the session dump with Python's `str.splitlines()`, which also treats U+0085 (NEXT LINE) as a line break. The dump contained this character inside JSON strings, so the single-line record was split into fragments. All fragments were rejected as malformed, and because the list of rejected lines was not empty, the fallback to the partial session snapshot was skipped as well. This is a defect in the PA1 adapter and did not surface while the job was running. The corrected trajectories were rebuilt offline with Pier's own converter and a reader that splits only on newlines. The rebuild reads only the recorded dump and does not contact any model. Verifier results are unaffected, because grading does not depend on trajectory conversion. Both attempts of the first run failed; the rerun trial passed.
+
+## OpenCode V2 exit status after recovered errors {#sec-opencode-exit-status}
+
+OpenCode 2.0.8's non-interactive `run` command sets its exit status to 1 whenever a model step fails, and it does not reset the status when the session recovers [@opencode208NonInteractive]. Four DeepSeek V4.1 Flash attempts each hit one transient connection reset, which OpenCode retried internally. Each session then continued for another 48 to 349 steps, finished successfully, and passed the verifier. The CLI nevertheless exited with status 1. The PA1 runner forwarded that status, and Pier discarded and repeated each trial. Reporting a completed, passing session as failed is an anomaly of the upstream harness, not a transport fault, so the completed first attempts are the canonical observations. The repeated trials also passed, so success rates are unaffected. The ten canonical DeepSeek OpenCode V2 attempts cost USD 3.12 in normalized terms, compared with USD 3.16 for Pier's final trials. Pier's four repeated trials add USD 1.38 of experimental overhead.
+
+The same happened once in the Luna OpenCode V2 rerun. On `katex-multicolumn-array-spans`, a model response stream timed out at step 75 of 82. OpenCode retried the request, and the session finished, committed its change, and passed all 94 fail-to-pass tests. The CLI still exited with status 1, so Pier records the trial as an error. By then, the Luna configuration listed `NonZeroAgentExitCodeError` among the exceptions that Pier does not retry, so this trial was not repeated. It counts as passed, with its tokens recovered from the session record.
+
+
+## Retry eligibility {#sec-retry-eligibility}
+
+Pier implements the retry rule of @sec-canonical-attempts with a list of excluded exception types rather than a list of retryable ones, so every exception type that is not excluded triggers a retry. A non-zero harness exit is always reported as `NonZeroAgentExitCodeError`, whatever its cause, so a failure of the evaluated model or harness can also be retried. The repeated Luna OpenCode V2 run also excluded `NonZeroAgentExitCodeError`, so a non-zero harness exit was final there.
+
+Retries were therefore not limited to transport and gateway failures. Besides the four DeepSeek cases above, four attempts of the first GPT-5.6 Luna OpenCode V2 run ended after the model used OpenCode's `question` tool to ask for a Git author identity. Nobody can answer that question in a non-interactive run, so the session was shut down. These are failures of the evaluated model--harness system, so the first attempt is canonical for all eight OpenCode V2 trials listed in @tbl-canonical-attempts. The Luna rerun that replaced the first run used the `question` tool in none of its trials (@sec-luna-compaction).
+
+| Model | Task | Cause of the first attempt's exit | Canonical reward | Pier final reward |
+|:------|:-----|:----------------------------------|:----------------:|:-----------------:|
+| DeepSeek V4.1 Flash | `fastapi-implicit-head-options` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| DeepSeek V4.1 Flash | `katex-multicolumn-array-spans` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| DeepSeek V4.1 Flash | `koota-composite-trait-aspects` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| DeepSeek V4.1 Flash | `scriggo-method-declarations` | Exit status 1 kept after a recovered stream error | 1 | 1 |
+| GPT-5.6 Luna, first run | `effect-sse-httpapi-streaming` | Interactive Git identity question | 0 | 0 |
+| GPT-5.6 Luna, first run | `expr-try-catch-errors` | Interactive Git identity question | 0 | 1 |
+| GPT-5.6 Luna, first run | `katex-multicolumn-array-spans` | Interactive Git identity question | 0 | 0 |
+| GPT-5.6 Luna, first run | `oxvg-structural-selector-preservation` | Interactive Git identity question | 0 | 0 |
+
+: OpenCode V2 trials whose first attempt is canonical instead of Pier's final attempt. {#tbl-canonical-attempts tbl-colwidths="[18,38,24,10,10]"}
+
+One outcome differs from Pier's final trials as a result: in the first Luna run, `expr-try-catch-errors` passed only on Pier's retry, so it counts as a failure.
+
+The remaining retries followed transport or gateway failures and keep Pier's final attempt. Two DeepSeek V4.1 Flash attempts, one with Pi and one with Codex, were rejected by the gateway with a context-window error. The rejections are a consequence of the gateway removing earlier reasoning, described in @sec-gateway-reasoning-history, not of the evaluated systems; both trials are outside the comparative data. The other retries were two Kimi K3 Pi trials whose streams were terminated after Pi's own request retries were exhausted, and two Codex trials of the excluded first GLM-5.3-Flash run that hit provider rate limits. The GLM-5.3-Flash rerun had no retries. All non-canonical attempts remain in the published data under `.retry-attempts/`.
+
+
+## OpenCode V2 search tools without ripgrep {#sec-opencode-ripgrep}
+
+OpenCode 2.0.8 runs its `grep` and `glob` tools through ripgrep. If no `rg` binary is found on the `PATH` or in OpenCode's data directory, it downloads ripgrep 15.1.0 from GitHub on first use. None of the ten task images contains `rg`, and the sandbox's egress proxy admits only the configured model endpoints, so the download failed. The OpenCode server logs retained for four trials of the first Luna run each record a single download attempt at the first search call. That call and every later one failed immediately with the generic message `ripgrep execution failed`, which does not reveal the failed download. All 64 `grep` and `glob` calls in the canonical GPT-5.6 Luna run, all 697 in the first Luna run, and all 20 in the DeepSeek V4.1 Flash run failed in this way. The models could still search through the shell with `grep` and `find`.
+
+Correcting the condition requires sandbox access to GitHub, which also gives the agent external retrieval. It is therefore disclosed rather than repeated. OpenCode V2 was evaluated without working native search tools, and these calls are excluded from the tool-invocation error rates.
+
+## OpenCode V2 input limit for GPT-5.6 Luna {#sec-opencode-input-limit}
+
+The first GPT-5.6 Luna run in OpenCode V2 compacted its context far earlier than the other harnesses. OpenCode 2.0.8 compacts when the estimated prompt reaches the lower of two values: the input limit minus a 20,000-token buffer, and the context window minus the output reserve, which is capped at 32,000 tokens [@opencode208Compaction]. Luna's catalogue entry lists a context of 1,050,000 tokens, an input limit of 922,000 tokens, and an output limit of 128,000 tokens. The PA1 profile lowered the context to the common 272,000 tokens (@sec-methodology) but kept the inherited input limit of 922,000 tokens. A startup check in the PA1 Pier fork rejected this combination, because the input and output limits together exceeded the context. The profile therefore set the input limit to 144,000 tokens, the largest value the check accepted (272,000 − 128,000). OpenCode then compacted at 124,000 tokens (144,000 − 20,000), and no trial exceeded 126,444 prompt tokens. Codex, Pi, and Claude Code, by contrast, allowed prompts of up to 239,619 to 255,403 tokens.
+
+The check did not match OpenCode's own rule, under which an input limit above the context window has no effect. Pier PR #16 replaced it with OpenCode's compaction rule and records the resulting threshold for every trial [@pierOpenCodeLimitsPreflight]. The Luna OpenCode V2 run was then repeated on 2026-09-24 with the unchanged task set and model route, without an input limit, and with the corrected Pier checkpoint (@sec-methodology). Every rerun trial recorded a compaction threshold of 240,000 tokens (272,000 − 32,000). Only the rerun enters the comparison. The first run is kept, with its corrections, under `data/benchmark-results/.excluded/luna/opencode-v2-input-144k/`; @sec-luna-compaction compares the two runs.
+
+
+## Evidence for the removed reasoning {#sec-appendix-reasoning-evidence}
+
+Four complementary checks confirm that LiteLLM 1.101.0 removed the earlier reasoning before it reached Fireworks (@tbl-reasoning-evidence). The bridge request logs contain complete prompts and credentials and are not published; a sanitized per-request extract, the replay fixture, and the scripts behind each check are in `data/litellm-reasoning-audit/`.
+
+| Check | Finding |
+|:------|:--------|
+| LiteLLM source code | The 1.101.0 package contains the line that deletes `reasoning_content`; the 1.102.0 package does not. |
+| Offline replay of a recorded Codex request | LiteLLM 1.98.0 and 1.102.0 forward both earlier reasoning texts; 1.101.0 forwards neither. |
+| Prompt sizes reported by Fireworks | Under 1.101.0, a request carrying 3.9 million characters of earlier reasoning was counted as only 175,478 prompt tokens. At the upgrade, one session's prompt jumped from 114,626 to 714,624 tokens between two consecutive requests. |
+| Prompt growth in the trajectories | Before the upgrade, the next prompt grows by only a few percent of a call's reasoning; afterwards, by more than all of it (@tbl-reasoning-history). |
+
+: Checks confirming that earlier reasoning was removed before it reached the model. {#tbl-reasoning-evidence tbl-colwidths="[30,70]"}
+
+The switch between the gateway versions is visible directly in the prompt sizes that Fireworks reported. Two Codex trials were sending requests at the moment of the upgrade (@fig-gateway-upgrade-jump). In the `expr` trial, the last request handled by LiteLLM 1.101.0, at 12:00:00 UTC, was counted as 114,626 prompt tokens. The next request, at 12:02:45 UTC and handled by 1.102.0, was counted as 714,624 tokens. Both requests carried the same 2,364,199 characters of earlier reasoning in 43 assistant messages; in between, the conversation gained only one further assistant message without reasoning. The prompt nevertheless grew by 599,998 tokens, because the earlier reasoning now reached Fireworks and was counted for the first time. The request before, at 11:59:50 UTC, had been 584 tokens smaller. In the `katex` trial, which had started only nine minutes earlier and had produced less reasoning, the two requests that bracket the switch were counted as 36,282 and 76,197 tokens.
+
+```{python}
+#| label: fig-gateway-upgrade-jump
+#| fig-cap: "Prompt tokens counted by Fireworks for each request of two DeepSeek V4.1 Flash Codex trials that were running during the gateway upgrade, from the bridge-log extract. The shaded band marks the switch from LiteLLM 1.101.0 to 1.102.0 between 12:01:05 and 12:01:40 UTC. (a) The superseded `expr` trial; its last requests before and after the switch carried the same earlier reasoning. (b) The canonical `katex` trial."
+
+from datetime import datetime, timezone
+
+_UPGRADE_BAND = [datetime.fromisoformat(f"2026-09-21T{t}+00:00") for t in ("12:01:05", "12:01:40")]
+_JUMP_TRIALS = {
+    "expr": ".superseded/issue-111/deepseek-v4p1-flash/codex/expr-try-catch-errors__EbwFJsC",
+    "katex": "deepseek-v4p1-flash/katex-multicolumn-array-spans__oHdn7io",
+}
+_bridge = list(csv.DictReader((AUDIT_DIR / "bridge-requests.csv").open()))
+_jump_series = {}
+for _name, _trial in _JUMP_TRIALS.items():
+    _requests = sorted(
+        (row for row in _bridge if row["trial"] == _trial and row["prompt_tokens"]),
+        key=lambda row: row["request_time_utc"],
+    )
+    _jump_series[_name] = [
+        (datetime.fromisoformat(row["request_time_utc"].replace("Z", "+00:00")), int(row["prompt_tokens"]),
+         row["litellm_version"], int(row["reasoning_chars_sent"]),
+         int(row["assistant_messages"]), int(row["assistant_messages_with_reasoning"]))
+        for row in _requests
+    ]
+
+
+def _bracket(series):
+    before = [point for point in series if point[2] == "1.101.0"][-1]
+    after = [point for point in series if point[2] == "1.102.0"][0]
+    return before, after
+
+
+_expr_before, _expr_after = _bracket(_jump_series["expr"])
+_katex_before, _katex_after = _bracket(_jump_series["katex"])
+_check(
+    (_expr_before[1], _expr_after[1], _expr_before[3], _expr_after[3]) == (114626, 714624, 2364199, 2364199)
+    and (_expr_before[4], _expr_after[4], _expr_before[5], _expr_after[5]) == (90, 91, 43, 43)
+    and _expr_before[1] - _jump_series["expr"][-4][1] == 584
+    and _expr_before[0].strftime("%H:%M:%S") == "12:00:00" and _expr_after[0].strftime("%H:%M:%S") == "12:02:45"
+    and (_katex_before[1], _katex_after[1]) == (36282, 76197)
+    and _katex_before[0].strftime("%H:%M:%S") == "12:01:05" and _katex_after[0].strftime("%H:%M:%S") == "12:01:40",
+    "Upgrade jump",
+)
+
+import matplotlib.dates as mdates
+from scripts.harness_figures import GRID, HARNESS_COLORS, INK, MUTED
+
+fig, axes = plt.subplots(1, 2, figsize=(6.3, 3.0))
+for _ax, (_name, _label, _start) in zip(axes, (
+    ("expr", "(a) expr, superseded", None),
+    ("katex", "(b) katex, canonical", None),
+), strict=True):
+    _series = _jump_series[_name]
+    _ax.axvspan(*_UPGRADE_BAND, color=MUTED, alpha=0.35, linewidth=0)
+    _ax.plot([p[0] for p in _series], [p[1] / 1e3 for p in _series], color=HARNESS_COLORS["codex"],
+             linewidth=1.2, marker="o", markersize=2.2)
+    _before, _after = _bracket(_series)
+    _after_offset = (-8, 0, "right", "center") if _name == "expr" else (7, -6, "left", "top")
+    for _point, (_dx, _dy, _ha, _va) in ((_before, (-4, 9, "right", "bottom")), (_after, _after_offset)):
+        _ax.annotate(f"{_point[1]:,}", (_point[0], _point[1] / 1e3), xytext=(_dx, _dy),
+                     textcoords="offset points", ha=_ha, va=_va, fontsize=7, color=INK)
+    _ax.set_ylim(0, max(p[1] for p in _series) / 1e3 * 1.08)
+    _ax.text(_UPGRADE_BAND[0], _ax.get_ylim()[1] * 0.5, "upgrade ", rotation=90, fontsize=7, color=MUTED,
+             ha="right", va="center")
+    _ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M", tz=timezone.utc))
+    _ax.set_title(_label, fontsize=8, loc="left")
+    _ax.set_xlabel("Time on 2026-09-21 (UTC)", fontsize=8)
+    _ax.grid(color=GRID, linewidth=0.8)
+    _ax.tick_params(labelsize=7.5)
+    for _side in ("top", "right"):
+        _ax.spines[_side].set_visible(False)
+axes[0].set_ylabel("Prompt tokens counted by Fireworks (thousand)", fontsize=8)
+axes[0].xaxis.set_major_locator(mdates.HourLocator(tz=timezone.utc))
+axes[1].set_xlim(datetime(2026, 9, 21, 11, 50, tzinfo=timezone.utc), datetime(2026, 9, 21, 12, 20, tzinfo=timezone.utc))
+axes[1].xaxis.set_major_locator(mdates.MinuteLocator(byminute=range(0, 60, 10), tz=timezone.utc))
+fig.tight_layout()
+```
+
+All affected trials started before the upgrade. The switch between the two gateway versions was abrupt: in the bridge logs, the last request handled by 1.101.0 was at 12:01:05 UTC and the first handled by 1.102.0 at 12:01:40 UTC, with no mixing afterwards. Four trials, one each of Codex, Pi, and Claude Code among the affected ones and one Codex trial among those with earlier reasoning, were running at that moment. In each of them, the prompt growth changed within the trial, from a median of 3% to 15% of the preceding reasoning before the upgrade to between 105% and 121% after it. The three affected trials ran mostly before the upgrade. The fourth, a Codex trial on `katex` that started ten minutes before it, made 9 of its 36 measured calls without its earlier reasoning and 27 with it; it counts as a trial with earlier reasoning and remains in the comparison.
+
+The removed reasoning also caused the only three context-window rejections in the benchmark. Two Pi attempts on `oxvg`, the first attempt and Pier's retry, and the first Codex attempt on `python-statemachine` were stopped by LiteLLM with HTTP 400 and the message that the request exceeded the model's input limit of 1,048,576 tokens. All three ran between 00:19 and 05:13 UTC, hours before the upgrade. The rejection arose from the order of two steps inside the gateway. LiteLLM first checks the size of the complete incoming request, including the earlier reasoning that the harness sends back. Only afterwards does its Fireworks transform delete that reasoning and forward the shortened request. Fireworks therefore counted, and reported back to the harness, only the prompt without the earlier reasoning, while the request that the harness actually sent kept growing by the reasoning of every call.
+
+@fig-context-rejections shows this divergence. At the rejection, the prompts last counted by Fireworks were between 248,558 and 267,903 tokens, a quarter of the input limit. The earlier reasoning in the same conversations amounted to between 836,006 and 852,119 tokens, as counted when it was generated. Together they exceeded the limit, and LiteLLM counted the rejected requests at between 1,049,555 and 1,060,422 tokens. The estimate in the figure, the reported prompt plus the earlier reasoning, lies 4% to 5% above LiteLLM's counts, which is consistent with a difference in tokenization. For the Codex attempt, the bridge log confirms the content directly: the rejected request carried 3,483,097 characters of earlier reasoning. Neither harness compacted its context before the rejection. The prompt sizes they received never exceeded 268,000 tokens, so the size of the requests they sent was not visible to them from the reported usage.
+
+```{python}
+#| label: fig-context-rejections
+#| fig-cap: "The three DeepSeek V4.1 Flash attempts rejected by the gateway for exceeding the input limit, all before the upgrade. Dashed lines show the prompt tokens counted by Fireworks after the gateway had removed the earlier reasoning; solid lines estimate the request sent by the harness as that prompt plus the reasoning of all earlier calls. The shaded area is the earlier reasoning the model never received. Crosses mark the size LiteLLM counted when it rejected the request; the dotted line is the input limit of 1,048,576 tokens."
+
+_REJECTED = [
+    ("Pi, oxvg, attempt 1", "pi",
+     RESULTS_DIR / ".superseded/issue-111/deepseek-v4p1-flash/pi/.retry-attempts/oxvg-structural-selector-preserv__Wj9Bxfi/attempt-1"),
+    ("Pi, oxvg, attempt 2", "pi",
+     RESULTS_DIR / ".superseded/issue-111/deepseek-v4p1-flash/pi/oxvg-structural-selector-preserv__Wj9Bxfi"),
+    ("Codex, python-statemachine, attempt 1", "codex",
+     RESULTS_DIR / ".superseded/issue-111/deepseek-v4p1-flash/codex/.retry-attempts/python-statemachine-state-data-s__8WwYSfA/attempt-1"),
+]
+_INPUT_LIMIT = 1_048_576
+_codex_rejections = {row["trial"]: int(row["rejected_input_tokens"]) for row in _bridge if row["rejected_input_tokens"]}
+
+
+def _rejection_series(attempt: Path):
+    trajectory = json.loads((attempt / "agent/trajectory.json").read_text())
+    start = datetime.fromisoformat(json.loads((attempt / "result.json").read_text())["agent_execution"]["started_at"])
+    calls = []
+    for step in trajectory["steps"]:
+        if step.get("source") != "agent" or not step.get("metrics"):
+            continue
+        extra = step["metrics"].get("extra") or {}
+        produced = extra.get("reasoning_output_tokens") or extra.get("reasoning_tokens") or 0
+        prompt = step["metrics"].get("prompt_tokens") or 0
+        if calls and calls[-1][1] == prompt:
+            calls[-1][2] += produced
+            continue
+        elapsed = (datetime.fromisoformat(step["timestamp"].replace("Z", "+00:00")) - start).total_seconds() / 3600
+        calls.append([elapsed, prompt, produced])
+    removed, series = 0, []
+    for elapsed, prompt, produced in calls:
+        series.append((elapsed, prompt, prompt + removed))
+        removed += produced
+    return series, removed
+
+
+_rejections = []
+for _label, _harness, _attempt in _REJECTED:
+    _result = json.loads((_attempt / "result.json").read_text())
+    _message = _result["exception_info"]["exception_message"]
+    _got = (int(re.search(r"Got=(\d+)", _message).group(1)) if "Got=" in _message
+            else _codex_rejections[str(_attempt.relative_to(RESULTS_DIR))])
+    _series, _removed = _rejection_series(_attempt)
+    _rejections.append((_label, _harness, _series, _removed, _got, _result["agent_execution"]["finished_at"]))
+
+_check(
+    [r[4] for r in _rejections] == [1060422, 1054336, 1049555]
+    and [r[2][-1][1] for r in _rejections] == [254033, 267903, 248558]
+    and [r[3] for r in _rejections] == [852119, 836006, 844220]
+    and all(r[5] < "2026-09-21T12:01:05" for r in _rejections)
+    and min(r[5] for r in _rejections) >= "2026-09-21T00:19" and max(r[5] for r in _rejections)[:16] == "2026-09-21T05:13"
+    and all(0.04 <= (r[2][-1][1] + r[3]) / r[4] - 1 <= 0.05 for r in _rejections)
+    and max(p[1] for r in _rejections for p in r[2]) < 268000
+    and all(json.loads((a / "result.json").read_text())["agent_result"]["summarization_count"] == 0
+            for _, _, a in _REJECTED)
+    and any(row["rejected_input_tokens"] == "1049555" and row["reasoning_chars_sent"] == "3483097" for row in _bridge),
+    "Context-window rejections",
+)
+
+fig, axes = plt.subplots(1, 3, figsize=(6.3, 3.1), sharey=True)
+for _ax, (_label, _harness, _series, _removed, _got, _) in zip(axes, _rejections, strict=True):
+    _color = HARNESS_COLORS[_harness]
+    _x = [p[0] for p in _series]
+    _ax.fill_between(_x, [p[1] / 1e3 for p in _series], [p[2] / 1e3 for p in _series], color=_color,
+                     alpha=0.14, linewidth=0)
+    _ax.plot(_x, [p[2] / 1e3 for p in _series], color=_color, linewidth=1.5)
+    _ax.plot(_x, [p[1] / 1e3 for p in _series], color=_color, linewidth=1.2, linestyle="--")
+    _ax.scatter([_x[-1]], [_got / 1e3], marker="X", s=45, color=_color, zorder=4)
+    _ax.axhline(_INPUT_LIMIT / 1e3, color=MUTED, linewidth=1, linestyle=":")
+    _ax.set_title(_label, fontsize=7.5, loc="left")
+    _ax.set_xlabel("Agent time (hours)", fontsize=8)
+    _ax.set_ylim(0, 1150)
+    _ax.grid(color=GRID, linewidth=0.8)
+    _ax.tick_params(labelsize=7.5)
+    for _side in ("top", "right"):
+        _ax.spines[_side].set_visible(False)
+axes[0].set_ylabel("Tokens (thousand)", fontsize=8)
+axes[0].text(0.05, _INPUT_LIMIT / 1e3 + 20, "input limit", fontsize=7, color=MUTED)
+axes[0].legend(
+    handles=[
+        plt.Line2D([], [], color=MUTED, linewidth=1.5, label="sent by the harness (estimate)"),
+        plt.Line2D([], [], color=MUTED, linewidth=1.2, linestyle="--", label="counted by Fireworks"),
+        plt.Rectangle((0, 0), 1, 1, color=MUTED, alpha=0.3, label="removed reasoning"),
+        plt.Line2D([], [], color=MUTED, marker="X", linestyle="", label="LiteLLM count at rejection"),
+    ],
+    loc="lower center", bbox_to_anchor=(1.65, 1.1), ncols=4, frameon=False, fontsize=6.5,
+)
+fig.tight_layout()
+```
+
+## Repeated runs
+
+The five affected DeepSeek Codex trials were repeated with the unchanged configuration. A bridge setting added in the meantime affects only Claude Code requests, so the Codex route was the same as before. The repeated trials replaced the original ones only after the same check confirmed that their reasoning had reached the model: their prompt-growth ratios were between 112% and 155%.
+
+Pi was affected in six of its ten trials. A first repetition of three of them ran out of gateway budget: each first attempt stopped after 16 to 18 minutes when the gateway rejected further requests, and Pier's retries were rejected at once. These attempts are kept only as audit evidence. After additional gateway budget was granted, the complete Pi run was repeated on all ten tasks with the unchanged configuration. The repetition includes the four trials that had kept their reasoning, so the Pi condition comes from a single run under the fixed gateway. All ten repeated trials passed the same check, with prompt-growth ratios between 120% and 140%, and replace the original Pi trials. @sec-deepseek-codex-reasoning compares the original and repeated trials of both harnesses.
+
+In the raw bridge request logs, all 1,309 requests of the DeepSeek Codex repetitions report LiteLLM 1.102.1; these requests postdate the published extract, which covers the original runs only. Pi reaches the gateway without the bridge, so no request log exists for its repetitions.
+
+## Experimental overhead
+
+@tbl-benchmark-overhead lists the observations outside the comparative benchmark with their normalized cost (@sec-benchmark-coverage).
+
+```{python}
+#| label: tbl-benchmark-overhead
+#| tbl-cap: "Observations outside the comparative benchmark. Attempts include Pier's retries; cost is the normalized API-equivalent cost in USD. Attempts without recorded token usage add no cost: eight of the first GLM-5.3-Flash OpenCode V2 run and seven of the direct Z.AI snapshot. Their costs are lower bounds."
+#| tbl-colwidths: [40, 11, 10, 39]
+
+_overhead = ["| Observation | Attempts | Cost | Reason |", "|:--|--:|--:|:--|"]
+for label, n, cost, reason in _overhead_rows:
+    _overhead.append(f"| {label} | {n} | {cost:.2f} | {reason} |")
+_overhead.append(f"| **Total** | **{sum(r[1] for r in _overhead_rows)}** "
+                 f"| **{sum(r[2] for r in _overhead_rows):.2f}** | |")
+Markdown("\n".join(_overhead))
+```
+
+# Trial Audits {#sec-appendix-trial-audits}
+
+The raw logs of trials that ended without a single passing fail-to-pass test, or without a test result, were checked before the results were reported.
+
+The Kimi K3 Pi trial on `koota` has no test result because its verifier exceeded the 30-minute limit (@sec-kimi-success). An offline replay of the verifier traced the timeout to an endless loop in the new tests. Pi's solution registers a hidden marker trait for every aspect, and the tests create new aspects in one shared world. The markers accumulated until one received the second-highest bit of koota's 32-bit trait mask. An existing loop in koota that scans this mask bit by bit never ends for that bit, because the shift overflows to zero. The reference solution passes the same tests. The evidence for this trial and for the Pi trial on `scriggo` is in `data/kimi-k3-pi-audit/`.
+
+The raw-log evidence for the three GLM-5.3-Flash trials on `oxvg` without a passing fail-to-pass test (@sec-glm-success) is in `data/glm-5.3-flash-audit/`.
+
+# Data and Scripts {#sec-appendix-data}
+
+The published repository contains the data and scripts behind every result. @tbl-data-files lists the locations referred to in this paper. The layout of `data/benchmark-results/` and the rules for which directories enter the comparison are documented in its README.
+
+| Location | Content |
+|:---------|:--------|
+| `data/deepswe_task_selection_v1.1.json` | Selected task IDs and hashes of the DeepSWE API responses used for sampling |
+| `scripts/select_deepswe_tasks.py` | Task selection procedure |
+| `data/benchmark-results/<job>/` | Canonical trials of each comparative job, with the corrected `result.json` and `agent/trajectory.json` |
+| `data/benchmark-results/.retry-attempts/`, `.excluded/`, `.superseded/` | Non-canonical attempts, excluded runs, and superseded trials, kept for audit |
+| `scripts/build_corrected_results.py` | Writes the corrected files and the `corrections.json` manifest of every job |
+| `scripts/analyze_harness_trials.py` | Computes the per-model results |
+| `scripts/analyze_reasoning_retention.py` | Prompt-growth check for the earlier reasoning |
+| `data/litellm-reasoning-audit/` | Sanitized bridge-log extract, replay fixture, and scripts for the gateway checks |
+| `data/kimi-k3-pi-audit/`, `data/glm-5.3-flash-audit/` | Evidence for the trial audits in @sec-appendix-trial-audits |
+| `scripts/analyze_agent_inference_with_jev.py`, `data/jev_agent_inference_audit.json` | Jev audit of the first GLM-5.3-Flash run |
+| `benchmark/pricing.yaml` | Frozen pricing table used for cost normalization |
+
+: Data files and scripts referred to in this paper. {#tbl-data-files tbl-colwidths="[45,55]"}
