@@ -15,6 +15,7 @@ three short requests.
 
     python scripts/check_gateway_thinking.py deepseek-v4p1-flash glm-5p3-flash kimi-k3
 """
+import datetime as dt
 import json
 import os
 import sys
@@ -58,6 +59,7 @@ def check(model: str) -> dict:
     without_thinking, _ = post(model, history + [
         {"role": "assistant", "content": [b for b in content if b not in thinking]}, result])
     return {
+        "date": dt.datetime.now(dt.timezone.utc).date().isoformat(),
         "model": model,
         "litellm": version,
         "thinking_blocks": len(thinking),

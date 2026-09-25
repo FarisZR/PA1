@@ -103,7 +103,8 @@ discussion_quoted = {
                                                         / (c["input_tokens_with_thinking"]
                                                            - c["input_tokens_without_thinking"]), 1))
                       for c in _gateway_check},
-    "repeats": (len(_repeats), sum(a != b for a, b in _repeats)),
+    # (other attempt passed, canonical passed); the prose names the direction of the flips.
+    "repeats": (len(_repeats), sum(a != b for a, b in _repeats), sum(a and not b for a, b in _repeats)),
 }
 discussion_expected = {
     "pass_range": {"deepseek-v4p1-flash": 3, "glm-5p3-flash": 4, "gpt-5.6-luna": 4, "kimi-k3": 5},
@@ -131,7 +132,7 @@ discussion_expected = {
     "spend": {"total": 977.05, "defects": 407.57, "canonical": 288.25, "benchmark": 816.18},
     "gateway_check": {"deepseek-v4p1-flash": ("1.102.1", 4.2), "glm-5p3-flash": ("1.102.1", 4.4),
                       "kimi-k3": ("1.102.1", 4.3)},
-    "repeats": (8, 2),
+    "repeats": (8, 2, 2),
 }
 if discussion_quoted != discussion_expected:
     raise ValueError(f"Cross-model values changed; update the text: {discussion_quoted}")

@@ -53,7 +53,7 @@ def main() -> None:
         request = urllib.request.Request(TRIALS_URL, headers={"User-Agent": "PA1-DeepSWE-reference/1"})
         with urllib.request.urlopen(request, timeout=300) as response:
             raw = response.read()
-    tasks = {task["task_id"] for task in json.loads(TASKS_FILE.read_text())["selected_tasks"]}
+    tasks = {task["task_id"] for task in json.loads(TASKS_FILE.read_text(encoding="utf-8"))["selected_tasks"]}
     rows = [
         {**{field: trial.get(field) for field in FIELDS}, "pa1_model": MODELS[trial["model"]]}
         for trial in json.loads(raw)["rows"]
@@ -62,7 +62,7 @@ def main() -> None:
         and trial.get("included_in_score")
     ]
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    with (OUTPUT / "mini-swe-agent-rollouts.csv").open("w", newline="") as handle:
+    with (OUTPUT / "mini-swe-agent-rollouts.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=FIELDS)
         writer.writeheader()
         writer.writerows(sorted(rows, key=lambda r: (r["model"], r["task_name"], r["started_at"] or "")))
@@ -72,7 +72,7 @@ def main() -> None:
         "trials_json_sha256": hashlib.sha256(raw).hexdigest(),
         "archive_url": args.archive_url,
         "rollouts": len(rows),
-    }, indent=2) + "\n")
+    }, indent=2) + "\n", encoding="utf-8")
     print(f"{len(rows)} rollouts")
 
 

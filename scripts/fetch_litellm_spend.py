@@ -72,7 +72,10 @@ def main() -> None:
         if len(fetch_window(base, key, *windows[0])) >= QUERY_CAP:
             windows = [(start + dt.timedelta(hours=h), start + dt.timedelta(hours=h + 1)) for h in range(24)]
         for window in windows:
-            for row in fetch_window(base, key, *window):
+            rows = fetch_window(base, key, *window)
+            if len(windows) > 1 and len(rows) >= QUERY_CAP:
+                raise SystemExit(f"{window[0]:%Y-%m-%d %H}:00 reached the {QUERY_CAP}-request cap; the log would be incomplete")
+            for row in rows:
                 record = {field: row.get(field) for field in FIELDS}
                 record["key_alias"] = (row.get("metadata") or {}).get("user_api_key_alias")
                 requests[row["request_id"]] = record
