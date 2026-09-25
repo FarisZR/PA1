@@ -111,7 +111,10 @@ The configuration review found that the three primary Responses profiles named
 an entrypoint absent from OpenCode 2.0.3 and that Luna inherited a contradictory
 922,000-token input limit. They now use the frozen binary's built-in
 `@opencode-ai/ai/providers/openai/responses` entrypoint; Luna explicitly resolves
-to context/input/output limits of 272,000/144,000/128,000. The offline verifier's
+to context/input/output limits of 272,000/144,000/128,000. (This input limit made
+OpenCode compact at about 124,000 tokens. It was later removed together with the
+Pier startup check that required it, FZR-forks/pier#16; the repeated Luna run
+`opencode-v2-luna-272k` compacts at 240,000 tokens.) The offline verifier's
 shared binary cache is now locked, atomically populated, and checked against the
 frozen executable digest on every use.
 

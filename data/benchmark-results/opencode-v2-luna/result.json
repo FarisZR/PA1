@@ -1,252 +1,241 @@
 {
-    "id": "86bd6f2f-4328-441c-9c47-c6e7644facb9",
-    "started_at": "2026-09-22T10:13:42.195775",
-    "updated_at": "2026-09-22T16:07:50.431037",
-    "finished_at": "2026-09-22T16:07:50.431037",
+    "id": "d7dd5dfe-0361-439f-9824-fcff68405cf9",
+    "started_at": "2026-09-24T22:11:25.674347",
+    "updated_at": "2026-09-25T00:08:04.817999",
+    "finished_at": "2026-09-25T00:08:04.817999",
     "n_total_trials": 10,
     "stats": {
         "n_completed_trials": 10,
-        "n_errored_trials": 4,
+        "n_errored_trials": 1,
         "n_running_trials": 0,
         "n_pending_trials": 0,
         "n_cancelled_trials": 0,
-        "n_retries": 4,
+        "n_retries": 0,
         "evals": {
             "opencode-v2__gpt-5.6-luna__tasks": {
                 "n_trials": 10,
-                "n_errors": 4,
+                "n_errors": 1,
                 "metrics": [
                     {
-                        "f2p": 0.4519396199260785,
-                        "f2p_passed": 24.9,
+                        "f2p": 0.9626230661040788,
+                        "f2p_passed": 53.1,
                         "f2p_total": 53.6,
                         "p2p": 1.0,
                         "p2p_passed": 8935.9,
                         "p2p_total": 8935.9,
-                        "partial": 0.8628887730045671,
-                        "reward": 0.2
+                        "partial": 0.9969100408290951,
+                        "reward": 0.7
                     }
                 ],
                 "pass_at_k": {},
                 "reward_stats": {
                     "reward": {
                         "0": [
-                            "python-statemachine-state-data-s__YkJbLdh",
-                            "oxvg-structural-selector-preserv__mGjKfoa",
-                            "effect-sse-httpapi-streaming__rL66U8M",
-                            "boa-hierarchical-evaluation-canc__NezM7Mm",
-                            "katex-multicolumn-array-spans__zipARnF",
-                            "scriggo-method-declarations__Wh4kSiH",
-                            "fastapi-implicit-head-options__5wadDGu",
-                            "csstree-shorthand-expansion-comp__Nif4PHq"
+                            "python-statemachine-state-data-s__GkQnPuJ",
+                            "oxvg-structural-selector-preserv__sK3RqJr",
+                            "expr-try-catch-errors__RQepw7C"
                         ],
                         "1": [
-                            "expr-try-catch-errors__Uvvi6Eh",
-                            "koota-composite-trait-aspects__zesDvgS"
+                            "effect-sse-httpapi-streaming__nNAm973",
+                            "boa-hierarchical-evaluation-canc__iP5cChs",
+                            "katex-multicolumn-array-spans__vrfotSJ",
+                            "scriggo-method-declarations__HVEGzdg",
+                            "fastapi-implicit-head-options__coj39gL",
+                            "csstree-shorthand-expansion-comp__cJWNu7x",
+                            "koota-composite-trait-aspects__2RSJTSR"
                         ]
                     },
                     "f2p_total": {
                         "72": [
-                            "python-statemachine-state-data-s__YkJbLdh"
+                            "python-statemachine-state-data-s__GkQnPuJ"
                         ],
                         "6": [
-                            "oxvg-structural-selector-preserv__mGjKfoa"
+                            "oxvg-structural-selector-preserv__sK3RqJr"
                         ],
                         "47": [
-                            "effect-sse-httpapi-streaming__rL66U8M"
+                            "effect-sse-httpapi-streaming__nNAm973"
                         ],
                         "17": [
-                            "boa-hierarchical-evaluation-canc__NezM7Mm"
+                            "boa-hierarchical-evaluation-canc__iP5cChs"
                         ],
                         "79": [
-                            "expr-try-catch-errors__Uvvi6Eh",
-                            "csstree-shorthand-expansion-comp__Nif4PHq"
+                            "expr-try-catch-errors__RQepw7C",
+                            "csstree-shorthand-expansion-comp__cJWNu7x"
                         ],
                         "94": [
-                            "katex-multicolumn-array-spans__zipARnF"
+                            "katex-multicolumn-array-spans__vrfotSJ"
                         ],
                         "48": [
-                            "scriggo-method-declarations__Wh4kSiH"
+                            "scriggo-method-declarations__HVEGzdg"
                         ],
                         "43": [
-                            "fastapi-implicit-head-options__5wadDGu"
+                            "fastapi-implicit-head-options__coj39gL"
                         ],
                         "51": [
-                            "koota-composite-trait-aspects__zesDvgS"
+                            "koota-composite-trait-aspects__2RSJTSR"
                         ]
                     },
                     "f2p_passed": {
-                        "4": [
-                            "python-statemachine-state-data-s__YkJbLdh",
-                            "oxvg-structural-selector-preserv__mGjKfoa"
+                        "70": [
+                            "python-statemachine-state-data-s__GkQnPuJ"
                         ],
-                        "0": [
-                            "effect-sse-httpapi-streaming__rL66U8M",
-                            "boa-hierarchical-evaluation-canc__NezM7Mm",
-                            "katex-multicolumn-array-spans__zipARnF",
-                            "scriggo-method-declarations__Wh4kSiH"
+                        "4": [
+                            "oxvg-structural-selector-preserv__sK3RqJr"
+                        ],
+                        "47": [
+                            "effect-sse-httpapi-streaming__nNAm973"
+                        ],
+                        "17": [
+                            "boa-hierarchical-evaluation-canc__iP5cChs"
+                        ],
+                        "78": [
+                            "expr-try-catch-errors__RQepw7C"
+                        ],
+                        "94": [
+                            "katex-multicolumn-array-spans__vrfotSJ"
+                        ],
+                        "48": [
+                            "scriggo-method-declarations__HVEGzdg"
+                        ],
+                        "43": [
+                            "fastapi-implicit-head-options__coj39gL"
                         ],
                         "79": [
-                            "expr-try-catch-errors__Uvvi6Eh"
-                        ],
-                        "37": [
-                            "fastapi-implicit-head-options__5wadDGu"
-                        ],
-                        "74": [
-                            "csstree-shorthand-expansion-comp__Nif4PHq"
+                            "csstree-shorthand-expansion-comp__cJWNu7x"
                         ],
                         "51": [
-                            "koota-composite-trait-aspects__zesDvgS"
+                            "koota-composite-trait-aspects__2RSJTSR"
                         ]
                     },
                     "p2p_total": {
                         "1286": [
-                            "python-statemachine-state-data-s__YkJbLdh"
+                            "python-statemachine-state-data-s__GkQnPuJ"
                         ],
                         "62": [
-                            "oxvg-structural-selector-preserv__mGjKfoa"
+                            "oxvg-structural-selector-preserv__sK3RqJr"
                         ],
                         "70": [
-                            "effect-sse-httpapi-streaming__rL66U8M"
+                            "effect-sse-httpapi-streaming__nNAm973"
                         ],
                         "7": [
-                            "boa-hierarchical-evaluation-canc__NezM7Mm"
+                            "boa-hierarchical-evaluation-canc__iP5cChs"
                         ],
                         "66265": [
-                            "expr-try-catch-errors__Uvvi6Eh"
+                            "expr-try-catch-errors__RQepw7C"
                         ],
                         "599": [
-                            "katex-multicolumn-array-spans__zipARnF"
+                            "katex-multicolumn-array-spans__vrfotSJ"
                         ],
                         "1049": [
-                            "scriggo-method-declarations__Wh4kSiH"
+                            "scriggo-method-declarations__HVEGzdg"
                         ],
                         "3134": [
-                            "fastapi-implicit-head-options__5wadDGu"
+                            "fastapi-implicit-head-options__coj39gL"
                         ],
                         "16715": [
-                            "csstree-shorthand-expansion-comp__Nif4PHq"
+                            "csstree-shorthand-expansion-comp__cJWNu7x"
                         ],
                         "172": [
-                            "koota-composite-trait-aspects__zesDvgS"
+                            "koota-composite-trait-aspects__2RSJTSR"
                         ]
                     },
                     "p2p_passed": {
                         "1286": [
-                            "python-statemachine-state-data-s__YkJbLdh"
+                            "python-statemachine-state-data-s__GkQnPuJ"
                         ],
                         "62": [
-                            "oxvg-structural-selector-preserv__mGjKfoa"
+                            "oxvg-structural-selector-preserv__sK3RqJr"
                         ],
                         "70": [
-                            "effect-sse-httpapi-streaming__rL66U8M"
+                            "effect-sse-httpapi-streaming__nNAm973"
                         ],
                         "7": [
-                            "boa-hierarchical-evaluation-canc__NezM7Mm"
+                            "boa-hierarchical-evaluation-canc__iP5cChs"
                         ],
                         "66265": [
-                            "expr-try-catch-errors__Uvvi6Eh"
+                            "expr-try-catch-errors__RQepw7C"
                         ],
                         "599": [
-                            "katex-multicolumn-array-spans__zipARnF"
+                            "katex-multicolumn-array-spans__vrfotSJ"
                         ],
                         "1049": [
-                            "scriggo-method-declarations__Wh4kSiH"
+                            "scriggo-method-declarations__HVEGzdg"
                         ],
                         "3134": [
-                            "fastapi-implicit-head-options__5wadDGu"
+                            "fastapi-implicit-head-options__coj39gL"
                         ],
                         "16715": [
-                            "csstree-shorthand-expansion-comp__Nif4PHq"
+                            "csstree-shorthand-expansion-comp__cJWNu7x"
                         ],
                         "172": [
-                            "koota-composite-trait-aspects__zesDvgS"
+                            "koota-composite-trait-aspects__2RSJTSR"
                         ]
                     },
                     "f2p": {
-                        "0.05555555555555555": [
-                            "python-statemachine-state-data-s__YkJbLdh"
+                        "0.9722222222222222": [
+                            "python-statemachine-state-data-s__GkQnPuJ"
                         ],
                         "0.6666666666666666": [
-                            "oxvg-structural-selector-preserv__mGjKfoa"
-                        ],
-                        "0.0": [
-                            "effect-sse-httpapi-streaming__rL66U8M",
-                            "boa-hierarchical-evaluation-canc__NezM7Mm",
-                            "katex-multicolumn-array-spans__zipARnF",
-                            "scriggo-method-declarations__Wh4kSiH"
+                            "oxvg-structural-selector-preserv__sK3RqJr"
                         ],
                         "1.0": [
-                            "expr-try-catch-errors__Uvvi6Eh",
-                            "koota-composite-trait-aspects__zesDvgS"
+                            "effect-sse-httpapi-streaming__nNAm973",
+                            "boa-hierarchical-evaluation-canc__iP5cChs",
+                            "katex-multicolumn-array-spans__vrfotSJ",
+                            "scriggo-method-declarations__HVEGzdg",
+                            "fastapi-implicit-head-options__coj39gL",
+                            "csstree-shorthand-expansion-comp__cJWNu7x",
+                            "koota-composite-trait-aspects__2RSJTSR"
                         ],
-                        "0.8604651162790697": [
-                            "fastapi-implicit-head-options__5wadDGu"
-                        ],
-                        "0.9367088607594937": [
-                            "csstree-shorthand-expansion-comp__Nif4PHq"
+                        "0.9873417721518988": [
+                            "expr-try-catch-errors__RQepw7C"
                         ]
                     },
                     "p2p": {
                         "1.0": [
-                            "python-statemachine-state-data-s__YkJbLdh",
-                            "oxvg-structural-selector-preserv__mGjKfoa",
-                            "effect-sse-httpapi-streaming__rL66U8M",
-                            "boa-hierarchical-evaluation-canc__NezM7Mm",
-                            "expr-try-catch-errors__Uvvi6Eh",
-                            "katex-multicolumn-array-spans__zipARnF",
-                            "scriggo-method-declarations__Wh4kSiH",
-                            "fastapi-implicit-head-options__5wadDGu",
-                            "csstree-shorthand-expansion-comp__Nif4PHq",
-                            "koota-composite-trait-aspects__zesDvgS"
+                            "python-statemachine-state-data-s__GkQnPuJ",
+                            "oxvg-structural-selector-preserv__sK3RqJr",
+                            "effect-sse-httpapi-streaming__nNAm973",
+                            "boa-hierarchical-evaluation-canc__iP5cChs",
+                            "expr-try-catch-errors__RQepw7C",
+                            "katex-multicolumn-array-spans__vrfotSJ",
+                            "scriggo-method-declarations__HVEGzdg",
+                            "fastapi-implicit-head-options__coj39gL",
+                            "csstree-shorthand-expansion-comp__cJWNu7x",
+                            "koota-composite-trait-aspects__2RSJTSR"
                         ]
                     },
                     "partial": {
-                        "0.9499263622974963": [
-                            "python-statemachine-state-data-s__YkJbLdh"
+                        "0.9985272459499264": [
+                            "python-statemachine-state-data-s__GkQnPuJ"
                         ],
                         "0.9705882352941176": [
-                            "oxvg-structural-selector-preserv__mGjKfoa"
-                        ],
-                        "0.5982905982905983": [
-                            "effect-sse-httpapi-streaming__rL66U8M"
-                        ],
-                        "0.2916666666666667": [
-                            "boa-hierarchical-evaluation-canc__NezM7Mm"
+                            "oxvg-structural-selector-preserv__sK3RqJr"
                         ],
                         "1.0": [
-                            "expr-try-catch-errors__Uvvi6Eh",
-                            "koota-composite-trait-aspects__zesDvgS"
+                            "effect-sse-httpapi-streaming__nNAm973",
+                            "boa-hierarchical-evaluation-canc__iP5cChs",
+                            "katex-multicolumn-array-spans__vrfotSJ",
+                            "scriggo-method-declarations__HVEGzdg",
+                            "fastapi-implicit-head-options__coj39gL",
+                            "csstree-shorthand-expansion-comp__cJWNu7x",
+                            "koota-composite-trait-aspects__2RSJTSR"
                         ],
-                        "0.8643578643578643": [
-                            "katex-multicolumn-array-spans__zipARnF"
-                        ],
-                        "0.9562443026435734": [
-                            "scriggo-method-declarations__Wh4kSiH"
-                        ],
-                        "0.9981114258734656": [
-                            "fastapi-implicit-head-options__5wadDGu"
-                        ],
-                        "0.9997022746218888": [
-                            "csstree-shorthand-expansion-comp__Nif4PHq"
+                        "0.999984927046907": [
+                            "expr-try-catch-errors__RQepw7C"
                         ]
                     }
                 },
                 "exception_stats": {
-                    "AgentTimeoutError": [
-                        "effect-sse-httpapi-streaming__rL66U8M",
-                        "boa-hierarchical-evaluation-canc__NezM7Mm",
-                        "scriggo-method-declarations__Wh4kSiH"
-                    ],
                     "NonZeroAgentExitCodeError": [
-                        "katex-multicolumn-array-spans__zipARnF"
+                        "katex-multicolumn-array-spans__vrfotSJ"
                     ]
                 }
             }
         },
-        "n_input_tokens": 101439401,
-        "n_cache_tokens": 95842304,
-        "n_output_tokens": 754278,
-        "cost_usd": 3.941399079999999
+        "n_input_tokens": 205305197,
+        "n_cache_tokens": 201602048,
+        "n_output_tokens": 753431,
+        "cost_usd": 7.262685800000001
     }
 }

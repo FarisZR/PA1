@@ -1,6 +1,6 @@
 # OpenCode V2 primary Luna profile. The built-in OpenAI Responses profile is
 # preserved while its endpoint is redirected to the shared CLIProxyAPI route.
-job_name: opencode-v2-luna
+job_name: opencode-v2-luna-272k
 jobs_dir: benchmark/runs
 n_attempts: 1
 n_concurrent_trials: 6

