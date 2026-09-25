@@ -1,0 +1,19 @@
+```{=typst}
+#v(3em)
+```
+
+# Declaration of Authorship {.unnumbered .unlisted}
+
+I hereby declare that I prepared this work independently and used no sources or aids other than those stated in the paper. I have not submitted this work, or work with the same or comparable content, for any other examination, and it has not previously been published.
+
+I used AI tools in preparing this work. Their use is disclosed in the AI Acknowledgement.
+
+```{=typst}
+#v(3em)
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 2cm,
+  [#line(length: 90%) #linebreak() Place and date],
+  [#line(length: 90%) #linebreak() Signature],
+)
+```

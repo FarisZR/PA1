@@ -1,9 +1,6 @@
 ---
 title: "How do different agent harnesses affect the cost-efficiency and task-solving performance of coding models on software-engineering tasks?"
 author: "Fares Rahmani"
-abstract-title: "Abstract"
-abstract: |
-  TODO: Write the abstract after the study is complete.
 jupyter: python3
 execute:
   echo: false
@@ -11,10 +8,24 @@ execute:
 ---
 
 <!--
-TODO: Add DHBW-specific front matter only when the required format is known.
-Keep the title page, declarations, and page-numbering customizations out of the
-initial writing workflow unless they are explicitly required.
+TODO: Complete the DHBW-specific title details and page numbering when the
+required details are known. The declaration follows the title on the same page.
 -->
+
+{{< include chapters/_00-declaration.qmd >}}
+
+```{=typst}
+#pagebreak()
+```
+
+# Abstract {.unnumbered .unlisted}
+
+TODO: Write the abstract after the study is complete.
+
+```{=typst}
+#pagebreak()
+#outline(title: [Table of Contents], depth: 3)
+```
 
 <!--
 Quarto 1.10 exposes `lof` and `lot` as Typst options, but its stock Typst
@@ -56,5 +67,7 @@ sync with `bibliography` and `csl` in _quarto.yml.
 #pagebreak()
 #bibliography("references.bib", style: "ieee.csl")
 ```
+
+{{< include chapters/_07-ai-acknowledgement.qmd >}}
 
 {{< include chapters/_07-appendix.qmd >}}

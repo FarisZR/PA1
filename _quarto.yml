@@ -18,11 +18,11 @@ format:
       y: 2.5cm
     linestretch: 1.2
     number-sections: true
-    toc: true
+    # The declaration and abstract precede the manually placed contents list.
+    toc: false
     toc-depth: 3
     lof: true
     lot: true
     # The bibliography is placed before the appendix in pa1.qmd instead.
     template-partials:
       - partials/biblio.typ
-
