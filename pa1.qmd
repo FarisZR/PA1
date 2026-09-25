@@ -8,9 +8,8 @@ execute:
 ---
 
 <!--
-TODO: Complete the DHBW-specific title page and page numbering when the
-required details are known. The declaration below follows the title page, as
-specified in the recommended DHBW document structure.
+TODO: Complete the DHBW-specific title details and page numbering when the
+required details are known. The declaration follows the title on the same page.
 -->
 
 {{< include chapters/_00-declaration.qmd >}}

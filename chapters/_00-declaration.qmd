@@ -1,5 +1,5 @@
 ```{=typst}
-#pagebreak()
+#v(3em)
 ```
 
 # Declaration of Authorship {.unnumbered .unlisted}
