@@ -1,0 +1,271 @@
+job,trial,harness,model,retry_attempt,status,group,requests,token_matched_requests,spend_usd
+acceptance-cliproxy-codex,anko-default-function-arguments__kwL5Nog,codex,deepseek-v4-flash,False,not published: acceptance-cliproxy-codex,other benchmark overhead,84,80,0.185302
+acceptance-ds4,anko-default-function-arguments__pu8Cx5V,claude-code,deepseek-v4-flash,False,not published: acceptance-ds4,other benchmark overhead,200,170,0.754463
+acceptance-kimi,anko-default-function-arguments__Rs3xgse,claude-code,kimi-k3,False,not published: acceptance-kimi,other benchmark overhead,358,324,20.182738
+acceptance-kimi,anko-default-function-arguments__URozMXA,pi,kimi-k3,False,not published: acceptance-kimi,other benchmark overhead,66,66,4.215703
+acceptance-kimi,anko-default-function-arguments__qjkhgpn,codex,kimi-k3,False,not published: acceptance-kimi,other benchmark overhead,113,113,6.967063
+deepseek-claude-code-cliproxy-api,boa-hierarchical-evaluation-canc__qf9FKcM,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,237,237,0.771014
+deepseek-claude-code-cliproxy-api,csstree-shorthand-expansion-comp__WfV6FgJ,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,155,155,0.500696
+deepseek-claude-code-cliproxy-api,effect-sse-httpapi-streaming__9MuKNoF,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,300,300,0.752115
+deepseek-claude-code-cliproxy-api,expr-try-catch-errors__VJ35eLZ,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,482,482,1.588077
+deepseek-claude-code-cliproxy-api,fastapi-implicit-head-options__GtXaFbq,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,347,347,0.825198
+deepseek-claude-code-cliproxy-api,katex-multicolumn-array-spans__NRfmJMa,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,260,258,1.193909
+deepseek-claude-code-cliproxy-api,koota-composite-trait-aspects__Ys4DVrM,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,394,394,1.205015
+deepseek-claude-code-cliproxy-api,oxvg-structural-selector-preserv__e6KqwSa,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,264,264,1.269538
+deepseek-claude-code-cliproxy-api,python-statemachine-state-data-s__zEygVNE,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,237,237,0.596402
+deepseek-claude-code-cliproxy-api,scriggo-method-declarations__C4Q8qxa,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-cliproxy-default,other benchmark overhead,898,892,3.093292
+deepseek-claude-code-cliproxy-api-fixed-thinking,boa-hierarchical-evaluation-canc__5TfvMLo,claude-code,deepseek-v4p1-flash,False,canonical,canonical,143,143,0.427353
+deepseek-claude-code-cliproxy-api-fixed-thinking,csstree-shorthand-expansion-comp__yAKg7e2,claude-code,deepseek-v4p1-flash,False,canonical,canonical,93,93,0.334156
+deepseek-claude-code-cliproxy-api-fixed-thinking,effect-sse-httpapi-streaming__Ju8U9Ai,claude-code,deepseek-v4p1-flash,False,canonical,canonical,189,189,0.598722
+deepseek-claude-code-cliproxy-api-fixed-thinking,expr-try-catch-errors__4Pk8ZJR,claude-code,deepseek-v4p1-flash,False,canonical,canonical,132,132,0.530007
+deepseek-claude-code-cliproxy-api-fixed-thinking,fastapi-implicit-head-options__neJ8x56,claude-code,deepseek-v4p1-flash,False,canonical,canonical,122,122,0.393230
+deepseek-claude-code-cliproxy-api-fixed-thinking,katex-multicolumn-array-spans__bvBmz5k,claude-code,deepseek-v4p1-flash,False,canonical,canonical,163,163,0.519933
+deepseek-claude-code-cliproxy-api-fixed-thinking,koota-composite-trait-aspects__FeQidMz,claude-code,deepseek-v4p1-flash,False,canonical,canonical,164,164,0.561803
+deepseek-claude-code-cliproxy-api-fixed-thinking,oxvg-structural-selector-preserv__gtjAN56,claude-code,deepseek-v4p1-flash,False,canonical,canonical,334,333,1.148552
+deepseek-claude-code-cliproxy-api-fixed-thinking,python-statemachine-state-data-s__C5Ekyuf,claude-code,deepseek-v4p1-flash,False,canonical,canonical,166,166,0.617890
+deepseek-claude-code-cliproxy-api-fixed-thinking,scriggo-method-declarations__aJhqvb9,claude-code,deepseek-v4p1-flash,False,canonical,canonical,463,463,1.500060
+deepseek-claude-code-cliproxy-api-smoke,opencode-v2-smoke__2hLirkC,claude-code,deepseek-v4p1-flash,False,not published: deepseek-claude-code-cliproxy-api-smoke,other benchmark overhead,4,4,0.004529
+deepseek-claude-code-cliproxy-api-smoke-issue-102,opencode-v2-smoke__TG8NAWU,claude-code,deepseek-v4p1-flash,False,not published: deepseek-claude-code-cliproxy-api-smoke-issue-102,other benchmark overhead,4,4,0.004644
+deepseek-codex-rerun,boa-hierarchical-evaluation-canc__bujBCDU,codex,deepseek-v4p1-flash,False,canonical,canonical,207,207,0.538203
+deepseek-codex-rerun,effect-sse-httpapi-streaming__pM6HK7p,codex,deepseek-v4p1-flash,False,canonical,canonical,272,272,0.502151
+deepseek-codex-rerun,expr-try-catch-errors__Z8Wjqhh,codex,deepseek-v4p1-flash,False,canonical,canonical,287,285,0.717207
+deepseek-codex-rerun,oxvg-structural-selector-preserv__RLzXULE,codex,deepseek-v4p1-flash,False,canonical,canonical,245,245,0.560187
+deepseek-codex-rerun,python-statemachine-state-data-s__VgrK3jb,codex,deepseek-v4p1-flash,False,canonical,canonical,299,299,0.703084
+deepseek-pi-rerun,boa-hierarchical-evaluation-canc__wXi5Hv2,pi,deepseek-v4p1-flash,False,canonical,canonical,175,175,0.532228
+deepseek-pi-rerun,csstree-shorthand-expansion-comp__wWTdDFL,pi,deepseek-v4p1-flash,False,canonical,canonical,134,134,0.442137
+deepseek-pi-rerun,effect-sse-httpapi-streaming__NYJcwcy,pi,deepseek-v4p1-flash,False,canonical,canonical,209,209,0.596100
+deepseek-pi-rerun,expr-try-catch-errors__Vom5tyv,pi,deepseek-v4p1-flash,False,canonical,canonical,162,160,0.650465
+deepseek-pi-rerun,fastapi-implicit-head-options__2yniZC3,pi,deepseek-v4p1-flash,False,canonical,canonical,140,140,0.390223
+deepseek-pi-rerun,katex-multicolumn-array-spans__CV9r62V,pi,deepseek-v4p1-flash,False,canonical,canonical,142,142,0.423688
+deepseek-pi-rerun,koota-composite-trait-aspects__aNiq73b,pi,deepseek-v4p1-flash,False,canonical,canonical,180,180,0.584207
+deepseek-pi-rerun,oxvg-structural-selector-preserv__ZyAUs6k,pi,deepseek-v4p1-flash,False,canonical,canonical,228,228,0.832571
+deepseek-pi-rerun,python-statemachine-state-data-s__o4drR63,pi,deepseek-v4p1-flash,False,canonical,canonical,140,140,0.426659
+deepseek-pi-rerun,scriggo-method-declarations__knG5Q77,pi,deepseek-v4p1-flash,False,canonical,canonical,418,418,1.260145
+deepseek-pi-rerun-budget-crash,effect-sse-httpapi-streaming__meof4cA,pi,deepseek-v4p1-flash,True,excluded: deepseek-v4p1-flash/pi-rerun-budget-crash,other benchmark overhead,76,76,0.168244
+deepseek-pi-rerun-budget-crash,expr-try-catch-errors__WFK9f4w,pi,deepseek-v4p1-flash,True,excluded: deepseek-v4p1-flash/pi-rerun-budget-crash,other benchmark overhead,40,40,0.113223
+deepseek-pi-rerun-budget-crash,katex-multicolumn-array-spans__GyRz6MA,pi,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/pi-rerun-budget-crash,other benchmark overhead,20,0,0.000000
+deepseek-pi-rerun-budget-crash,katex-multicolumn-array-spans__GyRz6MA,pi,deepseek-v4p1-flash,True,excluded: deepseek-v4p1-flash/pi-rerun-budget-crash,other benchmark overhead,77,72,0.165734
+deepseek-v4p1-flash,boa-hierarchical-evaluation-canc__N52iXaG,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,164,164,0.787946
+deepseek-v4p1-flash,boa-hierarchical-evaluation-canc__T2STcwb,codex,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/codex,lost to gateway defects,127,127,0.735149
+deepseek-v4p1-flash,boa-hierarchical-evaluation-canc__wwvvuDr,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,308,308,0.610555
+deepseek-v4p1-flash,csstree-shorthand-expansion-comp__KzAaBD2,codex,deepseek-v4p1-flash,False,canonical,canonical,106,106,0.285343
+deepseek-v4p1-flash,csstree-shorthand-expansion-comp__j5qnWGi,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,70,70,0.153887
+deepseek-v4p1-flash,csstree-shorthand-expansion-comp__m5utCSB,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,125,125,0.319743
+deepseek-v4p1-flash,effect-sse-httpapi-streaming__VSoHSgv,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,280,280,0.485065
+deepseek-v4p1-flash,effect-sse-httpapi-streaming__oS7GKyx,codex,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/codex,lost to gateway defects,277,277,0.897749
+deepseek-v4p1-flash,effect-sse-httpapi-streaming__wCEWaFQ,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,428,428,1.067981
+deepseek-v4p1-flash,expr-try-catch-errors__7W4T4YW,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,325,325,0.654860
+deepseek-v4p1-flash,expr-try-catch-errors__EbwFJsC,codex,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/codex,lost to gateway defects,93,93,0.625713
+deepseek-v4p1-flash,expr-try-catch-errors__JfyamVz,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,171,171,0.825542
+deepseek-v4p1-flash,fastapi-implicit-head-options__6GzpTbm,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,130,130,0.364052
+deepseek-v4p1-flash,fastapi-implicit-head-options__jbKQNjp,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,143,143,0.233165
+deepseek-v4p1-flash,fastapi-implicit-head-options__pWtMJk5,codex,deepseek-v4p1-flash,False,canonical,canonical,146,146,0.344921
+deepseek-v4p1-flash,katex-multicolumn-array-spans__2cKox7Q,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,174,174,1.170888
+deepseek-v4p1-flash,katex-multicolumn-array-spans__WuqbLik,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,185,185,0.885016
+deepseek-v4p1-flash,katex-multicolumn-array-spans__oHdn7io,codex,deepseek-v4p1-flash,False,canonical,canonical,178,178,0.679659
+deepseek-v4p1-flash,koota-composite-trait-aspects__HmWkoKv,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,204,204,0.432805
+deepseek-v4p1-flash,koota-composite-trait-aspects__evigSAQ,codex,deepseek-v4p1-flash,False,canonical,canonical,184,184,0.465371
+deepseek-v4p1-flash,koota-composite-trait-aspects__foRHbWR,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,219,219,0.604694
+deepseek-v4p1-flash,oxvg-structural-selector-preserv__8ByPY3N,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,164,164,0.641135
+deepseek-v4p1-flash,oxvg-structural-selector-preserv__Wj9Bxfi,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,184,184,0.862501
+deepseek-v4p1-flash,oxvg-structural-selector-preserv__Wj9Bxfi,pi,deepseek-v4p1-flash,True,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,216,216,1.000092
+deepseek-v4p1-flash,oxvg-structural-selector-preserv__fJTZ3tJ,codex,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/codex,lost to gateway defects,157,157,0.788402
+deepseek-v4p1-flash,python-statemachine-state-data-s__8WwYSfA,codex,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/codex,lost to gateway defects,314,314,1.015706
+deepseek-v4p1-flash,python-statemachine-state-data-s__8WwYSfA,codex,deepseek-v4p1-flash,True,superseded: deepseek-v4p1-flash/codex,lost to gateway defects,353,353,1.185531
+deepseek-v4p1-flash,python-statemachine-state-data-s__YgjNuga,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,398,398,1.599988
+deepseek-v4p1-flash,python-statemachine-state-data-s__r7jsfUc,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,267,267,0.520264
+deepseek-v4p1-flash,scriggo-method-declarations__4CAMyqS,codex,deepseek-v4p1-flash,False,canonical,canonical,503,503,1.510517
+deepseek-v4p1-flash,scriggo-method-declarations__YUeLqjQ,claude-code,deepseek-v4p1-flash,False,excluded: deepseek-v4p1-flash/claude-code-litellm,lost to gateway defects,398,398,0.938934
+deepseek-v4p1-flash,scriggo-method-declarations__fkDTXz8,pi,deepseek-v4p1-flash,False,superseded: deepseek-v4p1-flash/pi,lost to gateway defects,359,359,1.178617
+glm-5.3-flash,boa-hierarchical-evaluation-canc__B3HmeHt,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,275,273,1.021890
+glm-5.3-flash,boa-hierarchical-evaluation-canc__HkKhYqY,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,557,555,1.344239
+glm-5.3-flash,boa-hierarchical-evaluation-canc__Ugknd2s,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,482,482,2.197048
+glm-5.3-flash,csstree-shorthand-expansion-comp__5KjAeNk,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,129,127,0.464558
+glm-5.3-flash,csstree-shorthand-expansion-comp__M9mWAKu,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,2040,2040,18.336497
+glm-5.3-flash,csstree-shorthand-expansion-comp__knDmmvi,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,300,300,1.153328
+glm-5.3-flash,effect-sse-httpapi-streaming__THTyyig,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,490,490,2.710814
+glm-5.3-flash,effect-sse-httpapi-streaming__ZvA2kue,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,2355,2355,23.189994
+glm-5.3-flash,effect-sse-httpapi-streaming__uj2BZAn,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,680,674,3.303995
+glm-5.3-flash,expr-try-catch-errors__CuSugrx,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,249,249,1.097233
+glm-5.3-flash,expr-try-catch-errors__F9jHMSH,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,2167,2167,22.214782
+glm-5.3-flash,expr-try-catch-errors__cfMv7s2,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,380,380,1.990472
+glm-5.3-flash,fastapi-implicit-head-options__46NzLwE,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,230,229,0.653326
+glm-5.3-flash,fastapi-implicit-head-options__4w4tfs2,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,423,418,1.335239
+glm-5.3-flash,fastapi-implicit-head-options__4w4tfs2,codex,glm-5p3-flash,True,excluded: glm-5.3-flash/first-run,lost to gateway defects,1096,1096,4.892387
+glm-5.3-flash,fastapi-implicit-head-options__86PZXXL,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,155,148,0.641366
+glm-5.3-flash,katex-multicolumn-array-spans__CyYLhDh,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,560,560,2.063785
+glm-5.3-flash,katex-multicolumn-array-spans__JCbKwuf,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,187,187,0.578773
+glm-5.3-flash,katex-multicolumn-array-spans__bZ5uz5t,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,2895,2895,14.911955
+glm-5.3-flash,koota-composite-trait-aspects__F9griUE,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,205,205,0.818020
+glm-5.3-flash,koota-composite-trait-aspects__c7PK5HR,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,2193,2188,22.506827
+glm-5.3-flash,koota-composite-trait-aspects__c7PK5HR,codex,glm-5p3-flash,True,excluded: glm-5.3-flash/first-run,lost to gateway defects,34,34,0.070726
+glm-5.3-flash,koota-composite-trait-aspects__vgDfrus,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,29,24,0.241990
+glm-5.3-flash,oxvg-structural-selector-preserv__9UiWZjB,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,363,363,1.597336
+glm-5.3-flash,oxvg-structural-selector-preserv__SK57URu,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,240,240,0.816827
+glm-5.3-flash,oxvg-structural-selector-preserv__hcuXYoq,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,455,455,2.634112
+glm-5.3-flash,python-statemachine-state-data-s__cCPBuZA,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,286,285,1.176608
+glm-5.3-flash,python-statemachine-state-data-s__hNVQUQS,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,331,331,1.556964
+glm-5.3-flash,python-statemachine-state-data-s__p8GQ9m8,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,2189,2189,20.141347
+glm-5.3-flash,scriggo-method-declarations__25gzz4M,pi,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,1300,1300,9.712013
+glm-5.3-flash,scriggo-method-declarations__5FQZtbK,codex,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,865,865,7.313066
+glm-5.3-flash,scriggo-method-declarations__RfRHKhf,claude-code,glm-5p3-flash,False,excluded: glm-5.3-flash/first-run,lost to gateway defects,905,905,6.826425
+glm-5.3-flash-2026-09-20,boa-hierarchical-evaluation-canc__9ek5Bvf,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,101,101,0.351733
+glm-5.3-flash-2026-09-20,boa-hierarchical-evaluation-canc__zafohdV,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,62,62,0.181334
+glm-5.3-flash-2026-09-20,boa-hierarchical-evaluation-canc__zafohdV,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,14,14,0.018348
+glm-5.3-flash-2026-09-20,csstree-shorthand-expansion-comp__WZoNwP8,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,366,366,1.395603
+glm-5.3-flash-2026-09-20,csstree-shorthand-expansion-comp__WZoNwP8,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,9,9,0.011671
+glm-5.3-flash-2026-09-20,csstree-shorthand-expansion-comp__uFbgd93,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,233,233,0.805671
+glm-5.3-flash-2026-09-20,effect-sse-httpapi-streaming__KtW2jyJ,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,373,373,1.443444
+glm-5.3-flash-2026-09-20,effect-sse-httpapi-streaming__KtW2jyJ,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,11,11,0.008438
+glm-5.3-flash-2026-09-20,effect-sse-httpapi-streaming__Vm2hxEL,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,259,259,1.167653
+glm-5.3-flash-2026-09-20,expr-try-catch-errors__uszrsPy,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,316,205,1.303084
+glm-5.3-flash-2026-09-20,expr-try-catch-errors__wFzvJho,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,238,238,1.008616
+glm-5.3-flash-2026-09-20,expr-try-catch-errors__wFzvJho,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,14,14,0.024776
+glm-5.3-flash-2026-09-20,fastapi-implicit-head-options__KhRxaLq,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,366,366,1.523226
+glm-5.3-flash-2026-09-20,fastapi-implicit-head-options__KhRxaLq,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,15,15,0.018283
+glm-5.3-flash-2026-09-20,fastapi-implicit-head-options__X3edhdU,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,250,250,0.812855
+glm-5.3-flash-2026-09-20,katex-multicolumn-array-spans__2orwZJt,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,347,347,1.317023
+glm-5.3-flash-2026-09-20,katex-multicolumn-array-spans__ip4yBi3,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,197,197,0.564492
+glm-5.3-flash-2026-09-20,katex-multicolumn-array-spans__ip4yBi3,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,11,11,0.012834
+glm-5.3-flash-2026-09-20,koota-composite-trait-aspects__48zPrhr,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,183,183,0.689507
+glm-5.3-flash-2026-09-20,koota-composite-trait-aspects__kSkbB8J,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,101,101,0.394697
+glm-5.3-flash-2026-09-20,koota-composite-trait-aspects__kSkbB8J,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,8,8,0.015347
+glm-5.3-flash-2026-09-20,oxvg-structural-selector-preserv__BmTZY7U,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,958,958,1.571758
+glm-5.3-flash-2026-09-20,oxvg-structural-selector-preserv__BmTZY7U,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,13,13,0.025315
+glm-5.3-flash-2026-09-20,oxvg-structural-selector-preserv__ELGGZgn,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,278,278,1.130064
+glm-5.3-flash-2026-09-20,python-statemachine-state-data-s__5WwgN3G,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,170,170,0.911008
+glm-5.3-flash-2026-09-20,python-statemachine-state-data-s__syVZEah,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,479,479,2.339014
+glm-5.3-flash-2026-09-20,python-statemachine-state-data-s__syVZEah,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,14,14,0.013607
+glm-5.3-flash-2026-09-20,scriggo-method-declarations__Bs4MYS5,codex,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,604,604,2.699066
+glm-5.3-flash-2026-09-20,scriggo-method-declarations__Bs4MYS5,codex,glm-5p3-flash,True,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,16,16,0.017355
+glm-5.3-flash-2026-09-20,scriggo-method-declarations__YZUiN4i,claude-code,glm-5p3-flash,False,not published: glm-5.3-flash-2026-09-20,lost to gateway defects,551,551,2.480895
+glm-5.3-flash-rerun,boa-hierarchical-evaluation-canc__3oC5b9h,claude-code,glm-5p3-flash,False,canonical,canonical,135,135,0.814651
+glm-5.3-flash-rerun,boa-hierarchical-evaluation-canc__LLnFDno,pi,glm-5p3-flash,False,canonical,canonical,167,167,0.661889
+glm-5.3-flash-rerun,boa-hierarchical-evaluation-canc__PRcRUVc,codex,glm-5p3-flash,False,canonical,canonical,174,174,0.642619
+glm-5.3-flash-rerun,csstree-shorthand-expansion-comp__VcWdbtk,codex,glm-5p3-flash,False,canonical,canonical,222,222,0.722988
+glm-5.3-flash-rerun,csstree-shorthand-expansion-comp__XUPhFRp,claude-code,glm-5p3-flash,False,canonical,canonical,59,59,0.277080
+glm-5.3-flash-rerun,csstree-shorthand-expansion-comp__jYtUApP,pi,glm-5p3-flash,False,canonical,canonical,41,41,0.209473
+glm-5.3-flash-rerun,effect-sse-httpapi-streaming__QUXp6xx,pi,glm-5p3-flash,False,canonical,canonical,164,164,0.896990
+glm-5.3-flash-rerun,effect-sse-httpapi-streaming__TEbnxKu,codex,glm-5p3-flash,False,canonical,canonical,178,178,0.869781
+glm-5.3-flash-rerun,effect-sse-httpapi-streaming__g67FZmv,claude-code,glm-5p3-flash,False,canonical,canonical,167,167,0.949897
+glm-5.3-flash-rerun,expr-try-catch-errors__Q9LNEq9,pi,glm-5p3-flash,False,canonical,canonical,174,174,0.835523
+glm-5.3-flash-rerun,expr-try-catch-errors__mtSQgS8,codex,glm-5p3-flash,False,canonical,canonical,192,192,0.819823
+glm-5.3-flash-rerun,expr-try-catch-errors__wKptCU3,claude-code,glm-5p3-flash,False,canonical,canonical,111,111,0.581632
+glm-5.3-flash-rerun,fastapi-implicit-head-options__7y2uFjR,claude-code,glm-5p3-flash,False,canonical,canonical,107,107,0.504940
+glm-5.3-flash-rerun,fastapi-implicit-head-options__HNWBokH,pi,glm-5p3-flash,False,canonical,canonical,86,86,0.381001
+glm-5.3-flash-rerun,fastapi-implicit-head-options__iD6Pk2M,codex,glm-5p3-flash,False,canonical,canonical,138,138,0.407092
+glm-5.3-flash-rerun,katex-multicolumn-array-spans__r2SyHJw,codex,glm-5p3-flash,False,canonical,canonical,129,129,0.392463
+glm-5.3-flash-rerun,katex-multicolumn-array-spans__sftUYaH,claude-code,glm-5p3-flash,False,canonical,canonical,116,116,0.551160
+glm-5.3-flash-rerun,katex-multicolumn-array-spans__u6bNTqW,pi,glm-5p3-flash,False,canonical,canonical,130,130,0.599010
+glm-5.3-flash-rerun,koota-composite-trait-aspects__44BKjXH,claude-code,glm-5p3-flash,False,canonical,canonical,151,151,0.844528
+glm-5.3-flash-rerun,koota-composite-trait-aspects__t8GQx3K,codex,glm-5p3-flash,False,canonical,canonical,228,228,1.081196
+glm-5.3-flash-rerun,koota-composite-trait-aspects__uHa7qKF,pi,glm-5p3-flash,False,canonical,canonical,194,194,1.029791
+glm-5.3-flash-rerun,oxvg-structural-selector-preserv__KSNdDdc,pi,glm-5p3-flash,False,canonical,canonical,159,159,0.730862
+glm-5.3-flash-rerun,oxvg-structural-selector-preserv__Vo2eUNL,codex,glm-5p3-flash,False,canonical,canonical,104,104,0.404520
+glm-5.3-flash-rerun,oxvg-structural-selector-preserv__n9S6Ky5,claude-code,glm-5p3-flash,False,canonical,canonical,172,172,0.945352
+glm-5.3-flash-rerun,python-statemachine-state-data-s__3sEcnv4,claude-code,glm-5p3-flash,False,canonical,canonical,188,188,1.145636
+glm-5.3-flash-rerun,python-statemachine-state-data-s__TJKvASN,codex,glm-5p3-flash,False,canonical,canonical,158,158,0.696031
+glm-5.3-flash-rerun,python-statemachine-state-data-s__fstgUpf,pi,glm-5p3-flash,False,canonical,canonical,257,237,1.418360
+glm-5.3-flash-rerun,scriggo-method-declarations__Tu4zVDu,codex,glm-5p3-flash,False,canonical,canonical,316,316,1.480936
+glm-5.3-flash-rerun,scriggo-method-declarations__ahiS3ra,pi,glm-5p3-flash,False,canonical,canonical,473,473,3.210683
+glm-5.3-flash-rerun,scriggo-method-declarations__uZAtETn,claude-code,glm-5p3-flash,False,canonical,canonical,519,498,4.235631
+kimi-k3,boa-hierarchical-evaluation-canc__245SQfJ,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,174,174,8.047222
+kimi-k3,boa-hierarchical-evaluation-canc__cUfVvX7,pi,kimi-k3,False,canonical,canonical,116,116,5.951808
+kimi-k3,boa-hierarchical-evaluation-canc__v8kdp5C,codex,kimi-k3,False,canonical,canonical,189,189,10.406233
+kimi-k3,csstree-shorthand-expansion-comp__4hUtHNN,pi,kimi-k3,False,canonical,canonical,65,65,2.355919
+kimi-k3,csstree-shorthand-expansion-comp__6vuvpdq,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,77,77,2.479678
+kimi-k3,csstree-shorthand-expansion-comp__ME8CVaQ,codex,kimi-k3,False,canonical,canonical,49,49,3.922966
+kimi-k3,effect-sse-httpapi-streaming__39RtzMT,pi,kimi-k3,False,canonical,canonical,137,137,6.636536
+kimi-k3,effect-sse-httpapi-streaming__PnvLNXA,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,407,407,19.159090
+kimi-k3,effect-sse-httpapi-streaming__X99kS8q,codex,kimi-k3,False,canonical,canonical,161,161,10.404152
+kimi-k3,expr-try-catch-errors__6nXFbiV,pi,kimi-k3,False,canonical,canonical,116,115,5.962914
+kimi-k3,expr-try-catch-errors__tUXUfys,codex,kimi-k3,False,canonical,canonical,155,155,9.627825
+kimi-k3,expr-try-catch-errors__xdh2hSz,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,284,284,16.120615
+kimi-k3,fastapi-implicit-head-options__2Tg3eMe,pi,kimi-k3,False,canonical,canonical,104,104,3.196894
+kimi-k3,fastapi-implicit-head-options__2Tg3eMe,pi,kimi-k3,True,retry (non-canonical),other benchmark overhead,32,32,1.073764
+kimi-k3,fastapi-implicit-head-options__CdKbHQt,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,180,180,6.288799
+kimi-k3,fastapi-implicit-head-options__STL2u86,codex,kimi-k3,False,canonical,canonical,135,135,7.199174
+kimi-k3,katex-multicolumn-array-spans__LfhLMSd,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,149,149,4.614293
+kimi-k3,katex-multicolumn-array-spans__cdFjGfW,pi,kimi-k3,False,canonical,canonical,79,79,2.604409
+kimi-k3,katex-multicolumn-array-spans__cdFjGfW,pi,kimi-k3,True,retry (non-canonical),other benchmark overhead,51,51,1.567351
+kimi-k3,katex-multicolumn-array-spans__gjm5bSa,codex,kimi-k3,False,canonical,canonical,99,99,6.178017
+kimi-k3,koota-composite-trait-aspects__BuQFGiG,codex,kimi-k3,False,canonical,canonical,322,322,24.436301
+kimi-k3,koota-composite-trait-aspects__FBs3PJg,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,238,238,10.922676
+kimi-k3,koota-composite-trait-aspects__JWZnkA9,pi,kimi-k3,False,canonical,canonical,132,132,7.804481
+kimi-k3,oxvg-structural-selector-preserv__6RJxk4a,pi,kimi-k3,False,canonical,canonical,140,140,8.118428
+kimi-k3,oxvg-structural-selector-preserv__USS6tzH,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,310,310,17.433251
+kimi-k3,oxvg-structural-selector-preserv__vcjhjue,codex,kimi-k3,False,canonical,canonical,220,220,13.804344
+kimi-k3,python-statemachine-state-data-s__DygNFF5,pi,kimi-k3,False,canonical,canonical,123,123,7.264633
+kimi-k3,python-statemachine-state-data-s__SzvNQWZ,codex,kimi-k3,False,canonical,canonical,236,236,14.190006
+kimi-k3,python-statemachine-state-data-s__rPBVs54,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,157,157,6.801844
+kimi-k3,scriggo-method-declarations__PkULDqE,pi,kimi-k3,False,canonical,canonical,297,297,20.975701
+kimi-k3,scriggo-method-declarations__hFMoy8t,claude-code,kimi-k3,False,excluded: kimi-k3/claude-code,lost to gateway defects,647,647,50.355297
+kimi-k3,scriggo-method-declarations__xe6AG2H,codex,kimi-k3,False,canonical,canonical,530,530,55.548155
+kimi-k3-14,boa-hierarchical-evaluation-canc__LXxiQXx,pi,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,71,46,6.654311
+kimi-k3-14,boa-hierarchical-evaluation-canc__rJ9MeYp,codex,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,65,65,3.708924
+kimi-k3-14,boa-hierarchical-evaluation-canc__uNRMLDj,claude-code,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,97,97,3.179209
+kimi-k3-14,effect-sse-httpapi-streaming__4buf8CV,codex,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,75,75,3.616894
+kimi-k3-14,effect-sse-httpapi-streaming__XyKdMgU,pi,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,66,66,2.741704
+kimi-k3-14,effect-sse-httpapi-streaming__eyndd6v,claude-code,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,133,133,4.151914
+kimi-k3-14,expr-try-catch-errors__TsXUJMw,claude-code,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,131,131,5.221631
+kimi-k3-14,expr-try-catch-errors__wP9DtiL,pi,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,66,66,2.785901
+kimi-k3-14,oxvg-structural-selector-preserv__cJvpZ6X,claude-code,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,119,119,3.078794
+kimi-k3-14,oxvg-structural-selector-preserv__dWMJkZ6,pi,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,67,67,2.166401
+kimi-k3-14,oxvg-structural-selector-preserv__v5FpZmC,codex,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,45,45,2.334158
+kimi-k3-14,python-statemachine-state-data-s__NGfVHWu,claude-code,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,139,139,5.315596
+kimi-k3-14,python-statemachine-state-data-s__geTLgYv,codex,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,92,92,4.448134
+kimi-k3-14,python-statemachine-state-data-s__hxhY7FZ,pi,kimi-k3,False,not published: kimi-k3-14,other benchmark overhead,74,74,2.848470
+kimi-k3-old-docker,boa-hierarchical-evaluation-canc__dUWgTCb,pi,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,28,28,0.816412
+kimi-k3-old-docker,boa-hierarchical-evaluation-canc__vh9THSP,claude-code,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,57,41,2.523108
+kimi-k3-old-docker,effect-sse-httpapi-streaming__r4YaiBF,claude-code,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,34,34,0.803912
+kimi-k3-old-docker,effect-sse-httpapi-streaming__rKvuGPy,codex,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,18,18,0.348476
+kimi-k3-old-docker,effect-sse-httpapi-streaming__yS6SZdS,pi,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,26,26,0.674608
+kimi-k3-old-docker,expr-try-catch-errors__jmRjqwp,claude-code,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,41,41,1.169688
+kimi-k3-old-docker,expr-try-catch-errors__uzbq8Pq,pi,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,22,22,0.652242
+kimi-k3-old-docker,oxvg-structural-selector-preserv__8sSn4Jp,claude-code,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,26,26,0.629281
+kimi-k3-old-docker,oxvg-structural-selector-preserv__MZ34qpD,codex,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,15,15,0.332511
+kimi-k3-old-docker,oxvg-structural-selector-preserv__aXyPgQ6,pi,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,34,34,0.606239
+kimi-k3-old-docker,python-statemachine-state-data-s__4Ma9s3R,claude-code,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,22,22,0.809766
+kimi-k3-old-docker,python-statemachine-state-data-s__XzKhzXt,pi,kimi-k3,False,not published: kimi-k3-old-docker,other benchmark overhead,28,28,0.950140
+opencode-v2-current-routes-low-smoke,opencode-v2-smoke__Zg9reB2,opencode-v2,deepseek-v4p1-flash,False,not published: opencode-v2-current-routes-low-smoke,other benchmark overhead,3,3,0.001675
+opencode-v2-deepseek-v4p1-flash,boa-hierarchical-evaluation-canc__95Zq5C9,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,250,250,0.674952
+opencode-v2-deepseek-v4p1-flash,csstree-shorthand-expansion-comp__q72TLUx,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,124,124,0.351107
+opencode-v2-deepseek-v4p1-flash,effect-sse-httpapi-streaming__CJjyYe9,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,218,218,0.578084
+opencode-v2-deepseek-v4p1-flash,expr-try-catch-errors__VqssK6x,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,162,162,0.483505
+opencode-v2-deepseek-v4p1-flash,fastapi-implicit-head-options__5UY3Gb3,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,170,170,0.337023
+opencode-v2-deepseek-v4p1-flash,fastapi-implicit-head-options__5UY3Gb3,opencode-v2,deepseek-v4p1-flash,True,retry (non-canonical),other benchmark overhead,163,163,0.369718
+opencode-v2-deepseek-v4p1-flash,katex-multicolumn-array-spans__73HZQ6c,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,220,220,0.555777
+opencode-v2-deepseek-v4p1-flash,katex-multicolumn-array-spans__73HZQ6c,opencode-v2,deepseek-v4p1-flash,True,retry (non-canonical),other benchmark overhead,156,156,0.391774
+opencode-v2-deepseek-v4p1-flash,koota-composite-trait-aspects__KKujPmj,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,245,245,0.606090
+opencode-v2-deepseek-v4p1-flash,koota-composite-trait-aspects__KKujPmj,opencode-v2,deepseek-v4p1-flash,True,retry (non-canonical),other benchmark overhead,194,194,0.492741
+opencode-v2-deepseek-v4p1-flash,oxvg-structural-selector-preserv__KYpqmMT,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,173,173,0.425628
+opencode-v2-deepseek-v4p1-flash,python-statemachine-state-data-s__mC52p3E,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,199,199,0.464424
+opencode-v2-deepseek-v4p1-flash,scriggo-method-declarations__7mKVSxh,opencode-v2,deepseek-v4p1-flash,False,canonical,canonical,352,352,0.926829
+opencode-v2-deepseek-v4p1-flash,scriggo-method-declarations__7mKVSxh,opencode-v2,deepseek-v4p1-flash,True,retry (non-canonical),other benchmark overhead,399,399,1.108483
+opencode-v2-glm-5.3-flash,boa-hierarchical-evaluation-canc__nnfMJ3T,opencode-v2,glm-5p3-flash,False,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,338,0,1.852027
+opencode-v2-glm-5.3-flash,csstree-shorthand-expansion-comp__pzbhKFG,opencode-v2,glm-5p3-flash,False,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,131,131,0.291231
+opencode-v2-glm-5.3-flash,effect-sse-httpapi-streaming__9Fyu5sF,opencode-v2,glm-5p3-flash,False,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,734,734,4.320577
+opencode-v2-glm-5.3-flash,expr-try-catch-errors__7FYm4AH,opencode-v2,glm-5p3-flash,False,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,573,485,3.258194
+opencode-v2-glm-5.3-flash,fastapi-implicit-head-options__AHE7FA5,opencode-v2,glm-5p3-flash,False,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,493,196,1.819765
+opencode-v2-glm-5.3-flash,katex-multicolumn-array-spans__yEMU63T,opencode-v2,glm-5p3-flash,False,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,222,222,0.829822
+opencode-v2-glm-5.3-flash,katex-multicolumn-array-spans__yEMU63T,opencode-v2,glm-5p3-flash,True,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,121,121,0.478533
+opencode-v2-glm-5.3-flash,koota-composite-trait-aspects__a2bYe8H,opencode-v2,glm-5p3-flash,False,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,1626,471,12.132373
+opencode-v2-glm-5.3-flash,koota-composite-trait-aspects__a2bYe8H,opencode-v2,glm-5p3-flash,True,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,439,439,2.248991
+opencode-v2-glm-5.3-flash,python-statemachine-state-data-s__8GSoSKb,opencode-v2,glm-5p3-flash,False,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,461,461,2.503610
+opencode-v2-glm-5.3-flash,scriggo-method-declarations__664x8jf,opencode-v2,glm-5p3-flash,False,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,154,0,2.097437
+opencode-v2-glm-5.3-flash,scriggo-method-declarations__664x8jf,opencode-v2,glm-5p3-flash,True,excluded: glm-5.3-flash/opencode-v2-first-run,lost to gateway defects,781,781,5.148829
+opencode-v2-glm-5.3-flash-rerun,boa-hierarchical-evaluation-canc__S7ksF5e,opencode-v2,glm-5p3-flash,False,canonical,canonical,187,187,0.651923
+opencode-v2-glm-5.3-flash-rerun,csstree-shorthand-expansion-comp__nWBWGDK,opencode-v2,glm-5p3-flash,False,canonical,canonical,83,83,0.316888
+opencode-v2-glm-5.3-flash-rerun,effect-sse-httpapi-streaming__N7c7A6A,opencode-v2,glm-5p3-flash,False,canonical,canonical,169,169,0.697555
+opencode-v2-glm-5.3-flash-rerun,expr-try-catch-errors__TGM7to8,opencode-v2,glm-5p3-flash,False,canonical,canonical,142,142,0.626985
+opencode-v2-glm-5.3-flash-rerun,fastapi-implicit-head-options__iZfr4WP,opencode-v2,glm-5p3-flash,False,canonical,canonical,95,95,0.350230
+opencode-v2-glm-5.3-flash-rerun,katex-multicolumn-array-spans__jhTxsr2,opencode-v2,glm-5p3-flash,False,canonical,canonical,118,118,0.508770
+opencode-v2-glm-5.3-flash-rerun,koota-composite-trait-aspects__9uZrf7i,opencode-v2,glm-5p3-flash,False,canonical,canonical,186,186,0.799003
+opencode-v2-glm-5.3-flash-rerun,oxvg-structural-selector-preserv__Zs2i7dG,opencode-v2,glm-5p3-flash,False,canonical,canonical,230,230,1.173927
+opencode-v2-glm-5.3-flash-rerun,python-statemachine-state-data-s__2ub5mVm,opencode-v2,glm-5p3-flash,False,canonical,canonical,254,217,1.098320
+opencode-v2-glm-5.3-flash-rerun,scriggo-method-declarations__4n4xgjV,opencode-v2,glm-5p3-flash,False,canonical,canonical,404,404,2.614177
+smoke-current-routes,opencode-v2-smoke__6tpN2S5,claude-code,deepseek-v4p1-flash,False,not published: smoke-current-routes,other benchmark overhead,3,3,0.007912
+smoke-current-routes,opencode-v2-smoke__NHrxBBb,codex,deepseek-v4p1-flash,False,not published: smoke-current-routes,other benchmark overhead,4,4,0.004312
+smoke-current-routes,opencode-v2-smoke__SH5zhH9,pi,deepseek-v4p1-flash,False,not published: smoke-current-routes,other benchmark overhead,3,3,0.000897
+smoke-luna,anko-default-function-arguments__UuKDPgK,pi,gpt-5.6-luna,False,not published: smoke-luna,other benchmark overhead,30,30,0.017292
+smoke-luna,anko-default-function-arguments__XUpEuFJ,claude-code,gpt-5.6-luna,False,not published: smoke-luna,other benchmark overhead,87,73,0.221468

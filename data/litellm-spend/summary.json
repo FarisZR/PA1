@@ -1,0 +1,100 @@
+{
+  "source": {
+    "gateway": "AiOrbit (LiteLLM), researcher's user, all API keys",
+    "endpoint": "/spend/logs/v2 (per request), /user/daily/activity (per day)",
+    "fetched_at": "2026-09-25T19:27:47+00:00",
+    "period": [
+      "2026-08-01",
+      "2026-09-25"
+    ],
+    "requests": 78943,
+    "private_log_sha256": "89873129f5fde80ab26cb80d56dcbd64f43434a82284571b8b0602890647a25c",
+    "daily_activity_spend_usd": 976.68
+  },
+  "total_spend_usd": 977.05,
+  "by_group": {
+    "lost to gateway defects": 407.57,
+    "canonical": 288.25,
+    "outside benchmark": 160.87,
+    "other benchmark overhead": 112.38,
+    "unassigned benchmark": 7.98
+  },
+  "by_status": {
+    "canonical": 288.25,
+    "excluded: glm-5.3-flash/first-run": 179.51,
+    "excluded: kimi-k3/claude-code": 142.22,
+    "not published: kimi-k3-14": 52.25,
+    "excluded: glm-5.3-flash/opencode-v2-first-run": 36.98,
+    "not published: acceptance-kimi": 31.37,
+    "not published: glm-5.3-flash-2026-09-20": 24.26,
+    "excluded: deepseek-v4p1-flash/claude-code-cliproxy-default": 11.8,
+    "not published: kimi-k3-old-docker": 10.32,
+    "superseded: deepseek-v4p1-flash/pi": 9.78,
+    "excluded: deepseek-v4p1-flash/claude-code-litellm": 5.56,
+    "superseded: deepseek-v4p1-flash/codex": 5.25,
+    "retry (non-canonical)": 5.0,
+    "overlapping defect-affected attempts": 4.01,
+    "not published: acceptance-ds4": 0.75,
+    "excluded: deepseek-v4p1-flash/pi-rerun-budget-crash": 0.45,
+    "not published: smoke-luna": 0.24,
+    "not published: acceptance-cliproxy-codex": 0.19,
+    "not published: smoke-current-routes": 0.01,
+    "not published: deepseek-claude-code-cliproxy-api-smoke-issue-102": 0.0,
+    "not published: deepseek-claude-code-cliproxy-api-smoke": 0.0,
+    "not published: opencode-v2-current-routes-low-smoke": 0.0
+  },
+  "unassigned_benchmark": {
+    "canonical | excluded: kimi-k3/claude-code | retry (non-canonical)": 4.71,
+    "canonical | excluded: kimi-k3/claude-code": 2.73,
+    "canonical | excluded: deepseek-v4p1-flash/claude-code-litellm | superseded: deepseek-v4p1-flash/pi": 0.21,
+    "canonical | excluded: deepseek-v4p1-flash/claude-code-litellm | superseded: deepseek-v4p1-flash/codex | superseded: deepseek-v4p1-flash/pi": 0.15,
+    "canonical | retry (non-canonical)": 0.15,
+    "canonical | superseded: deepseek-v4p1-flash/pi": 0.02
+  },
+  "outside_benchmark_by_model": {
+    "gpt-5.6-sol": 143.06,
+    "glm-5p3-flash": 13.51,
+    "gpt-5.6-luna": 2.22,
+    "kimi-k3": 1.71,
+    "deepseek-v4p1-flash": 0.2,
+    "gpt-5.6-terra": 0.06,
+    "claude-sonnet-4-6": 0.03,
+    "deepseek-v4-flash-0731": 0.02,
+    "deepseek-v4-pro-0813": 0.02,
+    "Qwen3.5-397B-A17B": 0.02,
+    "glm-5p3": 0.01,
+    "search": 0.01,
+    "glm-5p2": 0.0,
+    "Qwen3.5-9B": 0.0,
+    "kimi-k2p7-code": 0.0,
+    "Qwen3.8-27B": 0.0,
+    "minimax-m3": 0.0,
+    "Qwen3-Coder-Next": 0.0,
+    "claude-haiku-4-5": 0.0,
+    "claude-sonnet-4-5": 0.0,
+    "gpt-5.6-luna[1m]": 0.0,
+    "kimi-k3[1m]": 0.0,
+    "deepseek-v4-flash-0731[1m]": 0.0,
+    "bogus-model-abc": 0.0,
+    "": 0.0,
+    "deepseek-v4-flash": 0.0,
+    "exa-ai": 0.0,
+    "claude-sonnet-5": 0.0,
+    "claude-haiku-4-5-20251001": 0.0
+  },
+  "by_method": {
+    "token match": 777.68,
+    "outside benchmark": 160.87,
+    "time window": 30.52,
+    "unassigned": 7.98
+  },
+  "defect_statuses": [
+    "excluded: deepseek-v4p1-flash/claude-code-litellm",
+    "excluded: glm-5.3-flash/first-run",
+    "excluded: glm-5.3-flash/opencode-v2-first-run",
+    "excluded: kimi-k3/claude-code",
+    "not published: glm-5.3-flash-2026-09-20",
+    "superseded: deepseek-v4p1-flash/codex",
+    "superseded: deepseek-v4p1-flash/pi"
+  ]
+}
