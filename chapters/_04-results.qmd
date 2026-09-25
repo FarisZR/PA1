@@ -2387,14 +2387,79 @@ _first_vs_rerun = {
     if h != "opencode-v2"
 }
 
-# DeepSeek V4.1 Flash trials without their earlier reasoning, for the comparison of failure modes.
-_EXCLUDED_DS = Path("data/benchmark-results/.excluded/deepseek-v4p1-flash")
-_ds_jobs = [Path("data/benchmark-results/.superseded/issue-111/deepseek-v4p1-flash/codex"),
-            Path("data/benchmark-results/.superseded/issue-111/deepseek-v4p1-flash/pi"), _EXCLUDED_DS / "claude-code-litellm", _EXCLUDED_DS / "claude-code-cliproxy-default"]
+# DeepSeek V4.1 Flash trials that lost their earlier reasoning to the same gateway defect, each
+# paired with the canonical trial of the same task and harness. Claude Code uses the default
+# CLIProxyAPI run, which requested `max` effort like the canonical run.
+_SUPERSEDED_DS = Path("data/benchmark-results/.superseded/issue-111/deepseek-v4p1-flash")
+_ds_jobs = [_SUPERSEDED_DS / "codex", _SUPERSEDED_DS / "pi",
+            Path("data/benchmark-results/.excluded/deepseek-v4p1-flash/claude-code-cliproxy-default")]
 _ds_checks = {row["trial"]: row["retained"] for job in _ds_jobs for row in load_rows(job)}
 ds_removed = pd.DataFrame([row for row in load_trials("deepseek-v4p1-flash", _ds_jobs)
                            if _ds_checks[row["trial"]] is False])
+_ds_canonical = pd.DataFrame(load_trials("deepseek-v4p1-flash", [Path("data/benchmark-results/deepseek-v4p1-flash")]))
 _glm_removed = _by_run["first"]
+
+
+def _pairs(without: pd.DataFrame, with_: pd.DataFrame, model: str) -> pd.DataFrame:
+    """Trials without and with the earlier reasoning, matched by task and harness."""
+    pairs = without.merge(with_, on=["task", "harness"], suffixes=("_without", "_with"), validate="one_to_one")
+    pairs["model"] = model
+    pairs["cost_ratio"] = pairs["cost_usd_without"] / pairs["cost_usd_with"]
+    return pairs
+
+
+reasoning_pairs = pd.concat([
+    _pairs(_glm_removed, _by_run["rerun"], "glm"),
+    _pairs(ds_removed, _ds_canonical, "deepseek"),
+])
+
+
+def _pair_stats(group: pd.DataFrame) -> dict:
+    return {
+        "pairs": len(group),
+        "passed": (int(group["passed_without"].sum()), int(group["passed_with"].sum())),
+        "timeouts": (int(group["timeout_without"].sum()), int(group["timeout_with"].sum())),
+        "cost": (round(group["cost_usd_without"].sum(), 2), round(group["cost_usd_with"].sum(), 2)),
+        "cost_factor": round(group["cost_usd_without"].sum() / group["cost_usd_with"].sum(), 1),
+        "input_b": (round(group["input_tokens_without"].sum() / 1e9, 2), round(group["input_tokens_with"].sum() / 1e9, 2)),
+        "max_trial_factor": round(float(group["cost_ratio"].max()), 1),
+        "longest_repeat": int(group["longest_repeat_without"].max()),
+    }
+
+
+# Tool calls of one task in order, for the figure of the repeated calls. A Codex call that
+# only waits for output from a running command (`write_stdin` without input) is not a repeat.
+_WAIT = re.compile(r"write_stdin\(\{\s*session_id:\s*\d+,\s*chars:\s*(\"\"|'')")
+
+
+def _call_sequence(trial: Path) -> list[str]:
+    trajectory = json.loads((trial / "agent" / "trajectory.json").read_text())
+    kinds, previous = [], None
+    for step in trajectory["steps"]:
+        if step.get("source") != "agent":
+            continue
+        for call in step.get("tool_calls") or []:
+            signature = json.dumps([call.get("function_name"), call.get("arguments")], sort_keys=True)
+            if _WAIT.search(str((call.get("arguments") or {}).get("input") or "")):
+                kinds.append("wait")
+            else:
+                kinds.append("repeat" if signature == previous else "other")
+            previous = signature
+    return kinds
+
+
+_codex_effect = lambda frame: Path(frame.query("harness == 'codex' and task == 'effect-sse-httpapi-streaming'")["job"].iloc[0])
+LOOP_TRIALS = {
+    "GLM, first run": _EXCLUDED_GLM / "first-run" / _glm_removed.query(
+        "harness == 'codex' and task == 'effect-sse-httpapi-streaming'")["trial"].iloc[0],
+    "GLM, second run": GLM_JOBS[0] / _by_run["rerun"].query(
+        "harness == 'codex' and task == 'effect-sse-httpapi-streaming'")["trial"].iloc[0],
+    "DeepSeek, without reasoning": _SUPERSEDED_DS / "codex" / ds_removed.query(
+        "harness == 'codex' and task == 'effect-sse-httpapi-streaming'")["trial"].iloc[0],
+    "DeepSeek, with reasoning": Path("data/benchmark-results/deepseek-v4p1-flash") / _ds_canonical.query(
+        "harness == 'codex' and task == 'effect-sse-httpapi-streaming'")["trial"].iloc[0],
+}
+loop_sequences = {label: _call_sequence(trial) for label, trial in LOOP_TRIALS.items()}
 
 
 def _run_stats(group: pd.DataFrame) -> dict:
@@ -2433,6 +2498,10 @@ glm_routes_quoted = {
                    "max_input_m": round(ds_removed["input_tokens"].max() / 1e6)},
     "glm_removed": {"trials": len(_glm_removed), "timeouts": int(_glm_removed["timeout"].sum()),
                     "passed": int(_glm_removed["passed"].sum())},
+    "pairs": {model: _pair_stats(g) for model, g in reasoning_pairs.groupby("model")},
+    "pair_cost_factor": {f"{m}/{h}": round(g["cost_usd_without"].sum() / g["cost_usd_with"].sum(), 1)
+                         for (m, h), g in reasoning_pairs.groupby(["model", "harness"])},
+    "loops": {label: (len(k), k.count("repeat"), k.count("wait")) for label, k in loop_sequences.items()},
     "output_per_step": {
         f"{model}/{h}": round(float((g["output_tokens"] / g["agent_steps"]).median()))
         for model, frame in (("deepseek", ds_removed), ("glm", _glm_removed))
@@ -2482,10 +2551,20 @@ glm_routes_expected = {
         "rerun": {"n": 8, "passed": 3, "mean_input_m": 22.4, "mean_steps": 170, "mean_cost": 0.91},
         "zai": {"n": 8, "passed": 3, "mean_input_m": 23.6, "mean_steps": 176, "mean_cost": 0.78},
     },
-    "ds_removed": {"trials": 27, "timeouts": 10, "passed": 7, "longest_repeat": 1, "max_steps": 895,
+    "ds_removed": {"trials": 21, "timeouts": 9, "passed": 4, "longest_repeat": 1, "max_steps": 895,
                    "max_input_m": 271},
     "glm_removed": {"trials": 30, "timeouts": 9, "passed": 2},
-    "output_per_step": {"deepseek/claude-code": 1374, "deepseek/codex": 5661, "deepseek/pi": 4017,
+    "pairs": {
+        "deepseek": {"pairs": 21, "passed": (4, 14), "timeouts": (9, 0), "cost": (15.19, 7.82), "cost_factor": 1.9,
+                     "input_b": (1.16, 0.85), "max_trial_factor": 3.6, "longest_repeat": 1},
+        "glm": {"pairs": 30, "passed": (2, 19), "timeouts": (9, 1), "cost": (179.07, 29.06), "cost_factor": 6.2,
+                "input_b": (5.63, 0.76), "max_trial_factor": 38.3, "longest_repeat": 1953},
+    },
+    "pair_cost_factor": {"deepseek/claude-code": 1.9, "deepseek/codex": 1.9, "deepseek/pi": 2.1,
+                         "glm/claude-code": 1.9, "glm/codex": 17.7, "glm/pi": 2.1},
+    "loops": {"GLM, first run": (2355, 2052, 0), "GLM, second run": (177, 1, 37),
+              "DeepSeek, without reasoning": (277, 0, 0), "DeepSeek, with reasoning": (271, 0, 59)},
+    "output_per_step": {"deepseek/claude-code": 1491, "deepseek/codex": 5661, "deepseek/pi": 4017,
                         "glm/claude-code": 352, "glm/codex": 111, "glm/pi": 898},
 }
 if glm_routes_quoted != glm_routes_expected:
@@ -2521,50 +2600,101 @@ for _run in GLM_RUNS:
 Markdown("\n".join(_route_table))
 ```
 
-Without its earlier reasoning, GLM passed 2 of 30 tasks in Pi, Claude Code, and Codex, and 9 trials reached the three-hour timeout. With it, the same harnesses passed 19 tasks, and one trial timed out. Their 30 trials cost USD 179.07 in the first run and USD 29.06 in the second. Codex changed most. In the first run, its six timed-out trials took between 2,040 and 2,895 agent steps and used between 492 and 780 million input tokens each. The whole Codex run cost USD 136.86, 17.7 times the USD 7.72 of the second run, and solved no task. The first OpenCode V2 run passed three tasks, according to Pier's final attempts, and three of its trials timed out.
+Losing its earlier reasoning was catastrophic for GLM. On the same 30 tasks in Pi, Claude Code, and Codex, the first run passed 2 tasks instead of 19 and reached the three-hour timeout 9 times instead of once. It read 5.63 billion input tokens instead of 0.76 billion and cost USD 179.07 instead of USD 29.06, 6.2 times as much, without solving more. Codex was hit hardest: its ten trials cost USD 136.86 instead of USD 7.72, 17.7 times as much, and solved no task. In its six timed-out trials, GLM took between 2,040 and 2,895 agent steps and read between 492 and 780 million input tokens each. The costliest trial, Codex on `katex`, cost 38.3 times its counterpart in the second run. The first OpenCode V2 run passed three tasks, according to Pier's final attempts, and three of its trials timed out.
 
-@fig-glm-routes shows the reason for the steps and tokens. In four first-run Codex trials, GLM issued the same tool call with identical arguments hundreds of times in a row: 1,953 times on `csstree`, 1,869 on `effect`, 1,836 on `python-statemachine`, and 863 on `koota`. On `effect`, the repeated call was the search `rg -n "Schema.Simplify" packages/effect/src/Schema.ts`. In Pi, GLM ran the same Bash probe 742 times in a row on `scriggo` until the timeout, and the Jev audit classified 740 of these calls as repetition without progress [@pa1JevAuditData]. In the second run, no harness repeated a call more than 23 times; the longest repeats were Codex calls that waited for output from a running command.
+The steps and tokens came from loops. In four first-run Codex trials, GLM issued the same tool call with identical arguments hundreds of times in a row: 1,953 times on `csstree`, 1,869 on `effect`, 1,836 on `python-statemachine`, and 863 on `koota`. @fig-glm-loop shows the `effect` trial call by call. Of its 2,355 tool calls, 2,052 repeated the call before them; the longest run was the search `rg -n "Schema.Simplify" packages/effect/src/Schema.ts`. With its earlier reasoning, GLM needed 177 calls on the same task; apart from waiting for running commands, only one call repeated the one before it. In Pi, GLM ran the same Bash probe 742 times in a row on `scriggo` until the timeout, and the Jev audit classified 740 of these calls as repetition without progress [@pa1JevAuditData].
 
 ```{python}
-#| label: fig-glm-routes
-#| fig-cap: "The three GLM-5.3-Flash runs in Codex, Pi, and Claude Code, one marker per trial. (a) Agent steps per trial. (b) Longest run of identical consecutive tool calls. (c) Agent time per trial; the dashed line marks the three-hour timeout. Light markers are the first run, medium markers the direct Z.AI batch, and dark markers the second run. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. Axes (a) and (b) are logarithmic."
+#| label: fig-glm-loop
+#| fig-cap: "Every tool call of GLM-5.3-Flash and DeepSeek V4.1 Flash in Codex on `effect`, in order, without and with the earlier reasoning. Red marks a call identical to the one before it; light blue marks a call that only waited for output from a running command; gray marks every other call."
 
-from matplotlib.colors import to_hex, to_rgb
+from scripts.harness_figures import GRID, INK, MUTED
 
-
-def _tint(color: str, share: float) -> str:
-    return to_hex([1 - share * (1 - c) for c in to_rgb(color)])
-
-
-_strip = _complete[_complete["harness"] != "opencode-v2"].copy()
-_strip["group"] = _strip["harness"] + "/" + _strip["run"]
-_order = [f"{h}/{r}" for h in ("codex", "pi", "claude-code") for r in GLM_RUNS]
-_style = dict(
-    column="group", order=_order,
-    labels={g: GLM_RUN_LABELS[g.split("/")[1]].replace(" ", "\n") for g in _order},
-    colors={g: _tint(HARNESS_COLORS[g.split("/")[0]], {"first": 0.35, "zai": 0.65, "rerun": 1.0}[g.split("/")[1]])
-            for g in _order},
-    markers={g: HARNESS_MARKERS[g.split("/")[0]] for g in _order},
-)
-fig, axes = plt.subplots(3, 1, figsize=(6.3, 7.4), sharex=True)
-plot_trial_strip(_strip, "agent_steps", ax=axes[0], log=True, ylabel="(a) Agent steps", **_style)
-plot_trial_strip(_strip, "longest_repeat", ax=axes[1], log=True, ylabel="(b) Longest repeat", **_style)
-plot_trial_strip(_strip, "agent_minutes", ax=axes[2], ylabel="(c) Agent time (min)",
-                 reference=180, reference_label="timeout", **_style)
-axes[2].set_ylim(0, 200)
-for _boundary in (2.5, 5.5):
-    for _ax in axes:
-        _ax.axvline(_boundary, color="#cfcdc6", linewidth=0.8, zorder=1)
-axes[2].tick_params(axis="x", labelsize=7)
-for _position, _harness in ((1, "codex"), (4, "pi"), (7, "claude-code")):
-    axes[0].text(_position, 1.02, HARNESS_LABELS[_harness], transform=axes[0].get_xaxis_transform(),
-                 ha="center", va="bottom", fontsize=8, color=HARNESS_COLORS[_harness])
-outcome_legend(axes[1], loc="upper right")
+_LOOP_COLORS = {"other": "#c9c7bf", "wait": "#9ec5f4", "repeat": "#c0392b"}
+fig, ax = plt.subplots(figsize=(6.3, 2.3))
+for _row, (_label, _kinds) in enumerate(loop_sequences.items()):
+    _y = len(loop_sequences) - 1 - _row
+    for _kind, _color in _LOOP_COLORS.items():
+        _x = [i for i, k in enumerate(_kinds) if k == _kind]
+        ax.vlines(_x, _y - 0.36, _y + 0.36, color=_color, linewidth=0.45)
+    ax.text(len(_kinds) + 25, _y, f"{len(_kinds):,} calls", va="center", fontsize=7, color=INK)
+ax.set_yticks(range(len(loop_sequences)), list(loop_sequences)[::-1], fontsize=7.5)
+ax.set_xlim(-20, 2750)
+ax.set_xlabel("Tool calls in order", fontsize=8)
+ax.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=c) for c in _LOOP_COLORS.values()],
+          labels=["other call", "waiting for a running command", "same call as before"],
+          loc="lower center", bbox_to_anchor=(0.5, 1.0), ncols=3, frameon=False, fontsize=7)
+for _side in ("top", "right", "left"):
+    ax.spines[_side].set_visible(False)
+ax.tick_params(axis="y", length=0)
+ax.tick_params(axis="x", labelsize=7.5)
 fig.tight_layout()
 ```
 
-The Z.AI batch shows how GLM behaved on another provider route with its earlier reasoning. Its eight trials cover three tasks, and each has a counterpart in both Fireworks runs. On these eight pairs, the second run and the Z.AI batch were nearly identical: both passed three tasks, and they used on average 22.4 and 23.6 million input tokens, 170 and 176 agent steps, and USD 0.91 and 0.78. The first run passed one of the eight tasks and used 221.7 million input tokens, 862 agent steps, and USD 6.99 on average.
+DeepSeek V4.1 Flash lost its earlier reasoning to the same gateway defect (@sec-deepseek-codex-reasoning), and it also failed more often: on its 21 affected tasks, it passed 4 instead of 14 and timed out 9 times. But DeepSeek kept working. Its affected trials cost USD 15.19 instead of USD 7.82, 1.9 times as much, and no single trial cost more than 3.6 times its counterpart (@fig-glm-deepseek-loss). It never issued the same call twice in a row. Instead, it produced long outputs on every step, with medians of 5,661 tokens per step in Codex and 4,017 in Pi. GLM produced a median of 111 tokens per step in Codex and repeated the same action without progress. In Pi and Claude Code, GLM's cost rose by the same factor as DeepSeek's, 1.9 to 2.1, but it passed no task in Pi and two in Claude Code. In Codex, where the loops ran for thousands of calls, its cost rose 17.7-fold.
 
-DeepSeek V4.1 Flash lost its earlier reasoning to the same gateway defect (@sec-deepseek-codex-reasoning), and both models then ran longer, produced more tokens, and failed more often. The form of the failure differed. In its 27 trials without the earlier reasoning, DeepSeek produced long outputs per agent step, with medians of 5,661 tokens in Codex and 4,017 in Pi, but it never issued the same call twice in a row, and no trial exceeded 895 steps. GLM produced short outputs per step, with a median of 111 tokens in Codex, and repeated the same call up to 1,953 times; its first run took up to 2,895 steps in a single trial. Without its earlier reasoning, DeepSeek produced long outputs on every step, whereas GLM repeated the same actions without progress.
+```{python}
+#| label: fig-glm-deepseek-loss
+#| fig-cap: "GLM-5.3-Flash and DeepSeek V4.1 Flash without their earlier reasoning, one marker per trial, each paired with the trial of the same task and harness with the earlier reasoning. (a) Cost of the trial without the earlier reasoning relative to its pair; the dashed line marks equal cost. (b) Longest run of identical consecutive tool calls in the trial without the earlier reasoning. Filled markers are trials that passed without the earlier reasoning; the bar marks the median. Both axes are logarithmic. The DeepSeek Claude Code trials without earlier reasoning come from the default CLIProxyAPI run, which requested `max` effort."
+
+import numpy as np
+
+_groups = [(m, h) for m in ("deepseek", "glm") for h in ("codex", "pi", "claude-code")]
+_positions = [i + (0.7 if m == "glm" else 0) for i, (m, _) in enumerate(_groups)]
+_rng = np.random.default_rng(7)
+fig, axes = plt.subplots(1, 2, figsize=(6.3, 3.3))
+for _ax, (_column, _ylabel) in zip(axes, (
+    ("cost_ratio", "(a) Cost without / with earlier reasoning"),
+    ("longest_repeat_without", "(b) Longest run of identical calls"),
+), strict=True):
+    for _x, (_model, _harness) in zip(_positions, _groups, strict=True):
+        _g = reasoning_pairs[(reasoning_pairs["model"] == _model) & (reasoning_pairs["harness"] == _harness)]
+        _color = HARNESS_COLORS[_harness]
+        for _value, _passed in zip(_g[_column], _g["passed_without"], strict=True):
+            _ax.scatter(_x + _rng.uniform(-0.17, 0.17), _value, s=28, marker=HARNESS_MARKERS[_harness],
+                        facecolor=_color if _passed else "white", edgecolor=_color, linewidth=1.2, zorder=3)
+        _ax.plot([_x - 0.28, _x + 0.28], [_g[_column].median()] * 2, color=INK, linewidth=2, zorder=4)
+    _ax.set_yscale("log")
+    _ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:g}"))
+    _ax.set_xticks(_positions, [HARNESS_LABELS[h] for _, h in _groups], rotation=30, ha="right", fontsize=7.5)
+    _ax.set_ylabel(_ylabel, fontsize=8)
+    for _label, _center in (("DeepSeek V4.1 Flash", 1), ("GLM-5.3-Flash", 4.7)):
+        _ax.text(_center, 1.02, _label, transform=_ax.get_xaxis_transform(), ha="center", va="bottom", fontsize=8)
+    _ax.axvline(2.85, color=GRID, linewidth=1)
+    for _side in ("top", "right"):
+        _ax.spines[_side].set_visible(False)
+    _ax.grid(axis="y", color=GRID, linewidth=0.8)
+    _ax.set_axisbelow(True)
+axes[0].axhline(1, color=MUTED, linewidth=1, linestyle="--", zorder=2)
+fig.tight_layout()
+```
+
+The direct Z.AI batch shows how GLM behaved on another provider route with its earlier reasoning. Its eight trials cover three tasks, and each has a counterpart in both Fireworks runs. On these eight pairs, the second run and the Z.AI batch were nearly identical (@fig-glm-zai-pairs): both passed three tasks, and they used on average 22.4 and 23.6 million input tokens, 170 and 176 agent steps, and USD 0.91 and 0.78 per trial. The first run passed one of the eight tasks and used 221.7 million input tokens, 862 agent steps, and USD 6.99 per trial, 9.0 times the cost of the Z.AI batch.
+
+```{python}
+#| label: fig-glm-zai-pairs
+#| fig-cap: "The eight GLM-5.3-Flash task--harness pairs covered by all three runs: mean input tokens, agent steps, and normalized cost per trial, with the number of passing trials of eight below each bar. The first Fireworks run lost the earlier reasoning; the direct Z.AI batch and the second Fireworks run kept it."
+
+_RUN_ORDER = ["first", "zai", "rerun"]
+_RUN_COLORS = {"first": "#c0392b", "zai": "#8f8d86", "rerun": HARNESS_COLORS["pi"]}
+_RUN_TICKS = {"first": "first\nrun", "zai": "direct\nZ.AI", "rerun": "second\nrun"}
+fig, axes = plt.subplots(1, 3, figsize=(6.3, 2.6))
+for _ax, (_column, _title, _scale, _fmt) in zip(axes, (
+    ("input_tokens", "Input tokens (million)", 1e6, "{:.1f}"),
+    ("agent_steps", "Agent steps", 1, "{:.0f}"),
+    ("cost_usd", "Cost (USD)", 1, "{:.2f}"),
+), strict=True):
+    _means = [_matched_by_run[r][_column].mean() / _scale for r in _RUN_ORDER]
+    _bars = _ax.bar(range(3), _means, color=[_RUN_COLORS[r] for r in _RUN_ORDER], width=0.7)
+    _ax.bar_label(_bars, [_fmt.format(v) for v in _means], padding=2, fontsize=7)
+    _ax.set_ylim(0, max(_means) * 1.2)
+    _ax.set_xticks(range(3), [f"{_RUN_TICKS[r]}\n{int(_matched_by_run[r]['passed'].sum())}/8" for r in _RUN_ORDER],
+                   fontsize=7)
+    _ax.set_title(_title, fontsize=8)
+    _ax.tick_params(axis="y", labelsize=7)
+    for _side in ("top", "right"):
+        _ax.spines[_side].set_visible(False)
+fig.tight_layout()
+```
 
 The comparison does not isolate the lost reasoning as the only cause. Besides the gateway version, the first and second runs differ in their date and job concurrency, in the context window of Codex and Claude Code (1,048,576 instead of 1,000,000 tokens), and in the Claude Code route. In the first run, Claude Code went through LiteLLM, most likely at `high` effort and without its earlier thinking (@sec-claude-code-reasoning). Fireworks may also have changed how it served the model between the runs, which cannot be checked from outside. That the second run matches the direct Z.AI batch indicates that it represents GLM's normal behavior, and that the anomaly of the first run is not a property of the model.
