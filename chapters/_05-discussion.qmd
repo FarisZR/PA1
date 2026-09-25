@@ -76,26 +76,21 @@ loss_quoted = {
                           round(float(g["cost_usd_with"].sum() / g["passed_with"].sum()), 2)),
         "cost_per_pass_factor": round(float((g["cost_usd_without"].sum() / g["passed_without"].sum())
                                             / (g["cost_usd_with"].sum() / g["passed_with"].sum())), 1),
-        "max_trial_factor": round(float(g["cost_ratio"].max()), 1),
         "longest_repeat": int(g["longest_repeat_without"].max()),
         "harness_cost_factor": {h: round(float(x["cost_usd_without"].sum() / x["cost_usd_with"].sum()), 1)
                                 for h, x in g.groupby("harness")},
-        "harness_passed": {h: (int(x["passed_without"].sum()), int(x["passed_with"].sum()), len(x))
-                           for h, x in g.groupby("harness")},
         "output_per_step": {h: round(float(x["output_per_step_without"].median())) for h, x in g.groupby("harness")},
     }
     for m, g in loss_pairs.groupby("model")
 }
 loss_expected = {
     "deepseek": {"pairs": 21, "passed": (4, 14), "timeouts": (9, 0), "cost": (15.19, 7.82), "cost_factor": 1.9,
-                 "cost_per_pass": (3.8, 0.56), "cost_per_pass_factor": 6.8, "max_trial_factor": 3.6, "longest_repeat": 1,
+                 "cost_per_pass": (3.8, 0.56), "cost_per_pass_factor": 6.8, "longest_repeat": 1,
                  "harness_cost_factor": {"claude-code": 1.9, "codex": 1.9, "pi": 2.1},
-                 "harness_passed": {"claude-code": (1, 8, 10), "codex": (1, 3, 5), "pi": (2, 3, 6)},
                  "output_per_step": {"claude-code": 1491, "codex": 5661, "pi": 4017}},
     "glm": {"pairs": 30, "passed": (2, 19), "timeouts": (9, 1), "cost": (179.07, 29.06), "cost_factor": 6.2,
-            "cost_per_pass": (89.54, 1.53), "cost_per_pass_factor": 58.5, "max_trial_factor": 38.3, "longest_repeat": 1953,
+            "cost_per_pass": (89.54, 1.53), "cost_per_pass_factor": 58.5, "longest_repeat": 1953,
             "harness_cost_factor": {"claude-code": 1.9, "codex": 17.7, "pi": 2.1},
-            "harness_passed": {"claude-code": (2, 8, 10), "codex": (0, 4, 10), "pi": (0, 7, 10)},
             "output_per_step": {"claude-code": 352, "codex": 111, "pi": 898}},
 }
 if loss_quoted != loss_expected:
@@ -104,11 +99,11 @@ if loss_quoted != loss_expected:
 
 Two models lost their earlier reasoning in this study: DeepSeek V4.1 Flash in parts of its first runs and GLM-5.3-Flash in its complete first run (@sec-gateway-reasoning-history). Both were repeated with the reasoning intact, so every affected trial has a counterpart on the same task and harness (@fig-reasoning-loss-models).
 
-Without its earlier reasoning, each model lost most of the tasks it could otherwise solve. DeepSeek passed 4 of its 21 affected tasks instead of 14, and GLM 2 of its 30 instead of 19. The loss appeared in every harness. DeepSeek passed one task instead of eight in Claude Code, one instead of three in Codex, and two instead of three in Pi. GLM passed no task in Codex and Pi, where it passed four and seven with its reasoning, and two instead of eight in Claude Code. Together, the two models passed 6 affected tasks instead of 33.
+Without its earlier reasoning, each model lost most of the tasks it could otherwise solve, and it did so in every harness. DeepSeek passed 4 of its 21 affected tasks instead of 14, and GLM 2 of its 30 instead of 19. Each call still received the earlier messages and tool results, but not the reasoning that had led to them.
 
 The trials without the earlier reasoning also cost more. DeepSeek's cost rose 1.9-fold, from USD 7.82 to 15.19, and GLM's 6.2-fold, from USD 29.06 to 179.07. Because fewer trials passed at the same time, the cost per passing trial rose far more: from USD 0.56 to 3.80 for DeepSeek, or 6.8 times, and from USD 1.53 to 89.54 for GLM, or 58.5 times.
 
-The two models failed in different ways. DeepSeek reached the timeout 9 times, and no trial cost more than 3.6 times its counterpart. It never issued the same call twice in a row. It produced long outputs instead, with medians of 5,661 tokens per agent step in Codex and 4,017 in Pi. GLM broke down: single trials cost up to 38.3 times their counterpart, and it repeated the same tool call up to 1,953 times in a row, with a median of only 111 output tokens per step in Codex (@sec-glm-routes). The harness decided how far the cost rose. In Pi and Claude Code, GLM's cost rose by 2.1 and 1.9 times, the same factors as DeepSeek's. In Codex, its loops ran for thousands of calls until the timeout, and the cost rose 17.7-fold.
+The two models failed in different ways. DeepSeek kept working without repeating itself, but wrote long outputs, a median of 5,661 tokens per agent step in Codex, and reached the timeout in 9 trials; its cost rose by about the same factor in every harness. GLM instead fell into loops of identical tool calls that produced little output, a median of 111 tokens per step in Codex (@sec-glm-routes). How far its cost rose depended on the harness. In Pi and Claude Code, it rose 2.1 and 1.9 times, about as much as DeepSeek's. Codex let the loops run for thousands of calls until the timeout, and the cost rose 17.7-fold.
 
 ```{python}
 #| label: fig-reasoning-loss-models
