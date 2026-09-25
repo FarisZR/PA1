@@ -693,6 +693,13 @@ class Renderer:
             node, caption_info = self.captions(node, diff_b, diff_p)
             info.merge(caption_info)
 
+        if not slots(node):
+            # A leaf such as an added code or raw block has no children to mark.
+            # Raw blocks are format markup, not paper content, so they count as unchanged.
+            info.changed = node["t"] != "RawBlock"
+            info.latest = info.changed and diff_p == ALL_INS
+            return node, info
+
         wrap = wrap and not is_float_container(node)
         seqs = []
         for index, (kind, items) in enumerate(slots(node)):
