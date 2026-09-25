@@ -3,7 +3,7 @@ title: "How do different agent harnesses affect the cost-efficiency and task-sol
 author: "Fares Rahmani"
 institution: "Duale Hochschule Baden-Württemberg"
 campus: "Karlsruhe"
-work-type: "Research Paper"
+work-type: "Projektarbeit I"
 study-program: "Informatik"
 student-id: "TODO: Add student ID"
 course: "TODO: Add course code"
