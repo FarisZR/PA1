@@ -114,8 +114,8 @@ _positions = [i + (0.7 if m == "glm" else 0) for i, (m, _) in enumerate(_groups)
 _rng = np.random.default_rng(7)
 fig, axes = plt.subplots(1, 2, figsize=(6.3, 3.3))
 for _ax, (_column, _ylabel) in zip(axes, (
-    ("cost_ratio", "(a) Cost without / with earlier reasoning"),
-    ("longest_repeat_without", "(b) Longest run of identical calls"),
+    ("cost_ratio", "(a) Cost without retained reasoning traces (relative to retained, ×)"),
+    ("longest_repeat_without", "(b) Longest run of identical tool calls"),
 ), strict=True):
     for _x, (_model, _harness) in zip(_positions, _groups, strict=True):
         _g = loss_pairs[(loss_pairs["model"] == _model) & (loss_pairs["harness"] == _harness)]
