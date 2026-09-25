@@ -1,0 +1,3 @@
+{"date": "2026-09-25", "model": "deepseek-v4p1-flash", "litellm": "1.102.1", "thinking_blocks": 1, "thinking_chars": 492, "signatures": ["empty"], "input_tokens_with_thinking": 521, "input_tokens_without_thinking": 403}
+{"date": "2026-09-25", "model": "glm-5p3-flash", "litellm": "1.102.1", "thinking_blocks": 1, "thinking_chars": 203, "signatures": ["empty"], "input_tokens_with_thinking": 289, "input_tokens_without_thinking": 243}
+{"date": "2026-09-25", "model": "kimi-k3", "litellm": "1.102.1", "thinking_blocks": 1, "thinking_chars": 845, "signatures": ["empty"], "input_tokens_with_thinking": 518, "input_tokens_without_thinking": 323}

@@ -10,6 +10,7 @@ describes the defect in "Reasoning history removed by the gateway".
 | `replay-results.jsonl` | Reasoning fields forwarded by LiteLLM 1.98.0, 1.101.0, and 1.102.0 for that request | `scripts/replay_litellm_fireworks.py` |
 | `bridge-requests.csv` | Per-request metadata for the 2,469 DeepSeek requests of the Codex job | `scripts/extract_bridge_reasoning_audit.py` |
 | `claude-code-replay-results.jsonl` | Effort and reasoning fields that LiteLLM 1.98.0, 1.101.0, and 1.102.1 forward for a Claude Code-style Anthropic Messages request to a Fireworks model (issues #94, #102) | `scripts/replay_litellm_messages.py` |
+| `gateway-thinking-check.jsonl` | Input tokens of one Claude Code step sent through AiOrbit's Anthropic Messages endpoint with and without the earlier thinking, for the three Fireworks models (2026-09-25) | `scripts/check_gateway_thinking.py` |
 
 ## Sanitization
 
@@ -48,6 +49,8 @@ for v in 1.98.0 1.101.0 1.102.0; do
     python scripts/replay_litellm_fireworks.py \
     data/litellm-reasoning-audit/replay-request.json
 done
+# sends three short requests per model to the gateway (LITELLM_BASE_URL, LLM_PROXY_KEY)
+python3 scripts/check_gateway_thinking.py deepseek-v4p1-flash glm-5p3-flash kimi-k3
 # needs the private bridge logs
 python3 scripts/extract_bridge_reasoning_audit.py \
   --out data/litellm-reasoning-audit/bridge-requests.csv
@@ -64,3 +67,15 @@ and #102. LiteLLM 1.102.1 forwards the earlier thinking as `reasoning_content`
 but still lowers the effort to `high`, because the model declares no supported
 effort levels; AiOrbit's `/model_group/info` still declared none for the three
 Fireworks models on 2026-09-25.
+
+The replay runs the LiteLLM library, not the gateway itself.
+`gateway-thinking-check.jsonl` therefore repeats one Claude Code step on the
+live gateway: a first request makes the model call a tool, and its assistant
+turn is sent back with the tool result, once with the thinking blocks as the
+gateway returned them and once without. On all three models, the request with
+the thinking has more input tokens, by about one token per four characters of
+thinking (DeepSeek V4.1 Flash 492 characters, +118 tokens; GLM-5.3-Flash 203,
++46; Kimi K3 845, +195), so the earlier thinking reaches the model. The effort
+that reaches Fireworks is not visible in a response; the finding that the
+gateway still lowers `max` to `high` rests on the replay and the declared
+effort levels.
