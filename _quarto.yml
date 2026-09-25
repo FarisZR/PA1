@@ -22,4 +22,7 @@ format:
     toc-depth: 3
     lof: true
     lot: true
+    # The bibliography is placed before the appendix in pa1.qmd instead.
+    template-partials:
+      - partials/biblio.typ
 
