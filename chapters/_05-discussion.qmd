@@ -24,8 +24,10 @@
 ```{python}
 #| include: false
 
+import json
+
 from scripts.analyze_harness_trials import HARNESS_LABELS, load_trials
-from scripts.analyze_reasoning_retention import load_rows
+from scripts.analyze_reasoning_retention import CHARS_PER_TOKEN, load_rows, reasoning_tokens
 from scripts.harness_figures import GRID, HARNESS_COLORS, HARNESS_MARKERS, INK, MUTED
 
 # Trials that lost their earlier reasoning, each paired with the canonical trial of the same
@@ -63,7 +65,27 @@ for _name, (_model, _without_jobs, _with_jobs, _by_retention) in LOSS_RUNS.items
     _frames.append(_pairs)
 loss_pairs = pd.concat(_frames, ignore_index=True)
 loss_pairs["cost_ratio"] = loss_pairs["cost_usd_without"] / loss_pairs["cost_usd_with"]
-loss_pairs["output_per_step_without"] = loss_pairs["output_tokens_without"] / loss_pairs["agent_steps_without"]
+
+_trial_dirs = {path.name: path
+               for _, jobs_without, jobs_with, _ in LOSS_RUNS.values()
+               for job in jobs_without + jobs_with for path in job.iterdir() if (path / "result.json").exists()}
+
+
+def _reasoning_output(trial: str) -> int:
+    """Reasoning tokens of a trial; estimated from the text where the harness records no counts."""
+    steps = [step for step in json.loads((_trial_dirs[trial] / "agent/trajectory.json").read_text())["steps"]
+             if step.get("source") == "agent" and step.get("metrics")]
+    if any(reasoning_tokens(step) for step in steps):
+        return sum(reasoning_tokens(step) or 0 for step in steps)
+    return sum(len(step.get("reasoning_content") or "") // CHARS_PER_TOKEN for step in steps)
+
+
+# Output tokens split into reasoning and visible output (message text and tool calls), per agent step.
+for _side in ("without", "with"):
+    _reasoning = loss_pairs[f"trial_{_side}"].map(_reasoning_output)
+    loss_pairs[f"reasoning_per_step_{_side}"] = _reasoning / loss_pairs[f"agent_steps_{_side}"]
+    loss_pairs[f"visible_per_step_{_side}"] = (
+        (loss_pairs[f"output_tokens_{_side}"] - _reasoning) / loss_pairs[f"agent_steps_{_side}"])
 
 loss_quoted = {
     m: {
@@ -79,7 +101,10 @@ loss_quoted = {
         "longest_repeat": int(g["longest_repeat_without"].max()),
         "harness_cost_factor": {h: round(float(x["cost_usd_without"].sum() / x["cost_usd_with"].sum()), 1)
                                 for h, x in g.groupby("harness")},
-        "output_per_step": {h: round(float(x["output_per_step_without"].median())) for h, x in g.groupby("harness")},
+        **{f"{kind}_per_step": {h: tuple(round(float(x[f"{kind}_per_step_{side}"].median()))
+                                          for side in ("without", "with"))
+                                  for h, x in g.groupby("harness") if h != "claude-code"}
+           for kind in ("reasoning", "visible")},
     }
     for m, g in loss_pairs.groupby("model")
 }
@@ -87,11 +112,13 @@ loss_expected = {
     "deepseek": {"pairs": 21, "passed": (4, 14), "timeouts": (9, 0), "cost": (15.19, 7.82), "cost_factor": 1.9,
                  "cost_per_pass": (3.8, 0.56), "cost_per_pass_factor": 6.8, "longest_repeat": 1,
                  "harness_cost_factor": {"claude-code": 1.9, "codex": 1.9, "pi": 2.1},
-                 "output_per_step": {"claude-code": 1491, "codex": 5661, "pi": 4017}},
+                 "reasoning_per_step": {"codex": (4951, 365), "pi": (3844, 669)},
+                 "visible_per_step": {"codex": (254, 228), "pi": (220, 238)}},
     "glm": {"pairs": 30, "passed": (2, 19), "timeouts": (9, 1), "cost": (179.07, 29.06), "cost_factor": 6.2,
             "cost_per_pass": (89.54, 1.53), "cost_per_pass_factor": 58.5, "longest_repeat": 1953,
             "harness_cost_factor": {"claude-code": 1.9, "codex": 17.7, "pi": 2.1},
-            "output_per_step": {"claude-code": 352, "codex": 111, "pi": 898}},
+            "reasoning_per_step": {"codex": (3, 150), "pi": (726, 398)},
+            "visible_per_step": {"codex": (103, 176), "pi": (193, 260)}},
 }
 if loss_quoted != loss_expected:
     raise ValueError(f"Reasoning-loss comparison changed; update the text: {loss_quoted}")
@@ -103,7 +130,7 @@ Without its earlier reasoning, each model lost most of the tasks it could otherw
 
 The trials without the earlier reasoning also cost more. DeepSeek's cost rose 1.9-fold, from USD 7.82 to 15.19, and GLM's 6.2-fold, from USD 29.06 to 179.07. Because fewer trials passed at the same time, the cost per passing trial rose far more: from USD 0.56 to 3.80 for DeepSeek, or 6.8 times, and from USD 1.53 to 89.54 for GLM, or 58.5 times.
 
-The two models failed in different ways. DeepSeek kept working without repeating itself, but wrote long outputs, a median of 5,661 tokens per agent step in Codex, and reached the timeout in 9 trials; its cost rose by about the same factor in every harness. GLM instead fell into loops of identical tool calls that produced little output, a median of 111 tokens per step in Codex (@sec-glm-routes). How far its cost rose depended on the harness. In Pi and Claude Code, it rose 2.1 and 1.9 times, about as much as DeepSeek's. Codex let the loops run for thousands of calls until the timeout, and the cost rose 17.7-fold.
+The two models failed in different ways, which shows once their output tokens are split into reasoning tokens and visible output, the message text and tool calls. DeepSeek kept working without repeating itself, but reasoned far more at every agent step: a median of 4,951 reasoning tokens per step in Codex and 3,844 in Pi, against 365 and 669 with its earlier reasoning. Its visible output per step hardly changed, at 254 and 220 tokens against 228 and 238. It reached the timeout in 9 trials, and its cost rose by about the same factor in every harness. GLM instead fell into loops of identical tool calls (@sec-glm-routes), and in Codex it almost stopped reasoning, with a median of 3 reasoning tokens per step against 150. How far its cost rose depended on the harness. In Pi and Claude Code, it rose 2.1 and 1.9 times, about as much as DeepSeek's. Codex let the loops run for thousands of calls until the timeout, and the cost rose 17.7-fold.
 
 ```{python}
 #| label: fig-reasoning-loss-models
