@@ -279,51 +279,51 @@ def output_cost_share(frame: pd.DataFrame) -> dict[tuple[str, str], float]:
     return shares
 
 
-def cost_success_points(frame: pd.DataFrame, ceiling: float = 2.35, gap: float = 0.045) -> list[dict[str, Any]]:
-    """Positions for the cost--success plane.
+def cost_success_points(frame: pd.DataFrame, gap: float = 0.028) -> list[dict[str, Any]]:
+    """Positions for the cost--success plane, one marker per model--harness combination.
 
-    Every model--harness combination gets its own marker. Markers on the same row
-    are shifted to the right by the least amount that keeps them ``gap`` apart;
-    costs above ``ceiling`` are placed in an off-scale column.
+    Markers on the same row are shifted to the right by the least amount that keeps
+    them ``gap`` apart on the logarithmic cost axis.
     """
     cells = relative_cost(frame).set_index(["model", "harness"])
     rows: dict[int, list[dict[str, Any]]] = collections.defaultdict(list)
     for model in model_order(frame):
         for harness in HARNESS_ORDER:
-            if (model, harness) not in cells.index:
-                continue
-            value = round(float(cells.loc[(model, harness), "cost_relative"]), 2)
-            passed = int(cells.loc[(model, harness), "passed"])
-            rows[passed].append({"harness": harness, "cost": value, "passed": passed, "models": [model],
-                                 "off_scale": value > ceiling, "x": ceiling + 0.27 if value > ceiling else value})
+            if (model, harness) in cells.index:
+                cost = float(cells.loc[(model, harness), "cost"])
+                passed = int(cells.loc[(model, harness), "passed"])
+                rows[passed].append({"harness": harness, "model": model, "cost": cost, "passed": passed,
+                                     "log_x": math.log10(cost)})
     points = []
     for row in rows.values():
         last = None
-        for point in sorted(row, key=lambda p: (p["x"], HARNESS_ORDER.index(p["harness"]))):
-            if last is not None and point["x"] - last < gap:
-                point["x"] = last + gap
-            last = point["x"]
+        for point in sorted(row, key=lambda p: (p["log_x"], HARNESS_ORDER.index(p["harness"]))):
+            if last is not None and point["log_x"] - last < gap:
+                point["log_x"] = last + gap
+            last = point["log_x"]
+            point["x"] = 10 ** point["log_x"]
             points.append(point)
     return points
 
 
-def plot_cost_success(frame: pd.DataFrame, ceiling: float = 2.35):
-    """Tasks passed against the cost relative to the cheapest harness on the same model."""
-    points = cost_success_points(frame, ceiling)
+def plot_cost_success(frame: pd.DataFrame):
+    """Tasks passed against the normalized cost of the ten tasks, for every model--harness combination."""
+    points = cost_success_points(frame)
     fig, ax = plt.subplots(figsize=(6.3, 4.4))
     ax.axhspan(6.65, 8.35, color=BAND, zorder=0)
     for point in points:
         ax.scatter(point["x"], point["passed"], color=HARNESS_COLORS[point["harness"]],
                    marker=HARNESS_MARKERS[point["harness"]], s=58, edgecolor="white", linewidth=0.8, zorder=4)
-    ax.axvline(ceiling + 0.13, color=MUTED, linewidth=0.8, linestyle=(0, (2, 2)))
-    ax.set_xlim(0.8, ceiling + 0.45)
-    ticks = [1, 1.25, 1.5, 1.75, 2, 2.25]
-    ax.set_xticks(ticks, [f"{t:g}×" for t in ticks], fontsize=7.5)
+    ax.set_xscale("log")
+    ticks = [2, 5, 10, 20, 50, 100, 200]
+    ax.set_xticks(ticks, [f"{t}" for t in ticks], fontsize=7.5)
+    ax.minorticks_off()
+    ax.set_xlim(2, 250)
     ax.set_ylim(0, 10)
     ax.set_yticks(range(0, 11, 2))
-    ax.set_xlabel("Cost of the ten tasks relative to the cheapest harness on the same model", fontsize=8)
+    ax.set_xlabel("Normalized cost of the ten tasks (USD, logarithmic)", fontsize=8)
     ax.set_ylabel("Tasks passed (of 10)", fontsize=8)
-    ax.text(0.83, 9.7, "↖ more tasks for less", fontsize=7, color=MUTED, va="top")
+    ax.text(2.1, 9.7, "↖ more tasks for less", fontsize=7, color=MUTED, va="top")
     _style_axis(ax)
     _harness_legend(ax, [Patch(color=BAND, label="best or 1 task behind")], ncol=5, loc="lower left",
                     bbox_to_anchor=(0, 1.0))
@@ -338,13 +338,14 @@ def plot_cost_success(frame: pd.DataFrame, ceiling: float = 2.35):
     right, left = ((7, 0), "left", "center"), ((-7, 0), "right", "center")
     frame_box = ax.get_window_extent(renderer)
     # Markers with close neighbours pick their label position first.
-    crowding = lambda point: -sum(abs(p["x"] - point["x"]) < 0.12 for p in points if p["passed"] == point["passed"])
+    crowding = lambda point: -sum(abs(p["log_x"] - point["log_x"]) < 0.05 for p in points
+                                  if p["passed"] == point["passed"])
     for point in sorted(points, key=crowding):
-        label = ",\n".join(SHORT[m] for m in point["models"]) + (f" {point['cost']:.1f}×" if point["off_scale"] else "")
+        label = SHORT[point["model"]]
         # A label beside its marker is unambiguous when no other marker of the row is close on that side.
-        row = [p["x"] - point["x"] for p in points if p["passed"] == point["passed"] and p is not point]
-        free_right = not any(0 < d < 0.15 for d in row)
-        free_left = not any(-0.15 < d < 0 for d in row)
+        row = [p["log_x"] - point["log_x"] for p in points if p["passed"] == point["passed"] and p is not point]
+        free_right = not any(0 < d < 0.06 for d in row)
+        free_left = not any(-0.06 < d < 0 for d in row)
         candidates = ([right] if free_right else []) + ([left] if free_left and not free_right else []) + [
             above, below, ((-4, 7), "left", "bottom"), ((-4, -7), "left", "top"), right, left]
         best = None
