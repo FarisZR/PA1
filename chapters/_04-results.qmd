@@ -2545,7 +2545,45 @@ for _run in GLM_RUNS:
 Markdown("\n".join(_route_table))
 ```
 
-Losing its earlier reasoning was catastrophic for GLM. On the same 30 tasks in Pi, Claude Code, and Codex, the first run passed 2 tasks instead of 19 and reached the three-hour timeout 9 times instead of once. It read 5.63 billion input tokens instead of 0.76 billion and cost USD 179.07 instead of USD 29.06, 6.2 times as much, without solving more. Codex was hit hardest: its ten trials cost USD 136.86 instead of USD 7.72, 17.7 times as much, and solved no task. In its six timed-out trials, GLM took between 2,040 and 2,895 agent steps and read between 492 and 780 million input tokens each. The costliest trial, Codex on `katex`, cost 38.3 times its counterpart in the second run. The first OpenCode V2 run passed three tasks, according to Pier's final attempts, and three of its trials timed out. @sec-discussion-reasoning-loss compares this breakdown with DeepSeek V4.1 Flash, which lost its reasoning to the same defect.
+Losing its earlier reasoning was catastrophic for GLM. On the same 30 tasks in Pi, Claude Code, and Codex, the first run passed 2 tasks instead of 19 and reached the three-hour timeout 9 times instead of once. It read 5.63 billion input tokens instead of 0.76 billion and cost USD 179.07 instead of USD 29.06, 6.2 times as much, without solving more. Codex was hit hardest: its ten trials cost USD 136.86 instead of USD 7.72, 17.7 times as much, and solved no task. In its six timed-out trials, GLM took between 2,040 and 2,895 agent steps and read between 492 and 780 million input tokens each. The costliest trial, Codex on `katex`, cost 38.3 times its counterpart in the second run. The first OpenCode V2 run passed three tasks, according to Pier's final attempts, and three of its trials timed out. @fig-glm-routes shows the agent steps, the longest run of identical calls, and the agent time of every trial in the three runs. @sec-discussion-reasoning-loss compares this breakdown with DeepSeek V4.1 Flash, which lost its reasoning to the same defect.
+
+```{python}
+#| label: fig-glm-routes
+#| fig-cap: "The three GLM-5.3-Flash runs in Codex, Pi, and Claude Code, one marker per trial. (a) Agent steps per trial. (b) Longest run of identical consecutive tool calls. (c) Agent time per trial; the dashed line marks the three-hour timeout. Light markers are the first run, medium markers the direct Z.AI batch, and dark markers the second run. Filled markers are passing trials, hollow markers failing trials, and the bar marks the median. Axes (a) and (b) are logarithmic."
+
+from matplotlib.colors import to_hex, to_rgb
+
+
+def _tint(color: str, share: float) -> str:
+    return to_hex([1 - share * (1 - c) for c in to_rgb(color)])
+
+
+_strip = _complete[_complete["harness"] != "opencode-v2"].copy()
+_strip["group"] = _strip["harness"] + "/" + _strip["run"]
+_order = [f"{h}/{r}" for h in ("codex", "pi", "claude-code") for r in GLM_RUNS]
+_style = dict(
+    column="group", order=_order,
+    labels={g: GLM_RUN_LABELS[g.split("/")[1]].replace(" ", "\n") for g in _order},
+    colors={g: _tint(HARNESS_COLORS[g.split("/")[0]], {"first": 0.35, "zai": 0.65, "rerun": 1.0}[g.split("/")[1]])
+            for g in _order},
+    markers={g: HARNESS_MARKERS[g.split("/")[0]] for g in _order},
+)
+fig, axes = plt.subplots(3, 1, figsize=(6.3, 7.4), sharex=True)
+plot_trial_strip(_strip, "agent_steps", ax=axes[0], log=True, ylabel="(a) Agent steps", **_style)
+plot_trial_strip(_strip, "longest_repeat", ax=axes[1], log=True, ylabel="(b) Longest repeat", **_style)
+plot_trial_strip(_strip, "agent_minutes", ax=axes[2], ylabel="(c) Agent time (min)",
+                 reference=180, reference_label="timeout", **_style)
+axes[2].set_ylim(0, 200)
+for _boundary in (2.5, 5.5):
+    for _ax in axes:
+        _ax.axvline(_boundary, color="#cfcdc6", linewidth=0.8, zorder=1)
+axes[2].tick_params(axis="x", labelsize=7)
+for _position, _harness in ((1, "codex"), (4, "pi"), (7, "claude-code")):
+    axes[0].text(_position, 1.02, HARNESS_LABELS[_harness], transform=axes[0].get_xaxis_transform(),
+                 ha="center", va="bottom", fontsize=8, color=HARNESS_COLORS[_harness])
+outcome_legend(axes[1], loc="upper right")
+fig.tight_layout()
+```
 
 The steps and tokens came from loops. In four first-run Codex trials, GLM issued the same tool call with identical arguments hundreds of times in a row: 1,953 times on `csstree`, 1,869 on `effect`, 1,836 on `python-statemachine`, and 863 on `koota`. @fig-glm-loop shows the `effect` trial call by call in all three runs. In the first run, 2,052 of its 2,355 tool calls repeated the call before them; the longest run was the search `rg -n "Schema.Simplify" packages/effect/src/Schema.ts`. With its earlier reasoning, GLM needed 368 calls on the Z.AI route and 177 in the second run, and apart from waiting for running commands, only one call repeated the one before it. GLM also produced a median of only 111 output tokens per agent step in the first-run Codex trials. In Pi, GLM ran the same Bash probe 742 times in a row on `scriggo` until the timeout, and the Jev audit classified 740 of these calls as repetition without progress [@pa1JevAuditData].
 
