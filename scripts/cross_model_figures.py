@@ -282,22 +282,20 @@ def output_cost_share(frame: pd.DataFrame) -> dict[tuple[str, str], float]:
 def cost_success_points(frame: pd.DataFrame, ceiling: float = 2.35, gap: float = 0.045) -> list[dict[str, Any]]:
     """Positions for the cost--success plane.
 
-    Models of one harness at the same spot share a marker. Markers on the same row
+    Every model--harness combination gets its own marker. Markers on the same row
     are shifted to the right by the least amount that keeps them ``gap`` apart;
     costs above ``ceiling`` are placed in an off-scale column.
     """
     cells = relative_cost(frame).set_index(["model", "harness"])
-    spots: dict[tuple[str, float, int], list[str]] = {}
+    rows: dict[int, list[dict[str, Any]]] = collections.defaultdict(list)
     for model in model_order(frame):
         for harness in HARNESS_ORDER:
-            if (model, harness) in cells.index:
-                value = float(cells.loc[(model, harness), "cost_relative"])
-                spots.setdefault((harness, round(value, 2), int(cells.loc[(model, harness), "passed"])),
-                                 []).append(model)
-    rows: dict[int, list[dict[str, Any]]] = collections.defaultdict(list)
-    for (harness, value, passed), models in spots.items():
-        rows[passed].append({"harness": harness, "cost": value, "passed": passed, "models": models,
-                             "off_scale": value > ceiling, "x": ceiling + 0.27 if value > ceiling else value})
+            if (model, harness) not in cells.index:
+                continue
+            value = round(float(cells.loc[(model, harness), "cost_relative"]), 2)
+            passed = int(cells.loc[(model, harness), "passed"])
+            rows[passed].append({"harness": harness, "cost": value, "passed": passed, "models": [model],
+                                 "off_scale": value > ceiling, "x": ceiling + 0.27 if value > ceiling else value})
     points = []
     for row in rows.values():
         last = None
@@ -318,14 +316,14 @@ def plot_cost_success(frame: pd.DataFrame, ceiling: float = 2.35):
         ax.scatter(point["x"], point["passed"], color=HARNESS_COLORS[point["harness"]],
                    marker=HARNESS_MARKERS[point["harness"]], s=58, edgecolor="white", linewidth=0.8, zorder=4)
     ax.axvline(ceiling + 0.13, color=MUTED, linewidth=0.8, linestyle=(0, (2, 2)))
-    ax.set_xlim(0.9, ceiling + 0.45)
+    ax.set_xlim(0.8, ceiling + 0.45)
     ticks = [1, 1.25, 1.5, 1.75, 2, 2.25]
     ax.set_xticks(ticks, [f"{t:g}×" for t in ticks], fontsize=7.5)
     ax.set_ylim(0, 10)
     ax.set_yticks(range(0, 11, 2))
     ax.set_xlabel("Cost of the ten tasks relative to the cheapest harness on the same model", fontsize=8)
     ax.set_ylabel("Tasks passed (of 10)", fontsize=8)
-    ax.text(0.93, 9.7, "↖ more tasks for less", fontsize=7, color=MUTED, va="top")
+    ax.text(0.83, 9.7, "↖ more tasks for less", fontsize=7, color=MUTED, va="top")
     _style_axis(ax)
     _harness_legend(ax, [Patch(color=BAND, label="best or 1 task behind")], ncol=5, loc="lower left",
                     bbox_to_anchor=(0, 1.0))
@@ -345,8 +343,8 @@ def plot_cost_success(frame: pd.DataFrame, ceiling: float = 2.35):
         label = ",\n".join(SHORT[m] for m in point["models"]) + (f" {point['cost']:.1f}×" if point["off_scale"] else "")
         # A label beside its marker is unambiguous when no other marker of the row is close on that side.
         row = [p["x"] - point["x"] for p in points if p["passed"] == point["passed"] and p is not point]
-        free_right = not any(0 < d < 0.12 for d in row)
-        free_left = not any(-0.12 < d < 0 for d in row)
+        free_right = not any(0 < d < 0.15 for d in row)
+        free_left = not any(-0.15 < d < 0 for d in row)
         candidates = ([right] if free_right else []) + ([left] if free_left and not free_right else []) + [
             above, below, ((-4, 7), "left", "bottom"), ((-4, -7), "left", "top"), right, left]
         best = None
