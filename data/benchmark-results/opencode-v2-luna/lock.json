@@ -1,6 +1,6 @@
 {
     "schema_version": 1,
-    "created_at": "2026-09-22T10:13:42.234953Z",
+    "created_at": "2026-09-24T22:11:25.714000Z",
     "pier": {
         "version": "0.3.1"
     },
@@ -17,12 +17,13 @@
     "retry": {
         "max_retries": 1,
         "exclude_exceptions": [
-            "VerifierOutputParseError",
-            "RewardFileNotFoundError",
             "CancelledError",
+            "NonZeroAgentExitCodeError",
+            "AgentTimeoutError",
+            "RewardFileNotFoundError",
+            "VerifierOutputParseError",
             "RewardFileEmptyError",
-            "VerifierTimeoutError",
-            "AgentTimeoutError"
+            "VerifierTimeoutError"
         ],
         "wait_multiplier": 1.0,
         "min_wait_sec": 1.0,
@@ -66,7 +67,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {
@@ -135,7 +135,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {
@@ -204,7 +203,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {
@@ -273,7 +271,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {
@@ -342,7 +339,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {
@@ -411,7 +407,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {
@@ -480,7 +475,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {
@@ -549,7 +543,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {
@@ -618,7 +611,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {
@@ -687,7 +679,6 @@
                                     "gpt-5.6-luna": {
                                         "limit": {
                                             "context": 272000,
-                                            "input": 144000,
                                             "output": 128000
                                         },
                                         "body": {

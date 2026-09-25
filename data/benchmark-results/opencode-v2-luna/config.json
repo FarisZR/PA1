@@ -1,5 +1,5 @@
 {
-    "job_name": "opencode-v2-luna",
+    "job_name": "opencode-v2-luna-272k",
     "jobs_dir": "benchmark/runs",
     "n_attempts": 1,
     "timeout_multiplier": 1.0,
@@ -14,12 +14,13 @@
         "max_retries": 1,
         "include_exceptions": null,
         "exclude_exceptions": [
-            "VerifierOutputParseError",
-            "RewardFileNotFoundError",
             "CancelledError",
+            "NonZeroAgentExitCodeError",
+            "AgentTimeoutError",
+            "RewardFileNotFoundError",
+            "VerifierOutputParseError",
             "RewardFileEmptyError",
-            "VerifierTimeoutError",
-            "AgentTimeoutError"
+            "VerifierTimeoutError"
         ],
         "wait_multiplier": 1.0,
         "min_wait_sec": 1.0,
@@ -81,7 +82,6 @@
                                 "gpt-5.6-luna": {
                                     "limit": {
                                         "context": 272000,
-                                        "input": 144000,
                                         "output": 128000
                                     },
                                     "body": {

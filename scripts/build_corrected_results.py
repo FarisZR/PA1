@@ -92,10 +92,20 @@ Corrections (see "Measurement corrections" in the results chapter):
    ``glm-5.3-flash`` and ``opencode-v2-glm-5.3-flash`` jobs after the same
    retention check.
 
+9. GPT-5.6 Luna OpenCode V2 input limit. The first run
+   (``benchmark/runs/opencode-v2-luna-144k-context``; its files name
+   ``benchmark/runs/opencode-v2-luna``) set an input limit of 144,000 tokens,
+   so OpenCode compacted at about 124,000 tokens instead of about 240,000.
+   It moves, with its corrections and attempt selection, to
+   ``data/benchmark-results/.excluded/luna/opencode-v2-input-144k/``. The rerun
+   without the input limit (``benchmark/runs/opencode-v2-luna-272k``) is
+   published as the ``opencode-v2-luna`` job after a check that every trial ran
+   with a compaction threshold of 240,000 tokens.
+
 DeepSeek rerun trials are published in the normal job directory; the job-level
 Pier files of each rerun job are kept under ``<job>/.rerun-jobs/<rerun job>/``.
-The GLM-5.3-Flash reruns replace their jobs completely, so their job-level files
-are the published job files.
+The GLM-5.3-Flash and Luna OpenCode V2 reruns replace their jobs completely, so
+their job-level files are the published job files.
 
 Regeneration needs the raw run workspace (``benchmark/runs/``, not tracked by
 Git) and, for correction 3, the pinned Pier checkout:
@@ -130,15 +140,16 @@ JOBS = (
     "opencode-v2-deepseek-v4p1-flash",
     "opencode-v2-glm-5.3-flash",
 )
-# Published jobs whose trials come from a differently named Pier job (correction 8).
+# Published jobs whose trials come from a differently named Pier job (corrections 8, 9).
 RAW_JOB = {
     "glm-5.3-flash": "glm-5.3-flash-rerun",
     "opencode-v2-glm-5.3-flash": "opencode-v2-glm-5.3-flash-rerun",
+    "opencode-v2-luna": "opencode-v2-luna-272k",
 }
 # Trials that Pier retried after a failure of the evaluated model or harness
-# (issue #95). Retries after transport or gateway faults (Kimi K3 Pi and the
-# DeepSeek V4.1 Flash context-window rejections) are not listed: there Pier's
-# final trial is the observation.
+# (issue #95), keyed by raw run directory. Retries after transport or gateway
+# faults (Kimi K3 Pi and the DeepSeek V4.1 Flash context-window rejections) are
+# not listed: there Pier's final trial is the observation.
 OPENCODE_EXIT = (
     "OpenCode finished and passed after recovering from a transient stream error, but "
     "OpenCode 2.0.8's non-interactive CLI kept exit status 1, so Pier repeated the trial"
@@ -154,7 +165,7 @@ FIRST_ATTEMPT_CANONICAL = {
         "koota-composite-trait-aspects__KKujPmj": OPENCODE_EXIT,
         "scriggo-method-declarations__7mKVSxh": OPENCODE_EXIT,
     },
-    "opencode-v2-luna": {
+    "opencode-v2-luna-144k-context": {
         "effect-sse-httpapi-streaming__rL66U8M": QUESTION_TOOL,
         "expr-try-catch-errors__Uvvi6Eh": QUESTION_TOOL,
         "katex-multicolumn-array-spans__zipARnF": QUESTION_TOOL,
@@ -274,6 +285,17 @@ GLM_FIRST_RUN_REASON = (
     "Ran before AiOrbit's LiteLLM upgrade; LiteLLM 1.101.0 removed reasoning_content before "
     "forwarding to Fireworks, so the model never received its earlier reasoning (PA1 #111); "
     "rerun on the fixed gateway in benchmark/runs/{rerun}"
+)
+# Correction 9: the first Luna OpenCode V2 run and its input limit. The raw run
+# was renamed after a later job reused its name; its files still name the old one.
+LUNA_OPENCODE_JOB = "opencode-v2-luna"
+LUNA_144K_RUN = "opencode-v2-luna-144k-context"
+LUNA_144K_ARCHIVE = PUBLISHED / ".excluded" / "luna" / "opencode-v2-input-144k"
+LUNA_COMPACTION_CEILING = 240_000
+LUNA_144K_REASON = (
+    "The PA1 profile set an input limit of 144,000 tokens, so OpenCode compacted at about "
+    "124,000 tokens instead of about 240,000; rerun without the input limit on Pier "
+    "1324424 (FZR-forks/pier#16) in benchmark/runs/opencode-v2-luna-272k"
 )
 PUBLISHED_FILES = ("result.json", "config.json", "agent/trajectory.json")
 OPENCODE_RUNNER_RESULT = "agent/opencode-v2/runner-result.json"
@@ -763,6 +785,77 @@ def archive_zai_snapshot() -> dict[str, str]:
     }
 
 
+# --- GPT-5.6 Luna OpenCode V2 (correction 9) ------------------------------------
+
+
+def archive_luna_144k() -> list[dict[str, Any]]:
+    """Move the first Luna OpenCode V2 run out of the comparative data (idempotent)."""
+    job, archive, raw_first = PUBLISHED / LUNA_OPENCODE_JOB, LUNA_144K_ARCHIVE, RAW / LUNA_144K_RUN
+    if not archive.is_dir():
+        archive.mkdir(parents=True)
+        first_ids = {
+            load(p)["id"]
+            for p in [*raw_first.glob("*/result.json"), *raw_first.glob(".retry-attempts/*/attempt-*/result.json")]
+        }
+        published_first = [p.parent for p in job.glob("*/result.json") if load(original(p))["id"] in first_ids]
+        if published_first:
+            # The first run was published here before the rerun; move it with its
+            # corrected files, which the correction pass below re-derives.
+            for trial in published_first:
+                trial.rename(archive / trial.name)
+            if (job / ".retry-attempts").is_dir():
+                (job / ".retry-attempts").rename(archive / ".retry-attempts")
+            for name in JOB_FILES:
+                (job / name).rename(archive / name)
+            (job / "corrections.json").unlink(missing_ok=True)
+        else:
+            copy_job(raw_first, archive)
+    check_same_attempts(archive, raw_first)
+    if opencode_input_limit(raw_first) != 144_000:
+        raise ValidationError(f"{raw_first}: expected the input limit of 144,000 tokens")
+    return [
+        {
+            "trial": trial.name,
+            "harness": "opencode-v2",
+            "task": load(trial / "result.json")["task_name"].split("/")[-1],
+            "pier_run": f"benchmark/runs/{LUNA_144K_RUN}",
+            "published": str(trial.relative_to(PUBLISHED)),
+            "reason": LUNA_144K_REASON,
+        }
+        for trial in sorted(p.parent for p in archive.glob("*/result.json"))
+    ]
+
+
+def opencode_input_limit(raw_job: Path) -> int | None:
+    """The Luna input limit in a job's OpenCode configuration (None when inherited)."""
+    agent = load(raw_job / "config.json")["agents"][0]
+    models = agent["kwargs"]["opencode_v2_config"]["providers"]["openai"]["models"]
+    return models["gpt-5.6-luna"]["limit"].get("input")
+
+
+def publish_luna_rerun() -> None:
+    """Publish the Luna OpenCode V2 rerun as the job after checking its compaction threshold."""
+    job, raw_rerun = PUBLISHED / LUNA_OPENCODE_JOB, RAW / RAW_JOB[LUNA_OPENCODE_JOB]
+    if not any(job.glob("*/result.json")):
+        job.mkdir(parents=True, exist_ok=True)
+        copy_job(raw_rerun, job)
+    check_same_attempts(job, raw_rerun)
+    if opencode_input_limit(raw_rerun) is not None:
+        raise ValidationError(f"{raw_rerun}: the rerun still sets an input limit")
+    tasks = set()
+    for result_path in sorted(raw_rerun.glob("*/result.json")):
+        result = load(result_path)
+        task = result["task_name"].split("/")[-1]
+        if result["config"]["agent"]["name"] != "opencode-v2" or task in tasks:
+            raise ValidationError(f"{result_path}: not one OpenCode V2 trial per task")
+        preflight = load(result_path.parent / "agent" / "opencode-v2" / "opencode-v2-preflight.json")
+        if preflight.get("compaction_prompt_ceiling") != LUNA_COMPACTION_CEILING:
+            raise ValidationError(f"{result_path}: compaction threshold {preflight.get('compaction_prompt_ceiling')}")
+        tasks.add(task)
+    if len(tasks) != 10:
+        raise ValidationError(f"{raw_rerun}: expected ten trials, found {len(tasks)}")
+
+
 def agent_steps(trajectory: dict[str, Any]) -> list[dict[str, Any]]:
     return [s for s in trajectory.get("steps", []) if s.get("source") == "agent"]
 
@@ -770,9 +863,9 @@ def agent_steps(trajectory: dict[str, Any]) -> list[dict[str, Any]]:
 # --- canonical attempts ------------------------------------------------------
 
 
-def pier_path(job_name: str, rel: Path) -> Path:
+def pier_path(raw_job: Path, rel: Path) -> Path:
     """Map a published attempt back to its location in Pier's run layout."""
-    selected = FIRST_ATTEMPT_CANONICAL.get(job_name, {})
+    selected = FIRST_ATTEMPT_CANONICAL.get(raw_job.name, {})
     if len(rel.parts) == 1 and rel.name in selected:
         return Path(".retry-attempts", rel.name, "attempt-1")
     if rel.parts[0] == ".retry-attempts" and rel.parts[1] in selected and rel.name == "attempt-2":
@@ -782,7 +875,7 @@ def pier_path(job_name: str, rel: Path) -> Path:
 
 def attempt_summary(published: Path, job: Path, raw_job: Path) -> dict[str, Any]:
     rel = published.relative_to(job)
-    pier = pier_path(job.name, rel)
+    pier = pier_path(raw_job, rel)
     result = load(original(published / "result.json"))
     raw = load(raw_job / pier / "result.json")
     if result["id"] != raw["id"]:
@@ -799,7 +892,7 @@ def attempt_summary(published: Path, job: Path, raw_job: Path) -> dict[str, Any]
 def select_first_attempts(job: Path, raw_job: Path) -> list[dict[str, Any]]:
     """Publish the first attempt as the trial and Pier's retry as attempt-2."""
     selections = []
-    for name, reason in FIRST_ATTEMPT_CANONICAL.get(job.name, {}).items():
+    for name, reason in FIRST_ATTEMPT_CANONICAL.get(raw_job.name, {}).items():
         trial = job / name
         first = job / ".retry-attempts" / name / "attempt-1"
         retry = job / ".retry-attempts" / name / "attempt-2"
@@ -1013,6 +1106,10 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
         publish_glm_rerun(job_name)
         if job_name == GLM_JOB:
             glm_zai = archive_zai_snapshot()
+    luna_excluded = None
+    if job_name == LUNA_OPENCODE_JOB:
+        luna_excluded = archive_luna_144k()
+        publish_luna_rerun()
     manifest: dict[str, Any] = {
         "job": job_name,
         "reference": REFERENCE,
@@ -1032,6 +1129,14 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
             # trials left no session record to recover their totals from.
             archives = [GLM_FIRST_RUNS[job_name]]
             archive_raw[GLM_FIRST_RUNS[job_name]] = RAW / job_name
+    if luna_excluded is not None:
+        # The first run keeps its corrections and its first-attempt selection, so
+        # the comparison of the two runs uses the same attempts as before.
+        manifest["pier_job"] = raw_job.name
+        manifest["excluded_runs"] = luna_excluded
+        manifest["excluded_attempt_selection"] = select_first_attempts(LUNA_144K_ARCHIVE, RAW / LUNA_144K_RUN)
+        archives = [LUNA_144K_ARCHIVE]
+        archive_raw[LUNA_144K_ARCHIVE] = RAW / LUNA_144K_RUN
     if job_name == DEEPSEEK_JOB:
         superseded = archive_issue_111(job)
         excluded = exclude_deepseek_claude(job)
@@ -1060,7 +1165,8 @@ def process_job(job_name: str, pier_python: str | None) -> dict[str, Any]:
     for base, trial in located:
         rel = trial.relative_to(base)
         name = rel.parts[1] if rel.parts[0] == ".retry-attempts" else rel.parts[0]
-        raw_trial = raw_overrides.get(name, archive_raw.get(base, raw_job)) / pier_path(job_name, rel)
+        raw_base = raw_overrides.get(name, archive_raw.get(base, raw_job))
+        raw_trial = raw_base / pier_path(raw_base, rel)
         result = load(original(trial / "result.json"))
         harness = result["config"]["agent"]["name"]
         corrected_trajectory = None

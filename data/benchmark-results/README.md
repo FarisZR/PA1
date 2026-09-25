@@ -34,10 +34,17 @@ The GPT-5.6 Luna job is published at `luna/`. It contains all 30 trials
 across the Pi, Claude Code, and Codex harnesses. This job recorded no retry
 attempts.
 
-The completed OpenCode V2 GPT-5.6 Luna run is published separately at
-`opencode-v2-luna/`. It contains the 10 trials and 4 retry attempts,
-including each OpenCode adapter `runner-result.json` alongside the filtered
-result, config, and trajectory files.
+The OpenCode V2 GPT-5.6 Luna run is published separately at
+`opencode-v2-luna/`. It holds the rerun without an input limit, Pier job
+`opencode-v2-luna-272k` (2026-09-24, Pier `1324424`, FZR-forks/pier#16), in
+which every trial compacted at 240,000 tokens. It replaces the first run
+completely, so its job-level `result.json`, `config.json`, and `lock.json` are
+those of the rerun job. It contains the 10 trials, including each OpenCode
+adapter `runner-result.json` alongside the filtered result, config, and
+trajectory files, and recorded no retry attempt. Pier's summary counts the
+`katex` trial as an error: OpenCode exited with status 1 after a recovered
+stream timeout, although the trial passed. The first run is not in this
+directory (see below).
 
 The DeepSeek V4.1 Flash directory `deepseek-v4p1-flash/` holds the canonical
 Codex, Pi, and Claude Code trials, which come from four Pier jobs:
@@ -100,6 +107,14 @@ comparative results out of the job directories, so the normal
   Pi condition comes from one run. The repetitions were published only after
   the same retention check.
 
+- `.excluded/luna/opencode-v2-input-144k/`: the first GPT-5.6 Luna OpenCode V2
+  run (2026-09-22, with its job-level files and four retry attempts). Its
+  profile set an input limit of 144,000 tokens, so OpenCode compacted at about
+  124,000 tokens instead of 240,000. The raw run directory is
+  `benchmark/runs/opencode-v2-luna-144k-context`; its files still name
+  `benchmark/runs/opencode-v2-luna`, the directory's name during the run. It
+  keeps its corrections and its first-attempt selection.
+
 - `.excluded/glm-5.3-flash/first-run/`: the first GLM-5.3-Flash run of Pi,
   Claude Code, and Codex (Pier job `glm-5.3-flash`, 2026-09-21, with its
   job-level files and two retry attempts). It ran entirely before AiOrbit's
@@ -115,8 +130,9 @@ comparative results out of the job directories, so the normal
   corrected.
 
 The three DeepSeek Claude Code runs are compared with each other in the
-results chapter to show what the route defects changed (#105), and the three
-GLM-5.3-Flash runs likewise (#129). These two comparisons are the only analyses
+results chapter to show what the route defects changed (#105), the three
+GLM-5.3-Flash runs likewise (#129), and the two Luna OpenCode V2 runs to show
+what the early compaction changed. These three comparisons are the only analyses
 that read `.excluded/`; no comparative result does. The
 results chapter also compares the superseded Codex and Pi trials with their
 repetitions to show what the missing reasoning changed; `.superseded/` is read
@@ -181,8 +197,8 @@ original context values; use trajectories only for step-level analysis.
 | Correction | Files |
 | --- | --- |
 | Codex peak context and compaction count recomputed from per-call input tokens (upstream Pier counted output tokens) | `result.json` for all 58 Codex attempts |
-| OpenCode V2 token and cost totals withheld by the adapter, taken from OpenCode's session records | `result.json` for 12 OpenCode V2 attempts |
-| OpenCode V2 trajectories lost to the adapter's `splitlines()` reader, rebuilt offline | `agent/trajectory.json` for both Luna `effect-sse-httpapi-streaming` attempts |
+| OpenCode V2 token and cost totals withheld by the adapter, taken from OpenCode's session records | `result.json` for 14 OpenCode V2 attempts (8 of them in the excluded first Luna run) |
+| OpenCode V2 trajectories lost to the adapter's `splitlines()` reader, rebuilt offline | `agent/trajectory.json` for all three Luna `effect-sse-httpapi-streaming` attempts (2 in the excluded first run) |
 
 The script validates every correction before writing it. The Codex counts must
 equal the explicit compaction events in the raw rollouts. The OpenCode session
@@ -221,7 +237,7 @@ byte-identical to Pier's output; only their location changed.
 | Job | Trials | Reason |
 | --- | --- | --- |
 | `opencode-v2-deepseek-v4p1-flash` | fastapi, katex, koota, scriggo | Session finished and passed, but OpenCode 2.0.8 kept exit status 1 after a recovered stream error |
-| `opencode-v2-luna` | effect-sse, expr, katex, oxvg | Model asked for a Git identity through OpenCode's interactive `question` tool |
+| First Luna run (`.excluded/luna/opencode-v2-input-144k/`) | effect-sse, expr, katex, oxvg | Model asked for a Git identity through OpenCode's interactive `question` tool |
 
 The Kimi K3 Pi, first-run GLM-5.3-Flash Codex, and DeepSeek V4.1 Flash Pi/Codex retries
 followed transport or gateway faults (the DeepSeek ones are gateway
