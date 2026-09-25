@@ -1,0 +1,160 @@
+task_name,model,pa1_model,reasoning_effort,provider,passed,n_agent_steps,n_input_tokens,n_cache_tokens,n_output_tokens,agent_duration_seconds,started_at
+boa-hierarchical-evaluation-cancellation,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,255,34828664,34693504,112875,2051.137265,2026-08-05T19:27:21.330270Z
+boa-hierarchical-evaluation-cancellation,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,236,38300077,38137344,112761,2196.573401,2026-08-05T22:17:57.478270Z
+boa-hierarchical-evaluation-cancellation,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,208,31062592,30926592,107239,2151.543605,2026-08-05T22:17:57.532919Z
+boa-hierarchical-evaluation-cancellation,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,272,40810654,40660736,118703,2433.692482,2026-08-06T04:48:52.612616Z
+csstree-shorthand-expansion-compression,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,130,13488829,13397632,109687,1247.196625,2026-08-05T19:07:04.912711Z
+csstree-shorthand-expansion-compression,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,200,24777711,24678784,125708,1588.830018,2026-08-05T19:55:45.458080Z
+csstree-shorthand-expansion-compression,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,156,19211783,19104128,126722,1407.688257,2026-08-05T22:17:57.496590Z
+csstree-shorthand-expansion-compression,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,190,24277381,24173952,113903,1373.42667,2026-08-05T23:00:09.443508Z
+effect-sse-httpapi-streaming,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,228,41321882,41156736,141540,2361.418056,2026-08-05T19:31:54.285437Z
+effect-sse-httpapi-streaming,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,253,44374013,44182400,125529,2227.124306,2026-08-05T20:17:53.044287Z
+effect-sse-httpapi-streaming,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,216,32471364,32326016,132359,1978.789465,2026-08-05T22:35:46.595425Z
+effect-sse-httpapi-streaming,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,249,39924591,39760128,124292,2168.412346,2026-08-06T04:48:52.625141Z
+expr-try-catch-errors,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,201,35340975,35170816,120560,1627.514041,2026-08-05T19:07:04.897607Z
+expr-try-catch-errors,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,168,24321783,24179200,106104,1589.272085,2026-08-05T19:49:51.653982Z
+expr-try-catch-errors,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,190,27100437,26970368,114072,1495.008771,2026-08-05T22:17:57.489509Z
+expr-try-catch-errors,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,174,29301000,29141888,106924,1380.779887,2026-08-05T22:52:11.055874Z
+fastapi-implicit-head-options,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,181,22864751,22759040,133051,1641.152188,2026-08-05T19:28:39.044309Z
+fastapi-implicit-head-options,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,183,21062160,20958848,99024,1281.392588,2026-08-05T20:14:59.033890Z
+fastapi-implicit-head-options,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,237,29435299,29323136,113951,1401.297889,2026-08-05T22:31:22.129426Z
+fastapi-implicit-head-options,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,264,38311094,38168576,122270,1815.87411,2026-08-06T04:48:52.615498Z
+katex-multicolumn-array-spans,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,165,20238746,20113152,86166,1439.07519,2026-08-05T19:07:04.893651Z
+katex-multicolumn-array-spans,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,141,16397895,16290048,114161,1468.871502,2026-08-05T19:47:56.389842Z
+katex-multicolumn-array-spans,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,155,19638620,19502080,110330,1547.776588,2026-08-05T20:34:03.085942Z
+katex-multicolumn-array-spans,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,191,26007577,25841152,108941,1566.620857,2026-08-05T22:50:09.328543Z
+koota-composite-trait-aspects,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,157,25014363,24862464,133593,1599.753244,2026-08-05T19:07:04.921658Z
+koota-composite-trait-aspects,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,133,19080958,18943104,115983,1311.407398,2026-08-05T19:58:46.934539Z
+koota-composite-trait-aspects,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,145,23885259,23750400,124441,1453.406562,2026-08-05T22:17:57.504782Z
+koota-composite-trait-aspects,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,127,22891476,22709632,122121,1472.906644,2026-08-06T04:48:52.601074Z
+oxvg-structural-selector-preservation,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,171,27284582,27101568,107851,1747.606019,2026-08-05T19:28:07.395369Z
+oxvg-structural-selector-preservation,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,234,36988815,36804992,97613,1855.528937,2026-08-05T22:17:57.479931Z
+oxvg-structural-selector-preservation,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,331,68921057,68697600,154734,2980.616225,2026-08-05T22:17:57.535478Z
+oxvg-structural-selector-preservation,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,False,207,28753087,28595712,87537,1694.471148,2026-08-06T04:48:52.614622Z
+python-statemachine-state-data-scoping,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,223,38687419,38510208,114960,1774.129043,2026-08-05T19:07:04.873307Z
+python-statemachine-state-data-scoping,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,182,31687927,31511040,109555,1430.821413,2026-08-05T19:35:30.876366Z
+python-statemachine-state-data-scoping,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,182,29469096,29304576,101982,1567.91183,2026-08-05T20:26:00.961065Z
+python-statemachine-state-data-scoping,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,201,33203374,33040128,118895,1634.90511,2026-08-05T22:42:10.745215Z
+scriggo-method-declarations,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,360,80959314,80739456,190015,2731.175766,2026-08-05T19:31:28.414946Z
+scriggo-method-declarations,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,303,66501660,66279936,156981,2527.216955,2026-08-05T20:17:21.595875Z
+scriggo-method-declarations,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,316,67403179,67188608,194577,2357.707074,2026-08-05T22:35:32.158128Z
+scriggo-method-declarations,deepseek-v4-flash,deepseek-v4-flash (not V4.1),max,deepseek,True,290,61216475,60992768,164982,2435.637496,2026-08-06T04:48:52.622464Z
+boa-hierarchical-evaluation-cancellation,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,219,26159173,25396672,88369,5399.999612,2026-08-26T04:39:11.348361Z
+boa-hierarchical-evaluation-cancellation,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,154,16440261,15779776,76478,2511.976533,2026-08-26T05:04:27.083061Z
+boa-hierarchical-evaluation-cancellation,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,198,21504353,20761152,78874,3612.042517,2026-08-26T05:25:36.378563Z
+boa-hierarchical-evaluation-cancellation,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,199,20538525,19827904,75290,3965.262205,2026-08-26T05:51:05.577556Z
+csstree-shorthand-expansion-compression,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,71,5293115,4718464,70718,896.598777,2026-08-26T04:39:11.305024Z
+csstree-shorthand-expansion-compression,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,84,6414149,5908672,75078,949.257013,2026-08-26T04:55:33.843326Z
+csstree-shorthand-expansion-compression,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,99,8385050,7792192,78259,1063.723082,2026-08-26T05:17:45.697196Z
+csstree-shorthand-expansion-compression,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,60,4319301,3878656,61797,693.70876,2026-08-26T05:42:05.429784Z
+effect-sse-httpapi-streaming,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,216,29668651,28808448,93469,3378.93366,2026-08-26T04:39:11.362759Z
+effect-sse-httpapi-streaming,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,203,24486943,23749120,74397,2978.962917,2026-08-26T05:08:36.839550Z
+effect-sse-httpapi-streaming,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,215,24629173,23932480,74056,3102.49224,2026-08-26T05:29:51.432532Z
+effect-sse-httpapi-streaming,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,248,30430328,29640128,82069,3858.443504,2026-08-26T05:54:58.189237Z
+expr-try-catch-errors,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,157,18682072,17892416,95953,1647.497078,2026-08-26T04:39:11.289485Z
+expr-try-catch-errors,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,152,18061891,17175168,102190,1715.296816,2026-08-26T04:53:48.336074Z
+expr-try-catch-errors,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,153,18335832,17512448,98695,1568.730156,2026-08-26T05:16:01.433812Z
+expr-try-catch-errors,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,189,22099051,21178560,112106,1949.580388,2026-08-26T05:38:32.640672Z
+fastapi-implicit-head-options,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,123,9545412,8995136,75326,1674.96229,2026-08-26T04:39:11.353926Z
+fastapi-implicit-head-options,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,131,10916482,10340736,78513,1453.727792,2026-08-26T05:06:26.682554Z
+fastapi-implicit-head-options,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,137,11636601,11076736,73220,1793.907544,2026-08-26T05:27:35.140691Z
+fastapi-implicit-head-options,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,108,7855486,7294912,71040,1529.128523,2026-08-26T05:52:18.513113Z
+katex-multicolumn-array-spans,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,135,13912042,13126848,79570,1436.663752,2026-08-26T04:39:11.285584Z
+katex-multicolumn-array-spans,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,116,10549327,9934976,68885,1085.393593,2026-08-26T04:53:09.100183Z
+katex-multicolumn-array-spans,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,106,9540446,8949056,72795,1096.090374,2026-08-26T05:15:18.762802Z
+katex-multicolumn-array-spans,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,104,8574087,8036288,64348,1102.853602,2026-08-26T05:37:12.015991Z
+koota-composite-trait-aspects,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,179,27438879,26419904,112116,1979.170395,2026-08-26T04:39:11.314620Z
+koota-composite-trait-aspects,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,214,36918589,35805440,115512,1976.059294,2026-08-26T04:56:55.526966Z
+koota-composite-trait-aspects,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,217,35388358,34273152,119289,2124.045137,2026-08-26T05:44:02.539769Z
+oxvg-structural-selector-preservation,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,159,19297104,18502784,77340,2697.474813,2026-08-26T04:39:11.351193Z
+oxvg-structural-selector-preservation,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,244,33266547,32321856,98440,4043.543512,2026-08-26T05:05:38.391182Z
+oxvg-structural-selector-preservation,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,196,26996693,26089600,91896,3407.470706,2026-08-26T05:26:26.019355Z
+oxvg-structural-selector-preservation,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,138,17419198,16633728,90394,2077.507687,2026-08-26T05:52:02.356647Z
+python-statemachine-state-data-scoping,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,227,32871305,31903104,92677,2184.10945,2026-08-26T04:39:11.263054Z
+python-statemachine-state-data-scoping,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,197,25936346,25116544,86220,2278.351555,2026-08-26T04:39:11.382630Z
+python-statemachine-state-data-scoping,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,220,32840088,31855296,98853,2344.029298,2026-08-26T05:11:52.834059Z
+python-statemachine-state-data-scoping,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,196,23423225,22604096,86828,1990.385506,2026-08-26T05:34:08.315410Z
+scriggo-method-declarations,glm-5-3-flash,glm-5p3-flash,max,anthropic,False,431,92660085,91219264,172846,5399.998493,2026-08-26T04:39:11.360963Z
+scriggo-method-declarations,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,365,66383645,65056576,166701,3293.398995,2026-08-26T05:08:12.302678Z
+scriggo-method-declarations,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,425,89459752,87944384,176645,4830.434124,2026-08-26T05:29:24.343301Z
+scriggo-method-declarations,glm-5-3-flash,glm-5p3-flash,max,anthropic,True,403,86365292,84889152,195728,3612.639739,2026-08-26T05:54:42.934272Z
+boa-hierarchical-evaluation-cancellation,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,176,36207603,35146240,81630,1554.223032,2026-07-07T19:29:22.356178Z
+boa-hierarchical-evaluation-cancellation,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,235,63370949,62019584,118274,3456.472337,2026-07-07T20:22:57.352634Z
+boa-hierarchical-evaluation-cancellation,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,211,45308739,43792896,94872,2514.118047,2026-07-07T20:39:59.760243Z
+boa-hierarchical-evaluation-cancellation,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,169,34928832,33759232,86248,2014.676995,2026-07-07T20:57:36.131705Z
+csstree-shorthand-expansion-compression,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,80,6776394,6286336,65532,727.354624,2026-07-07T17:44:25.614171Z
+csstree-shorthand-expansion-compression,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,91,10057881,9445376,71677,776.776196,2026-07-07T20:22:57.079570Z
+csstree-shorthand-expansion-compression,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,81,9393910,8773120,76249,895.121405,2026-07-07T20:33:59.264302Z
+csstree-shorthand-expansion-compression,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,57,4737097,4300288,59829,608.427941,2026-07-07T20:51:25.629481Z
+effect-sse-httpapi-streaming,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,160,33264473,32148992,85166,2485.688922,2026-07-07T20:22:56.951347Z
+effect-sse-httpapi-streaming,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,206,58874456,57170944,107720,2998.329202,2026-07-07T20:25:34.639163Z
+effect-sse-httpapi-streaming,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,222,58382633,56852480,102513,3526.043984,2026-07-07T20:42:28.133257Z
+effect-sse-httpapi-streaming,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,214,53008341,51569152,92854,2430.522272,2026-07-07T20:59:46.347139Z
+expr-try-catch-errors,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,107,17627106,16814080,70390,867.891727,2026-07-07T17:40:39.696135Z
+expr-try-catch-errors,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,92,17291366,16406016,82489,979.215018,2026-07-07T20:22:56.999743Z
+expr-try-catch-errors,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,162,35406979,33996800,98236,1966.625345,2026-07-07T20:32:07.874008Z
+expr-try-catch-errors,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,120,24290534,23024128,83761,1307.154711,2026-07-07T20:49:38.066499Z
+fastapi-implicit-head-options,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,130,15849079,15201792,76259,985.576125,2026-07-07T19:29:22.373701Z
+fastapi-implicit-head-options,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,181,26104374,25296384,88276,1622.930388,2026-07-07T20:24:44.724251Z
+fastapi-implicit-head-options,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,146,20835940,19867648,92466,1466.198745,2026-07-07T20:40:53.583150Z
+fastapi-implicit-head-options,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,125,20773536,19938304,96901,1200.294183,2026-07-07T20:58:15.753252Z
+katex-multicolumn-array-spans,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,86,13819285,12809728,72729,892.129537,2026-07-07T17:40:39.649044Z
+katex-multicolumn-array-spans,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,106,17046188,16117248,68935,1030.128262,2026-07-07T20:22:56.982780Z
+katex-multicolumn-array-spans,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,78,11339802,10422272,71313,968.783429,2026-07-07T20:31:36.995196Z
+katex-multicolumn-array-spans,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,120,18446992,17612800,71152,1306.561374,2026-07-07T20:48:55.562180Z
+koota-composite-trait-aspects,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,173,35001394,33884160,115357,1421.074007,2026-07-07T19:29:22.255679Z
+koota-composite-trait-aspects,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,138,27639257,26572800,94876,1576.81932,2026-07-07T20:22:57.129447Z
+koota-composite-trait-aspects,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,120,25674650,24382976,98903,1819.74896,2026-07-07T20:35:13.580885Z
+koota-composite-trait-aspects,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,148,29296454,28227072,112694,1565.368596,2026-07-07T20:52:46.994539Z
+oxvg-structural-selector-preservation,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,233,49513177,47771648,86508,3440.030912,2026-07-07T20:22:56.948820Z
+oxvg-structural-selector-preservation,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,137,27573889,26543104,59977,1860.473288,2026-07-07T20:22:57.369117Z
+oxvg-structural-selector-preservation,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,226,53738110,52106240,91537,2885.32754,2026-07-07T20:40:21.181160Z
+oxvg-structural-selector-preservation,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,217,50029245,48412160,82599,2489.59378,2026-07-07T20:57:56.958309Z
+python-statemachine-state-data-scoping,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,195,34035323,33083392,96627,1503.955598,2026-07-07T17:40:39.404682Z
+python-statemachine-state-data-scoping,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,201,39124529,38055424,94132,2028.036604,2026-07-07T20:22:56.961742Z
+python-statemachine-state-data-scoping,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,166,32515355,31312384,88853,1751.777171,2026-07-07T20:28:21.325315Z
+python-statemachine-state-data-scoping,gpt-5-6-luna,gpt-5.6-luna,max,openai,False,138,24867159,23613952,92850,1509.610204,2026-07-07T20:45:39.064200Z
+scriggo-method-declarations,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,240,74279345,72794112,131628,1953.753853,2026-07-07T19:29:22.387888Z
+scriggo-method-declarations,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,236,69059237,67432960,139026,2741.945441,2026-07-07T20:25:22.410232Z
+scriggo-method-declarations,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,252,73671341,72045056,135395,2540.759033,2026-07-07T20:42:13.747949Z
+scriggo-method-declarations,gpt-5-6-luna,gpt-5.6-luna,max,openai,True,238,55364734,54134784,130673,1889.600672,2026-07-07T20:59:27.070757Z
+boa-hierarchical-evaluation-cancellation,kimi-k3,kimi-k3,max,moonshot,True,164,17461215,17111991,89029,5227.605655,2026-07-16T19:17:30.199749Z
+boa-hierarchical-evaluation-cancellation,kimi-k3,kimi-k3,max,moonshot,False,122,11822071,11585630,87617,4614.920802,2026-07-16T19:17:30.362313Z
+boa-hierarchical-evaluation-cancellation,kimi-k3,kimi-k3,max,moonshot,True,130,13353896,13086818,91736,4781.732154,2026-07-16T20:30:30.586689Z
+boa-hierarchical-evaluation-cancellation,kimi-k3,kimi-k3,max,moonshot,True,173,21230440,20805831,101200,5234.610826,2026-07-16T21:16:06.187186Z
+csstree-shorthand-expansion-compression,kimi-k3,kimi-k3,max,moonshot,True,49,3424575,3356084,89022,4697.610548,2026-07-16T19:17:30.159844Z
+csstree-shorthand-expansion-compression,kimi-k3,kimi-k3,max,moonshot,False,54,3437554,3368803,69182,9919.574516,2026-07-16T19:17:30.270399Z
+csstree-shorthand-expansion-compression,kimi-k3,kimi-k3,max,moonshot,True,42,2678531,2624960,68989,2763.009364,2026-07-16T20:17:35.732102Z
+csstree-shorthand-expansion-compression,kimi-k3,kimi-k3,max,moonshot,False,61,3574821,3503325,68125,3874.881918,2026-07-16T20:58:07.962494Z
+effect-sse-httpapi-streaming,kimi-k3,kimi-k3,max,moonshot,False,151,17353805,17006729,102402,7523.348981,2026-07-16T19:17:30.213581Z
+effect-sse-httpapi-streaming,kimi-k3,kimi-k3,max,moonshot,False,196,27123079,26580617,112599,6551.722918,2026-07-16T19:55:32.599410Z
+effect-sse-httpapi-streaming,kimi-k3,kimi-k3,max,moonshot,False,145,16913657,16575384,105686,5497.572228,2026-07-16T20:36:53.482397Z
+effect-sse-httpapi-streaming,kimi-k3,kimi-k3,max,moonshot,False,179,26932190,26393546,126674,5627.43144,2026-07-16T21:23:03.954748Z
+expr-try-catch-errors,kimi-k3,kimi-k3,max,moonshot,False,98,10564526,10353235,98888,5621.209657,2026-07-16T19:17:30.145312Z
+expr-try-catch-errors,kimi-k3,kimi-k3,max,moonshot,True,117,13163846,12900569,91603,4778.980708,2026-07-16T19:17:30.256488Z
+expr-try-catch-errors,kimi-k3,kimi-k3,max,moonshot,True,136,15074030,14772549,103643,7017.720679,2026-07-16T20:12:37.938003Z
+expr-try-catch-errors,kimi-k3,kimi-k3,max,moonshot,True,127,15298297,14992331,112387,4842.671404,2026-07-16T20:52:31.398702Z
+fastapi-implicit-head-options,kimi-k3,kimi-k3,max,moonshot,True,93,7723110,7568648,87505,3883.31447,2026-07-16T19:17:30.204825Z
+fastapi-implicit-head-options,kimi-k3,kimi-k3,max,moonshot,True,94,7640592,7487780,83009,4767.134283,2026-07-16T19:17:30.368079Z
+fastapi-implicit-head-options,kimi-k3,kimi-k3,max,moonshot,True,82,5457077,5347935,68828,4820.72775,2026-07-16T20:32:44.332275Z
+fastapi-implicit-head-options,kimi-k3,kimi-k3,max,moonshot,True,84,7302380,7156332,86992,6424.866759,2026-07-16T21:19:40.823530Z
+katex-multicolumn-array-spans,kimi-k3,kimi-k3,max,moonshot,True,79,6637086,6504344,76875,4011.604518,2026-07-16T19:17:30.141622Z
+katex-multicolumn-array-spans,kimi-k3,kimi-k3,max,moonshot,True,119,12232117,11987475,90752,4092.712678,2026-07-16T19:17:30.252860Z
+katex-multicolumn-array-spans,kimi-k3,kimi-k3,max,moonshot,False,85,7262566,7117315,75077,4455.571019,2026-07-16T20:09:50.907181Z
+katex-multicolumn-array-spans,kimi-k3,kimi-k3,max,moonshot,True,111,10638948,10426169,87526,4276.611611,2026-07-16T20:51:48.307689Z
+koota-composite-trait-aspects,kimi-k3,kimi-k3,max,moonshot,True,145,22841244,22384419,144258,6486.120893,2026-07-16T19:17:30.169156Z
+koota-composite-trait-aspects,kimi-k3,kimi-k3,max,moonshot,True,112,13796382,13520454,114731,6436.538985,2026-07-16T19:17:30.279287Z
+koota-composite-trait-aspects,kimi-k3,kimi-k3,max,moonshot,True,152,23818283,23341917,136504,7156.272507,2026-07-16T20:19:12.051879Z
+koota-composite-trait-aspects,kimi-k3,kimi-k3,max,moonshot,False,135,21397742,20969787,139692,9767.593318,2026-07-16T21:01:08.582139Z
+oxvg-structural-selector-preservation,kimi-k3,kimi-k3,max,moonshot,True,204,35830399,35113791,162596,10605.963162,2026-07-16T19:17:30.202451Z
+oxvg-structural-selector-preservation,kimi-k3,kimi-k3,max,moonshot,False,168,23240636,22775823,134672,6450.904026,2026-07-16T19:17:30.365442Z
+oxvg-structural-selector-preservation,kimi-k3,kimi-k3,max,moonshot,True,254,41440259,40611454,140096,7638.941692,2026-07-16T20:31:28.319845Z
+oxvg-structural-selector-preservation,kimi-k3,kimi-k3,max,moonshot,False,242,41794379,40958491,167109,7484.6591,2026-07-16T21:17:23.786062Z
+python-statemachine-state-data-scoping,kimi-k3,kimi-k3,max,moonshot,True,118,13696682,13422748,96787,4553.534101,2026-07-16T19:17:30.121439Z
+python-statemachine-state-data-scoping,kimi-k3,kimi-k3,max,moonshot,True,158,18861632,18484399,106915,4982.393,2026-07-16T19:17:30.233388Z
+python-statemachine-state-data-scoping,kimi-k3,kimi-k3,max,moonshot,True,129,14918700,14620326,97242,4467.989369,2026-07-16T20:04:16.742704Z
+python-statemachine-state-data-scoping,kimi-k3,kimi-k3,max,moonshot,True,129,15042073,14741232,92543,7669.939951,2026-07-16T20:43:53.648355Z
+scriggo-method-declarations,kimi-k3,kimi-k3,max,moonshot,True,276,52626433,51573904,186028,9913.361851,2026-07-16T19:17:30.211382Z
+scriggo-method-declarations,kimi-k3,kimi-k3,max,moonshot,True,298,61419702,60191308,203382,9027.30685,2026-07-16T19:53:14.964987Z
+scriggo-method-declarations,kimi-k3,kimi-k3,max,moonshot,True,333,74378690,72891116,231606,9061.530841,2026-07-16T20:36:19.454138Z
+scriggo-method-declarations,kimi-k3,kimi-k3,max,moonshot,True,303,64365492,63078182,199167,7123.312853,2026-07-16T21:22:07.944899Z
