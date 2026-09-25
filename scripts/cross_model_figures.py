@@ -17,6 +17,7 @@ import statistics
 from pathlib import Path
 from typing import Any
 
+import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.colors import to_rgba
@@ -278,40 +279,95 @@ def output_cost_share(frame: pd.DataFrame) -> dict[tuple[str, str], float]:
     return shares
 
 
-def plot_relative_cost(frame: pd.DataFrame, ceiling: float = 2.5):
-    """Cost of the same tasks per harness, relative to the cheapest harness on the same model.
+def cost_success_points(frame: pd.DataFrame, ceiling: float = 2.35, gap: float = 0.045) -> list[dict[str, Any]]:
+    """Positions for the cost--success plane.
 
-    Values above ``ceiling`` are drawn in a band above an axis break and labelled with their value.
+    Models of one harness at the same spot share a marker. Markers on the same row
+    are shifted to the right by the least amount that keeps them ``gap`` apart;
+    costs above ``ceiling`` are placed in an off-scale column.
     """
-    models = model_order(frame)
     cells = relative_cost(frame).set_index(["model", "harness"])
-    offsets = {h: (i - 1.5) * 0.07 for i, h in enumerate(HARNESS_ORDER)}
-    broken = ceiling + 0.3
-    fig, axes = plt.subplots(2, 1, figsize=(6.3, 5.6), sharex=True)
-    for ax, column, label in zip(axes, ("cost_relative", "per_pass_relative"), (
-            "(a) Cost of the ten tasks\n(cheapest harness = 1×)",
-            "(b) Cost per passed task\n(lowest harness = 1×)"), strict=True):
-        _model_axis(ax, frame, models)
+    spots: dict[tuple[str, float, int], list[str]] = {}
+    for model in model_order(frame):
         for harness in HARNESS_ORDER:
-            color = HARNESS_COLORS[harness]
-            present = [m for m in models if (m, harness) in cells.index]
-            points = [(models.index(m) + offsets[harness], cells.loc[(m, harness), column]) for m in present]
-            drawn = [(x, broken if v > ceiling else v) for x, v in points]
-            for (x0, y0), (x1, y1), (_, v0), (_, v1) in zip(drawn, drawn[1:], points, points[1:]):
-                ax.plot([x0, x1], [y0, y1], color=color, linewidth=1.8, zorder=3,
-                        linestyle="--" if max(v0, v1) > ceiling else "-")
-            ax.scatter(*zip(*drawn), color=color, marker=HARNESS_MARKERS[harness], s=46, edgecolor="white",
-                       linewidth=0.8, zorder=4)
-            for (x, y), (_, value) in zip(drawn, points, strict=True):
-                if value > ceiling:
-                    ax.text(x + 0.07, y, f"{value:.1f}×", fontsize=7, color=color, va="center")
-        ax.axhline(ceiling + 0.15, color=MUTED, linewidth=0.8, linestyle=(0, (2, 2)), zorder=2)
-        ax.set_ylim(0.9, broken + 0.12)
-        ax.set_yticks([1, 1.5, 2, 2.5], ["1×", "1.5×", "2×", "2.5×"])
-        ax.set_ylabel(label, fontsize=8)
-        _style_axis(ax)
-    _harness_legend(axes[0], ncol=4, loc="lower left", bbox_to_anchor=(0, 1.0))
+            if (model, harness) in cells.index:
+                value = float(cells.loc[(model, harness), "cost_relative"])
+                spots.setdefault((harness, round(value, 2), int(cells.loc[(model, harness), "passed"])),
+                                 []).append(model)
+    rows: dict[int, list[dict[str, Any]]] = collections.defaultdict(list)
+    for (harness, value, passed), models in spots.items():
+        rows[passed].append({"harness": harness, "cost": value, "passed": passed, "models": models,
+                             "off_scale": value > ceiling, "x": ceiling + 0.27 if value > ceiling else value})
+    points = []
+    for row in rows.values():
+        last = None
+        for point in sorted(row, key=lambda p: (p["x"], HARNESS_ORDER.index(p["harness"]))):
+            if last is not None and point["x"] - last < gap:
+                point["x"] = last + gap
+            last = point["x"]
+            points.append(point)
+    return points
+
+
+def plot_cost_success(frame: pd.DataFrame, ceiling: float = 2.35):
+    """Tasks passed against the cost relative to the cheapest harness on the same model."""
+    points = cost_success_points(frame, ceiling)
+    fig, ax = plt.subplots(figsize=(6.3, 4.4))
+    ax.axhspan(6.65, 8.35, color=BAND, zorder=0)
+    for point in points:
+        ax.scatter(point["x"], point["passed"], color=HARNESS_COLORS[point["harness"]],
+                   marker=HARNESS_MARKERS[point["harness"]], s=58, edgecolor="white", linewidth=0.8, zorder=4)
+    ax.axvline(ceiling + 0.13, color=MUTED, linewidth=0.8, linestyle=(0, (2, 2)))
+    ax.set_xlim(0.9, ceiling + 0.45)
+    ticks = [1, 1.25, 1.5, 1.75, 2, 2.25]
+    ax.set_xticks(ticks, [f"{t:g}×" for t in ticks], fontsize=7.5)
+    ax.set_ylim(0, 10)
+    ax.set_yticks(range(0, 11, 2))
+    ax.set_xlabel("Cost of the ten tasks relative to the cheapest harness on the same model", fontsize=8)
+    ax.set_ylabel("Tasks passed (of 10)", fontsize=8)
+    ax.text(0.93, 9.7, "↖ more tasks for less", fontsize=7, color=MUTED, va="top")
+    _style_axis(ax)
+    _harness_legend(ax, [Patch(color=BAND, label="best or 1 task behind")], ncol=5, loc="lower left",
+                    bbox_to_anchor=(0, 1.0))
     fig.tight_layout()
+    # Label every marker with its models, at the first position that overlaps no marker or earlier label.
+    renderer = fig.canvas.get_renderer()
+    occupied = []
+    for point in points:
+        cx, cy = ax.transData.transform((point["x"], point["passed"]))
+        occupied.append((cx - 6, cy - 6, cx + 6, cy + 6))
+    above, below = ((0, 7), "center", "bottom"), ((0, -7), "center", "top")
+    right, left = ((7, 0), "left", "center"), ((-7, 0), "right", "center")
+    frame_box = ax.get_window_extent(renderer)
+    # Markers with close neighbours pick their label position first.
+    crowding = lambda point: -sum(abs(p["x"] - point["x"]) < 0.12 for p in points if p["passed"] == point["passed"])
+    for point in sorted(points, key=crowding):
+        label = ",\n".join(SHORT[m] for m in point["models"]) + (f" {point['cost']:.1f}×" if point["off_scale"] else "")
+        # A label beside its marker is unambiguous when no other marker of the row is close on that side.
+        row = [p["x"] - point["x"] for p in points if p["passed"] == point["passed"] and p is not point]
+        free_right = not any(0 < d < 0.12 for d in row)
+        free_left = not any(-0.12 < d < 0 for d in row)
+        candidates = ([right] if free_right else []) + ([left] if free_left and not free_right else []) + [
+            above, below, ((-4, 7), "left", "bottom"), ((-4, -7), "left", "top"), right, left]
+        best = None
+        for offset, ha, va in candidates:
+            text = ax.annotate(label, (point["x"], point["passed"]), xytext=offset, textcoords="offset points",
+                               ha=ha, va=va, fontsize=6.5, color=HARNESS_COLORS[point["harness"]], zorder=5,
+                               linespacing=1.0)
+            box = text.get_window_extent(renderer)
+            overlap = sum(max(0, min(box.x1, x1) - max(box.x0, x0)) * max(0, min(box.y1, y1) - max(box.y0, y0))
+                          for x0, y0, x1, y1 in occupied)
+            if box.x1 > frame_box.x1 or box.x0 < frame_box.x0:
+                overlap += box.width * box.height
+            if best is None or overlap < best[0]:
+                if best is not None:
+                    best[1].remove()
+                best = (overlap, text, box)
+            else:
+                text.remove()
+            if overlap == 0:
+                break
+        occupied.append((best[2].x0, best[2].y0, best[2].x1, best[2].y1))
     return fig
 
 
@@ -367,11 +423,21 @@ def plot_invocation_errors(frame: pd.DataFrame):
     return fig
 
 
+def failures_above_share(frame: pd.DataFrame) -> list[str]:
+    """Model--harness combinations whose failed trials used more than their share of the tokens."""
+    above = []
+    for (model, harness), group in frame.groupby(["model", "harness"]):
+        tokens = group["input_tokens"] + group["output_tokens"]
+        if tokens[~group["passed"]].sum() / tokens.sum() > (~group["passed"]).mean():
+            above.append(f"{harness}@{model}")
+    return sorted(above)
+
+
 def plot_lost_tokens(frame: pd.DataFrame):
     """Share of each cell's input and output tokens spent in passed and in failed trials."""
     models = model_order(frame)
     cells = _cells(frame)
-    fig, ax = plt.subplots(figsize=(6.3, 3.2))
+    fig, ax = plt.subplots(figsize=(6.3, 3.5))
     x = 0.0
     for model in models:
         start = x
@@ -385,18 +451,25 @@ def plot_lost_tokens(frame: pd.DataFrame):
             ax.bar(x, 100 * (total - lost) / total, color=color, width=0.72)
             ax.bar(x, 100 * lost / total, bottom=100 * (total - lost) / total, color="white", edgecolor=color,
                    hatch="////", width=0.72, linewidth=0.8)
+            # Where the solid part would end if the tokens were spread evenly over the trials.
+            share = 100 * group["passed"].mean()
+            ax.plot([x - 0.47, x + 0.47], [share, share], color=INK, linewidth=2.2, solid_capstyle="butt", zorder=4,
+                    path_effects=[path_effects.Stroke(linewidth=4.4, foreground="white"), path_effects.Normal()])
+            ax.text(x, -6, f"{int(group['passed'].sum())}/{len(group)}", ha="center", fontsize=6.3, color=INK)
             ax.text(x, 101.5, f"{total / len(group) / 1e6:.0f}M", ha="center", fontsize=6, color=MUTED)
             x += 1
         ax.text((start + x - 1) / 2, 112, MODELS[model][0], ha="center", fontsize=7, color=INK, weight="bold")
         x += 0.6
     ax.set_xticks([])
-    ax.set_ylim(0, 118)
+    ax.set_ylim(-9, 118)
     ax.set_yticks(range(0, 101, 20))
     ax.set_ylabel("Share of the tokens (%)", fontsize=8)
     _style_axis(ax)
+    ax.spines["bottom"].set_visible(False)
     ax.legend(handles=[Patch(color=HARNESS_COLORS[h], label=HARNESS_LABELS[h]) for h in HARNESS_ORDER]
-              + [Patch(facecolor="white", edgecolor=NEUTRAL, hatch="////", label="in failed trials")],
-              frameon=False, fontsize=7, ncol=5, loc="upper left", bbox_to_anchor=(0, -0.02))
+              + [Patch(facecolor="white", edgecolor=NEUTRAL, hatch="////", label="in failed trials"),
+                 Line2D([], [], color=INK, linewidth=2.2, label="share of trials passed")],
+              frameon=False, fontsize=7, ncol=3, loc="upper left", bbox_to_anchor=(0, -0.04))
     fig.tight_layout()
     return fig
 

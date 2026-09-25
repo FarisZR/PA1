@@ -25,10 +25,12 @@ from scripts.cross_model_figures import (
     plot_lost_tokens,
     plot_pi_timeouts,
     plot_prompt_and_tokens,
-    plot_relative_cost,
+    plot_cost_success,
     plot_success_by_model,
     relative_cost,
     same_task_spread,
+    cost_success_points,
+    failures_above_share,
     shell_safeguards,
 )
 
@@ -42,6 +44,8 @@ _relative = relative_cost(cross)
 _lowest = lambda column: set(_relative.loc[_relative.groupby("model")[column].idxmin(), "harness"] + "@"
                              + _relative.loc[_relative.groupby("model")[column].idxmin(), "model"])
 _highest_cost = _relative.loc[_relative.groupby("model")["cost"].idxmax()]
+_lowest_cost = _relative.loc[_relative.groupby("model")["cost"].idxmin()]
+_by_cell = _relative.set_index(["model", "harness"])
 _output_share = output_cost_share(cross).values()
 litellm_spend = json.loads(Path("data/litellm-spend/summary.json").read_text())
 _benchmark_spend = litellm_spend["total_spend_usd"] - litellm_spend["by_group"]["outside benchmark"]
@@ -79,6 +83,13 @@ discussion_quoted = {
     "lowest_per_pass": sorted(_lowest("per_pass")),
     "most_expensive": sorted(_highest_cost["harness"] + "@" + _highest_cost["model"]),
     "output_share": (round(min(_output_share), 2), round(max(_output_share), 2)),
+    "passes_at_extremes": {"cheapest": (int(_lowest_cost["passed"].min()), int(_lowest_cost["passed"].max())),
+                           "most_expensive": (int(_highest_cost["passed"].min()), int(_highest_cost["passed"].max()))},
+    "claude_over_opencode": {m: round(float(_by_cell.loc[(m, "claude-code"), "cost"]
+                                            / _by_cell.loc[(m, "opencode-v2"), "cost"]), 2)
+                             for m in ("deepseek-v4p1-flash", "glm-5p3-flash")},
+    "largest_shift": round(max(p["x"] - p["cost"] for p in cost_success_points(cross) if not p["off_scale"]), 3),
+    "failures_above_share": failures_above_share(cross),
     "failure_typical": {h: (len(v), _typical([r for r, _ in v]), _typical([r for r, m in v if m != "kimi-k3"]))
                         for h, v in sorted(_ratios.items())},
     "luna_claude_code_steps": (float(_luna_cc["root_steps"].median()), float(_luna_cc["agent_steps"].median())),
@@ -106,6 +117,10 @@ discussion_expected = {
     "most_expensive": ["claude-code@deepseek-v4p1-flash", "claude-code@glm-5p3-flash", "claude-code@gpt-5.6-luna",
                        "codex@kimi-k3"],
     "output_share": (0.04, 0.33),
+    "passes_at_extremes": {"cheapest": (2, 7), "most_expensive": (3, 8)},
+    "claude_over_opencode": {"deepseek-v4p1-flash": 1.28, "glm-5p3-flash": 1.23},
+    "largest_shift": 0.045,
+    "failures_above_share": ["pi@gpt-5.6-luna", "pi@kimi-k3"],
     "failure_typical": {"claude-code": (7, 5.44, 5.44), "codex": (11, 1.08, 1.0),
                         "opencode-v2": (5, 0.69, 0.69), "pi": (15, 0.77, 1.06)},
     "luna_claude_code_steps": (665.5, 2787.0),
@@ -132,7 +147,7 @@ On every model, the best and the weakest harness were three to five of the ten t
 
 ```{python}
 #| label: fig-cross-success
-#| fig-cap: "Tasks passed per harness and model, with the models ordered by their median cost per task. The green band marks the best result on a model or one task behind it; the shaded column marks the model with only two harnesses. Grey: DeepSWE's reference harness `mini-swe-agent` on the same tasks and models, as the mean of its four rollouts per task; the bar spans the middle 68% of the single-run scores these rollouts allow. DeepSWE has no rollouts of DeepSeek V4.1 Flash."
+#| fig-cap: "Tasks passed per harness and model, with the models ordered by their median cost per task. The green band marks the best result on a model or one task behind it; the shaded column marks the model with only two harnesses. Grey: DeepSWE's reference harness `mini-swe-agent` on the same tasks and models, as the mean of its four rollouts per task; the bar shows the range in which two of three single runs would fall, estimated from these rollouts. DeepSWE has no rollouts of DeepSeek V4.1 Flash."
 
 plot_success_by_model(cross);
 ```
@@ -162,18 +177,18 @@ OpenCode V2 reached these results with a handicap. Its native `grep` and `glob` 
 
 A harness does not change the price of a token, but it decides how many tokens a task consumes and how many of them the provider serves from its cache. Because all harnesses of a model ran the same ten tasks, these effects can be compared directly, apart from the price level of the model.
 
-### How much the harness changes the cost
+### Cost against success
 
-@fig-cross-relative-cost sets the cheapest harness of each model to 1× and shows the other harnesses relative to it. Apart from Claude Code on GPT-5.6 Luna, the harness changed the cost of the same ten tasks by up to a factor of about two. On single tasks, the harnesses of a model differed by a median factor of 1.4 to 1.8 between the cheapest and the most expensive. Claude Code on GPT-5.6 Luna is the exception by an order of magnitude: its delegation multiplied the tokens of every task (@sec-luna-delegation).
+@fig-cross-cost-success places every model--harness combination by the tasks it passed and by its cost relative to the cheapest harness on the same model, which removes the price level of the model. Apart from Claude Code on GPT-5.6 Luna, the harness changed the cost of the same ten tasks by up to a factor of about two. On single tasks, the harnesses of a model differed by a median factor of 1.4 to 1.8 between the cheapest and the most expensive. Claude Code on GPT-5.6 Luna is the exception by an order of magnitude: its delegation multiplied the tokens of every task, and it solved fewer tasks than any other harness on that model (@sec-luna-delegation).
 
 ```{python}
-#| label: fig-cross-relative-cost
-#| fig-cap: "Cost of each harness relative to the lowest-cost harness on the same model and the same ten tasks: (a) normalized cost of the ten trials, (b) cost per passed task. Values above the dotted line lie off the scale and are labelled with their factor; the dashed segments lead to them. The shaded column marks the model with only two harnesses."
+#| label: fig-cross-cost-success
+#| fig-cap: "Tasks passed against the cost of the ten tasks relative to the cheapest harness on the same model, for every model--harness combination; the label names the model. Kimi K3 ran only in Codex and Pi. Markers that would overlap are shifted to the right by at most 0.05×; values beyond the dotted line lie off the scale. The green band marks 7 and 8 passed tasks, the best result on every model or one task behind it."
 
-plot_relative_cost(cross);
+plot_cost_success(cross);
 ```
 
-Two patterns recur across the models. Claude Code was the most expensive harness on all three models it ran on, and OpenCode V2 had the lowest cost per passed task on all three of its models. Cost per passed task combines the two sides of the comparison: a harness that solves fewer tasks for the same money pays more for each solution. The spread in panel (b) is therefore wider than in panel (a). Codex on GLM-5.3-Flash shows this most clearly, as the cheapest harness in total and the most expensive per solution.
+Cost and success did not go together. The cheapest harness of a model passed between two and seven tasks, the most expensive one between three and eight. OpenCode V2 is the only harness that ran at or near the lowest cost on every model and stayed in the green band at the same time. No other harness passed as many tasks for less, and per passed task, it was the cheapest harness on all three of its models. It did not reach the best result everywhere, however. On DeepSeek V4.1 Flash and GLM-5.3-Flash, Claude Code passed one task more, for 28% and 23% more than OpenCode V2 on the same tasks, and it was the most expensive harness on all three of its models. Between these two harnesses, the choice is therefore one of one more solved task against a lower cost.
 
 Which harness is cheaper also depends on how the model's tokens are priced. Output tokens made up between 4% and 33% of a harness's cost; the rest is input, most of it history that every step resends. On DeepSeek V4.1 Flash, a cached input token costs 2% of an uncached one, so the few uncached tokens decide the cost. Claude Code and Pi used the fewest input tokens there, but cost more than Codex and OpenCode V2 because they read a smaller share of them from the cache (@sec-deepseek-cost). On GLM-5.3-Flash, a cached token costs a fifth of an uncached one, and the volume weighs more: Codex, with the fewest input tokens, was the cheapest harness in total (@sec-glm-cost). The same difference between two harnesses thus costs more or less depending on the model's price list, and a cost ranking of harnesses measured with one model does not transfer to another.
 
@@ -201,16 +216,16 @@ What lowers the share is visible on GPT-5.6 Luna. Claude Code's subagents each s
 
 ### Spending on failed trials
 
-A failed trial is paid in full, so the tokens a harness spends before it stops are part of its cost. @fig-cross-lost-tokens divides the tokens of each model--harness combination into those spent in passed and in failed trials. The failed share mostly follows the success rate. It becomes large where a harness failed often, as Pi did on Kimi K3, or where it used many tokens while failing, as Claude Code did on GPT-5.6 Luna.
+A failed trial is paid in full, so the tokens a harness spends before it stops are part of its cost. @fig-cross-lost-tokens divides the tokens of each model--harness combination into those spent in passed and in failed trials and marks the share of trials that passed. Where the solid part ends above the mark, the failed trials used fewer tokens than their share of the trials. This holds for almost every combination; only Pi on GPT-5.6 Luna and on Kimi K3 spent more than that share on its failures. The large failed share of Claude Code on GPT-5.6 Luna follows from its seven failed tasks, not from failures that were larger than its solutions; its problem is the total volume of every trial. No harness therefore spent a disproportionate part of its tokens on the tasks it failed.
 
 ```{python}
 #| label: fig-cross-lost-tokens
-#| fig-cap: "Share of the input and output tokens of each model--harness combination spent in passed trials (solid) and in failed trials (hatched). The number above each bar is the mean number of tokens per task."
+#| fig-cap: "Share of the input and output tokens of each model--harness combination spent in passed trials (solid) and in failed trials (hatched). The black mark shows the share of trials passed, where the solid part would end if every trial had used the same number of tokens; below each bar are the passed trials. The number above each bar is the mean number of tokens per task."
 
 plot_lost_tokens(cross);
 ```
 
-Whether a harness keeps spending on a task it cannot solve shows when each failed trial is compared with the passing trials of the other harnesses on the same model and task (@fig-cross-failure-cost). Only Claude Code's failures cost clearly more than a solution, typically 5.44 times as much, and these come from GPT-5.6 Luna. OpenCode V2's failures cost less than a solution, and Codex's about as much. Pi's failures appear cheap only because of Kimi K3; without it, they cost about as much as a solution. Apart from Claude Code on GPT-5.6 Luna, no harness turned a task it could not solve into an exceptional cost. With five to fifteen comparable failures per harness, these values describe tendencies.
+Tasks differ in size, so these shares do not show whether a harness overspent on a particular task. That shows when each failed trial is compared with the passing trials of the other harnesses on the same model and task (@fig-cross-failure-cost). Only Claude Code's failures cost clearly more than a solution, typically 5.44 times as much, and these come from GPT-5.6 Luna. OpenCode V2's failures cost less than a solution, and Codex's about as much. Pi's failures appear cheap only because of Kimi K3; without it, they cost about as much as a solution. Apart from Claude Code on GPT-5.6 Luna, no harness turned a task it could not solve into an exceptional cost. With five to fifteen comparable failures per harness, these values describe tendencies.
 
 ```{python}
 #| label: fig-cross-failure-cost
@@ -490,7 +505,7 @@ The harness is a decision of its own next to the choice of the model. On the sam
 
 ### Choosing one harness
 
-Choosing the best harness per model would require a measurement for every model, including every model added later. For an organization that standardizes on one harness instead, no harness was best for every model, but one was never far behind. OpenCode V2 stayed within one task of the best result on all three of its models (@fig-cross-success), had the lowest cost per passed task on all three (@fig-cross-relative-cost), and kept the highest or nearly the highest cache share (@fig-cross-cache), all without working search tools. It is also already the second most used harness in the company (@fig-survey-harness-usage). Claude Code, the most used one, solved the most tasks on DeepSeek V4.1 Flash and GLM-5.3-Flash, but it was the most expensive harness on every model it ran, and its delegation multiplied the cost of GPT-5.6 Luna.
+Choosing the best harness per model would require a measurement for every model, including every model added later. For an organization that standardizes on one harness instead, no harness was best for every model, but one was never far behind. OpenCode V2 stayed within one task of the best result on all three of its models (@fig-cross-success), had the lowest cost per passed task on all three (@fig-cross-cost-success), and kept the highest or nearly the highest cache share (@fig-cross-cache), all without working search tools. It is also already the second most used harness in the company (@fig-survey-harness-usage). Claude Code, the most used one, solved the most tasks on DeepSeek V4.1 Flash and GLM-5.3-Flash, but it was the most expensive harness on every model it ran, and its delegation multiplied the cost of GPT-5.6 Luna.
 
 Two conditions limit this recommendation. No Claude model was tested, so it does not cover Claude Code in its most common company configuration (@fig-survey-configuration-usage). OpenCode V2 also needs ripgrep installed for its search tools and has to keep its `question` tool out of non-interactive runs, where a question ends the session (@sec-retry-eligibility).
 
