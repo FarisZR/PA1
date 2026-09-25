@@ -45,4 +45,16 @@ Quarto 1.10 exposes `lof` and `lot` as Typst options, but its stock Typst
 
 {{< include chapters/_06-conclusion.qmd >}}
 
+<!--
+The DHBW Leitlinien place the list of references before the appendix. Quarto's
+Typst template would emit it at the end of the document, so partials/biblio.typ
+suppresses that and the bibliography is emitted here. Keep the file and style in
+sync with `bibliography` and `csl` in _quarto.yml.
+-->
+
+```{=typst}
+#pagebreak()
+#bibliography("references.bib", style: "ieee.csl")
+```
+
 {{< include chapters/_07-appendix.qmd >}}

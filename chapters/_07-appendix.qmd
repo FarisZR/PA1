@@ -1,10 +1,6 @@
 <!--
 Appendix. Material needed only to reproduce or audit the benchmark. The main text
 refers to these sections where a detail matters for reading a result.
-
-TODO: The DHBW Leitlinien place the list of references before the appendix. Quarto's
-Typst output always emits the bibliography at the end of the document; fix the order
-together with the other deferred front- and back-matter formatting.
 -->
 
 ```{=typst}
