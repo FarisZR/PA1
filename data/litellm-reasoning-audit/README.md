@@ -9,6 +9,7 @@ describes the defect in "Reasoning history removed by the gateway".
 | `replay-request.json` | Upstream Chat Completions body of one DeepSeek V4.1 Flash Codex request (2026-09-21T12:01:40Z, first 12 messages) | Taken from the bridge log named in the file |
 | `replay-results.jsonl` | Reasoning fields forwarded by LiteLLM 1.98.0, 1.101.0, and 1.102.0 for that request | `scripts/replay_litellm_fireworks.py` |
 | `bridge-requests.csv` | Per-request metadata for the 2,469 DeepSeek requests of the Codex job | `scripts/extract_bridge_reasoning_audit.py` |
+| `claude-code-replay-results.jsonl` | Effort and reasoning fields that LiteLLM 1.98.0, 1.101.0, and 1.102.1 forward for a Claude Code-style Anthropic Messages request to a Fireworks model (issues #94, #102) | `scripts/replay_litellm_messages.py` |
 
 ## Sanitization
 
@@ -51,3 +52,15 @@ done
 python3 scripts/extract_bridge_reasoning_audit.py \
   --out data/litellm-reasoning-audit/bridge-requests.csv
 ```
+
+## Claude Code route at the current gateway version
+
+The bridge logs record the `X-Litellm-Version` response header: all 1,979
+requests of the GLM-5.3-Flash rerun on 2026-09-24 went through LiteLLM 1.102.1.
+`claude-code-replay-results.jsonl` replays a Claude Code-style request through
+that version and the two earlier ones. LiteLLM 1.98.0 and 1.101.0 forward no
+earlier thinking and lower `max` effort to `high`, which reproduces issues #94
+and #102. LiteLLM 1.102.1 forwards the earlier thinking as `reasoning_content`
+but still lowers the effort to `high`, because the model declares no supported
+effort levels; AiOrbit's `/model_group/info` still declared none for the three
+Fireworks models on 2026-09-25.
