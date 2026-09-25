@@ -44,5 +44,5 @@
 ## DHBW formatting
 
 - `pa1.qmd` includes the DHBW title-page fields, bilingual abstract headings, Roman-numbered preliminary pages, and main-text numbering restarted at Arabic page 1.
-- Replace the visible title-page TODOs (student ID, course, supervisors, and submission date) before submission. Add the work period and dual partner only if applicable.
+- Replace the visible title-page TODOs (student ID, course, supervisors, work period, and submission date) before submission. Confirm that IONOS SE is the correct formal dual partner before submission.
 - Final declaration wording and title-page styling beyond the required fields remain subject to confirmation; keep TODOs for unknown details rather than inventing them.

@@ -9,6 +9,8 @@ student-id: "TODO: Add student ID"
 course: "TODO: Add course code"
 supervisors: "TODO: Add supervisor name(s)"
 submission-date: "TODO: Add submission date"
+dual-partner: "IONOS SE"
+work-period: "TODO: Add official work period"
 jupyter: python3
 execute:
   echo: false
@@ -17,8 +19,8 @@ execute:
 
 <!--
 The title block above is followed by the DHBW title-page details listed in the
-current Technik guidelines. Replace the visible TODO metadata before submission;
-add the dual partner and work period there if they apply. Preliminary pages use
+current Technik guidelines. Replace the visible TODO metadata before submission
+and confirm the dual-partner designation. Preliminary pages use
 Roman numerals, and the main text restarts at page 1.
 -->
 
@@ -39,7 +41,9 @@ Roman numerals, and the main text restarts at page 1.
   [*Study programme*], [{{< meta study-program >}}],
   [*Student ID*], [{{< meta student-id >}}],
   [*Course*], [{{< meta course >}}],
+  [*Dual partner*], [{{< meta dual-partner >}}],
   [*Supervisor(s)*], [{{< meta supervisors >}}],
+  [*Work period*], [{{< meta work-period >}}],
   [*Submission date*], [{{< meta submission-date >}}],
 )
 #set page(numbering: "i")
