@@ -386,7 +386,9 @@ The published repository contains the data and scripts behind every result. @tbl
 | `scripts/build_corrected_results.py` | Writes the corrected files and the `corrections.json` manifest of every job |
 | `scripts/analyze_harness_trials.py` | Computes the per-model results |
 | `scripts/analyze_reasoning_retention.py` | Prompt-growth check for the earlier reasoning |
-| `data/litellm-reasoning-audit/` | Sanitized bridge-log extract, replay fixture, and scripts for the gateway checks |
+| `data/litellm-reasoning-audit/` | Sanitized bridge-log extract, replay fixtures and results, the live check of the Claude Code route, and scripts for the gateway checks |
+| `data/litellm-spend/`, `scripts/attribute_litellm_spend.py` | Billed gateway spend per trial attempt, without prompts or key identifiers |
+| `data/deepswe-reference/`, `scripts/extract_deepswe_reference.py` | DeepSWE's `mini-swe-agent` rollouts on the selected tasks, with the hash of the archived source file |
 | `data/kimi-k3-pi-audit/`, `data/glm-5.3-flash-audit/` | Evidence for the trial audits in @sec-appendix-trial-audits |
 | `scripts/analyze_agent_inference_with_jev.py`, `data/jev_agent_inference_audit.json` | Jev audit of the first GLM-5.3-Flash run |
 | `benchmark/pricing.yaml` | Frozen pricing table used for cost normalization |

@@ -30,6 +30,7 @@ from scripts.analyze_harness_trials import (
     OPENCODE_RIPGREP_TOOLS,
     _invocation_error,
     load_trials,
+    model_rates,
 )
 from scripts.harness_figures import GRID, HARNESS_COLORS, HARNESS_MARKERS, INK, MUTED, _style_axis
 
@@ -250,28 +251,66 @@ def plot_exclusive_outcomes(frame: pd.DataFrame):
 
 # --- Resource use -------------------------------------------------------------------------
 
-def plot_cost_spread(frame: pd.DataFrame):
-    """Mean cost per task of every harness, one column per model."""
+def relative_cost(frame: pd.DataFrame) -> pd.DataFrame:
+    """Cost of the ten tasks and cost per passed task of each harness, relative to the lowest on its model."""
+    cells = frame.groupby(["model", "harness"]).agg(cost=("cost_usd", "sum"), passed=("passed", "sum")).reset_index()
+    cells["per_pass"] = cells["cost"] / cells["passed"]
+    for column in ("cost", "per_pass"):
+        cells[f"{column}_relative"] = cells[column] / cells.groupby("model")[column].transform("min")
+    return cells
+
+
+def same_task_spread(frame: pd.DataFrame) -> dict[str, float]:
+    """Median ratio of the most to the least expensive harness on the same task, per model."""
+    spread = frame.groupby(["model", "task"])["cost_usd"].agg(lambda cost: cost.max() / cost.min())
+    return {model: round(float(values.median()), 2) for model, values in spread.groupby("model")}
+
+
+def output_cost_share(frame: pd.DataFrame) -> dict[tuple[str, str], float]:
+    """Share of each model--harness combination's normalized cost that comes from output tokens."""
+    shares = {}
+    for (model, harness), group in frame.groupby(["model", "harness"]):
+        rates = model_rates(model)
+        cached = group["cached_tokens"].sum()
+        output = group["output_tokens"].sum() * rates["output"]
+        total = (group["input_tokens"].sum() - cached) * rates["input"] + cached * rates["cached_input"] + output
+        shares[(model, harness)] = output / total
+    return shares
+
+
+def plot_relative_cost(frame: pd.DataFrame, ceiling: float = 2.5):
+    """Cost of the same tasks per harness, relative to the cheapest harness on the same model.
+
+    Values above ``ceiling`` are drawn in a band above an axis break and labelled with their value.
+    """
     models = model_order(frame)
-    cells = _cells(frame)
-    offsets = {h: (i - 1.5) * 0.13 for i, h in enumerate(HARNESS_ORDER)}
-    fig, ax = plt.subplots(figsize=(6.3, 3.2))
-    _model_axis(ax, frame, models)
-    for i, model in enumerate(models):
-        cost = {h: cells[(model, h)]["cost_usd"].mean() for h in HARNESS_ORDER if (model, h) in cells}
-        ax.add_patch(Rectangle((i - 0.3, min(cost.values())), 0.6, max(cost.values()) - min(cost.values()),
-                               color="#e8e7e2", zorder=1))
-        for harness, value in cost.items():
-            ax.scatter(i + offsets[harness], value, color=HARNESS_COLORS[harness], marker=HARNESS_MARKERS[harness],
-                       s=38, edgecolor="white", zorder=3)
-        ax.text(i, max(cost.values()) * 1.3, f"{max(cost.values()) / min(cost.values()):.1f}× spread",
-                ha="center", fontsize=6.8, color=MUTED)
-    ax.set_yscale("log")
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"USD {v:g}"))
-    ax.set_ylim(0.2, 50)
-    ax.set_ylabel("Mean cost per task (log)", fontsize=8)
-    _style_axis(ax)
-    _harness_legend(ax, ncol=4, loc="lower left", bbox_to_anchor=(0, 1.0))
+    cells = relative_cost(frame).set_index(["model", "harness"])
+    offsets = {h: (i - 1.5) * 0.07 for i, h in enumerate(HARNESS_ORDER)}
+    broken = ceiling + 0.3
+    fig, axes = plt.subplots(2, 1, figsize=(6.3, 5.6), sharex=True)
+    for ax, column, label in zip(axes, ("cost_relative", "per_pass_relative"), (
+            "(a) Cost of the ten tasks\n(cheapest harness = 1×)",
+            "(b) Cost per passed task\n(lowest harness = 1×)"), strict=True):
+        _model_axis(ax, frame, models)
+        for harness in HARNESS_ORDER:
+            color = HARNESS_COLORS[harness]
+            present = [m for m in models if (m, harness) in cells.index]
+            points = [(models.index(m) + offsets[harness], cells.loc[(m, harness), column]) for m in present]
+            drawn = [(x, broken if v > ceiling else v) for x, v in points]
+            for (x0, y0), (x1, y1), (_, v0), (_, v1) in zip(drawn, drawn[1:], points, points[1:]):
+                ax.plot([x0, x1], [y0, y1], color=color, linewidth=1.8, zorder=3,
+                        linestyle="--" if max(v0, v1) > ceiling else "-")
+            ax.scatter(*zip(*drawn), color=color, marker=HARNESS_MARKERS[harness], s=46, edgecolor="white",
+                       linewidth=0.8, zorder=4)
+            for (x, y), (_, value) in zip(drawn, points, strict=True):
+                if value > ceiling:
+                    ax.text(x + 0.07, y, f"{value:.1f}×", fontsize=7, color=color, va="center")
+        ax.axhline(ceiling + 0.15, color=MUTED, linewidth=0.8, linestyle=(0, (2, 2)), zorder=2)
+        ax.set_ylim(0.9, broken + 0.12)
+        ax.set_yticks([1, 1.5, 2, 2.5], ["1×", "1.5×", "2×", "2.5×"])
+        ax.set_ylabel(label, fontsize=8)
+        _style_axis(ax)
+    _harness_legend(axes[0], ncol=4, loc="lower left", bbox_to_anchor=(0, 1.0))
     fig.tight_layout()
     return fig
 
@@ -503,9 +542,9 @@ def _trajectories(frame: pd.DataFrame):
 
 
 def shell_safeguards(frame: pd.DataFrame) -> dict[str, Any]:
-    """Background launches, commands stopped by Claude Code's default limit, and Codex's polling runs."""
+    """Background launches, commands stopped at a harness's default limit, and Codex's polling runs."""
     background = collections.Counter()
-    default_kills = 0
+    default_kills = collections.Counter()
     longest_poll = 0
     for row, trajectory in _trajectories(frame):
         streak, previous = 0, None
@@ -518,16 +557,23 @@ def shell_safeguards(frame: pd.DataFrame) -> dict[str, Any]:
                 arguments = call.get("arguments") or {}
                 if call.get("function_name") in SHELL_TOOLS:
                     background[row["harness"]] += bool(arguments.get("run_in_background") or arguments.get("background"))
-                if (row["harness"] == "claude-code" and call.get("function_name") == "Bash" and "timeout" not in arguments
-                        and "Command timed out after 2m" in observations.get(call.get("tool_call_id"), "")):
-                    default_kills += 1
+                # Claude Code and OpenCode V2 stop a foreground command after two minutes unless the model
+                # sets its own timeout.
+                output = observations.get(call.get("tool_call_id"), "")
+                if "timeout" not in arguments and not arguments.get("background") and (
+                        (row["harness"] == "claude-code" and call.get("function_name") == "Bash"
+                         and "Command timed out after 2m" in output)
+                        or (row["harness"] == "opencode-v2" and call.get("function_name") == "shell"
+                            and "Command exceeded timeout of 120000 ms" in output)):
+                    default_kills[row["harness"]] += 1
                 if row["harness"] == "codex":
                     source = arguments.get("input", "")
                     poll = "write_stdin" in source and re.search(r'chars:\s*""', source)
                     streak = streak + 1 if poll and source == previous else (1 if poll else 0)
                     previous = source
                     longest_poll = max(longest_poll, streak)
-    return {"background": {h: background[h] for h in HARNESS_ORDER}, "claude_code_default_kills": default_kills,
+    return {"background": {h: background[h] for h in HARNESS_ORDER},
+            "default_kills": {h: default_kills[h] for h in ("claude-code", "opencode-v2")},
             "codex_longest_poll_run": longest_poll}
 
 
