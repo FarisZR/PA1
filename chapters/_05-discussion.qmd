@@ -19,6 +19,130 @@
 - TODO: Identify dominated and non-dominated model--harness configurations without introducing a weighted composite score.
 - TODO: Interpret the trade-offs using the task-solving performance and normalized cost metrics defined in the methodology.
 
+## Lost reasoning in the gateway {#sec-discussion-reasoning-loss}
+
+```{python}
+#| include: false
+
+from scripts.analyze_harness_trials import HARNESS_LABELS, load_trials
+from scripts.analyze_reasoning_retention import load_rows
+from scripts.harness_figures import GRID, HARNESS_COLORS, HARNESS_MARKERS, INK, MUTED
+
+# Trials that lost their earlier reasoning, each paired with the canonical trial of the same
+# task and harness that kept it. DeepSeek Claude Code uses the default CLIProxyAPI run (#102),
+# which requested `max` effort like the canonical run.
+_DATA = Path("data/benchmark-results")
+_DS_SUPERSEDED = _DATA / ".superseded/issue-111/deepseek-v4p1-flash"
+# The superseded DeepSeek Pi run also holds four trials that kept their reasoning, so DeepSeek
+# trials are selected by the retention check. The first GLM run ran entirely before the gateway
+# upgrade; five looping Codex trials produced too little reasoning per call to measure, but
+# belong to the affected run as well.
+LOSS_RUNS = {
+    "deepseek": ("deepseek-v4p1-flash",
+                 [_DS_SUPERSEDED / "codex", _DS_SUPERSEDED / "pi",
+                  _DATA / ".excluded/deepseek-v4p1-flash/claude-code-cliproxy-default"],
+                 [_DATA / "deepseek-v4p1-flash"], True),
+    "glm": ("glm-5p3-flash", [_DATA / ".excluded/glm-5.3-flash/first-run"], [_DATA / "glm-5.3-flash"], False),
+}
+
+
+def _without_reasoning(model: str, jobs: list[Path], by_retention: bool) -> pd.DataFrame:
+    rows = load_trials(model, jobs)
+    if not by_retention:
+        return pd.DataFrame(rows)
+    lost = {row["trial"] for job in jobs for row in load_rows(job) if row["retained"] is False}
+    return pd.DataFrame([row for row in rows if row["trial"] in lost])
+
+
+_frames = []
+for _name, (_model, _without_jobs, _with_jobs, _by_retention) in LOSS_RUNS.items():
+    _pairs = _without_reasoning(_model, _without_jobs, _by_retention).merge(
+        pd.DataFrame(load_trials(_model, _with_jobs)), on=["task", "harness"],
+        suffixes=("_without", "_with"), validate="one_to_one")
+    _pairs["model"] = _name
+    _frames.append(_pairs)
+loss_pairs = pd.concat(_frames, ignore_index=True)
+loss_pairs["cost_ratio"] = loss_pairs["cost_usd_without"] / loss_pairs["cost_usd_with"]
+loss_pairs["output_per_step_without"] = loss_pairs["output_tokens_without"] / loss_pairs["agent_steps_without"]
+
+loss_quoted = {
+    m: {
+        "pairs": len(g),
+        "passed": (int(g["passed_without"].sum()), int(g["passed_with"].sum())),
+        "timeouts": (int(g["timeout_without"].sum()), int(g["timeout_with"].sum())),
+        "cost": (round(float(g["cost_usd_without"].sum()), 2), round(float(g["cost_usd_with"].sum()), 2)),
+        "cost_factor": round(float(g["cost_usd_without"].sum() / g["cost_usd_with"].sum()), 1),
+        "max_trial_factor": round(float(g["cost_ratio"].max()), 1),
+        "longest_repeat": int(g["longest_repeat_without"].max()),
+        "harness_cost_factor": {h: round(float(x["cost_usd_without"].sum() / x["cost_usd_with"].sum()), 1)
+                                for h, x in g.groupby("harness")},
+        "harness_passed": {h: int(x["passed_without"].sum()) for h, x in g.groupby("harness")},
+        "output_per_step": {h: round(float(x["output_per_step_without"].median())) for h, x in g.groupby("harness")},
+    }
+    for m, g in loss_pairs.groupby("model")
+}
+loss_expected = {
+    "deepseek": {"pairs": 21, "passed": (4, 14), "timeouts": (9, 0), "cost": (15.19, 7.82), "cost_factor": 1.9,
+                 "max_trial_factor": 3.6, "longest_repeat": 1,
+                 "harness_cost_factor": {"claude-code": 1.9, "codex": 1.9, "pi": 2.1},
+                 "harness_passed": {"claude-code": 1, "codex": 1, "pi": 2},
+                 "output_per_step": {"claude-code": 1491, "codex": 5661, "pi": 4017}},
+    "glm": {"pairs": 30, "passed": (2, 19), "timeouts": (9, 1), "cost": (179.07, 29.06), "cost_factor": 6.2,
+            "max_trial_factor": 38.3, "longest_repeat": 1953,
+            "harness_cost_factor": {"claude-code": 1.9, "codex": 17.7, "pi": 2.1},
+            "harness_passed": {"claude-code": 2, "codex": 0, "pi": 0},
+            "output_per_step": {"claude-code": 352, "codex": 111, "pi": 898}},
+}
+if loss_quoted != loss_expected:
+    raise ValueError(f"Reasoning-loss comparison changed; update the text: {loss_quoted}")
+```
+
+Two models lost their earlier reasoning in this study: DeepSeek V4.1 Flash in parts of its first runs and GLM-5.3-Flash in its complete first run (@sec-gateway-reasoning-history). Both were repeated with the reasoning intact, so every affected trial has a counterpart on the same task and harness. The pairs show that the two models handled the loss very differently (@fig-reasoning-loss-models).
+
+DeepSeek degraded. On its 21 affected tasks, it passed 4 instead of 14 and reached the timeout 9 times. Its cost, however, rose only 1.9-fold, from USD 7.82 to 15.19, and no trial cost more than 3.6 times its counterpart. DeepSeek never issued the same call twice in a row. It produced long outputs instead, with medians of 5,661 tokens per agent step in Codex and 4,017 in Pi.
+
+GLM broke down. On its 30 affected tasks, it passed 2 instead of 19, and its cost rose 6.2-fold, from USD 29.06 to 179.07; single trials cost up to 38.3 times their counterpart. It repeated the same tool call up to 1,953 times in a row, with a median of only 111 output tokens per step in Codex (@sec-glm-routes). The harness decided how far the breakdown went. In Pi and Claude Code, GLM's cost rose by 2.1 and 1.9 times, the same factors as DeepSeek's, although GLM passed no task in Pi and two in Claude Code. In Codex, its loops ran for thousands of calls until the timeout, and the cost rose 17.7-fold.
+
+```{python}
+#| label: fig-reasoning-loss-models
+#| fig-cap: "DeepSeek V4.1 Flash and GLM-5.3-Flash without their earlier reasoning, one marker per trial, each paired with the trial of the same task and harness with the earlier reasoning. (a) Cost of the trial without the earlier reasoning relative to its pair; the dashed line marks equal cost. (b) Longest run of identical consecutive tool calls in the trial without the earlier reasoning. Filled markers are trials that passed without the earlier reasoning; the bar marks the median. Both axes are logarithmic. The DeepSeek Claude Code trials without earlier reasoning come from the default CLIProxyAPI run, which requested `max` effort."
+
+import numpy as np
+
+_groups = [(m, h) for m in ("deepseek", "glm") for h in ("codex", "pi", "claude-code")]
+_positions = [i + (0.7 if m == "glm" else 0) for i, (m, _) in enumerate(_groups)]
+_rng = np.random.default_rng(7)
+fig, axes = plt.subplots(1, 2, figsize=(6.3, 3.3))
+for _ax, (_column, _ylabel) in zip(axes, (
+    ("cost_ratio", "(a) Cost without / with earlier reasoning"),
+    ("longest_repeat_without", "(b) Longest run of identical calls"),
+), strict=True):
+    for _x, (_model, _harness) in zip(_positions, _groups, strict=True):
+        _g = loss_pairs[(loss_pairs["model"] == _model) & (loss_pairs["harness"] == _harness)]
+        _color = HARNESS_COLORS[_harness]
+        for _value, _passed in zip(_g[_column], _g["passed_without"], strict=True):
+            _ax.scatter(_x + _rng.uniform(-0.17, 0.17), _value, s=28, marker=HARNESS_MARKERS[_harness],
+                        facecolor=_color if _passed else "white", edgecolor=_color, linewidth=1.2, zorder=3)
+        _ax.plot([_x - 0.28, _x + 0.28], [_g[_column].median()] * 2, color=INK, linewidth=2, zorder=4)
+    _ax.set_yscale("log")
+    _ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:g}"))
+    _ax.set_xticks(_positions, [HARNESS_LABELS[h] for _, h in _groups], rotation=30, ha="right", fontsize=7.5)
+    _ax.set_ylabel(_ylabel, fontsize=8)
+    for _label, _center in (("DeepSeek V4.1 Flash", 1), ("GLM-5.3-Flash", 4.7)):
+        _ax.text(_center, 1.02, _label, transform=_ax.get_xaxis_transform(), ha="center", va="bottom", fontsize=8)
+    _ax.axvline(2.85, color=GRID, linewidth=1)
+    for _side in ("top", "right"):
+        _ax.spines[_side].set_visible(False)
+    _ax.grid(axis="y", color=GRID, linewidth=0.8)
+    _ax.set_axisbelow(True)
+axes[0].axhline(1, color=MUTED, linewidth=1, linestyle="--", zorder=2)
+fig.tight_layout()
+```
+
+The defect was not specific to this benchmark. LiteLLM 1.100.0 added the deletion of `reasoning_content` to its Fireworks provider, and 1.102.0 removed it again [@litellmFireworksStripReasoning; @litellmPr40682]. Every LiteLLM deployment that ran one of these releases and sent thinking models to Fireworks forwarded their requests without the earlier reasoning, for every client and not only for benchmark harnesses. Fireworks accepted the shortened requests, so no client received an error. DeepSeek's own API rejects such requests [@deepseekThinkingMode]; behind the gateway, the missing reasoning turned from an error into silent degradation.
+
+AiOrbit is the LiteLLM gateway used within IONOS SE (@sec-methodology). It ran LiteLLM 1.101.0 until 2026-09-21 (@sec-gateway-reasoning-history); when it moved to an affected release is not recorded, but the Kimi K3 runs on 2026-09-01 still used 1.98.0. Every AiOrbit user of a Fireworks-served thinking model in that period was therefore affected in the same way as the benchmark. The results above show what such a user would have experienced: fewer solved tasks and, depending on the model and the harness, up to 17.7 times the usual cost, with nothing pointing to the gateway. The Claude Code route had a second defect of the same kind: through LiteLLM's Anthropic translation or CLIProxyAPI's default configuration, Claude Code's earlier thinking never reached a non-Anthropic model (@sec-claude-code-reasoning). A gateway is therefore part of the system a user evaluates. Error rates do not reveal such defects, but the prompt-growth check of @sec-gateway-reasoning-history does: it needs only the usage counts that every response already contains.
+
 ## Practical implications
 
 - TODO: Relate the cross-model findings to the IONOS SE context and the observed internal harness usage.
