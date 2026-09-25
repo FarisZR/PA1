@@ -14,4 +14,6 @@ Generative AI was used extensively throughout this project. AI systems supported
 | OpenCode V2 | GPT-5.6 Sol | Limited software development and repository work. |
 | Pi | GPT-5.6 Luna; Claude Opus 5; DeepSeek V4.1 Flash | Software development, benchmark and repository work, and analysis. |
 
+: AI tools and models used to produce the project. {#tbl-ai-authoring-tools}
+
 The table concerns AI used to create the project. Models used only as benchmark subjects are documented in the methodology and results, rather than included here for their experimental use. The author remains responsible for research decisions, verification of sources and results, and the final code and manuscript.
