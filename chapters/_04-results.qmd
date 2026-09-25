@@ -727,7 +727,7 @@ if kimi_quoted != kimi_expected:
 
 Kimi K3 by Moonshot AI is the frontier-class model in the comparison. Only its Pi and Codex runs enter the results; the Claude Code run is excluded (@sec-claude-code-reasoning), and OpenCode V2 was not run (@sec-benchmark-coverage). Neither harness was affected by the removal of earlier reasoning on the Fireworks route, because they ran on LiteLLM 1.98.0, which predates the change (@sec-gateway-reasoning-history).
 
-Both harnesses used Kimi's native 1,048,576-token context window. Codex solved six tasks that Pi did not, and Pi solved one that Codex did not. An exact two-sided sign test over these seven tasks gives p = 0.125 (@sec-metrics).
+Both harnesses used Kimi's native 1,048,576-token context window. Codex solved six tasks that Pi did not, and Pi solved one that Codex did not. If both harnesses were equally capable, a split at least this uneven would still occur with a probability of 12.5% (sign test, @sec-metrics), so the difference in success is reported descriptively.
 
 ### Task success {#sec-kimi-success}
 
@@ -1671,7 +1671,7 @@ if luna_quoted != luna_expected:
     raise ValueError(f"GPT-5.6 Luna data changed; update the text: {luna_quoted}")
 ```
 
-GPT-5.6 Luna, DeepSeek V4.1 Flash, and GLM-5.3-Flash are the three models with a complete and comparable run in all four harnesses. All 40 canonical Luna trials went through the same ChatGPT-backed CLIProxyAPI route, which none of the gateway defects affected. The OpenCode V2 trials come from the rerun without early compaction (@sec-measurement-corrections). Even the largest difference in success, between OpenCode V2 and Claude Code, rests on four tasks that only OpenCode V2 solved. An exact two-sided sign test over these four tasks gives p = 0.125, so differences in success are reported descriptively.
+GPT-5.6 Luna, DeepSeek V4.1 Flash, and GLM-5.3-Flash are the three models with a complete and comparable run in all four harnesses. All 40 canonical Luna trials went through the same ChatGPT-backed CLIProxyAPI route, which none of the gateway defects affected. The OpenCode V2 trials come from the rerun without early compaction (@sec-measurement-corrections). Even the largest difference in success, between OpenCode V2 and Claude Code, rests on four tasks that only OpenCode V2 solved. If both harnesses were equally capable, a split of four to none would still occur with a probability of 12.5% (sign test), so differences in success are reported descriptively.
 
 ### Task success {#sec-luna-success}
 
@@ -1931,7 +1931,7 @@ _compaction_table.append(
 Markdown("\n".join(_compaction_table))
 ```
 
-With early compaction, OpenCode V2 passed one task, fewer than any other Luna harness (@sec-luna-success). Without it, OpenCode V2 passed seven, more than any other. The rerun solved six tasks that the first run had failed, and the first run solved none that the rerun failed; an exact sign test over these six tasks gives p = 0.031. Two runs of the same DeepSeek Pi condition differed by two tasks (@sec-deepseek-codex-reasoning), so a difference of six tasks is unlikely to be chance alone.
+With early compaction, OpenCode V2 passed one task, fewer than any other Luna harness (@sec-luna-success). Without it, OpenCode V2 passed seven, more than any other. The rerun solved six tasks that the first run had failed, and the first run solved none that the rerun failed; if both runs were equally capable, a split of six to none would occur with a probability of only 3.1% (sign test). Two runs of the same DeepSeek Pi condition differed by two tasks (@sec-deepseek-codex-reasoning), so a difference of six tasks is unlikely to be chance alone.
 
 The first run compacted 142 times, in every trial, and the rerun 10 times, in six trials. Its two timeouts, on `boa` and `scriggo`, compacted 19 and 63 times; both tasks passed in the rerun. The first run also took longer, with a median of 89 against 43 minutes and 191 against 125 agent steps, and produced more output, with a median of 119,000 against 71,000 tokens per trial. It read 92.7% of its input from the cache, the rerun 98.1%. A likely reason is that each compaction replaces the conversation with a summary, so the next request cannot reuse the cached prompt. The first run cost USD 11.63, the rerun USD 7.12.
 
@@ -2092,7 +2092,7 @@ if glm_quoted != glm_expected:
     raise ValueError(f"GLM-5.3-Flash data changed; update the text: {glm_quoted}")
 ```
 
-GLM-5.3-Flash by Z.AI is served through Fireworks behind AiOrbit, like DeepSeek V4.1 Flash, and has a complete run in all four harnesses, like GPT-5.6 Luna. Its results come from a second run on the Fireworks route, started on 2026-09-24 after the gateway upgrade; the first run had lost the model's earlier reasoning in every trial (@sec-gateway-reasoning-history), and @sec-glm-routes compares both runs. In the second run, every trial requested `max` effort and retained its earlier reasoning, with median prompt growth between 106% and 155% of the preceding reasoning. All harnesses used a context window of 1,000,000 tokens, and no trial was retried. Claude Code solved five tasks that Codex did not, and Codex one that Claude Code did not. An exact two-sided sign test over these six tasks gives p = 0.22, so differences in success are again reported descriptively.
+GLM-5.3-Flash by Z.AI is served through Fireworks behind AiOrbit, like DeepSeek V4.1 Flash, and has a complete run in all four harnesses, like GPT-5.6 Luna. Its results come from a second run on the Fireworks route, started on 2026-09-24 after the gateway upgrade; the first run had lost the model's earlier reasoning in every trial (@sec-gateway-reasoning-history), and @sec-glm-routes compares both runs. In the second run, every trial requested `max` effort and retained its earlier reasoning, with median prompt growth between 106% and 155% of the preceding reasoning. All harnesses used a context window of 1,000,000 tokens, and no trial was retried. Claude Code solved five tasks that Codex did not, and Codex one that Claude Code did not. If both harnesses were equally capable, a split at least this uneven would occur with a probability of 22% (sign test), so differences in success are again reported descriptively.
 
 ### Task success {#sec-glm-success}
 
