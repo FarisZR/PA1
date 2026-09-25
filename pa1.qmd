@@ -1,6 +1,14 @@
 ---
 title: "How do different agent harnesses affect the cost-efficiency and task-solving performance of coding models on software-engineering tasks?"
 author: "Fares Rahmani"
+institution: "Duale Hochschule Baden-Württemberg"
+campus: "Karlsruhe"
+work-type: "Research Paper"
+study-program: "Informatik"
+student-id: "TODO: Add student ID"
+course: "TODO: Add course code"
+supervisors: "TODO: Add supervisor name(s)"
+submission-date: "TODO: Add submission date"
 jupyter: python3
 execute:
   echo: false
@@ -8,9 +16,35 @@ execute:
 ---
 
 <!--
-TODO: Complete the DHBW-specific title details and page numbering when the
-required details are known. The declaration follows the title on the same page.
+The title block above is followed by the DHBW title-page details listed in the
+current Technik guidelines. Replace the visible TODO metadata before submission;
+add the dual partner and work period there if they apply. Preliminary pages use
+Roman numerals, and the main text restarts at page 1.
 -->
+
+```{=typst}
+#v(18mm)
+#align(center)[
+  #text(12pt, weight: "semibold")[{{< meta institution >}}]
+  #linebreak()
+  #text(11pt)[{{< meta campus >}}]
+]
+#v(14mm)
+#align(center)[#text(14pt, weight: "bold")[{{< meta work-type >}}]]
+#v(14mm)
+#grid(
+  columns: (1fr, 1.6fr),
+  column-gutter: 14pt,
+  row-gutter: 8pt,
+  [*Study programme*], [{{< meta study-program >}}],
+  [*Student ID*], [{{< meta student-id >}}],
+  [*Course*], [{{< meta course >}}],
+  [*Supervisor(s)*], [{{< meta supervisors >}}],
+  [*Submission date*], [{{< meta submission-date >}}],
+)
+#set page(numbering: "i")
+#counter(page).update(1)
+```
 
 {{< include chapters/_00-declaration.qmd >}}
 
@@ -18,9 +52,13 @@ required details are known. The declaration follows the title on the same page.
 #pagebreak()
 ```
 
-# Abstract {.unnumbered .unlisted}
+# Abstract (English) {.unnumbered .unlisted}
 
-TODO: Write the abstract after the study is complete.
+TODO: Write the English abstract after the study is complete.
+
+# Zusammenfassung (Deutsch) {.unnumbered .unlisted}
+
+TODO: Write the German summary after the study is complete.
 
 ```{=typst}
 #pagebreak()
@@ -41,7 +79,8 @@ Quarto 1.10 exposes `lof` and `lot` as Typst options, but its stock Typst
 #outline(target: figure.where(kind: "quarto-float-fig"), title: [List of Figures])
 #pagebreak()
 #outline(target: figure.where(kind: "quarto-float-tbl"), title: [List of Tables])
-#pagebreak()
+#set page(numbering: "1")
+#counter(page).update(1)
 ```
 
 {{< include chapters/_01-introduction.qmd >}}

@@ -12,6 +12,8 @@ csl: ieee.csl
 format:
   typst:
     papersize: a4
+    # pa1.qmd enables Roman numbering after the unnumbered title page.
+    page-numbering: false
     fontsize: 12pt
     margin:
       x: 2.5cm

@@ -41,7 +41,8 @@
 - Keep changes small and reviewable.
 - Do not rewrite unrelated sections without being asked.
 
-## Deferred formatting
+## DHBW formatting
 
-- DHBW-specific title-page styling, Roman page numbering, declarations, and other complex front-matter formatting are intentionally deferred.
-- Keep clearly marked TODOs for deferred requirements rather than introducing custom Typst hacks prematurely.
+- `pa1.qmd` includes the DHBW title-page fields, bilingual abstract headings, Roman-numbered preliminary pages, and main-text numbering restarted at Arabic page 1.
+- Replace the visible title-page TODOs (student ID, course, supervisors, and submission date) before submission. Add the work period and dual partner only if applicable.
+- Final declaration wording and title-page styling beyond the required fields remain subject to confirmation; keep TODOs for unknown details rather than inventing them.
