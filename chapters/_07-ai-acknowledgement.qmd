@@ -16,4 +16,4 @@ Generative AI was used extensively throughout this project. AI systems supported
 
 : AI tools and models used to produce the project. {#tbl-ai-authoring-tools}
 
-The table concerns AI used to create the project. Models used only as benchmark subjects are documented in the methodology and results, rather than included here for their experimental use. The author remains responsible for research decisions, verification of sources and results, and the final code and manuscript.
+@tbl-ai-authoring-tools lists AI used to create the project. Models used only as benchmark subjects are documented in the methodology and results, rather than included here for their experimental use. The author remains responsible for research decisions, verification of sources and results, and the final code and manuscript.
