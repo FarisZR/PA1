@@ -16,6 +16,7 @@ Run from the repository root:  python scripts/review/build_review_pdf.py --base 
 from __future__ import annotations
 
 import argparse
+import json
 from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
@@ -120,11 +121,21 @@ def main() -> None:
         subprocess.run(["git", "worktree", "remove", "--force", str(path)], cwd=ROOT, capture_output=True)
         git("worktree", "add", "--detach", str(path), commit)
 
+    prev_failed: str | None = None
     try:
         jobs = [(ROOT, "head")] + [(REVIEW / "worktrees" / tag, tag) for tag in worktrees]
         with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
-            for future in [pool.submit(render_with_dump, *job) for job in jobs]:
-                future.result()
+            futures = {tag: pool.submit(render_with_dump, path, tag) for path, tag in jobs}
+            for tag, future in futures.items():
+                try:
+                    future.result()
+                except SystemExit:
+                    # An intermediate commit that does not render (e.g. a citation removed one
+                    # commit before its last use) only loses the latest-commit layer.
+                    if tag != "prev":
+                        raise
+                    print(f"Previous commit {prev[:7]} did not render; building the review without it.", flush=True)
+                    prev_failed, prev = prev, None
     finally:
         for tag in worktrees:
             git("worktree", "remove", "--force", str(REVIEW / "worktrees" / tag))
@@ -144,6 +155,11 @@ def main() -> None:
     if prev:
         diff_args += ["--prev", str(REVIEW / "prev.json"), "--prev-label", prev[:7]]
     subprocess.run(diff_args, cwd=ROOT, check=True)
+    if prev_failed:
+        manifest_path = REVIEW / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["prev_render_failed"] = prev_failed[:7]
+        manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     (ROOT / "pa1-review.qmd").write_text(REVIEW_STUB, encoding="utf-8")
     (ROOT / "_quarto-review.yml").write_text(REVIEW_PROFILE, encoding="utf-8")

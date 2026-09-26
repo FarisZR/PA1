@@ -138,6 +138,7 @@ jobs:
               print(f"latest={manifest.get('latest_change_count', 0)}", file=output)
               print(f"figures={manifest.get('figure_changes', 0)}", file=output)
               print(f"prev={manifest.get('prev') or ''}", file=output)
+              print(f"prev_failed={manifest.get('prev_render_failed') or ''}", file=output)
           PY
 
       - name: Set preview metadata
@@ -265,6 +266,7 @@ jobs:
           REVIEW_LATEST: ${{ steps.review.outputs.latest }}
           REVIEW_FIGURES: ${{ steps.review.outputs.figures }}
           REVIEW_PREV: ${{ steps.review.outputs.prev }}
+          REVIEW_PREV_FAILED: ${{ steps.review.outputs.prev_failed }}
         with:
           script: |
             const marker = '<!-- cloudflare-pages-pdf-preview -->';
@@ -275,7 +277,9 @@ jobs:
               links.push(`- [Review PDF with the changes marked](${preview}/pa1-review.pdf)`);
               const latest = process.env.REVIEW_PREV
                 ? `${process.env.REVIEW_LATEST} of them touched by the latest commit`
-                : 'all from the latest commit, as this PR has a single commit';
+                : process.env.REVIEW_PREV_FAILED
+                  ? `the latest commit is not marked separately because the previous commit ${process.env.REVIEW_PREV_FAILED} does not render`
+                  : 'all from the latest commit, as this PR has a single commit';
               const summary = process.env.REVIEW_CHANGES === '0'
                 ? 'Review PDF: this PR does not change the rendered paper. '
                 : `Review PDF: ${process.env.REVIEW_CHANGES} changed block(s), ${latest}; ` +
