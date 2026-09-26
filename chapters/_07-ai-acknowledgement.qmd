@@ -9,7 +9,7 @@ Generative AI was used extensively throughout this project. AI systems supported
 | Tool / interface | Underlying authoring models | Project role |
 |---|---|---|
 | ChatGPT | GPT-5.6 Sol; GPT-5.6 Luna; GPT-6 Sol; GPT-6 Luna | Research planning, literature discovery, analysis, drafting, revision, and review. |
-| Claude Code | Claude Opus 5; Claude Opus 5.5 | Software development, benchmark and repository work, manuscript support, drafting of the English and German abstracts, and review. |
+| Claude Code | Claude Opus 5; Claude Opus 5.5; Claude Sonnet 5; Claude Haiku 4.5 | Software development, benchmark and repository work, manuscript support, drafting of the English and German abstracts, and review. |
 | Codex CLI | GPT-5.6 Luna; GPT-5.6 Sol; GPT-6 Luna; GPT-6 Sol | Software development, repository maintenance, analysis, and review. |
 | OpenCode V2 | GPT-5.6 Sol | Limited software development and repository work. |
 | Pi | GPT-5.6 Luna; Claude Opus 5; rarely DeepSeek V4.1 Flash and GLM-5.3-Flash | Software development, benchmark and repository work, and analysis. |
