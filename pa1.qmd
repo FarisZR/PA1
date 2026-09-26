@@ -58,11 +58,25 @@ Roman numerals, and the main text restarts at page 1.
 
 # Abstract (English) {.unnumbered .unlisted}
 
-TODO: Write the English abstract after the study is complete.
+A coding agent combines a large language model with an agent harness, the software layer that executes the model's tool calls and manages its context. At IONOS SE, several harnesses and models are used side by side. This study examines how different agent harnesses affect the cost-efficiency and task-solving performance of coding models on software-engineering tasks. Claude Code, Codex CLI, Pi, and OpenCode V2 were run with GPT-5.6 Luna, Kimi K3, DeepSeek V4.1 Flash, and GLM-5.3-Flash on ten DeepSWE tasks. Task success, token use, and API-equivalent cost were measured in 140 trials.
+
+On the same model and tasks, the harness changed the number of solved tasks by up to five of ten and the cost by up to a factor of about two, in one combination by more than an order of magnitude. No harness was best on every model; whether features such as delegation helped or hindered depended on how each model used them. Which harness was cheaper depended on its token volume, its cache share, and the provider's cache pricing rather than on the size of its own prompt. OpenCode V2 was the most consistent harness, staying within one task of the best result on all three of its models at the lowest cost per solved task. The largest effect, however, came from LiteLLM defects in the gateway, which silently withheld the models' earlier reasoning and cut the tasks they solved to less than a third.
+
+The harness is therefore a decision of its own: where possible, it should be chosen per model, and OpenCode V2 is the most consistent single choice. Models, harnesses, and the gateway should be re-evaluated on a fixed task set after each change. With one run of ten tasks per combination, the results describe tendencies rather than statistically confirmed effects.
+
+```{=typst}
+#pagebreak()
+```
 
 # Zusammenfassung (Deutsch) {.unnumbered .unlisted}
 
-TODO: Write the German summary after the study is complete.
+::: {lang="de"}
+Ein Coding-Agent besteht aus einem Large Language Model (LLM) und einer Agent-Harness, also der Software, die Tool-Calls ausführt und den Kontext der Session verwaltet. Bei der IONOS SE kommen mehrere Harnesses und Modelle parallel zum Einsatz. Diese Arbeit untersucht, welchen Einfluss die Harness auf Kosteneffizienz und Erfolgsquote von Coding-Modellen bei Software-Engineering-Aufgaben hat. Hierzu wurden Claude Code, Codex CLI, Pi und OpenCode V2 mit GPT-5.6 Luna, Kimi K3, DeepSeek V4.1 Flash und GLM-5.3-Flash auf zehn DeepSWE-Aufgaben angesetzt. In 140 Trials wurden Erfolg, Token-Verbrauch und auf API-Preise normierte Kosten erfasst.
+
+Bei gleichem Modell und gleichen Aufgaben veränderte allein die Harness die Zahl gelöster Aufgaben um bis zu fünf von zehn und die Kosten bis etwa auf das Doppelte, bei Claude Code mit GPT-5.6 Luna sogar auf mehr als das Zehnfache. Eine Harness, die auf allen Modellen vorn liegt, gibt es nicht: Ob etwa Delegation an Subagents hilft oder schadet, entscheidet erst das Verhalten des jeweiligen Modells. Die Kostenunterschiede gehen auf Token-Volumen, Cache-Anteil und die Cache-Preise des Providers zurück, kaum dagegen auf den Umfang des Harness-eigenen Prompts. Am konstantesten schnitt OpenCode V2 ab: Auf allen drei getesteten Modellen lag es höchstens eine Aufgabe hinter dem besten Ergebnis und verursachte die geringsten Kosten pro gelöster Aufgabe. Den größten Einfluss hatte jedoch nicht die Harness, sondern das Gateway. Defekte in dessen LiteLLM-Version entfernten unbemerkt das frühere Reasoning der Modelle, die daraufhin weniger als ein Drittel der sonst gelösten Aufgaben bewältigten.
+
+Für die Praxis folgt daraus, die Harness nach Möglichkeit pro Modell zu wählen. Soll eine einzige Harness alle Modelle abdecken, ist OpenCode V2 die konstanteste Option. Modelle, Harnesses und Gateway sollten nach jeder Änderung auf einem festen Aufgabenset erneut evaluiert werden. Da jede Kombination nur einmal auf zehn Aufgaben lief, sind die Ergebnisse als Tendenzen und nicht als statistisch gesicherte Unterschiede zu verstehen.
+:::
 
 ```{=typst}
 #pagebreak()
