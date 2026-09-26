@@ -1,6 +1,6 @@
 # Results {#sec-results}
 
-The comparison rests on 140 canonical trials, ten per model--harness condition. Which runs count as canonical was settled only after the analysis had revealed several measurement problems and gateway defects. Within a model, every harness ran the same ten tasks at `max` reasoning effort where the configuration permitted, so the differences between harnesses include their provider routes but not the tasks.
+The comparison rests on 140 canonical trials, ten per model--harness condition. Which runs count as canonical was settled only after the analysis had revealed several measurement problems and gateway defects. Within a model, every harness ran the same ten tasks at `max` reasoning effort where the configuration permitted, and reached the same provider, so the differences between harnesses on the same model do not come from the tasks, the model, or its provider.
 
 ```{python}
 #| include: false
