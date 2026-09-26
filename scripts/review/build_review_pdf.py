@@ -19,6 +19,7 @@ import argparse
 import json
 from concurrent.futures import ThreadPoolExecutor
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -57,6 +58,41 @@ def git(*args: str) -> str:
     return subprocess.run(
         ["git", *args], cwd=ROOT, check=True, text=True, capture_output=True
     ).stdout.strip()
+
+
+def union_bibliography(commits: list[str]) -> Path:
+    """Write head's references.bib plus entries only older commits still have.
+
+    Deleted text stays visible in the review PDF, including citations whose
+    bibliography entries this PR removed; without them Typst cannot compile.
+    """
+
+    head_text = (ROOT / "references.bib").read_text(encoding="utf-8")
+    entry = re.compile(r"^@\w+\{([^,\s]+),.*?^\}\s*$", re.M | re.S)
+    keys = {m.group(1) for m in entry.finditer(head_text)}
+    extra = []
+    for commit in commits:
+        shown = subprocess.run(["git", "show", f"{commit}:references.bib"], cwd=ROOT,
+                               text=True, capture_output=True)
+        for m in entry.finditer(shown.stdout if shown.returncode == 0 else ""):
+            if m.group(1) not in keys:
+                keys.add(m.group(1))
+                extra.append(m.group(0))
+    path = REVIEW / "references-union.bib"
+    path.write_text(head_text.rstrip() + "\n\n" + "\n\n".join(extra) + "\n", encoding="utf-8")
+    return path
+
+
+def point_bibliography(node: object, bib: str) -> object:
+    """Replace the references.bib path in raw Typst bibliography calls."""
+
+    if isinstance(node, str):
+        return node.replace('#bibliography("references.bib"', f'#bibliography("{bib}"')
+    if isinstance(node, list):
+        return [point_bibliography(item, bib) for item in node]
+    if isinstance(node, dict):
+        return {key: point_bibliography(value, bib) for key, value in node.items()}
+    return node
 
 
 def render_with_dump(checkout: Path, tag: str) -> None:
@@ -160,6 +196,12 @@ def main() -> None:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["prev_render_failed"] = prev_failed[:7]
         manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    merged_path = REVIEW / "merged.json"
+    bib = union_bibliography([base] + ([prev] if prev else []))
+    merged = point_bibliography(json.loads(merged_path.read_text(encoding="utf-8")),
+                                bib.relative_to(ROOT).as_posix())
+    merged_path.write_text(json.dumps(merged), encoding="utf-8")
 
     (ROOT / "pa1-review.qmd").write_text(REVIEW_STUB, encoding="utf-8")
     (ROOT / "_quarto-review.yml").write_text(REVIEW_PROFILE, encoding="utf-8")
