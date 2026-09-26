@@ -32,7 +32,7 @@ _Markdown("\n".join(_tasks))
 
 The four harnesses were selected for complementary practical reasons. Claude Code and Codex represent first-party coding agents from major model providers. OpenCode was the second-most common first-choice harness in the internal survey described in @sec-current-state, while Pi, a deliberately minimal harness with four default tools, provides a lightweight alternative [@pi0844Readme]. OpenCode V2, the next major version, which was not yet the default release during the benchmark, was selected instead of V1 because its new server and session interface (@sec-appendix-opencode) is more representative of the tool's future development. The models come from four providers. Claude models were planned as well but dropped because of their cost. Kimi K3 is the most expensive model per token in the comparison [@kimiPricing], and on DeepSWE it solved 69% of the tasks at `max` effort, close to the 74% of Claude Opus 5 [@deepsweTrials2026]. DeepSeek V4.1 Flash, GPT-5.6 Luna, and GLM-5.3-Flash cost a fraction of Kimi K3 per token [@deepseekPricing; @openaiGpt56Luna; @zaiPricing]. All models are run at `max` reasoning effort where the retained configuration permits.
 
-The planned model--harness cross-product could not be completed within the fixed evaluation budget. The first Fireworks-backed GLM-5.3-Flash run consumed most of the remaining pay-as-you-go budget [@pa1GlmRouteData], so Kimi K3 was not run with OpenCode V2. GPT-5.6 Luna was retained across all four harnesses by routing it through the researcher's personal ChatGPT subscription instead of incurring further pay-as-you-go API expenditure. Several runs were later excluded or repeated because of gateway defects that only became visible in the analysis; @sec-measurement-corrections describes these defects, and @sec-benchmark-coverage shows the resulting benchmark matrix.
+The planned model--harness cross-product could not be completed within the fixed evaluation budget. The first Fireworks-backed GLM-5.3-Flash run consumed most of the remaining pay-as-you-go budget [@pa1GlmRouteData], so Kimi K3 was not run with OpenCode V2. GPT-5.6 Luna was retained across all four harnesses by routing it through the researcher's personal ChatGPT subscription instead of incurring further pay-as-you-go API expenditure. Several runs were later excluded or repeated because of gateway defects that only became visible in the analysis.
 
 ## Experimental controls
 
@@ -61,7 +61,7 @@ One exception changes the evaluated system. Codex 0.151.0 ships a native profile
 | | AiOrbit's Anthropic translation → Fireworks (original runs); CLIProxyAPI with `is-compat: true` → AiOrbit → Fireworks (repeated runs) | Claude Code |
 | GPT-5.6 Luna | CLIProxyAPI → ChatGPT subscription | all four |
 
-: Provider routes per model and harness. The two Claude Code routes are compared in @sec-claude-code-reasoning. {#tbl-routes tbl-colwidths="[26,52,22]"}
+: Provider routes per model and harness. {#tbl-routes tbl-colwidths="[26,52,22]"}
 
 AiOrbit, Fireworks, and CLIProxyAPI are infrastructure outside the experimental manipulation. They may transform requests or introduce provider-side failures that the study cannot control. The results therefore characterize the harnesses under these documented deployment paths rather than an abstract provider-independent environment.
 

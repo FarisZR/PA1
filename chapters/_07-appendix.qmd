@@ -11,7 +11,7 @@ refers to these sections where a detail matters for reading a result.
 
 # Benchmark Setup Details {#sec-appendix-setup}
 
-Reproducing the benchmark requires more than the task set: model profiles, prices, provider routes, concurrency limits, and the exact runner version of each run also shape how a trial executes and what it costs.
+Reproducing the benchmark requires more than the task set: model profiles, prices, provider routes, concurrency limits, and the exact runner version of each run also shape how a trial executes and what it costs. None of these details changes a task, its verifier, or the reward; they are recorded so that every run can be traced to the configuration that produced it.
 
 ## Task selection {#sec-appendix-task-selection}
 

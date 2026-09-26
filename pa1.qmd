@@ -46,6 +46,7 @@ Roman numerals, and the main text restarts at page 1.
   [*Work period*], [{{< meta work-period >}}],
   [*Submission date*], [{{< meta submission-date >}}],
 )
+#pagebreak(weak: true)
 #set page(numbering: "i")
 #counter(page).update(1)
 ```
@@ -73,9 +74,9 @@ The harness is therefore a decision of its own: where possible, it should be cho
 ::: {lang="de"}
 Ein Coding-Agent besteht aus einem Large Language Model und einer Agent-Harness, der Softwareschicht, die Tool-Calls des Modells ausführt und dessen Kontext verwaltet. Bei der IONOS SE werden mehrere Harnesses und Modelle parallel eingesetzt. Diese Arbeit untersucht, wie sich unterschiedliche Agent-Harnesses auf Kosteneffizienz und Lösungsleistung von Coding-Modellen bei Software-Engineering-Aufgaben auswirken. Hierzu wurden Claude Code, Codex CLI, Pi und OpenCode V2 mit Kimi K3, DeepSeek V4.1 Flash, GPT-5.6 Luna und GLM-5.3-Flash an zehn DeepSWE-Aufgaben evaluiert. In 140 Trials wurden Lösungserfolg, Token-Verbrauch und auf API-Preise normierte Kosten gemessen.
 
-Bei gleichem Modell und gleichen Aufgaben veränderte die Harness die Zahl gelöster Aufgaben um bis zu fünf von zehn und die Kosten um bis zu einen Faktor von etwa zwei; bei Claude Code mit GPT-5.6 Luna stiegen sie auf mehr als das Zehnfache. Keine Harness war auf allen Modellen die beste: Ob Funktionen wie Delegation an Subagents nützten oder schadeten, hing vom jeweiligen Modell ab. Die Kosten hingen vor allem von Token-Volumen, Cache-Anteil und Cache-Preisen des Providers ab, kaum von der Länge des Harness-eigenen Prompts. Als konsistenteste Harness erwies sich OpenCode V2: Sie lag auf allen drei getesteten Modellen höchstens eine Aufgabe hinter dem besten Ergebnis und war, bezogen auf die gelösten Aufgaben, die günstigste. Den größten Effekt hatte jedoch das Gateway zwischen Harness und Modell. Durch Defekte in dessen LiteLLM-Version ging das Reasoning früherer Modellaufrufe ohne Fehlermeldung verloren, und die betroffenen Modelle lösten weniger als ein Drittel der sonst gelösten Aufgaben.
+Bei gleichem Modell und gleichen Aufgaben veränderte die Harness die Zahl gelöster Aufgaben um bis zu fünf von zehn und die Kosten um bis zu einen Faktor von etwa zwei; bei Claude Code mit GPT-5.6 Luna stiegen sie auf mehr als das Zehnfache. Keine Harness war auf allen Modellen die beste: Ob Funktionen wie Delegation an Subagents nützten oder schadeten, hing vom jeweiligen Modell ab. Die Kosten hingen vor allem von Token-Volumen, Cache-Anteil und Cache-Preisen ab, kaum von der Länge des Harness-eigenen Prompts. Als konsistenteste Harness erwies sich OpenCode V2: Sie lag auf allen drei getesteten Modellen höchstens eine Aufgabe hinter dem besten Ergebnis und war je gelöster Aufgabe die günstigste. Den größten Effekt hatte jedoch das Gateway: Durch Defekte in dessen LiteLLM-Version ging das Reasoning früherer Modellaufrufe ohne Fehlermeldung verloren, und die betroffenen Modelle lösten weniger als ein Drittel der sonst gelösten Aufgaben.
 
-Die Wahl der Harness ist somit eine eigene Entscheidung neben der Modellwahl. Wo möglich, empfiehlt es sich, sie für jedes Modell gesondert zu treffen. Soll eine Harness alle Modelle abdecken, bietet sich OpenCode V2 an. Zudem empfiehlt es sich, Modelle, Harnesses und Gateway nach jeder Änderung mit einem festen Aufgabensatz erneut zu evaluieren. Da jede Kombination nur einmal auf zehn Aufgaben getestet wurde, zeigen die Ergebnisse Tendenzen, keine statistisch gesicherten Unterschiede.
+Die Wahl der Harness ist somit eine eigene Entscheidung neben der Modellwahl und wird am besten für jedes Modell gesondert getroffen. Soll eine Harness alle Modelle abdecken, bietet sich OpenCode V2 an. Zudem empfiehlt es sich, Modelle, Harnesses und Gateway nach jeder Änderung mit einem festen Aufgabensatz erneut zu evaluieren. Da jede Kombination nur einmal auf zehn Aufgaben getestet wurde, zeigen die Ergebnisse Tendenzen, keine statistisch gesicherten Unterschiede.
 :::
 
 ```{=typst}

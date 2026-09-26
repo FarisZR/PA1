@@ -1,6 +1,6 @@
 # Results {#sec-results}
 
-The comparison rests on 140 canonical trials, ten per model--harness condition. Which runs count as canonical was settled only after the analysis had revealed several measurement problems and gateway defects.
+The comparison rests on 140 canonical trials, ten per model--harness condition. Which runs count as canonical was settled only after the analysis had revealed several measurement problems and gateway defects. Within a model, every harness ran the same ten tasks at `max` reasoning effort where the configuration permitted, so the differences between harnesses include their provider routes but not the tasks.
 
 ```{python}
 #| include: false
@@ -1035,7 +1035,7 @@ if ds_quoted != ds_expected:
     raise ValueError(f"DeepSeek V4.1 Flash data changed; update the text: {ds_quoted}")
 ```
 
-DeepSeek V4.1 Flash is compared in all four harnesses. Three conditions rest on repetitions made after the gateway defects were fixed: five Codex trials, the complete Pi run, and the Claude Code `is-compat` rerun (@sec-measurement-corrections). The canonical trials therefore ran on four days, from 2026-09-21 to 2026-09-24, and a change in Fireworks' undisclosed serving setup in this period cannot be ruled out (@sec-limitations). Every trial requested `max` reasoning effort and met the retention criterion of @sec-gateway-reasoning-history, although the Codex trial on `katex` made its first nine measured calls before the gateway upgrade (@sec-appendix-reasoning-evidence). All harnesses were configured with DeepSeek's documented context window of 1,000,000 tokens [@deepseekPricing]. With ten paired observations per harness, the differences are again reported descriptively.
+DeepSeek V4.1 Flash is compared in all four harnesses. Three conditions rest on repetitions made after the gateway defects were fixed: five Codex trials, the complete Pi run, and the Claude Code `is-compat` rerun (@sec-measurement-corrections). The canonical trials therefore ran on four days, from 2026-09-21 to 2026-09-24, and a change in Fireworks' undisclosed serving setup in this period cannot be ruled out. Every trial requested `max` reasoning effort and met the retention criterion of @sec-gateway-reasoning-history, although the Codex trial on `katex` made its first nine measured calls before the gateway upgrade (@sec-appendix-reasoning-evidence). All harnesses were configured with DeepSeek's documented context window of 1,000,000 tokens [@deepseekPricing]. With ten paired observations per harness, the differences are again reported descriptively.
 
 ### Task success {#sec-deepseek-success}
 
@@ -1829,7 +1829,7 @@ _ax.figure.set_size_inches(6.3, 3.6)
 _ax.figure.tight_layout()
 ```
 
-The additional work did not produce additional solutions. Claude Code cost between 3.9 and 52.4 times as much as Codex on every task, and it was the most expensive harness on every task (@fig-luna-cost-success). It passed three tasks, compared with five for Codex and seven for OpenCode V2, and none that OpenCode V2 had not also solved. The four trials with the most subagents all failed. The `koota` trial started 69 subagents and reached the three-hour timeout without passing a single fail-to-pass test, although Codex, Pi, and OpenCode V2 all solved `koota`. The three trials with only four subagents cost between USD 3.70 and 7.12 each. For Luna, the subagents accounted for most of Claude Code's tokens, and their work did not produce additional solutions. Whether Claude Code would have been cheaper without delegation was not measured.
+Despite this additional work, Claude Code solved fewer tasks than the other harnesses. It cost between 3.9 and 52.4 times as much as Codex on every task, and it was the most expensive harness on every task (@fig-luna-cost-success). It passed three tasks, compared with five for Codex and seven for OpenCode V2, and none that OpenCode V2 had not also solved. The four trials with the most subagents all failed. The `koota` trial started 69 subagents and reached the three-hour timeout without passing a single fail-to-pass test, although Codex, Pi, and OpenCode V2 all solved `koota`. The three trials with only four subagents cost between USD 3.70 and 7.12 each. For Luna, the subagents accounted for most of Claude Code's tokens; how Claude Code would have performed without delegation was not measured.
 
 ### Early compaction in OpenCode V2 {#sec-luna-compaction}
 
@@ -2417,7 +2417,7 @@ for _run in GLM_RUNS:
 Markdown("\n".join(_route_table))
 ```
 
-Without its earlier reasoning, GLM performed far worse. On the same 30 task--harness pairs in Pi, Claude Code, and Codex, the first run passed 2 tasks instead of 19 and reached the three-hour timeout 9 times instead of once. It read 5.63 billion input tokens instead of 0.76 billion and cost USD 179.07 instead of USD 29.06, 6.2 times as much, without solving more. The difference was largest in Codex: its ten trials cost USD 136.86 instead of USD 7.72, 17.7 times as much, and solved no task. In its six timed-out trials, GLM took between 2,040 and 2,895 agent steps and read between 492 and 780 million input tokens each. The costliest trial, Codex on `katex`, cost 38.3 times its counterpart in the second run. The first OpenCode V2 run passed three tasks, according to Pier's final attempts, and three of its trials timed out. @fig-glm-routes shows the agent steps, the longest run of identical calls, and the agent time of every trial in the three runs. @sec-discussion-reasoning-loss compares this breakdown with DeepSeek V4.1 Flash, which lost its reasoning to the same defect.
+Without its earlier reasoning, GLM performed far worse. On the same 30 task--harness pairs in Pi, Claude Code, and Codex, the first run passed 2 tasks instead of 19 and reached the three-hour timeout 9 times instead of once. It read 5.63 billion input tokens instead of 0.76 billion and cost USD 179.07 instead of USD 29.06, 6.2 times as much, without solving more. The difference was largest in Codex: its ten trials cost USD 136.86 instead of USD 7.72, 17.7 times as much, and solved no task. In its six timed-out trials, GLM took between 2,040 and 2,895 agent steps and read between 492 and 780 million input tokens each. The costliest trial, Codex on `katex`, cost 38.3 times its counterpart in the second run. The first OpenCode V2 run passed three tasks, according to Pier's final attempts, and three of its trials timed out. @fig-glm-routes shows the agent steps, the longest run of identical calls, and the agent time of every trial in the three runs.
 
 ```{python}
 #| label: fig-glm-routes

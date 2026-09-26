@@ -141,7 +141,7 @@ Among these respondents, alternative providers therefore mostly complement rathe
 
 ## Model cost tiers
 
-Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration, averaged over all DeepSWE tasks as listed on the leaderboard on 2026-09-20 [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. @tbl-model-cost-tiers summarizes the resulting tiers. Unnamed models remain excluded. The tiers describe DeepSWE's average task: Kimi K3 lies just below the high-cost boundary at USD 4.65 per task, and on tasks that need more tokens than the average, its cost moves into the high-cost range.
+Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration, averaged over all DeepSWE tasks as listed on the leaderboard on 2026-09-20 [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. @tbl-model-cost-tiers summarizes the resulting tiers. Unnamed models remain excluded. The tiers describe DeepSWE's average task: Kimi K3 lies just below the high-cost boundary at USD 4.65 per task, and tasks that need more tokens than the average can raise its cost into the high-cost range.
 
 | Tier | DeepSWE criterion | Models |
 |---|---|---|
