@@ -20,6 +20,8 @@ format:
       y: 2.5cm
     linestretch: 1.2
     number-sections: true
+    # DIN 1421 numbering (Leitlinien 4.1): 4.1.2 rather than Typst's default 4.1.b.
+    section-numbering: 1.1.1
     # The declaration and abstract precede the manually placed contents list.
     toc: false
     toc-depth: 3

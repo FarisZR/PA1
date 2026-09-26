@@ -16,8 +16,10 @@ Run from the repository root:  python scripts/review/build_review_pdf.py --base 
 from __future__ import annotations
 
 import argparse
+import json
 from concurrent.futures import ThreadPoolExecutor
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -56,6 +58,41 @@ def git(*args: str) -> str:
     return subprocess.run(
         ["git", *args], cwd=ROOT, check=True, text=True, capture_output=True
     ).stdout.strip()
+
+
+def union_bibliography(commits: list[str]) -> Path:
+    """Write head's references.bib plus entries only older commits still have.
+
+    Deleted text stays visible in the review PDF, including citations whose
+    bibliography entries this PR removed; without them Typst cannot compile.
+    """
+
+    head_text = (ROOT / "references.bib").read_text(encoding="utf-8")
+    entry = re.compile(r"^@\w+\{([^,\s]+),.*?^\}\s*$", re.M | re.S)
+    keys = {m.group(1) for m in entry.finditer(head_text)}
+    extra = []
+    for commit in commits:
+        shown = subprocess.run(["git", "show", f"{commit}:references.bib"], cwd=ROOT,
+                               text=True, capture_output=True)
+        for m in entry.finditer(shown.stdout if shown.returncode == 0 else ""):
+            if m.group(1) not in keys:
+                keys.add(m.group(1))
+                extra.append(m.group(0))
+    path = REVIEW / "references-union.bib"
+    path.write_text(head_text.rstrip() + "\n\n" + "\n\n".join(extra) + "\n", encoding="utf-8")
+    return path
+
+
+def point_bibliography(node: object, bib: str) -> object:
+    """Replace the references.bib path in raw Typst bibliography calls."""
+
+    if isinstance(node, str):
+        return node.replace('#bibliography("references.bib"', f'#bibliography("{bib}"')
+    if isinstance(node, list):
+        return [point_bibliography(item, bib) for item in node]
+    if isinstance(node, dict):
+        return {key: point_bibliography(value, bib) for key, value in node.items()}
+    return node
 
 
 def render_with_dump(checkout: Path, tag: str) -> None:
@@ -120,11 +157,21 @@ def main() -> None:
         subprocess.run(["git", "worktree", "remove", "--force", str(path)], cwd=ROOT, capture_output=True)
         git("worktree", "add", "--detach", str(path), commit)
 
+    prev_failed: str | None = None
     try:
         jobs = [(ROOT, "head")] + [(REVIEW / "worktrees" / tag, tag) for tag in worktrees]
         with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
-            for future in [pool.submit(render_with_dump, *job) for job in jobs]:
-                future.result()
+            futures = {tag: pool.submit(render_with_dump, path, tag) for path, tag in jobs}
+            for tag, future in futures.items():
+                try:
+                    future.result()
+                except SystemExit:
+                    # An intermediate commit that does not render (e.g. a citation removed one
+                    # commit before its last use) only loses the latest-commit layer.
+                    if tag != "prev":
+                        raise
+                    print(f"Previous commit {prev[:7]} did not render; building the review without it.", flush=True)
+                    prev_failed, prev = prev, None
     finally:
         for tag in worktrees:
             git("worktree", "remove", "--force", str(REVIEW / "worktrees" / tag))
@@ -144,6 +191,17 @@ def main() -> None:
     if prev:
         diff_args += ["--prev", str(REVIEW / "prev.json"), "--prev-label", prev[:7]]
     subprocess.run(diff_args, cwd=ROOT, check=True)
+    if prev_failed:
+        manifest_path = REVIEW / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["prev_render_failed"] = prev_failed[:7]
+        manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    merged_path = REVIEW / "merged.json"
+    bib = union_bibliography([base] + ([prev] if prev else []))
+    merged = point_bibliography(json.loads(merged_path.read_text(encoding="utf-8")),
+                                bib.relative_to(ROOT).as_posix())
+    merged_path.write_text(json.dumps(merged), encoding="utf-8")
 
     (ROOT / "pa1-review.qmd").write_text(REVIEW_STUB, encoding="utf-8")
     (ROOT / "_quarto-review.yml").write_text(REVIEW_PROFILE, encoding="utf-8")

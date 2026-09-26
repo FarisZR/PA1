@@ -1,11 +1,12 @@
 # Current State at IONOS SE {#sec-current-state}
 
+The harnesses and models compared in this study are chosen against their use at IONOS SE. An internal survey among employees shows which harness--model configurations they use and what they report spending on coding agents.
 
-## Internal Survey
+## Internal survey
 
-An internal survey conducted between August and September 2026 received 57 responses. It was distributed through four Google Chat rooms: two team rooms and two rooms focused on AI users and AI products. Several employees were also contacted directly. This sampling favors employees with high AI interest and adoption. The results therefore describe an AI-active subgroup rather than usage across IONOS SE.
+An internal survey conducted from 2026-08-13 to 2026-09-17 received 57 responses; the questionnaire is reproduced in @sec-appendix-survey. It was distributed through four Google Chat rooms: two team rooms and two rooms focused on AI users and AI products. Several employees were also contacted directly. This sampling favors employees with high AI interest and adoption. The results therefore describe an AI-active subgroup rather than usage across IONOS SE.
 
-Respondents reported one first-choice configuration and up to three additional configurations used at least weekly. The two Claude Code answer labels were merged. Adoption rates count each respondent once per harness or model; configuration analyses count each distinct respondent--harness--model pair once. "Other" and automatically selected models are excluded where a named model or provider is required.
+Respondents reported one first-choice configuration and up to three additional configurations used at least weekly. The Claude Code option was renamed shortly after the survey opened, from "Claude (Code/Desktop code mode)" to "Claude (Code CLI/Desktop code mode)"; answers with either label are counted as Claude Code. Adoption rates count each respondent once per harness or model; configuration analyses count each distinct respondent--harness--model pair once. "Other" and automatically selected models are excluded where a named model or provider is required.
 
 The model list was fixed when the survey was published and was not updated for later releases. Models released afterwards, including DeepSeek V4.1 Flash and GLM-5.3-Flash, were therefore not available as named choices. Their adoption may consequently be understated in the survey.
 
@@ -34,7 +35,7 @@ survey = load_survey("data/company-survey.csv")
 model_tiers = load_model_tiers("data/model-cost-tiers.csv")
 ```
 
-## Harness-Model Configurations
+## Harness--model configurations
 
 The combined configurations show a clear Claude-centered pattern. Claude Code with Claude Opus 5 was the most common primary configuration, selected by 18 of 57 respondents (31.6%), and appeared in 24 weekly workflows (42.1%). Claude Code with Claude Sonnet 5 appeared in 15 workflows (26.3%), followed by Claude Code with Claude Sonnet 4.6 in 11 (19.3%). @fig-survey-configuration-usage shows the eight most common named configurations.
 
@@ -59,7 +60,7 @@ plot_grouped_bar(
 
 *Source: own analysis of the internal survey. Unnamed configurations are omitted.*
 
-## Harness Usage
+## Harness usage
 
 Claude Code was the first-choice harness for 41 of 57 respondents (71.9%) and was used weekly by 52 (91.2%). OpenCode ranked second with 8 first-choice responses (14.0%) and 15 weekly users (26.3%). Codex and GitHub Copilot each had 9 weekly users (15.8%); Pi had 5 (8.8%). @fig-survey-harness-usage compares first-choice and weekly use.
 
@@ -88,7 +89,7 @@ Multiple setups were common. A total of 42 respondents (73.7%) reported at least
 
 Alternative harnesses mostly complemented Claude Code. Among weekly users, 12 of 15 OpenCode users and 8 of 9 Codex users also used Claude Code. The same applied to all 9 GitHub Copilot users, all 7 Antigravity users, and all 5 Pi users.
 
-## Model Usage
+## Model usage
 
 Anthropic models were similarly concentrated. An Anthropic model was primary for 42 respondents (73.7%), and 51 (89.5%) used at least one named Anthropic model weekly.
 
@@ -138,9 +139,9 @@ _ = plot_pie(
 
 Among these respondents, alternative providers therefore mostly complement rather than replace Anthropic.
 
-## Model Cost Tiers
+## Model cost tiers
 
-Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. @tbl-model-cost-tiers summarizes the resulting tiers. Unnamed models remain excluded.
+Named models were grouped by the average cost per task of their best-listed DeepSWE v1.1 configuration, averaged over all DeepSWE tasks as listed on the leaderboard on 2026-09-20 [@deepsweLeaderboard2026]. Costs below USD 2 are classified as low, USD 2 to below USD 5 as medium, and USD 5 or more as high. @tbl-model-cost-tiers summarizes the resulting tiers. Unnamed models remain excluded. The tiers describe DeepSWE's average task: Kimi K3 lies just below the high-cost boundary at USD 4.65 per task, and tasks that need more tokens than the average can raise its cost into the high-cost range.
 
 | Tier | DeepSWE criterion | Models |
 |---|---|---|
@@ -201,7 +202,7 @@ _ = plot_pie_comparison(
 
 The respondent-level data show the same association. Of the 17 respondents using at least one medium-cost model, 13 (76.5%) used multiple named providers and 13 (76.5%) used multiple harnesses. Among the 40 respondents without a medium-cost model, 11 (27.5%) used multiple named providers. This exploratory result suggests that medium-cost models are more common in diversified workflows.
 
-## Reported Cost
+## Reported cost
 
 Monthly coding-agent cost was reported in categories rather than exact amounts. Of the 57 responses, 33 gave a monetary range, 15 selected a flat-rate subscription, 8 selected "I don't know", and 1 was blank. Among the 33 monetary responses, 22 (66.7%) reported at least EUR 100 per month. @fig-survey-reported-cost keeps the original categories instead of converting ranges to estimated values.
 

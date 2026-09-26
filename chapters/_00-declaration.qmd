@@ -2,11 +2,22 @@
 #v(3em)
 ```
 
-# Declaration of Authorship {.unnumbered .unlisted}
+# Ehrenwörtliche Erklärung {.unnumbered .unlisted}
 
-I hereby declare that I prepared this work independently and used no sources or aids other than those stated in the paper. I have not submitted this work, or work with the same or comparable content, for any other examination, and it has not previously been published.
+<!--
+Wording of § 20 DHBW StuPrO as given in Leitlinien 4.4, with the extension for
+AI tools. The sentence on the printed copy ("Des Weiteren versichere ich, dass
+die eingereichte elektronische Fassung mit der gedruckten Ausfertigung
+übereinstimmt.") applies only if a printed copy is also submitted.
+-->
 
-I used AI tools in preparing this work. Their use is disclosed in the AI Acknowledgement.
+::: {lang="de"}
+Ich versichere hiermit, dass ich die vorliegende Arbeit selbstständig verfasst und keine anderen als die angegebenen Quellen und Hilfsmittel verwendet habe und diese Arbeit bei keiner anderen Prüfung mit gleichem oder vergleichbarem Inhalt vorgelegt habe und diese bislang nicht veröffentlicht wurde.
+
+Ich habe bei der Erstellung der Arbeit KI-Werkzeuge eingesetzt. Dies habe ich an den entsprechenden Stellen der Arbeit kenntlich gemacht.
+:::
+
+*English translation:* I hereby declare that I prepared this work independently and used no sources or aids other than those stated, that I have not submitted this work, or work with the same or comparable content, for any other examination, and that it has not previously been published. I used AI tools in preparing this work and have disclosed their use in the AI Acknowledgement.
 
 ```{=typst}
 #v(3em)

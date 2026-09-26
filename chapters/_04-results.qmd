@@ -1,5 +1,7 @@
 # Results {#sec-results}
 
+The comparison rests on 140 canonical trials, ten per model--harness condition. Which runs count as canonical was settled only after the analysis had revealed several measurement problems and gateway defects. Within a model, every harness ran the same ten tasks at `max` reasoning effort where the configuration permitted, and reached the same provider, so the differences between harnesses on the same model do not come from the tasks, the model, or its provider.
+
 ```{python}
 #| include: false
 
@@ -14,20 +16,20 @@ import pandas as pd
 
 ## Measurement corrections {#sec-measurement-corrections}
 
-Several measurement problems only became visible while analyzing the completed runs, when rerunning the affected trials was no longer possible within the budget. @tbl-measurement-issues summarizes them. Corrected values are published beside Pier's unmodified output, and apart from the selection of canonical attempts (@sec-canonical-attempts), no correction changes a verifier outcome, a retry, or the task set; @sec-appendix-corrections documents each correction. Two of them affect how individual results are read. OpenCode V2's native `grep` and `glob` tools failed because they depend on a ripgrep binary that the sandbox could not download (@sec-opencode-ripgrep). OpenCode V2 was therefore evaluated without working native search tools, and these calls are excluded from the invocation-error rates. The first GPT-5.6 Luna run in OpenCode V2 compacted at 124,000 instead of 240,000 tokens because of a configuration check in the Pier fork and was repeated (@sec-opencode-input-limit). The gateway defects, which removed the models' earlier reasoning and led to the exclusion or repetition of several runs, are described in the following subsections.
+Several measurement problems only became visible while analyzing the completed runs, when rerunning the affected trials was no longer possible within the budget. @tbl-measurement-issues summarizes them. Corrected values are published beside Pier's unmodified output, and apart from the selection of canonical attempts (@sec-canonical-attempts), no correction changes a verifier outcome, a retry, or the task set; @sec-appendix-corrections documents each correction. Two of them affect how individual results are read. The native `grep` and `glob` tools of OpenCode V2 failed because they depend on a ripgrep binary that the sandbox could not download (@sec-opencode-ripgrep). OpenCode V2 was therefore evaluated without working native search tools, and these calls are excluded from the invocation-error rates. The first GPT-5.6 Luna run in OpenCode V2 compacted at 124,000 instead of 240,000 tokens because of a configuration check in the Pier fork and was repeated (@sec-opencode-input-limit). The gateway defects, which removed the models' earlier reasoning and led to the exclusion or repetition of several runs, are described in the following subsections.
 
 | Issue | Origin | Treatment |
 |:------|:-------|:----------|
 | Codex context metrics count output tokens | Upstream Pier | Recomputed |
-| OpenCode V2 usage totals withheld | PA1 adapter, by design | Recovered from session records |
-| OpenCode V2 session dump split on U+0085 | PA1 adapter, defect | Trajectories rebuilt |
+| OpenCode V2 usage totals withheld | This study's adapter, by design | Recovered from session records |
+| OpenCode V2 session dump split on U+0085 | This study's adapter, defect | Trajectories rebuilt |
 | Exit status 1 after a recovered step failure | Upstream OpenCode 2.0.8 | First attempt canonical |
-| Retries after non-transport failures | Pier retry rule, PA1 exclusion list | First attempt canonical |
+| Retries after non-transport failures | Pier retry rule, this study's exclusion list | First attempt canonical |
 | `max` effort lowered to `high` in Claude Code | Upstream LiteLLM gateway | Kimi run excluded; DeepSeek run repeated |
 | Earlier reasoning not passed back to the model in Claude Code | LiteLLM gateway; CLIProxyAPI default configuration | Kimi run excluded; DeepSeek run repeated |
 | Earlier reasoning removed before reaching Fireworks | Upstream LiteLLM gateway | DeepSeek Codex trials and Pi run repeated; GLM-5.3-Flash run repeated |
 | OpenCode V2 `grep` and `glob` fail without ripgrep | Upstream OpenCode 2.0.8; sandbox egress policy | Disclosed; excluded from error rates |
-| OpenCode V2 Luna input limit of 144,000 tokens | PA1 configuration; Pier preflight check | Run repeated |
+| OpenCode V2 Luna input limit of 144,000 tokens | This study's configuration; Pier preflight check | Run repeated |
 
 : Measurement issues discovered after the benchmark runs. {#tbl-measurement-issues tbl-colwidths="[45,30,25]"}
 
@@ -37,7 +39,7 @@ Thinking models on the Fireworks route, such as DeepSeek V4.1 Flash, return thei
 
 AiOrbit ran LiteLLM 1.101.0 until about 12:02 UTC on 2026-09-21 and 1.102.0 afterwards. Fireworks accepted the shortened requests, so nothing failed. The harnesses sent their earlier reasoning correctly, but in every trial that ran before the upgrade, the model never received it [@pa1Issue111]. The defect lies in the gateway, not in the evaluated harnesses.
 
-Four independent checks, from the LiteLLM source code to the prompt sizes reported by Fireworks, confirm this (@sec-appendix-reasoning-evidence). The check used here needs no logs, so it can be applied to every trial. When the model receives its earlier reasoning, that reasoning becomes part of the next prompt, so the prompt grows by at least as much. Two Codex calls with a similar amount of reasoning show the difference. Before the upgrade, one call produced 8,800 reasoning tokens, but the next prompt grew by only 496 tokens, or 6%; the reasoning was not in it. After the upgrade, a call with 7,996 reasoning tokens was followed by a prompt 9,920 tokens larger, or 124%, because the tool result came on top of the reasoning.
+Four complementary checks, from the LiteLLM source code to the prompt sizes reported by Fireworks, confirm this (@sec-appendix-reasoning-evidence). The check used here needs no logs, so it can be applied to every trial. When the model receives its earlier reasoning, that reasoning becomes part of the next prompt, so the prompt grows by at least as much. Two Codex calls with a similar amount of reasoning show the difference. Before the upgrade, one call produced 8,800 reasoning tokens, but the next prompt grew by only 496 tokens, or 6%; the reasoning was not in it. After the upgrade, a call with 7,996 reasoning tokens was followed by a prompt 9,920 tokens larger, or 124%, because the tool result came on top of the reasoning.
 
 Comparing every call that produced at least 1,000 reasoning tokens in this way separates the trials cleanly (@fig-reasoning-growth; @tbl-reasoning-history). Across the eleven affected trials, the median of trial-level prompt-growth ratios was 9%, and no trial median exceeded 32%. Across the 39 retained-reasoning trials, no trial median was below 107%, and their median was 124%. The bridge logs show the same split: requests handled by LiteLLM 1.101.0 grew by a median of 6%, and those handled by 1.102.0 by 124%. A trial therefore counts as without earlier reasoning when its prompts grew by less than half of the preceding reasoning. The exact line does not matter, because no trial median falls between 32% and 107%.
 
@@ -392,7 +394,7 @@ ax_calls.legend(loc="upper left", bbox_to_anchor=(0.01, 0.83), fontsize=7, frame
 fig.tight_layout(h_pad=2.3)
 ```
 
-The other runs in @tbl-reasoning-history are unaffected. Kimi K3's Pi and Codex runs used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs had further route defects and are treated in the next subsection. The first GLM-5.3-Flash run ran entirely before the upgrade and lost the earlier reasoning in every measurable trial.
+The other runs in @tbl-reasoning-history are unaffected. The Pi and Codex runs of Kimi K3 used LiteLLM 1.98.0, which predates the change, and the DeepSeek OpenCode V2 run started after the upgrade. GPT-5.6 Luna does not pass through LiteLLM at all. The DeepSeek Claude Code runs had further route defects and are treated in the next subsection. The first GLM-5.3-Flash run ran entirely before the upgrade and lost the earlier reasoning in every measurable trial.
 
 The removed reasoning also caused the only three context-window rejections in the benchmark (@sec-appendix-reasoning-evidence). All affected observations are removed from the comparative data. The five affected DeepSeek Codex trials and the complete DeepSeek Pi run were repeated with unchanged configurations, and the complete first GLM-5.3-Flash run was repeated in all four harnesses. Codex was repeated including the one affected trial that had passed, so that the selection depended on when a trial ran and not on its outcome. Every repeated trial passed the same prompt-growth check. @sec-deepseek-codex-reasoning and @sec-glm-routes compare the original and repeated runs.
 
@@ -400,7 +402,7 @@ The removed reasoning also caused the only three context-window rejections in th
 
 The original LiteLLM-routed Claude Code runs have two further defects. First, Claude Code requests reasoning effort through the Anthropic `output_config.effort` field, and LiteLLM's Anthropic-to-OpenAI translation in the AiOrbit gateway lowers `max` to `high` unless the deployment declares support for `max` [@litellm1101; @pa1Issue94]. A local reproduction with the LiteLLM versions active on the run days (1.98.0 for Kimi K3; 1.101.0 for DeepSeek V4.1 Flash) forwarded `high` for both models and for GLM-5.3-Flash, so these runs were most likely executed at `high`; the gateway's deployment configuration during the runs could not be inspected directly. Second, Claude Code sends its earlier thinking blocks back in the conversation history, but they did not reach the model. A local replay of LiteLLM 1.98.0 omitted them for Kimi K3, and CLIProxyAPI's default Anthropic translation omitted them as well; only its `is-compat: true` option passes them through as `reasoning_content` [@pa1Issue102]. GPT-5.6 Luna is not affected, because its signed thinking blocks are converted to encrypted reasoning items.
 
-For DeepSeek, Claude Code was therefore run three times. The LiteLLM-routed run lost the earlier reasoning in its six trials before the gateway upgrade [@pa1Issue111], the CLIProxyAPI run without `is-compat` kept `max` but lost it in all ten trials, and the `is-compat` rerun requested `max` and retained it in all ten. Only the third run enters the comparison; @sec-deepseek-claude-routes compares the three. The Kimi K3 Claude Code run cannot represent the intended `max`-effort condition and is excluded from all comparative results [@pa1Issue108]; whether Kimi depends on its earlier reasoning as strongly as DeepSeek was not verified. The repeated GLM-5.3-Flash run used the `is-compat` route, and every one of its Claude Code trials retained the earlier reasoning.
+For DeepSeek, Claude Code was therefore run three times. The LiteLLM-routed run lost the earlier reasoning in its six trials before the gateway upgrade [@pa1Issue111], the CLIProxyAPI run without `is-compat` kept `max` but lost it in all ten trials, and the `is-compat` rerun requested `max` and retained it in all ten. Only the third run enters the comparison; @sec-deepseek-claude-routes compares the three. The Kimi K3 Claude Code run cannot represent the intended `max`-effort condition and is excluded from all comparative results; whether Kimi depends on its earlier reasoning as strongly as DeepSeek was not verified. The repeated GLM-5.3-Flash run used the `is-compat` route, and every one of its Claude Code trials retained the earlier reasoning.
 
 ## Benchmark coverage {#sec-benchmark-coverage}
 
@@ -725,9 +727,9 @@ if kimi_quoted != kimi_expected:
     raise ValueError(f"Kimi K3 data changed; update the text: {kimi_quoted}")
 ```
 
-Kimi K3 by Moonshot AI is the frontier-class model in the comparison. Only its Pi and Codex runs enter the results; the Claude Code run is excluded (@sec-claude-code-reasoning), and OpenCode V2 was not run (@sec-benchmark-coverage). Neither harness was affected by the removal of earlier reasoning on the Fireworks route, because they ran on LiteLLM 1.98.0, which predates the change (@sec-gateway-reasoning-history).
+Kimi K3 by Moonshot AI is the most expensive model per token in the comparison and, on DeepSWE, close to the leading closed models (@sec-methodology). Only its Pi and Codex runs enter the results; the Claude Code run is excluded (@sec-claude-code-reasoning), and OpenCode V2 was not run (@sec-benchmark-coverage). Neither harness was affected by the removal of earlier reasoning on the Fireworks route, because they ran on LiteLLM 1.98.0, which predates the change (@sec-gateway-reasoning-history).
 
-Both harnesses used Kimi's native 1,048,576-token context window. Codex solved six tasks that Pi did not, and Pi solved one that Codex did not. If both harnesses were equally capable, a split at least this uneven would still occur with a probability of 12.5% (sign test, @sec-metrics), so the difference in success is reported descriptively.
+Both harnesses used Kimi's native 1,048,576-token context window [@kimiPricing]. Codex solved six tasks that Pi did not, and Pi solved one that Codex did not. If both harnesses were equally capable, a split at least this uneven would still occur with a probability of 12.5% (sign test, @sec-metrics), so the difference in success is reported descriptively.
 
 ### Task success {#sec-kimi-success}
 
@@ -850,7 +852,7 @@ Invocation errors are counted as defined in @sec-metrics. Codex rejected 5.1% of
 
 ```{python}
 #| label: fig-kimi-invocation-errors
-#| fig-cap: "Share of Kimi K3's tool calls rejected as invalid invocations per harness, divided by the tool category of the rejected calls. Segment labels give each category's share of the harness's errors; the label above each bar gives the rate and the number of rejected and counted calls. Shell exits are not counted. In Codex, 41 of the 44 shell errors and 28 of the 63 edit errors are JavaScript errors in the cell itself."
+#| fig-cap: "Share of the tool calls of Kimi K3 rejected as invalid invocations per harness, divided by the tool category of the rejected calls. Segment labels give each category's share of the harness's errors; the label above each bar gives the rate and the number of rejected and counted calls. Shell exits are not counted. In Codex, 41 of the 44 shell errors and 28 of the 63 edit errors are JavaScript errors in the cell itself."
 
 _ax = plot_invocation_errors(kimi)
 _ax.figure.set_size_inches(6.3, 3.2)
@@ -1033,7 +1035,7 @@ if ds_quoted != ds_expected:
     raise ValueError(f"DeepSeek V4.1 Flash data changed; update the text: {ds_quoted}")
 ```
 
-DeepSeek V4.1 Flash is compared in all four harnesses. Three conditions rest on repetitions made after the gateway defects were fixed: five Codex trials, the complete Pi run, and the Claude Code `is-compat` rerun (@sec-measurement-corrections). The canonical trials therefore ran on four days, from 2026-09-21 to 2026-09-24, and a change in Fireworks' undisclosed serving setup in this period cannot be ruled out (@sec-limitations). Every trial requested `max` reasoning effort and met the retention criterion of @sec-gateway-reasoning-history, although the Codex trial on `katex` made its first nine measured calls before the gateway upgrade (@sec-appendix-reasoning-evidence). All harnesses were configured with DeepSeek's documented context window of 1,000,000 tokens. With ten paired observations per harness, the differences are again reported descriptively.
+DeepSeek V4.1 Flash is compared in all four harnesses. Three conditions rest on repetitions made after the gateway defects were fixed: five Codex trials, the complete Pi run, and the Claude Code `is-compat` rerun (@sec-measurement-corrections). The canonical trials therefore ran on four days, from 2026-09-21 to 2026-09-24, and a change in Fireworks' undisclosed serving setup in this period cannot be ruled out. Every trial requested `max` reasoning effort and met the retention criterion of @sec-gateway-reasoning-history, although the Codex trial on `katex` made its first nine measured calls before the gateway upgrade (@sec-appendix-reasoning-evidence). All harnesses were configured with DeepSeek's documented context window of 1,000,000 tokens [@deepseekPricing]. With ten paired observations per harness, the differences are again reported descriptively.
 
 ### Task success {#sec-deepseek-success}
 
@@ -1082,7 +1084,7 @@ _ax.figure.tight_layout()
 
 Claude Code and Pi used the fewest resources. Relative to Codex, both used 0.76 times the input tokens, took about 0.8 times the agent steps, and ran about 0.8 times as long (per-task geometric means). Claude Code used 0.92 times the output tokens of Codex and Pi 0.99 times. Their median trials took 37 and 40 minutes, compared with 56 minutes for Codex and 68 minutes for OpenCode V2 (@tbl-deepseek-overview). OpenCode V2 used about as many tokens as Codex but ran 1.26 times as long.
 
-Claude Code and Pi nevertheless cost slightly more than Codex because of the cache. The cost normalization uses DeepSeek's official off-peak prices (@sec-cost-accounting): USD 0.003 per million cached input tokens, 2% of the USD 0.15 per million uncached ones. Claude Code and Pi each read 97.0% of their input from the cache, Codex 98.5%, and OpenCode V2 98.9%. The remaining uncached input accounts for 47% of Claude Code's cost and 44% of Pi's, compared with 30% for Codex and 24% for OpenCode V2. A difference of 1.5 percentage points in the cache-hit share thus outweighed their lower token use. @fig-deepseek-tokens plots the input and output token counts for each trial, distinguishing passing and failing trials and marking the median.
+Claude Code and Pi nevertheless cost slightly more than Codex because of the cache. The cost normalization uses DeepSeek's official off-peak prices (@sec-appendix-prices): USD 0.003 per million cached input tokens, 2% of the USD 0.15 per million uncached ones. Claude Code and Pi each read 97.0% of their input from the cache, Codex 98.5%, and OpenCode V2 98.9%. The remaining uncached input accounts for 47% of Claude Code's cost and 44% of Pi's, compared with 30% for Codex and 24% for OpenCode V2. A difference of 1.5 percentage points in the cache-hit share thus outweighed their lower token use. @fig-deepseek-tokens plots the input and output token counts for each trial, distinguishing passing and failing trials and marking the median.
 
 ```{python}
 #| label: fig-deepseek-tokens
@@ -1099,7 +1101,7 @@ outcome_legend(axes[0], loc="lower left", bbox_to_anchor=(0.0, 1.0), ncols=3)
 fig.tight_layout()
 ```
 
-@fig-deepseek-cache relates each trial's input tokens to its cache-hit share; trials toward the top left used few tokens and read most of them from the cache. Unlike for GPT-5.6 Luna (@sec-luna-cost), where Claude Code's range lay well below the others, all four ranges overlap: Claude Code's trials read between 93.0% and 98.6% of their input from the cache, Pi's between 94.8% and 98.4%, Codex's between 95.7% and 99.0%, and OpenCode V2's between 97.3% and 99.5%. Within each harness, the share rose with the trial's input tokens (rank correlation between 0.62 and 0.95). In all four harnesses, `csstree` had the lowest share and `scriggo`, the trial with the most input tokens, the highest. Longer trials re-read the same growing prompt more often, so the uncached part carries less weight. The harness still mattered on the same task: Codex read a larger share from the cache than Claude Code and Pi on all ten tasks, and OpenCode V2 a larger share than Codex on eight.
+@fig-deepseek-cache relates each trial's input tokens to its cache-hit share; trials toward the top left used few tokens and read most of them from the cache. All four ranges overlap: Claude Code's trials read between 93.0% and 98.6% of their input from the cache, Pi's between 94.8% and 98.4%, Codex's between 95.7% and 99.0%, and those of OpenCode V2 between 97.3% and 99.5%. Within each harness, the share rose with the trial's input tokens (rank correlation between 0.62 and 0.95). In all four harnesses, `csstree` had the lowest share and `scriggo`, the trial with the most input tokens, the highest. Longer trials re-read the same growing prompt more often, so the uncached part carries less weight. The harness still mattered on the same task: Codex read a larger share from the cache than Claude Code and Pi on all ten tasks, and OpenCode V2 a larger share than Codex on eight.
 
 ```{python}
 #| label: fig-deepseek-cache
@@ -1128,7 +1130,7 @@ _axes[0].figure.tight_layout()
 
 ### Context and compaction {#sec-deepseek-context}
 
-As for Kimi K3 (@sec-kimi-context), no DeepSeek trial compacted its context in any harness. The largest prompts reached between 444,566 tokens (Pi) and 496,718 tokens (OpenCode V2), all on `scriggo`, and the median of the trials' largest prompts was between 271,288 tokens (Claude Code) and 317,777 tokens (OpenCode V2) (@fig-deepseek-context). Every prompt therefore stayed below half of the configured 1,000,000-token window. A compaction panel as for GPT-5.6 Luna is omitted because every count is zero.
+As for Kimi K3 (@sec-kimi-context), no DeepSeek trial compacted its context in any harness. The largest prompts reached between 444,566 tokens (Pi) and 496,718 tokens (OpenCode V2), all on `scriggo`, and the median of the trials' largest prompts was between 271,288 tokens (Claude Code) and 317,777 tokens (OpenCode V2) (@fig-deepseek-context). Every prompt therefore stayed below half of the configured 1,000,000-token window. Because no trial compacted, the figure shows only the prompt sizes.
 
 ```{python}
 #| label: fig-deepseek-context
@@ -1146,7 +1148,7 @@ fig.tight_layout()
 
 ### Tool use and invocation errors {#sec-deepseek-tools}
 
-@fig-deepseek-tool-mix shows how DeepSeek used the tools of each harness. Shell calls dominated everywhere: 72% of Pi's calls, 70% of Codex's, 57% of Claude Code's, and 52% of OpenCode V2's. Pi and Claude Code read files with their read tools in 11% of their calls. Claude Code never called `Grep` or `Glob`; searches ran through the shell. It also created and updated task lists in 120 calls. The OpenCode V2 read share of 17% includes 20 failed `grep` and `glob` calls (@sec-measurement-corrections). Claude Code and OpenCode V2 attempted 5 and 26 web fetches, which the sandbox blocked.
+@fig-deepseek-tool-mix shows how DeepSeek used the tools of each harness. Shell calls dominated everywhere: 72% of Pi's calls, 70% of Codex's, 57% of Claude Code's, and 52% of those of OpenCode V2. Pi and Claude Code read files with their read tools in 11% of their calls. Claude Code never called `Grep` or `Glob`; searches ran through the shell. It also created and updated task lists in 120 calls. The OpenCode V2 read share of 17% includes 20 failed `grep` and `glob` calls (@sec-measurement-corrections). Claude Code and OpenCode V2 attempted 5 and 26 web fetches, which the sandbox blocked.
 
 ```{python}
 #| label: fig-deepseek-tool-mix
@@ -1696,7 +1698,7 @@ for harness, stats in luna_summary.items():
 Markdown("\n".join(_overview))
 ```
 
-@fig-luna-task-outcomes shows the result of every trial. Each cell gives the number of fail-to-pass tests that passed, which measures how close a failed trial came to a solution. Eight tasks were solved in at least one harness. The hard tasks `expr` and `python-statemachine` were solved in none; all four harnesses stopped at 77 or 78 of 79 and at 69 or 70 of 72 tests. The same few tests therefore defeated Luna regardless of the harness. Two failures passed every fail-to-pass test but broke existing behavior: Claude Code on `oxvg` passed 60 of 62 previously passing tests, and Pi on `scriggo` 775 of 1,049.
+@fig-luna-task-outcomes shows the result of every trial. Each cell gives the number of fail-to-pass tests that passed, which measures how close a failed trial came to a solution. Eight tasks were solved in at least one harness. The hard tasks `expr` and `python-statemachine` were solved in none; all four harnesses stopped at 77 or 78 of 79 and at 69 or 70 of 72 tests. The same few tests therefore stopped Luna regardless of the harness. Two failures passed every fail-to-pass test but broke existing behavior: Claude Code on `oxvg` passed 60 of 62 previously passing tests, and Pi on `scriggo` 775 of 1,049.
 
 ```{python}
 #| label: fig-luna-task-outcomes
@@ -1741,7 +1743,7 @@ outcome_legend(axes[0], loc="upper left")
 fig.tight_layout()
 ```
 
-@fig-luna-cache relates each trial's input tokens to its cache-hit share; trials toward the top left used few tokens and read most of them from the cache. Claude Code occupies a separate range. Its trials read between 86.1% and 92.8% of their input from the cache when root sessions and subagents are combined, whereas the trials of Codex, Pi, and OpenCode V2 all stayed between 96.2% and 98.8%. The additional Claude Code root-only points separate the harness's cache use from the effect of delegation: its root sessions read 96.0% of their input from the cache (90.1%--98.3% per task), compared with 85% for subagents. Within each harness, the overall cache-hit share varied by at most seven percentage points, so it depends mainly on the harness rather than on the task.
+@fig-luna-cache relates each trial's input tokens to its cache-hit share; trials toward the top left used few tokens and read most of them from the cache. Claude Code occupies a separate range, unlike on DeepSeek V4.1 Flash, where the ranges of all four harnesses overlap (@sec-deepseek-cost). Its trials read between 86.1% and 92.8% of their input from the cache when root sessions and subagents are combined, whereas the trials of Codex, Pi, and OpenCode V2 all stayed between 96.2% and 98.8%. The additional Claude Code root-only points separate the harness's cache use from the effect of delegation: its root sessions read 96.0% of their input from the cache (90.1%--98.3% per task), compared with 85% for subagents. Within each harness, the overall cache-hit share varied by at most seven percentage points, so it depends mainly on the harness rather than on the task.
 
 ```{python}
 #| label: fig-luna-cache
@@ -1770,7 +1772,7 @@ _axes[0].figure.tight_layout()
 
 ### Context and compaction {#sec-luna-context}
 
-All four harnesses were configured for the same 272,000-token window and used most of it (@fig-luna-context). Their largest prompts reached between 239,619 tokens (Claude Code) and 255,403 tokens (Pi); OpenCode V2 reached 240,679 tokens, just above its compaction threshold of 240,000 tokens (@sec-opencode-input-limit). Claude Code's largest prompt was almost the same in every trial, between 237,738 and 239,619 tokens. Codex, Pi, and OpenCode V2 compacted rarely: 8, 5, and 10 times in ten trials. Claude Code compacted 79 times, including the compactions of its subagents. The harnesses compacted in different ways. In all 8 Codex compactions, the raw rollouts show OpenAI's server-side compaction, which replaces the history with an encrypted item. Pi, Claude Code, and OpenCode V2 instead had Luna write a plain-text summary of the conversation. OpenCode V2 thus passed the most tasks without OpenAI's own compaction. Its advantage does not come from compaction, however: two of the three tasks that it solved and Codex failed, `csstree` and `katex`, involved no compaction in either harness.
+All four harnesses were configured for the same 272,000-token window and used most of it (@fig-luna-context). Their largest prompts reached between 239,619 tokens (Claude Code) and 255,403 tokens (Pi); OpenCode V2 reached 240,679 tokens, just above its compaction threshold of 240,000 tokens (@sec-opencode-input-limit). Claude Code's largest prompt was almost the same in every trial, between 237,738 and 239,619 tokens. Codex, Pi, and OpenCode V2 compacted rarely: 8, 5, and 10 times in ten trials. Claude Code compacted 79 times, including the compactions of its subagents. The harnesses compacted in different ways. In all 8 Codex compactions, the raw rollouts show OpenAI's server-side compaction, which replaces the history with an encrypted item. Pi, Claude Code, and OpenCode V2 instead had Luna write a plain-text summary of the conversation. OpenCode V2 passed the most tasks without OpenAI's server-side compaction. Its advantage does not come from its own compaction either: two of the three tasks that it solved and Codex failed, `csstree` and `katex`, involved no compaction in either harness.
 
 ```{python}
 #| label: fig-luna-context
@@ -1814,7 +1816,7 @@ _ax.figure.tight_layout()
 
 ### Delegation in Claude Code {#sec-luna-delegation}
 
-Claude Code was the only harness in which Luna delegated work; in the other three harnesses it started no subagent. In Claude Code, Luna started 324 subagents in ten trials, between 4 and 69 per trial, and 320 of them ran in the background. Claude Code rejected 77 further requests because the limit on concurrent subagents was reached. For the started subagents, Luna requested the `opus` model 163 times, `sonnet` 130 times, and `haiku` 22 times. The same-model control described in @sec-methodology ran all of them on Luna.
+Claude Code was the only harness in which Luna delegated work; in the other three harnesses it started no subagent. In Claude Code, Luna started 324 subagents in ten trials, between 4 and 69 per trial, and 320 of them ran in the background. Claude Code rejected 77 further requests because the limit on concurrent subagents was reached. For the started subagents, Luna requested the `opus` model 163 times, `sonnet` 130 times, and `haiku` 22 times, and left the model unspecified 9 times. The same-model control described in @sec-methodology ran all of them on Luna.
 
 The subagents consumed most of the tokens. They account for 72% of Claude Code's input tokens and 86% of its output tokens. Each subagent starts with its own context, and only 85% of the subagents' input came from the cache, compared with 96% in the root sessions. No subagent prompt exceeded 239,619 tokens, so delegation did not bypass the 272,000-token window. @fig-luna-delegation shows this split for every task, together with the number of subagents started.
 
@@ -1827,7 +1829,7 @@ _ax.figure.set_size_inches(6.3, 3.6)
 _ax.figure.tight_layout()
 ```
 
-The additional work did not produce additional solutions. Claude Code cost between 3.9 and 52.4 times as much as Codex on every task, and it was the most expensive harness on every task (@fig-luna-cost-success). It passed three tasks, compared with five for Codex and seven for OpenCode V2, and none that OpenCode V2 had not also solved. The four trials with the most subagents all failed. The `koota` trial started 69 subagents and reached the three-hour timeout without passing a single fail-to-pass test, although Codex, Pi, and OpenCode V2 all solved `koota`. The three trials with only four subagents cost between USD 3.70 and 7.12 each. For Luna, Claude Code's delegation multiplied the cost and duration of a trial without improving its outcome.
+Despite this additional work, Claude Code solved fewer tasks than the other harnesses. It cost between 3.9 and 52.4 times as much as Codex on every task, and it was the most expensive harness on every task (@fig-luna-cost-success). It passed three tasks, compared with five for Codex and seven for OpenCode V2, and none that OpenCode V2 had not also solved. The four trials with the most subagents all failed. The `koota` trial started 69 subagents and reached the three-hour timeout without passing a single fail-to-pass test, although Codex, Pi, and OpenCode V2 all solved `koota`. The three trials with only four subagents cost between USD 3.70 and 7.12 each. For Luna, the subagents accounted for most of Claude Code's tokens; how Claude Code would have performed without delegation was not measured.
 
 ### Early compaction in OpenCode V2 {#sec-luna-compaction}
 
@@ -2117,7 +2119,7 @@ Markdown("\n".join(_overview))
 
 @fig-glm-task-outcomes shows the result of every trial. Three tasks were solved in all four harnesses: `fastapi`, `python-statemachine`, and `scriggo`. The hard task `oxvg` was solved in none. Codex failed four tasks that at least two other harnesses solved, each by one to four fail-to-pass tests: 16 of 17 in `boa`, 77 of 79 in `expr`, 90 of 94 in `katex`, and 49 of 51 in `koota`. In `effect`, which only Claude Code solved, it passed 43 of 47. Codex and Pi solved `csstree`, which Claude Code and OpenCode V2 missed by five and six tests.
 
-The three `oxvg` trials without a single passing fail-to-pass test were checked in the raw logs (@sec-appendix-trial-audits). The patches of Claude Code and Codex did not compile, so no test ran. The Pi trial ended like Kimi K3's Pi trial on `scriggo` (@sec-kimi-success): its last call ran a build through a pipe that never returned, Pi's `bash` tool has no default time limit, and the trial waited until the three-hour timeout without committing a change. OpenCode V2 passed four of the six fail-to-pass tests.
+The three `oxvg` trials without a single passing fail-to-pass test were checked in the raw logs (@sec-appendix-trial-audits). The patches of Claude Code and Codex did not compile, so no test ran. The Pi trial ended like the Pi trial of Kimi K3 on `scriggo` (@sec-kimi-success): its last call ran a build through a pipe that never returned, Pi's `bash` tool has no default time limit, and the trial waited until the three-hour timeout without committing a change. OpenCode V2 passed four of the six fail-to-pass tests.
 
 ```{python}
 #| label: fig-glm-task-outcomes
@@ -2415,7 +2417,7 @@ for _run in GLM_RUNS:
 Markdown("\n".join(_route_table))
 ```
 
-Losing its earlier reasoning was catastrophic for GLM. On the same 30 tasks in Pi, Claude Code, and Codex, the first run passed 2 tasks instead of 19 and reached the three-hour timeout 9 times instead of once. It read 5.63 billion input tokens instead of 0.76 billion and cost USD 179.07 instead of USD 29.06, 6.2 times as much, without solving more. Codex was hit hardest: its ten trials cost USD 136.86 instead of USD 7.72, 17.7 times as much, and solved no task. In its six timed-out trials, GLM took between 2,040 and 2,895 agent steps and read between 492 and 780 million input tokens each. The costliest trial, Codex on `katex`, cost 38.3 times its counterpart in the second run. The first OpenCode V2 run passed three tasks, according to Pier's final attempts, and three of its trials timed out. @fig-glm-routes shows the agent steps, the longest run of identical calls, and the agent time of every trial in the three runs. @sec-discussion-reasoning-loss compares this breakdown with DeepSeek V4.1 Flash, which lost its reasoning to the same defect.
+Without its earlier reasoning, GLM performed far worse. On the same 30 task--harness pairs in Pi, Claude Code, and Codex, the first run passed 2 tasks instead of 19 and reached the three-hour timeout 9 times instead of once. It read 5.63 billion input tokens instead of 0.76 billion and cost USD 179.07 instead of USD 29.06, 6.2 times as much, without solving more. The difference was largest in Codex: its ten trials cost USD 136.86 instead of USD 7.72, 17.7 times as much, and solved no task. In its six timed-out trials, GLM took between 2,040 and 2,895 agent steps and read between 492 and 780 million input tokens each. The costliest trial, Codex on `katex`, cost 38.3 times its counterpart in the second run. The first OpenCode V2 run passed three tasks, according to Pier's final attempts, and three of its trials timed out. @fig-glm-routes shows the agent steps, the longest run of identical calls, and the agent time of every trial in the three runs.
 
 ```{python}
 #| label: fig-glm-routes
@@ -2455,11 +2457,11 @@ outcome_legend(axes[1], loc="upper right")
 fig.tight_layout()
 ```
 
-The steps and tokens came from loops. In four first-run Codex trials, GLM issued the same tool call with identical arguments hundreds of times in a row: 1,953 times on `csstree`, 1,869 on `effect`, 1,836 on `python-statemachine`, and 863 on `koota`. @fig-glm-loop shows the `effect` trial call by call in all three runs. In the first run, 2,052 of its 2,355 tool calls repeated the call before them; the longest run was the search `rg -n "Schema.Simplify" packages/effect/src/Schema.ts`. With its earlier reasoning, GLM needed 368 calls on the Z.AI route and 177 in the second run, and apart from waiting for running commands, only one call repeated the one before it. GLM also produced a median of only 111 output tokens per agent step in the first-run Codex trials. In Pi, GLM ran the same Bash probe 742 times in a row on `scriggo` until the timeout, and the Jev audit classified 740 of these calls as repetition without progress [@pa1JevAuditData].
+The steps and tokens came from loops. In four first-run Codex trials, GLM issued the same tool call with identical arguments hundreds of times in a row: 1,953 times on `csstree`, 1,869 on `effect`, 1,836 on `python-statemachine`, and 863 on `koota`. @fig-glm-loop shows the `effect` trial call by call in all three runs. In the first run, 2,052 of its 2,355 tool calls repeated the call before them; the longest run was the search `rg -n "Schema.Simplify" packages/effect/src/Schema.ts`. With its earlier reasoning, GLM needed 368 calls on the Z.AI route and 177 in the second run, and apart from waiting for running commands, only one call repeated the one before it. GLM also produced a median of only 111 output tokens per agent step in the first-run Codex trials. In Pi, GLM ran the same Bash probe 742 times in a row on `scriggo` until the timeout.
 
 ```{python}
 #| label: fig-glm-loop
-#| fig-cap: "Every tool call of GLM-5.3-Flash in Codex on `effect`, in order, in the first Fireworks run without the earlier reasoning, the direct Z.AI batch, and the second Fireworks run. Red marks a call identical to the one before it; light blue marks a call that only waited for output from a running command; gray marks every other call."
+#| fig-cap: "Every tool call of GLM-5.3-Flash in Codex on the `effect` task, in order, in the first Fireworks run without the earlier reasoning, the direct Z.AI batch, and the second Fireworks run. Red marks a call identical to the one before it; light blue marks a call that only waited for output from a running command; gray marks every other call."
 
 from scripts.harness_figures import GRID, INK, MUTED
 
