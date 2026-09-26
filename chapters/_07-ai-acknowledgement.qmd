@@ -9,11 +9,13 @@ Generative AI was used extensively throughout this project. AI systems supported
 | Tool / interface | Underlying authoring models | Project role |
 |---|---|---|
 | ChatGPT | GPT-5.6 Sol; GPT-5.6 Luna; GPT-6 Sol; GPT-6 Luna | Research planning, literature discovery, analysis, drafting, revision, and review. |
-| Claude Code | Claude Opus 5; Claude Opus 5.5 | Software development, benchmark and repository work, manuscript support, and review. |
+| Claude Code | Claude Opus 5; Claude Opus 5.5 | Software development, benchmark and repository work, manuscript support, drafting of the English and German abstracts, and review. |
 | Codex CLI | GPT-5.6 Luna; GPT-5.6 Sol; GPT-6 Luna; GPT-6 Sol | Software development, repository maintenance, analysis, and review. |
 | OpenCode V2 | GPT-5.6 Sol | Limited software development and repository work. |
-| Pi | GPT-5.6 Luna; Claude Opus 5; DeepSeek V4.1 Flash | Software development, benchmark and repository work, and analysis. |
+| Pi | GPT-5.6 Luna; Claude Opus 5; rarely DeepSeek V4.1 Flash and GLM-5.3-Flash | Software development, benchmark and repository work, and analysis. |
+| CodeRabbit | Not specified by the service | Automated review of pull requests. |
+| TypeSafe Jev | Jev System One, a classification model | Classification of agent steps in the trajectory audit of the first GLM-5.3-Flash run (@sec-appendix-jev). |
 
 : AI tools and models used to produce the project. {#tbl-ai-authoring-tools}
 
-@tbl-ai-authoring-tools lists AI used to create the project. Models used only as benchmark subjects are documented in the methodology and results, rather than included here for their experimental use. The author remains responsible for research decisions, verification of sources and results, and the final code and manuscript.
+@tbl-ai-authoring-tools lists AI used to create the project. Models used only as benchmark subjects are documented in the methodology and results, rather than included here for their experimental use. The researcher remains responsible for research decisions, verification of sources and results, and the final code and manuscript.
